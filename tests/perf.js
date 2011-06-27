@@ -24,7 +24,12 @@ var sm = require('../index')
   , sitemap = new sm.Sitemap();
 
 console.time(' * generating test data')
-for (var i=1; i<50000; i++) {sitemap.urls.push('/test-url-'+i+'/');}
+for (var i=1; i<50000; i++) {
+  sitemap.urls.push({
+    "url": '/test-url-'+i+'/',
+    "safe": true
+  });
+}
 console.timeEnd(' * generating test data')
 
 console.time(' * test sitemap')

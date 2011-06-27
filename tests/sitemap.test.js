@@ -8,28 +8,28 @@ var sm = require('../index'),
     assert = require('assert');
 
 module.exports = {
-  'sitemap item: deafult values': function () {
-    var url = 'ya.ru'
+  'sitemap item: deafult values && escape': function () {
+    var url = 'http://ya.ru/view?widget=3&count>2'
       , smi = new sm.SitemapItem({'url': url});
 
     assert.eql(smi.toString(),
               '<url> '+
-                  '<loc>ya.ru</loc> '+
+                  '<loc>http://ya.ru/view?widget=3&amp;count&gt;2</loc> '+
                   '<changefreq>weekly</changefreq> '+
                   '<priority>0.5</priority> '+
               '</url>');
   },
   'sitemap item: error for url absence': function () {
-    var url = 'ya.ru';
+    var url = 'http://ya.ru';
     assert.throws(
       function() {
         var smi = new sm.SitemapItem();
       },
-      sm.NoSitemapURLError
+      sm.NoURLError
     );
   },
   'sitemap item: full options': function () {
-    var url = 'ya.ru'
+    var url = 'http://ya.ru'
       , smi = new sm.SitemapItem({
           'url': url,
           'lastmod': '2011-06-27',
@@ -39,7 +39,7 @@ module.exports = {
 
     assert.eql(smi.toString(),
               '<url> '+
-                  '<loc>ya.ru</loc> '+
+                  '<loc>http://ya.ru</loc> '+
                   '<lastmod>2011-06-27</lastmod> '+
                   '<changefreq>always</changefreq> '+
                   '<priority>0.9</priority> '+
@@ -57,7 +57,7 @@ module.exports = {
     assert.eql(sm_one.urls, [url]);
   },
   'simple sitemap': function() {
-    var url = 'ya.ru';
+    var url = 'http://ya.ru';
     var ssp = new sm.Sitemap();
     ssp.urls.push(url);
 
@@ -65,7 +65,7 @@ module.exports = {
               '<?xml version="1.0" encoding="UTF-8"?>\n'+
               '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
                 '<url> '+
-                    '<loc>ya.ru</loc> '+
+                    '<loc>http://ya.ru</loc> '+
                     '<changefreq>weekly</changefreq> '+
                     '<priority>0.5</priority> '+
                 '</url>\n'+
