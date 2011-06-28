@@ -70,4 +70,8 @@ module.exports = {
                 '</url>\n'+
               '</urlset>');
   },
+  'lpad test': function() {
+    assert.eql(sm.utils.lpad(5, 2), '05');
+    assert.eql(sm.utils.lpad(6, 2, '-'), '-6');
+  },
 }
