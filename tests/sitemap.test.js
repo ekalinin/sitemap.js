@@ -74,4 +74,7 @@ module.exports = {
     assert.eql(sm.utils.lpad(5, 2), '05');
     assert.eql(sm.utils.lpad(6, 2, '-'), '-6');
   },
+  'distinctValues test': function() {
+    assert.eql(sm.utils.distinctArray([1, 2, 2, 5, 2]), [1, 2, 5]);
+  },
 }
