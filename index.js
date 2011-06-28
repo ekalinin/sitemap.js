@@ -6,6 +6,7 @@
 
 module.exports = require('./lib/sitemap');
 module.exports.utils = require('./lib/utils');
+module.exports.errors = require('./lib/errors');
 
 /**
  * Framework version.

@@ -20,12 +20,11 @@ module.exports = {
               '</url>');
   },
   'sitemap item: error for url absence': function () {
-    var url = 'http://ya.ru';
+    var url = 'http://ya.ru'
+      , smi;
     assert.throws(
-      function() {
-        var smi = new sm.SitemapItem();
-      },
-      sm.NoURLError
+      function() { smi = new sm.SitemapItem(); },
+      /URL is required/
     );
   },
   'sitemap item: full options': function () {
