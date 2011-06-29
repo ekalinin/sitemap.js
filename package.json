@@ -8,6 +8,5 @@
   "devDependencies": {
     "expresso": "0.7.6"
   },
-  "main": "index",
-  "bin": { "node-sitemap": "./bin/node-sitemap" }
+  "main": "index"
 }
