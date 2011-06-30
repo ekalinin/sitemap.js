@@ -14,9 +14,8 @@
  *
  * array realisation:
  *  $ node tests/perf.js
- *    * generating test data: 15ms
- *    * test sitemap: 197ms
- *
+ *    * generating test data: 20ms
+ *    * test sitemap: 217ms
  *
  */
 
@@ -25,7 +24,7 @@ var sm = require('../index')
 
 console.time(' * generating test data')
 for (var i=1; i<50000; i++) {
-  sitemap.urls.push({
+  sitemap.add({
     "url": '/test-url-'+i+'/',
     "safe": true
   });

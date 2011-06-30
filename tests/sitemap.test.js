@@ -44,7 +44,24 @@ module.exports = {
                   '<priority>0.9</priority> '+
               '</url>');
   },
-  'sitemap empty': function () {
+  'sitemap item: toXML': function () {
+    var url = 'http://ya.ru'
+      , smi = new sm.SitemapItem({
+          'url': url,
+          'lastmod': '2011-06-27',
+          'changefreq': 'always',
+          'priority': 0.9
+        });
+
+    assert.eql(smi.toXML(),
+              '<url> '+
+                  '<loc>http://ya.ru</loc> '+
+                  '<lastmod>2011-06-27</lastmod> '+
+                  '<changefreq>always</changefreq> '+
+                  '<priority>0.9</priority> '+
+              '</url>');
+  },
+  'sitemap empty urls': function () {
     var sm_empty = new sm.Sitemap();
 
     assert.eql(sm_empty.urls, [])
@@ -76,5 +93,41 @@ module.exports = {
   },
   'distinctValues test': function() {
     assert.eql(sm.utils.distinctArray([1, 2, 2, 5, 2]), [1, 2, 5]);
+  },
+  'sitemap: hostname, createSitemap': function() {
+    var smap = sm.createSitemap({
+          hostname: 'http://test.com',
+          urls: [
+            { 'url': '/',         'changefreq': 'always', 'priority': 1 },
+            { 'url': '/page-1/',  'changefreq': 'weekly', 'priority': 0.3 },
+            { 'url': '/page-2/',  'changefreq': 'dayly',  'priority': 0.7 },
+            { 'url': 'http://www.test.com/page-3/',  'changefreq': 'monthly',  'priority': 0.2 },
+          ]
+        });
+
+    assert.eql(smap.toXML(),
+              '<?xml version="1.0" encoding="UTF-8"?>\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+                '<url> '+
+                    '<loc>http://test.com/</loc> '+
+                    '<changefreq>always</changefreq> '+
+                    '<priority>1</priority> '+
+                '</url>\n'+
+                '<url> '+
+                    '<loc>http://test.com/page-1/</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.3</priority> '+
+                '</url>\n'+
+                '<url> '+
+                    '<loc>http://test.com/page-2/</loc> '+
+                    '<changefreq>dayly</changefreq> '+
+                    '<priority>0.7</priority> '+
+                '</url>\n'+
+                '<url> '+
+                    '<loc>http://www.test.com/page-3/</loc> '+
+                    '<changefreq>monthly</changefreq> '+
+                    '<priority>0.2</priority> '+
+                '</url>\n'+
+              '</urlset>');
   },
 }
