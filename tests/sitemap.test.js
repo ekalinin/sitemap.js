@@ -20,10 +20,8 @@ module.exports = {
               '</url>');
   },
   'sitemap item: error for url absence': function () {
-    var url = 'http://ya.ru'
-      , smi;
     assert.throws(
-      function() { smi = new sm.SitemapItem(); },
+      function() { new sm.SitemapItem(); },
       /URL is required/
     );
   },
@@ -98,10 +96,10 @@ module.exports = {
     var smap = sm.createSitemap({
           hostname: 'http://test.com',
           urls: [
-            { 'url': '/',         'changefreq': 'always', 'priority': 1 },
-            { 'url': '/page-1/',  'changefreq': 'weekly', 'priority': 0.3 },
-            { 'url': '/page-2/',  'changefreq': 'dayly',  'priority': 0.7 },
-            { 'url': 'http://www.test.com/page-3/',  'changefreq': 'monthly',  'priority': 0.2 },
+            { url: '/',         changefreq: 'always', priority: 1 },
+            { url: '/page-1/',  changefreq: 'weekly', priority: 0.3 },
+            { url: '/page-2/',  changefreq: 'daily',  priority: 0.7 },
+            { url: 'http://www.test.com/page-3/',  changefreq: 'monthly',  priority: 0.2 },
           ]
         });
 
@@ -120,7 +118,7 @@ module.exports = {
                 '</url>\n'+
                 '<url> '+
                     '<loc>http://test.com/page-2/</loc> '+
-                    '<changefreq>dayly</changefreq> '+
+                    '<changefreq>daily</changefreq> '+
                     '<priority>0.7</priority> '+
                 '</url>\n'+
                 '<url> '+
@@ -129,5 +127,16 @@ module.exports = {
                     '<priority>0.2</priority> '+
                 '</url>\n'+
               '</urlset>');
+  },
+  'sitemap: invalid changefreq error': function() {
+    assert.throws(
+      function() {
+        sm.createSitemap({
+          hostname: 'http://test.com',
+          urls: [{ url: '/', changefreq: 'allllways'}]
+        }).toXML();
+      },
+      /changefreq is invalid/
+    );
   },
 }
