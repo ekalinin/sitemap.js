@@ -139,4 +139,15 @@ module.exports = {
       /changefreq is invalid/
     );
   },
+  'sitemap: invalid priority error': function() {
+    assert.throws(
+      function() {
+        sm.createSitemap({
+          hostname: 'http://test.com',
+          urls: [{ url: '/', priority: 1.1}]
+        }).toXML();
+      },
+      /priority is invalid/
+    );
+  },
 }
