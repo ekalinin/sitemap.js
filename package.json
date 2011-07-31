@@ -1,9 +1,9 @@
 {
   "name": "sitemap",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Sitemap-generating framework",
   "keywords": ["sitemap", "sitemap.xml"],
-  "repository": "git://github.com/ekalinin/node-sitemap.git",
+  "repository": "git://github.com/ekalinin/sitemap.js.git",
   "author": "Eugene Kalinin <e.v.kalinin@gmail.com>",
   "devDependencies": {
     "expresso": "0.7.6"
