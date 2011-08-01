@@ -150,4 +150,44 @@ module.exports = {
       /priority is invalid/
     );
   },
+  'sitemap: test cache': function() {
+    var smap = sm.createSitemap({
+          hostname: 'http://test.com',
+          cacheTime: 500,  // 0.5 sec
+          urls: [
+            { url: '/page-1/',  changefreq: 'weekly', priority: 0.3 }
+          ]
+        });
+
+    assert.eql(smap.toXML(),
+              '<?xml version="1.0" encoding="UTF-8"?>\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+                '<url> '+
+                    '<loc>http://test.com/page-1/</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.3</priority> '+
+                '</url>\n'+
+              '</urlset>');
+    // change urls
+    smap.urls.push('http://test.com/new-page/');
+    // check result from cache
+    assert.eql(smap.toXML(),
+              '<?xml version="1.0" encoding="UTF-8"?>\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+                '<url> '+
+                    '<loc>http://test.com/page-1/</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.3</priority> '+
+                '</url>\n'+
+              '</urlset>');
+
+    // check new cache
+    // after cacheTime expired
+    setTimeout( function () {
+      // stop sitemap cache cleaner
+      smap.clearCacheStop();
+      // check cache
+      assert.eql(smap.cache, '');
+    }, 1000);
+  },
 }
