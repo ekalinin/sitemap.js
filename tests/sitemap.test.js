@@ -51,7 +51,7 @@ module.exports = {
           'priority': 0.9
         });
 
-    assert.eql(smi.toXML(),
+    assert.eql(smi.toString(),
               '<url> '+
                   '<loc>http://ya.ru</loc> '+
                   '<lastmod>2011-06-27</lastmod> '+
@@ -103,7 +103,7 @@ module.exports = {
           ]
         });
 
-    assert.eql(smap.toXML(),
+    assert.eql(smap.toString(),
               '<?xml version="1.0" encoding="UTF-8"?>\n'+
               '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
                 '<url> '+
@@ -134,7 +134,7 @@ module.exports = {
         sm.createSitemap({
           hostname: 'http://test.com',
           urls: [{ url: '/', changefreq: 'allllways'}]
-        }).toXML();
+        }).toString();
       },
       /changefreq is invalid/
     );
@@ -145,7 +145,7 @@ module.exports = {
         sm.createSitemap({
           hostname: 'http://test.com',
           urls: [{ url: '/', priority: 1.1}]
-        }).toXML();
+        }).toString();
       },
       /priority is invalid/
     );
@@ -168,11 +168,11 @@ module.exports = {
               '</urlset>';
 
     // fill cache
-    assert.eql(smap.toXML(), xml);
+    assert.eql(smap.toString(), xml);
     // change urls
     smap.urls.push('http://test.com/new-page/');
     // check result from cache
-    assert.eql(smap.toXML(), xml);
+    assert.eql(smap.toString(), xml);
 
     // check new cache
     // after cacheTime expired
@@ -180,7 +180,7 @@ module.exports = {
       // stop sitemap cache cleaner
       smap.clearCacheStop();
       // check new sitemap
-      assert.eql(smap.toXML(),
+      assert.eql(smap.toString(),
                 '<?xml version="1.0" encoding="UTF-8"?>\n'+
                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
                   '<url> '+

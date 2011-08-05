@@ -31,8 +31,10 @@ Here's an example of using **sitemap.js** with [express](https://github.com/visi
         });
 
     app.get('/sitemap.xml', function(req, res) {
-      res.header('Content-Type', 'application/xml');
-      res.send( sitemap.toXML() );
+      sitemap.toXML( function (xml) {
+          res.header('Content-Type', 'application/xml');
+          res.send( xml );
+      });
     });
 
     app.listen(3000);
