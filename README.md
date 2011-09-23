@@ -23,7 +23,7 @@ Here's an example of using **sitemap.js** with [express](https://github.com/visi
       , sitemap = sm.createSitemap ({
           hostname: 'http://example.com',
           cacheTime: 600000,        // 600 sec - cache purge period
-          url: [
+          urls: [
             { url: '/page-1/',  changefreq: 'dayly', priority: 0.3 },
             { url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 },
             { url: '/page-3/' }     // changefreq: 'weekly',  priority: 0.5
