@@ -24,7 +24,7 @@ Here's an example of using **sitemap.js** with [express](https://github.com/visi
           hostname: 'http://example.com',
           cacheTime: 600000,        // 600 sec - cache purge period
           urls: [
-            { url: '/page-1/',  changefreq: 'dayly', priority: 0.3 },
+            { url: '/page-1/',  changefreq: 'daily', priority: 0.3 },
             { url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 },
             { url: '/page-3/' }     // changefreq: 'weekly',  priority: 0.5
           ]
@@ -49,7 +49,7 @@ And here is an example of synchronous sitemap.js usage:
           hostname: 'http://example.com',
           cacheTime: 600000,  // 600 sec cache period
           urls: [
-            { url: '/page-1/',  changefreq: 'dayly', priority: 0.3 },
+            { url: '/page-1/',  changefreq: 'daily', priority: 0.3 },
             { url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 },
             { url: '/page-2/' } // changefreq: 'weekly',  priority: 0.5
           ]
