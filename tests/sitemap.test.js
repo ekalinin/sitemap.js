@@ -85,6 +85,43 @@ module.exports = {
                 '</url>\n'+
               '</urlset>');
   },
+  'simple sitemap index': function() {
+    var url1 = 'http://ya.ru';
+    var url2 = 'http://ya2.ru';
+
+    assert.throws(
+      function() {
+        var ssp = new sm.createSitemapIndex({
+          cacheTime: 600000,
+          hostname: 'http://www.sitemap.org',
+          sitemapName: 'sm-test',
+          sitemapSize: 1,
+          targetFolder: '/tmp2',
+          urls: [url1, url2]
+        });
+      },
+      /UndefinedTargetFolder/
+    );
+
+    var ssp = new sm.createSitemapIndex({
+      cacheTime: 600000,
+      hostname: 'http://www.sitemap.org',
+      sitemapName: 'sm-test',
+      sitemapSize: 1,
+      targetFolder: '/tmp',
+      urls: [url1, url2],
+      callback: function(err, result) {
+        assert.eql(err, null);
+        assert.eql(result, true);
+        assert.eql(require('fs').existsSync('/tmp/sm-test-0.xml'), true);
+        assert.eql(require('fs').existsSync('/tmp/sm-test-1.xml'), true);
+        assert.eql(require('fs').existsSync('/tmp/sm-test-index.xml'), true);
+      }
+    });
+
+    
+
+  },
   'lpad test': function() {
     assert.eql(sm.utils.lpad(5, 2), '05');
     assert.eql(sm.utils.lpad(6, 2, '-'), '-6');
