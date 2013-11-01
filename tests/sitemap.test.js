@@ -233,7 +233,7 @@ module.exports = {
                 '</urlset>');
     }, 1000);
   },
-  'sitemap item: handle urls with "http" in the path': function() {
+  'sitemap: handle urls with "http" in the path': function() {
     var smap = sm.createSitemap({
           hostname: 'http://test.com',
           urls: [
