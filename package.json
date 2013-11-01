@@ -8,5 +8,8 @@
   "devDependencies": {
     "expresso": "0.8.1"
   },
-  "main": "index"
+  "main": "index",
+  "scripts": {
+    "test": "./node_modules/expresso/bin/expresso tests/sitemap.test.js"
+  }
 }
