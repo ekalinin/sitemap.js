@@ -12,7 +12,8 @@ test:
 	./node_modules/expresso/bin/expresso ./tests/sitemap.test.js
 
 deploy-github:
-	git push --tags origin master
+	@git tag `grep "version" package.json | grep -o -E '[0-9]\.[0-9]\.[0-9]{1,2}'`
+	@git push --tags origin master
 
 deploy-npm:
 	npm publish
