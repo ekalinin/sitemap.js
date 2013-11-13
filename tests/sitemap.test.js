@@ -233,4 +233,46 @@ module.exports = {
                 '</urlset>');
     }, 1000);
   },
+  'sitemap: handle urls with "http" in the path': function() {
+    var smap = sm.createSitemap({
+          hostname: 'http://test.com',
+          urls: [
+            { url: '/page-that-mentions-http:-in-the-url/',  changefreq: 'weekly', priority: 0.3 }
+          ]
+        })
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+                '<url> '+
+                    '<loc>http://test.com/page-that-mentions-http:-in-the-url/</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.3</priority> '+
+                '</url>\n'+
+              '</urlset>';
+
+    assert.eql(smap.toString(), xml);
+  },
+  'sitemap: keep urls that start with http:// or https://': function() {
+    var smap = sm.createSitemap({
+          hostname: 'http://test.com',
+          urls: [
+            { url: 'http://ya.ru/page-1/',  changefreq: 'weekly', priority: 0.3 },
+            { url: 'https://ya.ru/page-2/',  changefreq: 'weekly', priority: 0.3 },
+          ]
+        })
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+                '<url> '+
+                    '<loc>http://ya.ru/page-1/</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.3</priority> '+
+                '</url>\n'+
+                '<url> '+
+                    '<loc>https://ya.ru/page-2/</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.3</priority> '+
+                '</url>\n'+
+              '</urlset>';
+
+    assert.eql(smap.toString(), xml);
+  }
 }
