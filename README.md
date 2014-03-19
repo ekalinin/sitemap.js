@@ -16,6 +16,7 @@ Usage
 
 Here's an example of using **sitemap.js** with [express](https://github.com/visionmedia/express):
 
+```javascript
     var express = require('express')
       , sm = require('sitemap');
 
@@ -38,9 +39,11 @@ Here's an example of using **sitemap.js** with [express](https://github.com/visi
     });
 
     app.listen(3000);
+```
 
 And here is an example of synchronous sitemap.js usage:
 
+```javascript
     var express = require('express')
       , sm = require('sitemap');
 
@@ -61,6 +64,7 @@ And here is an example of synchronous sitemap.js usage:
     });
 
     app.listen(3000);
+```
 
 License
 -------
