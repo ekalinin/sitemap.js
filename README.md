@@ -75,8 +75,8 @@ var sitemap = sm.createSitemap ({
     });
 sitemap.add({url: '/page-1/'});
 sitemap.add({url: '/page-2/', changefreq: 'monthly', priority: 0.7});
-sitemap.add({url: '/page-2/'});
-sitemap.add('/page-1/');
+sitemap.del({url: '/page-2/'});
+sitemap.del('/page-1/');
 ```
 
 License
