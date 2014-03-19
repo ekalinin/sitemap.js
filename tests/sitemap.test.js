@@ -73,7 +73,7 @@ module.exports = {
   'simple sitemap': function() {
     var url = 'http://ya.ru';
     var ssp = new sm.Sitemap();
-    ssp.urls.push(url);
+    ssp.add(url);
 
     assert.eql(ssp.toString(),
               '<?xml version="1.0" encoding="UTF-8"?>\n'+
@@ -118,9 +118,6 @@ module.exports = {
         assert.eql(require('fs').existsSync('/tmp/sm-test-index.xml'), true);
       }
     });
-
-    
-
   },
   'lpad test': function() {
     assert.eql(sm.utils.lpad(5, 2), '05');
@@ -272,6 +269,46 @@ module.exports = {
                     '<priority>0.3</priority> '+
                 '</url>\n'+
               '</urlset>';
+
+    assert.eql(smap.toString(), xml);
+  },
+  'sitemap: del by string': function() {
+    var smap = sm.createSitemap({
+          hostname: 'http://test.com',
+          urls: [
+            { url: 'http://ya.ru/page-1/',  changefreq: 'weekly', priority: 0.3 },
+            { url: 'https://ya.ru/page-2/',  changefreq: 'weekly', priority: 0.3 },
+          ]
+        })
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+                '<url> '+
+                    '<loc>https://ya.ru/page-2/</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.3</priority> '+
+                '</url>\n'+
+              '</urlset>';
+    smap.del('http://ya.ru/page-1/');
+
+    assert.eql(smap.toString(), xml);
+  },
+  'sitemap: del by object': function() {
+    var smap = sm.createSitemap({
+          hostname: 'http://test.com',
+          urls: [
+            { url: 'http://ya.ru/page-1/',  changefreq: 'weekly', priority: 0.3 },
+            { url: 'https://ya.ru/page-2/',  changefreq: 'weekly', priority: 0.3 },
+          ]
+        })
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+                '<url> '+
+                    '<loc>https://ya.ru/page-2/</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.3</priority> '+
+                '</url>\n'+
+              '</urlset>';
+    smap.del({url: 'http://ya.ru/page-1/'});
 
     assert.eql(smap.toString(), xml);
   }

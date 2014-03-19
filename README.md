@@ -14,7 +14,7 @@ It's recommended to install via [npm](https://github.com/isaacs/npm/):
 Usage
 -----
 
-Here's an example of using **sitemap.js** with [express](https://github.com/visionmedia/express):
+Here's an example of using sitemap.js with [express](https://github.com/visionmedia/express):
 
 ```javascript
 var express = require('express')
@@ -54,7 +54,7 @@ var app = express.createServer()
       urls: [
         { url: '/page-1/',  changefreq: 'daily', priority: 0.3 },
         { url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 },
-        { url: '/page-2/' } // changefreq: 'weekly',  priority: 0.5
+        { url: '/page-3/' } // changefreq: 'weekly',  priority: 0.5
       ]
     });
 
@@ -64,6 +64,19 @@ app.get('/sitemap.xml', function(req, res) {
 });
 
 app.listen(3000);
+```
+
+Example of dynamic page manipulations into sitemap:
+
+```javascript
+var sitemap = sm.createSitemap ({
+      hostname: 'http://example.com',
+      cacheTime: 600000
+    });
+sitemap.add({url: '/page-1/'});
+sitemap.add({url: '/page-2/', changefreq: 'monthly', priority: 0.7});
+sitemap.add({url: '/page-2/'});
+sitemap.add('/page-1/');
 ```
 
 License
