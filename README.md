@@ -17,53 +17,53 @@ Usage
 Here's an example of using **sitemap.js** with [express](https://github.com/visionmedia/express):
 
 ```javascript
-    var express = require('express')
-      , sm = require('sitemap');
-
-    var app = express.createServer()
-      , sitemap = sm.createSitemap ({
-          hostname: 'http://example.com',
-          cacheTime: 600000,        // 600 sec - cache purge period
-          urls: [
-            { url: '/page-1/',  changefreq: 'daily', priority: 0.3 },
-            { url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 },
-            { url: '/page-3/' }     // changefreq: 'weekly',  priority: 0.5
-          ]
-        });
-
-    app.get('/sitemap.xml', function(req, res) {
-      sitemap.toXML( function (xml) {
-          res.header('Content-Type', 'application/xml');
-          res.send( xml );
-      });
+var express = require('express')
+  , sm = require('sitemap');
+  
+var app = express.createServer()
+  , sitemap = sm.createSitemap ({
+      hostname: 'http://example.com',
+      cacheTime: 600000,        // 600 sec - cache purge period
+      urls: [
+        { url: '/page-1/',  changefreq: 'daily', priority: 0.3 },
+        { url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 },
+        { url: '/page-3/' }     // changefreq: 'weekly',  priority: 0.5
+      ]
     });
 
-    app.listen(3000);
+app.get('/sitemap.xml', function(req, res) {
+  sitemap.toXML( function (xml) {
+      res.header('Content-Type', 'application/xml');
+      res.send( xml );
+  });
+});
+
+app.listen(3000);
 ```
 
 And here is an example of synchronous sitemap.js usage:
 
 ```javascript
-    var express = require('express')
-      , sm = require('sitemap');
+var express = require('express')
+  , sm = require('sitemap');
 
-    var app = express.createServer()
-      , sitemap = sm.createSitemap ({
-          hostname: 'http://example.com',
-          cacheTime: 600000,  // 600 sec cache period
-          urls: [
-            { url: '/page-1/',  changefreq: 'daily', priority: 0.3 },
-            { url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 },
-            { url: '/page-2/' } // changefreq: 'weekly',  priority: 0.5
-          ]
-        });
-
-    app.get('/sitemap.xml', function(req, res) {
-      res.header('Content-Type', 'application/xml');
-      res.send( sitemap.toString() );
+var app = express.createServer()
+  , sitemap = sm.createSitemap ({
+      hostname: 'http://example.com',
+      cacheTime: 600000,  // 600 sec cache period
+      urls: [
+        { url: '/page-1/',  changefreq: 'daily', priority: 0.3 },
+        { url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 },
+        { url: '/page-2/' } // changefreq: 'weekly',  priority: 0.5
+      ]
     });
 
-    app.listen(3000);
+app.get('/sitemap.xml', function(req, res) {
+  res.header('Content-Type', 'application/xml');
+  res.send( sitemap.toString() );
+});
+
+app.listen(3000);
 ```
 
 License
