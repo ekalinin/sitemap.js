@@ -42,6 +42,23 @@ module.exports = {
                   '<priority>0.9</priority> '+
               '</url>');
   },
+  'sitemap item: lastmodISO': function () {
+    var url = 'http://ya.ru'
+      , smi = new sm.SitemapItem({
+          'url': url,
+          'lastmodISO': '2011-06-27T00:00:00.000Z',
+          'changefreq': 'always',
+          'priority': 0.9
+        });
+
+    assert.eql(smi.toString(),
+              '<url> '+
+                  '<loc>http://ya.ru</loc> '+
+                  '<lastmod>2011-06-27T00:00:00.000Z</lastmod> '+
+                  '<changefreq>always</changefreq> '+
+                  '<priority>0.9</priority> '+
+              '</url>');
+  },
   'sitemap item: toXML': function () {
     var url = 'http://ya.ru'
       , smi = new sm.SitemapItem({
