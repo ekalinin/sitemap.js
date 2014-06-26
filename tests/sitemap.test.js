@@ -102,6 +102,56 @@ module.exports = {
                 '</url>\n'+
               '</urlset>');
   },
+  'simple sitemap toXML async with one callback argument': function(beforeExit, assert) {
+    var url = 'http://ya.ru';
+    var ssp = new sm.Sitemap();
+    ssp.add(url);
+
+    ssp.toXML(function(xml) {
+      assert.eql(xml,
+                '<?xml version="1.0" encoding="UTF-8"?>\n'+
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+                  '<url> '+
+                      '<loc>http://ya.ru</loc> '+
+                      '<changefreq>weekly</changefreq> '+
+                      '<priority>0.5</priority> '+
+                  '</url>\n'+
+                '</urlset>');
+    });
+  },
+  'simple sitemap toXML async with two callback arguments': function(beforeExit, assert) {
+    var url = 'http://ya.ru';
+    var ssp = new sm.Sitemap();
+    ssp.add(url);
+
+    ssp.toXML(function(err, xml) {
+      assert.isNull(err);
+      assert.eql(xml,
+                '<?xml version="1.0" encoding="UTF-8"?>\n'+
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+                  '<url> '+
+                      '<loc>http://ya.ru</loc> '+
+                      '<changefreq>weekly</changefreq> '+
+                      '<priority>0.5</priority> '+
+                  '</url>\n'+
+                '</urlset>');
+    });
+  },
+  'simple sitemap toXML sync': function() {
+    var url = 'http://ya.ru';
+    var ssp = new sm.Sitemap();
+    ssp.add(url);
+
+    assert.eql(ssp.toXML(),
+              '<?xml version="1.0" encoding="UTF-8"?>\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+                '<url> '+
+                    '<loc>http://ya.ru</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.5</priority> '+
+                '</url>\n'+
+              '</urlset>');
+  },
   'simple sitemap index': function() {
     var url1 = 'http://ya.ru';
     var url2 = 'http://ya2.ru';
