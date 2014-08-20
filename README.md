@@ -9,7 +9,7 @@ Installation
 
 It's recommended to install via [npm](https://github.com/isaacs/npm/):
 
-    npm install -g sitemap
+    npm install --save sitemap
 
 Usage
 -----
