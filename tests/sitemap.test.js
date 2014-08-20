@@ -271,15 +271,13 @@ module.exports = {
     // fill cache
     assert.eql(smap.toString(), xml);
     // change urls
-    smap.urls.push('http://test.com/new-page/');
-    // check result from cache
+    smap.add('http://test.com/new-page/');
+    // check result from cache (not changed)
     assert.eql(smap.toString(), xml);
 
     // check new cache
     // after cacheTime expired
     setTimeout( function () {
-      // stop sitemap cache cleaner
-      smap.clearCacheStop();
       // check new sitemap
       assert.eql(smap.toString(),
                 '<?xml version="1.0" encoding="UTF-8"?>\n'+
@@ -296,6 +294,42 @@ module.exports = {
                   '</url>\n'+
                 '</urlset>');
     }, 1000);
+  },
+  'sitemap: test cache off': function() {
+    var smap = sm.createSitemap({
+          hostname: 'http://test.com',
+          // cacheTime: 0,  // cache disabled
+          urls: [
+            { url: '/page-1/',  changefreq: 'weekly', priority: 0.3 }
+          ]
+        })
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+                '<url> '+
+                    '<loc>http://test.com/page-1/</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.3</priority> '+
+                '</url>\n'+
+              '</urlset>';
+
+    assert.eql(smap.toString(), xml);
+    // change urls
+    smap.add('http://test.com/new-page/');
+    // check result without cache (changed one)
+    assert.eql(smap.toString(),
+              '<?xml version="1.0" encoding="UTF-8"?>\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+                '<url> '+
+                    '<loc>http://test.com/page-1/</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.3</priority> '+
+                '</url>\n'+
+                '<url> '+
+                    '<loc>http://test.com/new-page/</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.5</priority> '+
+                '</url>\n'+
+              '</urlset>');
   },
   'sitemap: handle urls with "http" in the path': function() {
     var smap = sm.createSitemap({
