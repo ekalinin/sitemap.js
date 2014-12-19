@@ -1,0 +1,14 @@
+{
+  "name": "sitemap.js",
+  "main": "index.js",
+  "version": "0.7.4",
+  "homepage": "https://github.com/ekalinin/sitemap.js",
+  "authors": [
+    "Eugene Kalinin <e.v.kalinin@gmail.com>"
+  ],
+  "description": "Sitemap-generating framework",
+  "keywords": [
+    "sitemap"
+  ],
+  "license": "MIT"
+}
