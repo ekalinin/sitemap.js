@@ -42,7 +42,7 @@ module.exports = {
                     '<image:loc>'+
                       'http://urlTest.com'+
                     '</image:loc>'+
-                  '</image:image>'+
+                  '</image:image> '+
                   '<lastmod>2011-06-27</lastmod> '+
                   '<changefreq>always</changefreq> '+
                   '<priority>0.9</priority> '+
@@ -82,7 +82,7 @@ module.exports = {
                       '<image:loc>'+
                         'http://urlTest.com'+
                       '</image:loc>'+
-                  '</image:image>'+
+                  '</image:image> '+
                   '<lastmod>2011-06-27</lastmod> '+
                   '<changefreq>always</changefreq> '+
                   '<priority>0.9</priority> '+
