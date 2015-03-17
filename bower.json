@@ -2,6 +2,12 @@
   "name": "sitemap.js",
   "main": "index.js",
   "version": "0.8.0",
+  "dependencies": {
+    "underscore": "1.7.0"
+  },
+  "devDependencies": {
+    "expresso": "^0.9.2"
+  },
   "homepage": "https://github.com/ekalinin/sitemap.js",
   "authors": [
     "Eugene Kalinin <e.v.kalinin@gmail.com>"
