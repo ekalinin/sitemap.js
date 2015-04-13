@@ -20,7 +20,7 @@ Here's an example of using sitemap.js with [express](https://github.com/visionme
 var express = require('express')
   , sm = require('sitemap');
   
-var app = express.createServer()
+var app = express()
   , sitemap = sm.createSitemap ({
       hostname: 'http://example.com',
       cacheTime: 600000,        // 600 sec - cache purge period
@@ -48,7 +48,7 @@ And here is an example of synchronous sitemap.js usage:
 var express = require('express')
   , sm = require('sitemap');
 
-var app = express.createServer()
+var app = express()
   , sitemap = sm.createSitemap ({
       hostname: 'http://example.com',
       cacheTime: 600000,  // 600 sec cache period
