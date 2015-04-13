@@ -28,7 +28,7 @@ var app = express.createServer()
         { url: '/page-1/',  changefreq: 'daily', priority: 0.3 },
         { url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 },
         { url: '/page-3/'},    // changefreq: 'weekly',  priority: 0.5
-        { url: '/page-4/,   img: "http://urlTest.com" }
+        { url: '/page-4/',   img: "http://urlTest.com" }
       ]
     });
 
