@@ -80,6 +80,27 @@ sitemap.del({url: '/page-2/'});
 sitemap.del('/page-1/');
 ```
 
+
+
+Example of pre-generating sitemap based on existing static files:
+
+```javascript
+var sm = require('sitemap')
+    , fs = require('fs');
+
+var sitemap = sm.createSitemap({
+    hostname: 'http://www.mywebsite.com',
+    cacheTime: 600000,  //600 sec (10 min) cache purge period
+    urls: [
+        { url: '/' , changefreq: 'weekly', priority: 0.8, lastmodrealtime: true, lastmodfile: 'app/assets/index.html' },
+        { url: '/page1', changefreq: 'weekly', priority: 0.8, lastmodrealtime: true, lastmodfile: 'app/assets/page1.html' },
+        { url: '/page2'    , changefreq: 'weekly', priority: 0.8, lastmodrealtime: true, lastmodfile: 'app/templates/page2.hbs' } /* useful to monitor template content files instead of generated static files */
+    ]
+});
+
+fs.writeFileSync("app/assets/sitemap.xml", sitemap.toString());
+```
+
 License
 -------
 
