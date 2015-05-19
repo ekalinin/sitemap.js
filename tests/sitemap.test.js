@@ -65,6 +65,74 @@ module.exports = {
                   '<priority>0.9</priority> '+
               '</url>');
   },
+  'sitemap item: lastmod from file': function () {
+    var tempFile = require('fs').openSync('/tmp/tempFile.tmp', 'w');
+    require('fs').closeSync(tempFile);
+
+    var stat = require('fs').statSync('/tmp/tempFile.tmp');
+
+
+    var dt = new Date( stat.mtime );
+    var lastmod = sm.utils.getTimestampFromDate(dt);
+
+    var url = 'http://ya.ru'
+      , smi = new sm.SitemapItem({
+          'url': url,
+          'img': "http://urlTest.com",
+          'lastmodfile': '/tmp/tempFile.tmp',
+          'changefreq': 'always',
+          'priority': 0.9
+        });
+
+    require('fs').unlinkSync('/tmp/tempFile.tmp');
+
+    assert.eql(smi.toString(),
+              '<url> '+
+                  '<loc>http://ya.ru</loc> '+
+                  '<image:image>'+
+                    '<image:loc>'+
+                      'http://urlTest.com'+
+                    '</image:loc>'+
+                  '</image:image> '+
+                  '<lastmod>'+ lastmod +'</lastmod> '+
+                  '<changefreq>always</changefreq> '+
+                  '<priority>0.9</priority> '+
+              '</url>');
+  },
+  'sitemap item: lastmod from file with lastmodrealtime': function () {
+    var tempFile = require('fs').openSync('/tmp/tempFile.tmp', 'w');
+    require('fs').closeSync(tempFile);
+
+    var stat = require('fs').statSync('/tmp/tempFile.tmp');
+
+    var dt = new Date( stat.mtime );
+    var lastmod = sm.utils.getTimestampFromDate(dt, true);
+
+    var url = 'http://ya.ru'
+      , smi = new sm.SitemapItem({
+          'url': url,
+          'img': "http://urlTest.com",
+          'lastmodfile': '/tmp/tempFile.tmp',
+          'lastmodrealtime': true,
+          'changefreq': 'always',
+          'priority': 0.9
+        });
+
+    require('fs').unlinkSync('/tmp/tempFile.tmp');
+
+    assert.eql(smi.toString(),
+              '<url> '+
+                  '<loc>http://ya.ru</loc> '+
+                  '<image:image>'+
+                    '<image:loc>'+
+                      'http://urlTest.com'+
+                    '</image:loc>'+
+                  '</image:image> '+
+                  '<lastmod>'+ lastmod +'</lastmod> '+
+                  '<changefreq>always</changefreq> '+
+                  '<priority>0.9</priority> '+
+              '</url>');
+  },
   'sitemap item: toXML': function () {
     var url = 'http://ya.ru'
       , smi = new sm.SitemapItem({

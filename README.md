@@ -13,8 +13,16 @@ It's recommended to install via [npm](https://github.com/isaacs/npm/):
 
 Usage
 -----
+The main functions you want to use in the sitemap module are
 
-Here's an example of using sitemap.js with [express](https://github.com/visionmedia/express):
+```javascript
+var sm = require('sitemap')
+var sitemap = sm.createSitemap({ options }); //Creates a sitemap object given the input configuration with URLs
+sitemap.toXML( function(xml){ console.log(xml) });) //Generates XML with a callback function
+var xml = sitemap.toString(); //Gives you a string containing the XML data
+```
+
+###Example of using sitemap.js with [express](https://github.com/visionmedia/express):
 
 ```javascript
 var express = require('express')
@@ -42,7 +50,7 @@ app.get('/sitemap.xml', function(req, res) {
 app.listen(3000);
 ```
 
-And here is an example of synchronous sitemap.js usage:
+###Example of synchronous sitemap.js usage:
 
 ```javascript
 var express = require('express')
@@ -67,7 +75,7 @@ app.get('/sitemap.xml', function(req, res) {
 app.listen(3000);
 ```
 
-Example of dynamic page manipulations into sitemap:
+###Example of dynamic page manipulations into sitemap:
 
 ```javascript
 var sitemap = sm.createSitemap ({
@@ -78,6 +86,27 @@ sitemap.add({url: '/page-1/'});
 sitemap.add({url: '/page-2/', changefreq: 'monthly', priority: 0.7});
 sitemap.del({url: '/page-2/'});
 sitemap.del('/page-1/');
+```
+
+
+
+###Example of pre-generating sitemap based on existing static files:
+
+```javascript
+var sm = require('sitemap')
+    , fs = require('fs');
+
+var sitemap = sm.createSitemap({
+    hostname: 'http://www.mywebsite.com',
+    cacheTime: 600000,  //600 sec (10 min) cache purge period
+    urls: [
+        { url: '/' , changefreq: 'weekly', priority: 0.8, lastmodrealtime: true, lastmodfile: 'app/assets/index.html' },
+        { url: '/page1', changefreq: 'weekly', priority: 0.8, lastmodrealtime: true, lastmodfile: 'app/assets/page1.html' },
+        { url: '/page2'    , changefreq: 'weekly', priority: 0.8, lastmodrealtime: true, lastmodfile: 'app/templates/page2.hbs' } /* useful to monitor template content files instead of generated static files */
+    ]
+});
+
+fs.writeFileSync("app/assets/sitemap.xml", sitemap.toString());
 ```
 
 License
