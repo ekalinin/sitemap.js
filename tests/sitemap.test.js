@@ -492,5 +492,15 @@ module.exports = {
     smap.del({url: 'http://ya.ru/page-1/'});
 
     assert.eql(smap.toString(), xml);
+  },
+  'test for #27': function() {
+        var staticUrls = ['/', '/terms', '/login']
+        var sitemap = sm.createSitemap({urls: staticUrls});
+        sitemap.add({url: '/details/' + 'url1'});
+
+        var sitemap2 = sm.createSitemap({urls: staticUrls});
+
+        assert.eql(sitemap.urls, ['/', '/terms', '/login', {url: '/details/url1'}]);
+        assert.eql(sitemap2.urls, ['/', '/terms', '/login' ]);
   }
 }
