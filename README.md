@@ -18,7 +18,7 @@ The main functions you want to use in the sitemap module are
 ```javascript
 var sm = require('sitemap')
 var sitemap = sm.createSitemap({ options }); //Creates a sitemap object given the input configuration with URLs
-sitemap.toXML( function(xml){ console.log(xml) });) //Generates XML with a callback function
+sitemap.toXML( function(xml){ console.log(xml) }); //Generates XML with a callback function
 var xml = sitemap.toString(); //Gives you a string containing the XML data
 ```
 
