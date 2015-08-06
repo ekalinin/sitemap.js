@@ -4,6 +4,21 @@ sitemap.js
 **sitemap.js** is a high-level sitemap-generating framework that
 makes creating [sitemap XML](http://www.sitemaps.org/) files easy.
 
+Table of Contents
+=================
+
+  * [sitemap.js](#sitemapjs)
+    * [Installation](#installation)
+    * [Usage](#usage)
+      * [Example of using sitemap.js with <a href="https://github.com/visionmedia/express">express</a>:](#example-of-using-sitemapjs-with-express)
+      * [Example of synchronous sitemap.js usage:](#example-of-synchronous-sitemapjs-usage)
+      * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
+      * [Example of pre-generating sitemap based on existing static files:](#example-of-pre-generating-sitemap-based-on-existing-static-files)
+      * [Example of indicating alternate language pages:](#example-of-indicating-alternate-language-pages)
+    * [License](#license)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
 Installation
 ------------
 
