@@ -109,6 +109,25 @@ var sitemap = sm.createSitemap({
 fs.writeFileSync("app/assets/sitemap.xml", sitemap.toString());
 ```
 
+###Example of indicating alternate language pages:
+
+[Description](https://support.google.com/webmasters/answer/2620865?hl=en) in
+the google's Search Console Help.
+
+```javascript
+var sm = sm.createSitemap({
+      urls: [{
+        url: 'http://test.com/page-1/',
+        changefreq: 'weekly',
+        priority: 0.3,
+        links: [
+          { lang: 'en', url: 'http://test.com/page-1/', },
+          { lang: 'ja', url: 'http://test.com/page-1/ja/', },
+        ]
+      },]
+    });
+```
+
 License
 -------
 
