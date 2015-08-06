@@ -17,9 +17,12 @@ The main functions you want to use in the sitemap module are
 
 ```javascript
 var sm = require('sitemap')
-var sitemap = sm.createSitemap({ options }); //Creates a sitemap object given the input configuration with URLs
-sitemap.toXML( function(xml){ console.log(xml) }); //Generates XML with a callback function
-var xml = sitemap.toString(); //Gives you a string containing the XML data
+// Creates a sitemap object given the input configuration with URLs
+var sitemap = sm.createSitemap({ options });
+// Generates XML with a callback function
+sitemap.toXML( function(xml){ console.log(xml) });
+// Gives you a string containing the XML data
+var xml = sitemap.toString();
 ```
 
 ###Example of using sitemap.js with [express](https://github.com/visionmedia/express):
@@ -27,7 +30,7 @@ var xml = sitemap.toString(); //Gives you a string containing the XML data
 ```javascript
 var express = require('express')
   , sm = require('sitemap');
-  
+
 var app = express()
   , sitemap = sm.createSitemap ({
       hostname: 'http://example.com',
