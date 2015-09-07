@@ -524,6 +524,32 @@ module.exports = {
                 '</url>\n'+
               '</urlset>');
   },
+  'sitemap: normalize urls, see #39': function() {
+    ["http://ya.ru", "http://ya.ru/"].forEach(function(hostname){
+      var ssp = new sm.Sitemap(null, hostname);
+      ssp.add("page1");
+      ssp.add("/page2");
+
+      ssp.toXML(function(xml) {
+        assert.eql(xml,
+          '<?xml version="1.0" encoding="UTF-8"?>\n'+
+          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '+
+                   'xmlns:xhtml="http://www.w3.org/1999/xhtml" '+
+                   'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+            '<url> '+
+                '<loc>http://ya.ru/page1</loc> '+
+                '<changefreq>weekly</changefreq> '+
+                '<priority>0.5</priority> '+
+            '</url>\n'+
+            '<url> '+
+                '<loc>http://ya.ru/page2</loc> '+
+                '<changefreq>weekly</changefreq> '+
+                '<priority>0.5</priority> '+
+            '</url>\n'+
+          '</urlset>');
+      });
+    })
+  },
   'sitemap: langs with hostname': function() {
     var smap = sm.createSitemap({
           hostname: 'http://test.com',
