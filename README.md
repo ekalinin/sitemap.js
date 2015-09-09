@@ -59,7 +59,10 @@ var app = express()
     });
 
 app.get('/sitemap.xml', function(req, res) {
-  sitemap.toXML( function (xml) {
+  sitemap.toXML( function (err, xml) {
+      if (err) {
+        return res.status(500).end();
+      }
       res.header('Content-Type', 'application/xml');
       res.send( xml );
   });
