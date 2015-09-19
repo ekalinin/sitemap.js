@@ -149,6 +149,25 @@ var sm = sm.createSitemap({
     });
 ```
 
+
+###Example of Sitemap Styling
+
+```javascript
+var sm = sm.createSitemap({
+      urls: [{
+        url: 'http://test.com/page-1/',
+        changefreq: 'weekly',
+        priority: 0.3,
+        links: [
+          { lang: 'en', url: 'http://test.com/page-1/', },
+          { lang: 'ja', url: 'http://test.com/page-1/ja/', },
+        ]
+      },],
+      xslUrl: 'sitemap.xsl'
+    });
+
+```
+
 License
 -------
 
