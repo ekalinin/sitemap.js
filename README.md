@@ -7,6 +7,7 @@ makes creating [sitemap XML](http://www.sitemaps.org/) files easy.
 Table of Contents
 =================
 
+  * [Table of Contents](#table-of-contents)
   * [sitemap.js](#sitemapjs)
     * [Installation](#installation)
     * [Usage](#usage)
@@ -15,9 +16,10 @@ Table of Contents
       * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
       * [Example of pre-generating sitemap based on existing static files:](#example-of-pre-generating-sitemap-based-on-existing-static-files)
       * [Example of indicating alternate language pages:](#example-of-indicating-alternate-language-pages)
+      * [Example of Sitemap Styling](#example-of-sitemap-styling)
     * [License](#license)
 
-Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+TOC created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 Installation
 ------------
