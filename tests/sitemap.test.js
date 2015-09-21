@@ -33,7 +33,8 @@ module.exports = {
           'img': "http://urlTest.com",
           'lastmod': '2011-06-27',
           'changefreq': 'always',
-          'priority': 0.9
+          'priority': 0.9,
+          'mobile' : true
         });
 
     assert.eql(smi.toString(),
@@ -47,6 +48,7 @@ module.exports = {
                   '<lastmod>2011-06-27</lastmod> '+
                   '<changefreq>always</changefreq> '+
                   '<priority>0.9</priority> '+
+                  '<mobile:mobile/> '+
               '</url>');
   },
   'sitemap item: lastmodISO': function () {
@@ -175,7 +177,7 @@ module.exports = {
 
     assert.eql(ssp.toString(),
               '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                 '<url> '+
                     '<loc>http://ya.ru</loc> '+
                     '<changefreq>weekly</changefreq> '+
@@ -192,7 +194,7 @@ module.exports = {
       assert.isNull(err);
       assert.eql(xml,
                 '<?xml version="1.0" encoding="UTF-8"?>\n'+
-                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                   '<url> '+
                       '<loc>http://ya.ru</loc> '+
                       '<changefreq>weekly</changefreq> '+
@@ -208,7 +210,7 @@ module.exports = {
 
     assert.eql(ssp.toXML(),
               '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                 '<url> '+
                     '<loc>http://ya.ru</loc> '+
                     '<changefreq>weekly</changefreq> '+
@@ -270,7 +272,7 @@ module.exports = {
 
     assert.eql(smap.toString(),
               '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                 '<url> '+
                     '<loc>http://test.com/</loc> '+
                     '<changefreq>always</changefreq> '+
@@ -324,7 +326,7 @@ module.exports = {
           ]
         })
       , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                 '<url> '+
                     '<loc>http://test.com/page-1/</loc> '+
                     '<changefreq>weekly</changefreq> '+
@@ -345,7 +347,7 @@ module.exports = {
       // check new sitemap
       assert.eql(smap.toString(),
                 '<?xml version="1.0" encoding="UTF-8"?>\n'+
-                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                   '<url> '+
                       '<loc>http://test.com/page-1/</loc> '+
                       '<changefreq>weekly</changefreq> '+
@@ -368,7 +370,7 @@ module.exports = {
           ]
         })
       , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                 '<url> '+
                     '<loc>http://test.com/page-1/</loc> '+
                     '<changefreq>weekly</changefreq> '+
@@ -382,7 +384,7 @@ module.exports = {
     // check result without cache (changed one)
     assert.eql(smap.toString(),
               '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                 '<url> '+
                     '<loc>http://test.com/page-1/</loc> '+
                     '<changefreq>weekly</changefreq> '+
@@ -403,7 +405,7 @@ module.exports = {
           ]
         })
       , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                 '<url> '+
                     '<loc>http://test.com/page-that-mentions-http:-in-the-url/</loc> '+
                     '<changefreq>weekly</changefreq> '+
@@ -422,7 +424,7 @@ module.exports = {
           ]
         })
       , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                 '<url> '+
                     '<loc>http://ya.ru/page-1/</loc> '+
                     '<changefreq>weekly</changefreq> '+
@@ -446,7 +448,7 @@ module.exports = {
           ]
         })
       , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                 '<url> '+
                     '<loc>https://ya.ru/page-2/</loc> '+
                     '<changefreq>weekly</changefreq> '+
@@ -466,7 +468,7 @@ module.exports = {
           ]
         })
       , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                 '<url> '+
                     '<loc>https://ya.ru/page-2/</loc> '+
                     '<changefreq>weekly</changefreq> '+
@@ -498,7 +500,7 @@ module.exports = {
         });
     assert.eql(smap.toString(),
               '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                 '<url> '+
                     '<loc>http://test.com/page-1/</loc> '+
                     '<changefreq>weekly</changefreq> '+
@@ -519,6 +521,7 @@ module.exports = {
           '<?xml version="1.0" encoding="UTF-8"?>\n'+
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '+
                    'xmlns:xhtml="http://www.w3.org/1999/xhtml" '+
+                   'xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" '+
                    'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
             '<url> '+
                 '<loc>http://ya.ru/page1</loc> '+
@@ -546,7 +549,7 @@ module.exports = {
         });
     assert.eql(smap.toString(),
               '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
                 '<url> '+
                     '<loc>http://test.com/page-1/</loc> '+
                     '<changefreq>weekly</changefreq> '+
