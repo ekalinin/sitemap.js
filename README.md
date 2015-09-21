@@ -170,6 +170,22 @@ var sm = sm.createSitemap({
 
 ```
 
+### Example of mobile URL
+
+[Description](https://support.google.com/webmasters/answer/34648?hl=en) in
+the google's Search Console Help.
+```javascript
+var sm = sm.createSitemap({
+      urls: [{
+        url: 'http://mobile.test.com/page-1/',
+        changefreq: 'weekly',
+        priority: 0.3,
+        mobile: true
+      },],
+      xslUrl: 'sitemap.xsl'
+    });
+```
+
 License
 -------
 
