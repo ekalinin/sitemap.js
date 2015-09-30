@@ -241,7 +241,7 @@ module.exports = {
       hostname: 'http://www.sitemap.org',
       sitemapName: 'sm-test',
       sitemapSize: 1,
-      targetFolder: '/tmp',
+      targetFolder: require('os').tmpdir(),
       urls: [url1, url2],
       callback: function(err, result) {
         assert.eql(err, null);
@@ -250,6 +250,19 @@ module.exports = {
         assert.eql(require('fs').existsSync('/tmp/sm-test-1.xml'), true);
         assert.eql(require('fs').existsSync('/tmp/sm-test-index.xml'), true);
       }
+    });
+  },
+  'sitemap without callback': function() {
+    var url1 = 'http://ya.ru';
+    var url2 = 'http://ya2.ru';
+
+    new sm.createSitemapIndex({
+      cacheTime: 600000,
+      hostname: 'http://www.sitemap.org',
+      sitemapName: 'sm-test',
+      sitemapSize: 1,
+      targetFolder: require('os').tmpdir(),
+      urls: [url1, url2]
     });
   },
   'lpad test': function() {
