@@ -5,8 +5,20 @@
  */
 
 var sm = require('../index'),
+    fs = require('fs'),
+    zlib = require('zlib'),
     assert = require('assert'),
     sinon = require('sinon');
+
+var removeFilesArray = function(files) {
+  if (files && files.length) {
+    files.forEach(function(file) {
+      if (fs.existsSync(file)) {
+        fs.unlinkSync(file);
+      }
+    });
+  }
+};
 
 module.exports = {
   'sitemap item: deafult values && escape': function () {
@@ -218,9 +230,48 @@ module.exports = {
                 '</url>\n'+
               '</urlset>');
   },
+  'simple sitemap toGzip sync': function() {
+    var ssp = new sm.Sitemap();
+    ssp.add('http://ya.ru');
+
+    assert.eql(ssp.toGzip(), zlib.gzipSync(
+              '<?xml version="1.0" encoding="UTF-8"?>\n'+
+              '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+                '<url> '+
+                    '<loc>http://ya.ru</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.5</priority> '+
+                '</url>\n'+
+              '</urlset>'
+    ));
+  },
+  'simple sitemap toGzip async': function() {
+    var ssp = new sm.Sitemap();
+    ssp.add('http://ya.ru');
+
+    ssp.toGzip(function(error, result) {
+      assert.eql(error, null);
+      assert.eql(zlib.gunzipSync(result).toString(),
+            '<?xml version="1.0" encoding="UTF-8"?>\n' +
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n' +
+            '<url> ' +
+            '<loc>http://ya.ru</loc> ' +
+            '<changefreq>weekly</changefreq> ' +
+            '<priority>0.5</priority> ' +
+            '</url>\n' +
+            '</urlset>'
+      );
+    });
+  },
   'simple sitemap index': function() {
-    var url1 = 'http://ya.ru';
-    var url2 = 'http://ya2.ru';
+    var tmp = require('os').tmpdir(),
+        url1 = 'http://ya.ru',
+        url2 = 'http://ya2.ru',
+        expectedFiles = [
+          tmp + '/sm-test-0.xml',
+          tmp + '/sm-test-1.xml',
+          tmp + '/sm-test-index.xml'
+        ];
 
     assert.throws(
       function() {
@@ -236,33 +287,63 @@ module.exports = {
       /UndefinedTargetFolder/
     );
 
+    // Cleanup before run test
+    removeFilesArray(expectedFiles);
+
     var ssp = new sm.createSitemapIndex({
       cacheTime: 600000,
       hostname: 'http://www.sitemap.org',
       sitemapName: 'sm-test',
       sitemapSize: 1,
-      targetFolder: require('os').tmpdir(),
+      targetFolder: tmp,
       urls: [url1, url2],
       callback: function(err, result) {
         assert.eql(err, null);
         assert.eql(result, true);
-        assert.eql(require('fs').existsSync('/tmp/sm-test-0.xml'), true);
-        assert.eql(require('fs').existsSync('/tmp/sm-test-1.xml'), true);
-        assert.eql(require('fs').existsSync('/tmp/sm-test-index.xml'), true);
+        expectedFiles.forEach(function(expectedFile) {
+          assert.eql(fs.existsSync(expectedFile), true);
+        });
       }
     });
   },
   'sitemap without callback': function() {
-    var url1 = 'http://ya.ru';
-    var url2 = 'http://ya2.ru';
-
     new sm.createSitemapIndex({
       cacheTime: 600000,
       hostname: 'http://www.sitemap.org',
       sitemapName: 'sm-test',
       sitemapSize: 1,
       targetFolder: require('os').tmpdir(),
-      urls: [url1, url2]
+      urls: ['http://ya.ru', 'http://ya2.ru']
+    });
+  },
+  'sitemap with gzip files': function() {
+    var tmp = require('os').tmpdir(),
+        url1 = 'http://ya.ru',
+        url2 = 'http://ya2.ru',
+        expectedFiles = [
+          tmp + '/sm-test-0.xml.gz',
+          tmp + '/sm-test-1.xml.gz',
+          tmp + '/sm-test-index.xml'
+        ];
+
+    // Cleanup before run test
+    removeFilesArray(expectedFiles);
+
+    new sm.createSitemapIndex({
+      cacheTime: 600000,
+      hostname: 'http://www.sitemap.org',
+      sitemapName: 'sm-test',
+      sitemapSize: 1,
+      targetFolder: tmp,
+      gzip: true,
+      urls: [url1, url2],
+      callback: function(err, result) {
+        assert.eql(err, null);
+        assert.eql(result, true);
+        expectedFiles.forEach(function(expectedFile) {
+          assert.eql(fs.existsSync(expectedFile), true);
+        });
+      }
     });
   },
   'lpad test': function() {
