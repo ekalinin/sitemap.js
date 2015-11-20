@@ -370,7 +370,7 @@ module.exports = {
                 '<url> '+
                     '<loc>http://test.com/</loc> '+
                     '<changefreq>always</changefreq> '+
-                    '<priority>1</priority> '+
+                    '<priority>1.0</priority> '+
                 '</url>\n'+
                 '<url> '+
                     '<loc>http://test.com/page-1/</loc> '+
