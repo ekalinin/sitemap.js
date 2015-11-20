@@ -1,7 +1,7 @@
 {
   "name": "sitemap.js",
   "main": "index.js",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "dependencies": {
     "url-join": "^0.0.1",
     "underscore": "1.7.0"
