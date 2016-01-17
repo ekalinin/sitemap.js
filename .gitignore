@@ -1,3 +1,9 @@
 *.swp
 env/
 node_modules/
+
+# WebStorm
+.idea/
+
+# Emacs
+*~
