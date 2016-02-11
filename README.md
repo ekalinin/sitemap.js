@@ -18,7 +18,9 @@ Table of Contents
       * [Example of indicating alternate language pages:](#example-of-indicating-alternate-language-pages)
       * [Example of Sitemap Styling](#example-of-sitemap-styling)
       * [Example of mobile URL](#example-of-mobile-url)
+    * [Testing](#testing)
     * [License](#license)
+
 
 TOC created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
