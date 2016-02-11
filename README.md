@@ -187,6 +187,21 @@ var sm = sm.createSitemap({
     });
 ```
 
+Testing
+-------
+
+```bash
+➥ git clone https://github.com/ekalinin/sitemap.js.git
+➥ cd sitemap.js
+➥ make env 
+➥ . env/bin/activate
+(env) ➥ make test
+./node_modules/expresso/bin/expresso ./tests/sitemap.test.js
+
+   100% 33 tests
+
+```
+
 License
 -------
 
