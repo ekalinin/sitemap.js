@@ -18,6 +18,7 @@ Table of Contents
       * [Example of indicating alternate language pages:](#example-of-indicating-alternate-language-pages)
       * [Example of Sitemap Styling](#example-of-sitemap-styling)
       * [Example of mobile URL](#example-of-mobile-url)
+      * [Example of using HH:MM:SS in lastmod](#example-of-using-HHMMSS-in-lastmod)
     * [Testing](#testing)
     * [License](#license)
 
@@ -170,7 +171,6 @@ var sm = sm.createSitemap({
       },],
       xslUrl: 'sitemap.xsl'
     });
-
 ```
 
 ### Example of mobile URL
@@ -186,6 +186,21 @@ var sm = sm.createSitemap({
         mobile: true
       },],
       xslUrl: 'sitemap.xsl'
+    });
+```
+
+### Example of using HH:MM:SS in lastmod
+
+```javascript
+var sm = require('sitemap')
+  , sitemap = sm.createSitemap({
+      hostname: 'http://www.mywebsite.com',
+      urls: [{
+        url: 'http://mobile.test.com/page-1/',
+        lastmodISO: '2015-06-27T15:30:00.000Z',
+        changefreq: 'weekly',
+        priority: 0.3
+      }]
     });
 ```
 
