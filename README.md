@@ -18,7 +18,7 @@ Table of Contents
       * [Example of indicating alternate language pages:](#example-of-indicating-alternate-language-pages)
       * [Example of Sitemap Styling](#example-of-sitemap-styling)
       * [Example of mobile URL](#example-of-mobile-url)
-      * [Example of using HH:MM:SS in lastmod](#example-of-using-HHMMSS-in-lastmod)
+      * [Example of using HH:MM:SS in lastmod](#example-of-using-hhmmss-in-lastmod)
     * [Testing](#testing)
     * [License](#license)
 
