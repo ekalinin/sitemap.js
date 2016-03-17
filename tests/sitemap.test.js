@@ -27,15 +27,13 @@ var removeFilesArray = function(files) {
 };
 
 module.exports = {
-  'sitemap item: deafult values && escape': function () {
+  'sitemap item: default values && escape': function () {
     var url = 'http://ya.ru/view?widget=3&count>2'
       , smi = new sm.SitemapItem({'url': url});
 
     assert.eql(smi.toString(),
               '<url> '+
                   '<loc>http://ya.ru/view?widget=3&amp;count&gt;2</loc> '+
-                  '<changefreq>weekly</changefreq> '+
-                  '<priority>0.5</priority> '+
               '</url>');
   },
   'sitemap item: error for url absence': function () {
@@ -198,8 +196,6 @@ module.exports = {
                 urlset + '\n'+
                 '<url> '+
                     '<loc>http://ya.ru</loc> '+
-                    '<changefreq>weekly</changefreq> '+
-                    '<priority>0.5</priority> '+
                 '</url>\n'+
               '</urlset>');
   },
@@ -231,8 +227,6 @@ module.exports = {
               urlset + '\n'+
                 '<url> '+
                     '<loc>http://ya.ru</loc> '+
-                    '<changefreq>weekly</changefreq> '+
-                    '<priority>0.5</priority> '+
                 '</url>\n'+
               '</urlset>');
   },
@@ -245,8 +239,6 @@ module.exports = {
               urlset + '\n'+
                 '<url> '+
                     '<loc>http://ya.ru</loc> '+
-                    '<changefreq>weekly</changefreq> '+
-                    '<priority>0.5</priority> '+
                 '</url>\n'+
               '</urlset>'
     ));
@@ -366,7 +358,8 @@ module.exports = {
             { url: '/',         changefreq: 'always', priority: 1 },
             { url: '/page-1/',  changefreq: 'weekly', priority: 0.3 },
             { url: '/page-2/',  changefreq: 'daily',  priority: 0.7 },
-            { url: 'http://www.test.com/page-3/',  changefreq: 'monthly',  priority: 0.2 },
+            { url: '/page-3/',  changefreq: 'monthly',  priority: 0.2, img: '/image.jpg' },
+            { url: 'http://www.test.com/page-4/',  changefreq: 'never',  priority: 0.8 },
           ]
         });
 
@@ -390,8 +383,16 @@ module.exports = {
                 '</url>\n'+
                 '<url> '+
                     '<loc>http://www.test.com/page-3/</loc> '+
+                    '<image:image> '+
+                        '<image:loc>http://test.com/image.jpg</image:loc>'+
+                    '</image:image> '+
                     '<changefreq>monthly</changefreq> '+
                     '<priority>0.2</priority> '+
+                '</url>\n'+
+                '<url> '+
+                    '<loc>http://www.test.com/page-4/</loc> '+
+                    '<changefreq>never</changefreq> '+
+                    '<priority>0.8</priority> '+
                 '</url>\n'+
               '</urlset>');
   },
