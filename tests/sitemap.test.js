@@ -211,8 +211,6 @@ module.exports = {
                 urlset + '\n'+
                   '<url> '+
                       '<loc>http://ya.ru</loc> '+
-                      '<changefreq>weekly</changefreq> '+
-                      '<priority>0.5</priority> '+
                   '</url>\n'+
                 '</urlset>');
     });
@@ -254,8 +252,6 @@ module.exports = {
             urlset + '\n'+
             '<url> ' +
             '<loc>http://ya.ru</loc> ' +
-            '<changefreq>weekly</changefreq> ' +
-            '<priority>0.5</priority> ' +
             '</url>\n' +
             '</urlset>'
       );
@@ -382,8 +378,8 @@ module.exports = {
                     '<priority>0.7</priority> '+
                 '</url>\n'+
                 '<url> '+
-                    '<loc>http://www.test.com/page-3/</loc> '+
-                    '<image:image> '+
+                    '<loc>http://test.com/page-3/</loc> '+
+                    '<image:image>'+
                         '<image:loc>http://test.com/image.jpg</image:loc>'+
                     '</image:image> '+
                     '<changefreq>monthly</changefreq> '+
@@ -456,8 +452,6 @@ module.exports = {
                   '</url>\n'+
                   '<url> '+
                       '<loc>http://test.com/new-page/</loc> '+
-                      '<changefreq>weekly</changefreq> '+
-                      '<priority>0.5</priority> '+
                   '</url>\n'+
                 '</urlset>');
     }, 1000);
@@ -493,8 +487,6 @@ module.exports = {
                 '</url>\n'+
                 '<url> '+
                     '<loc>http://test.com/new-page/</loc> '+
-                    '<changefreq>weekly</changefreq> '+
-                    '<priority>0.5</priority> '+
                 '</url>\n'+
               '</urlset>');
   },
@@ -623,13 +615,9 @@ module.exports = {
           urlset + '\n'+
             '<url> '+
                 '<loc>http://ya.ru/page1</loc> '+
-                '<changefreq>weekly</changefreq> '+
-                '<priority>0.5</priority> '+
             '</url>\n'+
             '<url> '+
                 '<loc>http://ya.ru/page2</loc> '+
-                '<changefreq>weekly</changefreq> '+
-                '<priority>0.5</priority> '+
             '</url>\n'+
           '</urlset>');
       });
