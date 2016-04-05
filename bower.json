@@ -3,7 +3,7 @@
   "main": "index.js",
   "version": "1.5.0",
   "dependencies": {
-    "url-join": "^0.0.1",
+    "url-join": "^1.1.0",
     "underscore": "1.7.0"
   },
   "devDependencies": {
