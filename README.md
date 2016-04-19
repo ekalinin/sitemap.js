@@ -7,8 +7,8 @@ makes creating [sitemap XML](http://www.sitemaps.org/) files easy.
 Table of Contents
 =================
 
-  * [Table of Contents](#table-of-contents)
   * [sitemap.js](#sitemapjs)
+  * [Table of Contents](#table-of-contents)
     * [Installation](#installation)
     * [Usage](#usage)
       * [Example of using sitemap.js with <a href="https://github.com/visionmedia/express">express</a>:](#example-of-using-sitemapjs-with-express)
@@ -19,9 +19,9 @@ Table of Contents
       * [Example of Sitemap Styling](#example-of-sitemap-styling)
       * [Example of mobile URL](#example-of-mobile-url)
       * [Example of using HH:MM:SS in lastmod](#example-of-using-hhmmss-in-lastmod)
+      * [Example of Sitemap Index](#example-of-sitemap-index)
     * [Testing](#testing)
     * [License](#license)
-
 
 TOC created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -202,6 +202,23 @@ var sm = require('sitemap')
         priority: 0.3
       }]
     });
+```
+
+### Example of Sitemap Index
+
+```javascript
+var sm = require('sitemap')
+  , smi = new sm.createSitemapIndex({
+      cacheTime: 600000,
+      hostname: 'http://www.sitemap.org',
+      sitemapName: 'sm-test',
+      sitemapSize: 1,
+      targetFolder: require('os').tmpdir(),
+      urls: ['http://ya.ru', 'http://ya2.ru']
+      // optional:
+      // callback: function(err, result) {}
+    });
+
 ```
 
 Testing
