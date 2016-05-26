@@ -156,6 +156,22 @@ var sm = sm.createSitemap({
 ```
 
 
+###Example of indicating Android app deep linking:
+
+[Description](https://developer.android.com/training/app-indexing/enabling-app-indexing.html#sitemap) in
+the google's Search Console Help.
+
+```javascript
+var sm = sm.createSitemap({
+      urls: [{
+        url: 'http://test.com/page-1/',
+        changefreq: 'weekly',
+        priority: 0.3,
+        androidLink: 'android-app://com.company.test/page-1/'
+      }]
+    });
+```
+
 ###Example of Sitemap Styling
 
 ```javascript
