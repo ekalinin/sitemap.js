@@ -16,6 +16,7 @@ Table of Contents
       * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
       * [Example of pre-generating sitemap based on existing static files:](#example-of-pre-generating-sitemap-based-on-existing-static-files)
       * [Example of indicating alternate language pages:](#example-of-indicating-alternate-language-pages)
+      * [Example of indicating Android app deep linking:](#example-of-indicating-android-app-deep-linking)
       * [Example of Sitemap Styling](#example-of-sitemap-styling)
       * [Example of mobile URL](#example-of-mobile-url)
       * [Example of using HH:MM:SS in lastmod](#example-of-using-hhmmss-in-lastmod)
@@ -156,6 +157,22 @@ var sm = sm.createSitemap({
 ```
 
 
+###Example of indicating Android app deep linking:
+
+[Description](https://developer.android.com/training/app-indexing/enabling-app-indexing.html#sitemap) in
+the google's Search Console Help.
+
+```javascript
+var sm = sm.createSitemap({
+      urls: [{
+        url: 'http://test.com/page-1/',
+        changefreq: 'weekly',
+        priority: 0.3,
+        androidLink: 'android-app://com.company.test/page-1/'
+      }]
+    });
+```
+
 ###Example of Sitemap Styling
 
 ```javascript
@@ -227,7 +244,7 @@ Testing
 ```bash
 ➥ git clone https://github.com/ekalinin/sitemap.js.git
 ➥ cd sitemap.js
-➥ make env 
+➥ make env
 ➥ . env/bin/activate
 (env) ➥ make test
 ./node_modules/expresso/bin/expresso ./tests/sitemap.test.js
