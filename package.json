@@ -1,13 +1,13 @@
 {
-  "name": "sitemap",
-  "version": "1.6.0",
-  "description": "Sitemap-generating framework",
+  "name": "starzplayarabia-sitemap",
+  "version": "1.7.0",
+  "description": "Sitemap-generating framework based on Eugene Kalinin sitemap library",
   "keywords": [
     "sitemap",
     "sitemap.xml"
   ],
-  "repository": "git://github.com/ekalinin/sitemap.js.git",
-  "author": "Eugene Kalinin <e.v.kalinin@gmail.com>",
+  "repository": "git://github.com/starzplayarabia/sitemap.js.git",
+  "author": "Starz Play Arabia <markel.arizaga@starzplayarabia.com> (http://www.arabia.starzplay.com)",
   "dependencies": {
     "underscore": "^1.7.0",
     "url-join": "^1.1.0"
