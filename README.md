@@ -16,6 +16,7 @@ Table of Contents
       * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
       * [Example of pre-generating sitemap based on existing static files:](#example-of-pre-generating-sitemap-based-on-existing-static-files)
       * [Example of indicating alternate language pages:](#example-of-indicating-alternate-language-pages)
+      * [Example of indicating Android app deep linking:](#example-of-indicating-android-app-depp-linking)
       * [Example of Sitemap Styling](#example-of-sitemap-styling)
       * [Example of mobile URL](#example-of-mobile-url)
       * [Example of using HH:MM:SS in lastmod](#example-of-using-hhmmss-in-lastmod)
@@ -243,7 +244,7 @@ Testing
 ```bash
 ➥ git clone https://github.com/ekalinin/sitemap.js.git
 ➥ cd sitemap.js
-➥ make env 
+➥ make env
 ➥ . env/bin/activate
 (env) ➥ make test
 ./node_modules/expresso/bin/expresso ./tests/sitemap.test.js
