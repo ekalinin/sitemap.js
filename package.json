@@ -1,6 +1,6 @@
 {
   "name": "starzplayarabia-sitemap",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "Sitemap-generating framework based on Eugene Kalinin sitemap library",
   "keywords": [
     "sitemap",
