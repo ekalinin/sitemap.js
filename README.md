@@ -42,7 +42,14 @@ var sm = require('sitemap')
 // Creates a sitemap object given the input configuration with URLs
 var sitemap = sm.createSitemap({ options });
 // Generates XML with a callback function
-sitemap.toXML( function(xml){ console.log(xml) });
+sitemap.toXML(
+  function(err, xml){
+    if (err){
+      console.log(err)
+    } else {
+      console.log(xml)
+    }
+  });
 // Gives you a string containing the XML data
 var xml = sitemap.toString();
 ```
