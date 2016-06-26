@@ -658,8 +658,8 @@ module.exports = {
     smap.toXML(function (err, xml) {
       assert.eql(err, error);
     });
-},
-  'sitemap: android app linking': function(){
+  },
+  'sitemap: android app linking': function() {
     var smap = sm.createSitemap({
           urls: [
             { url: 'http://test.com/page-1/',  changefreq: 'weekly', priority: 0.3,
@@ -676,5 +676,51 @@ module.exports = {
                   '<xhtml:link rel="alternate" href="android-app://com.company.test/page-1/" /> '+
                 '</url>\n'+
               '</urlset>');
+  },
+  'sitemap: image with caption': function() {
+    var smap = sm.createSitemap({
+      urls: [
+        { url: 'http://test.com', img: {url: 'http://test.com/image.jpg', caption: 'Test Caption'}}
+      ]
+    });
+
+    assert.eql(smap.toString(),
+      '<?xml version="1.0" encoding="UTF-8"?>\n'+
+      urlset + '\n'+
+        '<url> '+
+            '<loc>http://test.com</loc> '+
+            '<image:image>'+
+                '<image:loc>http://test.com/image.jpg</image:loc>'+
+                '<image:caption><![CDATA[Test Caption]]></image:caption>'+
+            '</image:image> '+
+        '</url>\n'+
+      '</urlset>')
+  },
+  'sitemap: images with captions': function() {
+    var smap = sm.createSitemap({
+      urls: [
+        { url: 'http://test.com', img: {url: 'http://test.com/image.jpg', caption: 'Test Caption'}},
+        { url: 'http://test.com/page2/', img: {url: 'http://test.com/image2.jpg', caption: 'Test Caption 2'}}
+      ]
+    });
+
+    assert.eql(smap.toString(),
+      '<?xml version="1.0" encoding="UTF-8"?>\n'+
+      urlset + '\n'+
+        '<url> '+
+            '<loc>http://test.com</loc> '+
+            '<image:image>'+
+                '<image:loc>http://test.com/image.jpg</image:loc>'+
+                '<image:caption><![CDATA[Test Caption]]></image:caption>'+
+            '</image:image> '+
+        '</url>\n'+
+        '<url> '+
+            '<loc>http://test.com/page2/</loc> '+
+            '<image:image>'+
+                '<image:loc>http://test.com/image2.jpg</image:loc>'+
+                '<image:caption><![CDATA[Test Caption 2]]></image:caption>'+
+            '</image:image> '+
+        '</url>\n'+
+      '</urlset>')
   }
 }
