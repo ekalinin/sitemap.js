@@ -15,6 +15,7 @@ Table of Contents
       * [Example of synchronous sitemap.js usage:](#example-of-synchronous-sitemapjs-usage)
       * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
       * [Example of pre-generating sitemap based on existing static files:](#example-of-pre-generating-sitemap-based-on-existing-static-files)
+      * [Example of images with captions:](#example-of-images-with-captions)
       * [Example of indicating alternate language pages:](#example-of-indicating-alternate-language-pages)
       * [Example of indicating Android app deep linking:](#example-of-indicating-android-app-deep-linking)
       * [Example of Sitemap Styling](#example-of-sitemap-styling)
@@ -136,6 +137,21 @@ var sitemap = sm.createSitemap({
 
 fs.writeFileSync("app/assets/sitemap.xml", sitemap.toString());
 ```
+
+###Example of images with captions:
+
+```javascript
+var sm = sm.createSitemap({
+      urls: [{
+        url: 'http://test.com/page-1/',
+        img: [
+          { url: 'http://test.com/img1.jpg', caption: 'An image'},
+          { url: 'http://test.com/img2.jpg', caption: 'Another image'}
+        ]
+      }]
+    });
+```
+
 
 ###Example of indicating alternate language pages:
 
