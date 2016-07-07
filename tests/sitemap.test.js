@@ -16,6 +16,8 @@ var urlset = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
              'xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" ' +
              'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">';
 
+var dynamicUrlSet = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
 var removeFilesArray = function(files) {
   if (files && files.length) {
     files.forEach(function(file) {
@@ -194,6 +196,21 @@ module.exports = {
     assert.eql(ssp.toString(),
               '<?xml version="1.0" encoding="UTF-8"?>\n'+
                 urlset + '\n'+
+                '<url> '+
+                    '<loc>http://ya.ru</loc> '+
+                '</url>\n'+
+              '</urlset>');
+  },
+  'simple sitemap with dynamic xmlNs': function() {
+    var url = 'http://ya.ru';
+    var ssp = new sm.createSitemap({
+      xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+    });
+    ssp.add(url);
+
+    assert.eql(ssp.toString(),
+              '<?xml version="1.0" encoding="UTF-8"?>\n'+
+                dynamicUrlSet + '\n'+
                 '<url> '+
                     '<loc>http://ya.ru</loc> '+
                 '</url>\n'+
