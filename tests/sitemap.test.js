@@ -274,6 +274,25 @@ module.exports = {
       );
     });
   },
+  'build sitemap index': function() {
+    var expectedResult = '<?xml version="1.0" encoding="UTF-8"?>\n'+
+    '<?xml-stylesheet type="text/xsl" href="https://test.com/style.xsl"?>\n'+
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+    '<sitemap>\n'+
+    '<loc>https://test.com/s1.xml</loc>\n'+
+    '</sitemap>\n'+
+    '<sitemap>\n'+
+    '<loc>https://test.com/s2.xml</loc>\n'+
+    '</sitemap>\n'+
+    '</sitemapindex>';
+
+    var result = sm.buildSitemapIndex({
+      urls: ['https://test.com/s1.xml', 'https://test.com/s2.xml'],
+      xslUrl: 'https://test.com/style.xsl'
+    });
+
+    assert.eql(result, expectedResult);
+  },
   'simple sitemap index': function() {
     var tmp = require('os').tmpdir(),
         url1 = 'http://ya.ru',
