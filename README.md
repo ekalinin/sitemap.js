@@ -23,6 +23,7 @@ Table of Contents
       * [Example of Sitemap Styling](#example-of-sitemap-styling)
       * [Example of mobile URL](#example-of-mobile-url)
       * [Example of using HH:MM:SS in lastmod](#example-of-using-hhmmss-in-lastmod)
+      * [Example of Sitemap Index as String](#example-of-sitemap-index-as-string)
       * [Example of Sitemap Index](#example-of-sitemap-index)
     * [Testing](#testing)
     * [License](#license)
@@ -212,6 +213,7 @@ var sm = sm.createSitemap({
 
 [Description](https://support.google.com/webmasters/answer/34648?hl=en) in
 the google's Search Console Help.
+
 ```javascript
 var sm = sm.createSitemap({
       urls: [{
@@ -239,6 +241,16 @@ var sm = require('sitemap')
     });
 ```
 
+### Example of Sitemap Index as String
+
+```javascript
+var sm = require('sitemap')
+  , smi = new sm.buildSitemapIndex({
+      urls: ['https://example.com/sitemap1.xml', 'https://example.com/sitemap2.xml']
+      xslUrl: 'https://example.com/style.xsl' // optional
+    });
+```
+
 ### Example of Sitemap Index
 
 ```javascript
@@ -253,7 +265,6 @@ var sm = require('sitemap')
       // optional:
       // callback: function(err, result) {}
     });
-
 ```
 
 Testing
