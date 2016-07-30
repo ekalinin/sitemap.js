@@ -758,5 +758,44 @@ module.exports = {
             '</image:image> '+
         '</url>\n'+
       '</urlset>')
+  },
+  'sitemap: images with captions': function() {
+    var smap = sm.createSitemap({
+      hostname: 'http://test.com',
+      urls: [
+        {
+          url: '/index.html',
+          img: [
+            {url: 'http://test.com/image.jpg', caption: 'Test Caption'},
+            {url: 'http://test.com/image2.jpg', caption: 'Test Caption 2'}
+          ]
+        }
+      ]
+    });
+
+    smap.urls.push({url: '/index2.html', img: [{url: '/image3.jpg', caption: 'Test Caption 3'}]});
+
+    assert.eql(smap.toString(),
+      '<?xml version="1.0" encoding="UTF-8"?>\n'+
+      urlset + '\n'+
+        '<url> '+
+            '<loc>http://test.com/index.html</loc> '+
+            '<image:image>'+
+                '<image:loc>http://test.com/image.jpg</image:loc>'+
+                '<image:caption><![CDATA[Test Caption]]></image:caption>'+
+            '</image:image> '+
+            '<image:image>'+
+                '<image:loc>http://test.com/image2.jpg</image:loc>'+
+                '<image:caption><![CDATA[Test Caption 2]]></image:caption>'+
+            '</image:image> '+
+        '</url>\n'+
+        '<url> '+
+            '<loc>http://test.com/index2.html</loc> '+
+            '<image:image>'+
+                '<image:loc>http://test.com/image3.jpg</image:loc>'+
+                '<image:caption><![CDATA[Test Caption 3]]></image:caption>'+
+            '</image:image> '+
+        '</url>\n'+
+      '</urlset>');
   }
 }
