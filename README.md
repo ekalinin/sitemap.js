@@ -245,7 +245,7 @@ var sm = require('sitemap')
 
 ```javascript
 var sm = require('sitemap')
-  , smi = new sm.buildSitemapIndex({
+  , smi = sm.buildSitemapIndex({
       urls: ['https://example.com/sitemap1.xml', 'https://example.com/sitemap2.xml']
       xslUrl: 'https://example.com/style.xsl' // optional
     });
@@ -255,7 +255,7 @@ var sm = require('sitemap')
 
 ```javascript
 var sm = require('sitemap')
-  , smi = new sm.createSitemapIndex({
+  , smi = sm.createSitemapIndex({
       cacheTime: 600000,
       hostname: 'http://www.sitemap.org',
       sitemapName: 'sm-test',

@@ -203,7 +203,7 @@ module.exports = {
   },
   'simple sitemap with dynamic xmlNs': function() {
     var url = 'http://ya.ru';
-    var ssp = new sm.createSitemap({
+    var ssp = sm.createSitemap({
       xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
     });
     ssp.add(url);
@@ -305,7 +305,7 @@ module.exports = {
 
     assert.throws(
       function() {
-        var ssp = new sm.createSitemapIndex({
+        var ssp = sm.createSitemapIndex({
           cacheTime: 600000,
           hostname: 'http://www.sitemap.org',
           sitemapName: 'sm-test',
@@ -320,7 +320,7 @@ module.exports = {
     // Cleanup before run test
     removeFilesArray(expectedFiles);
 
-    var ssp = new sm.createSitemapIndex({
+    var ssp = sm.createSitemapIndex({
       cacheTime: 600000,
       hostname: 'http://www.sitemap.org',
       sitemapName: 'sm-test',
@@ -337,7 +337,7 @@ module.exports = {
     });
   },
   'sitemap without callback': function() {
-    new sm.createSitemapIndex({
+    sm.createSitemapIndex({
       cacheTime: 600000,
       hostname: 'http://www.sitemap.org',
       sitemapName: 'sm-test',
@@ -359,7 +359,7 @@ module.exports = {
     // Cleanup before run test
     removeFilesArray(expectedFiles);
 
-    new sm.createSitemapIndex({
+    sm.createSitemapIndex({
       cacheTime: 600000,
       hostname: 'http://www.sitemap.org',
       sitemapName: 'sm-test',
