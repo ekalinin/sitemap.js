@@ -293,6 +293,24 @@ module.exports = {
 
     assert.eql(result, expectedResult);
   },
+  'build sitemap index with custom xmlNS': function() {
+    var expectedResult = '<?xml version="1.0" encoding="UTF-8"?>\n'+
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+
+        '<sitemap>\n'+
+            '<loc>https://test.com/s1.xml</loc>\n'+
+        '</sitemap>\n'+
+        '<sitemap>\n'+
+            '<loc>https://test.com/s2.xml</loc>\n'+
+        '</sitemap>\n'+
+    '</sitemapindex>';
+
+    var result = sm.buildSitemapIndex({
+        urls: ['https://test.com/s1.xml', 'https://test.com/s2.xml'],
+        xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
+    });
+
+    assert.eql(result, expectedResult);
+  },
   'simple sitemap index': function() {
     var tmp = require('os').tmpdir(),
         url1 = 'http://ya.ru',
