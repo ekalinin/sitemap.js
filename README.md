@@ -155,6 +155,22 @@ var sm = sm.createSitemap({
     });
 ```
 
+###Example of videos:
+
+[Description](https://developers.google.com/webmasters/videosearch/sitemaps) specifications. Required fields are thumbnail_loc, title, and description.
+
+```javascript
+var sm = sm.createSitemap({
+      urls: [{
+        url: 'http://test.com/page-1/',
+        video: [
+          { thumbnail_loc: 'http://test.com/tmbn1.jpg', title: 'A video title', description: 'This is a video' },
+          { thumbnail_loc: 'http://test.com/tmbn2.jpg', title: 'Another video title', description: 'This is another video' },
+        ]
+      }]
+    });
+```
+
 
 ###Example of indicating alternate language pages:
 
