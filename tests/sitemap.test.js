@@ -758,7 +758,7 @@ module.exports = {
             url: 'http://test.com/image.jpg',
             caption: 'Test Caption',
             title: 'Test title',
-            geo_location: 'Test Geo Location',
+            geoLocation: 'Test Geo Location',
             license: 'http://test.com/license.txt',
           }
         }
