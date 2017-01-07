@@ -750,6 +750,36 @@ module.exports = {
         '</url>\n'+
       '</urlset>')
   },
+  'sitemap: image with caption, title, geo_location, license': function() {
+    var smap = sm.createSitemap({
+      urls: [
+        { url: 'http://test.com',
+          img: {
+            url: 'http://test.com/image.jpg',
+            caption: 'Test Caption',
+            title: 'Test title',
+            geo_location: 'Test Geo Location',
+            license: 'http://test.com/license.txt',
+          }
+        }
+      ]
+    });
+
+    assert.eql(smap.toString(),
+      '<?xml version="1.0" encoding="UTF-8"?>\n'+
+      urlset + '\n'+
+        '<url> '+
+            '<loc>http://test.com</loc> '+
+            '<image:image>'+
+                '<image:loc>http://test.com/image.jpg</image:loc>'+
+                '<image:caption><![CDATA[Test Caption]]></image:caption>'+
+                '<image:geo_location>Test Geo Location</image:geo_location>'+
+                '<image:title><![CDATA[Test title]]></image:title>'+
+                '<image:license>http://test.com/license.txt</image:license>'+
+            '</image:image> '+
+        '</url>\n'+
+      '</urlset>')
+  },
   'sitemap: images with captions': function() {
     var smap = sm.createSitemap({
       urls: [
