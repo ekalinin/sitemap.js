@@ -749,6 +749,23 @@ module.exports = {
         '</url>\n'+
       '</urlset>');
   },
+  'sitemap: expires': function() {
+    var smap = sm.createSitemap({
+          urls: [
+            { url: 'http://test.com/page-1/',  changefreq: 'weekly', priority: 0.3,
+              expires: new Date('2016-09-13') },
+            ]
+          });
+    assert.eql(smap.toString(),
+      '<?xml version="1.0" encoding="UTF-8"?>\n'+ urlset + '\n'+
+        '<url> '+
+          '<loc>http://test.com/page-1/</loc> '+
+          '<changefreq>weekly</changefreq> '+
+          '<priority>0.3</priority> '+
+          '<expires>2016-09-13T00:00:00.000Z</expires> '+
+        '</url>\n'+
+      '</urlset>');
+  },
   'sitemap: image with caption': function() {
     var smap = sm.createSitemap({
       urls: [
