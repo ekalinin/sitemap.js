@@ -16,7 +16,7 @@ test-perf:
 	node tests/perf.js
 
 deploy-github:
-	@git tag `grep "version" package.json | grep -o -E '[0-9]\.[0-9]\.[0-9]{1,2}'`
+	@git tag `grep "version" package.json | grep -o -E '[0-9]\.[0-9]{1,2}\.[0-9]{1,2}'`
 	@git push --tags origin master
 
 deploy-npm:
