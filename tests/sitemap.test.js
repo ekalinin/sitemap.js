@@ -14,7 +14,8 @@ var urlset = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
              'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" ' +
              'xmlns:xhtml="http://www.w3.org/1999/xhtml" ' +
              'xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" ' +
-             'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">';
+             'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" ' +
+             'xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">';
 
 var dynamicUrlSet = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 
@@ -277,7 +278,7 @@ module.exports = {
   'build sitemap index': function() {
     var expectedResult = '<?xml version="1.0" encoding="UTF-8"?>\n'+
     '<?xml-stylesheet type="text/xsl" href="https://test.com/style.xsl"?>\n'+
-    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n'+
     '<sitemap>\n'+
     '<loc>https://test.com/s1.xml</loc>\n'+
     '</sitemap>\n'+
@@ -745,6 +746,23 @@ module.exports = {
           '<changefreq>weekly</changefreq> '+
           '<priority>0.3</priority> '+
           '<xhtml:link rel="amphtml" href="http://ampproject.org/article.amp.html" />'+
+        '</url>\n'+
+      '</urlset>');
+  },
+  'sitemap: expires': function() {
+    var smap = sm.createSitemap({
+          urls: [
+            { url: 'http://test.com/page-1/',  changefreq: 'weekly', priority: 0.3,
+              expires: new Date('2016-09-13') },
+            ]
+          });
+    assert.eql(smap.toString(),
+      '<?xml version="1.0" encoding="UTF-8"?>\n'+ urlset + '\n'+
+        '<url> '+
+          '<loc>http://test.com/page-1/</loc> '+
+          '<changefreq>weekly</changefreq> '+
+          '<priority>0.3</priority> '+
+          '<expires>2016-09-13T00:00:00.000Z</expires> '+
         '</url>\n'+
       '</urlset>');
   },

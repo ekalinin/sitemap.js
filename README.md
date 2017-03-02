@@ -148,8 +148,20 @@ var sm = sm.createSitemap({
       urls: [{
         url: 'http://test.com/page-1/',
         img: [
-          { url: 'http://test.com/img1.jpg', caption: 'An image'},
-          { url: 'http://test.com/img2.jpg', caption: 'Another image'}
+          {
+            url: 'http://test.com/img1.jpg',
+            caption: 'An image',
+            title: 'The Title of Image One',
+            geoLocation: 'London, United Kingdom',
+            license: 'https://creativecommons.org/licenses/by/4.0/'
+          },
+          {
+            url: 'http://test.com/img2.jpg',
+            caption: 'Another image',
+            title: 'The Title of Image Two',
+            geoLocation: 'London, United Kingdom',
+            license: 'https://creativecommons.org/licenses/by/4.0/'
+          }
         ]
       }]
     });
