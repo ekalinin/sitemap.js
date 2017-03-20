@@ -144,7 +144,7 @@ fs.writeFileSync("app/assets/sitemap.xml", sitemap.toString());
 ###Example of images with captions:
 
 ```javascript
-var sm = sm.createSitemap({
+var sitemap = sm.createSitemap({
       urls: [{
         url: 'http://test.com/page-1/',
         img: [
@@ -172,7 +172,7 @@ var sm = sm.createSitemap({
 [Description](https://developers.google.com/webmasters/videosearch/sitemaps) specifications. Required fields are thumbnail_loc, title, and description.
 
 ```javascript
-var sm = sm.createSitemap({
+var sitemap = sm.createSitemap({
       urls: [{
         url: 'http://test.com/page-1/',
         video: [
@@ -190,7 +190,7 @@ var sm = sm.createSitemap({
 the google's Search Console Help.
 
 ```javascript
-var sm = sm.createSitemap({
+var sitemap = sm.createSitemap({
       urls: [{
         url: 'http://test.com/page-1/',
         changefreq: 'weekly',
@@ -210,7 +210,7 @@ var sm = sm.createSitemap({
 the google's Search Console Help.
 
 ```javascript
-var sm = sm.createSitemap({
+var sitemap = sm.createSitemap({
       urls: [{
         url: 'http://test.com/page-1/',
         changefreq: 'weekly',
@@ -223,7 +223,7 @@ var sm = sm.createSitemap({
 ###Example of Sitemap Styling
 
 ```javascript
-var sm = sm.createSitemap({
+var sitemap = sm.createSitemap({
       urls: [{
         url: 'http://test.com/page-1/',
         changefreq: 'weekly',
@@ -243,7 +243,7 @@ var sm = sm.createSitemap({
 the google's Search Console Help.
 
 ```javascript
-var sm = sm.createSitemap({
+var sitemap = sm.createSitemap({
       urls: [{
         url: 'http://mobile.test.com/page-1/',
         changefreq: 'weekly',
