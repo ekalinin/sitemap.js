@@ -51,7 +51,7 @@ sitemap.toXML( function(err, xml){ if (!err){ console.log(xml) } });
 var xml = sitemap.toString();
 ```
 
-###Example of using sitemap.js with [express](https://github.com/visionmedia/express):
+### Example of using sitemap.js with [express](https://github.com/visionmedia/express):
 
 ```javascript
 var express = require('express')
@@ -82,7 +82,7 @@ app.get('/sitemap.xml', function(req, res) {
 app.listen(3000);
 ```
 
-###Example of synchronous sitemap.js usage:
+### Example of synchronous sitemap.js usage:
 
 ```javascript
 var express = require('express')
@@ -107,7 +107,7 @@ app.get('/sitemap.xml', function(req, res) {
 app.listen(3000);
 ```
 
-###Example of dynamic page manipulations into sitemap:
+### Example of dynamic page manipulations into sitemap:
 
 ```javascript
 var sitemap = sm.createSitemap ({
@@ -122,7 +122,7 @@ sitemap.del('/page-1/');
 
 
 
-###Example of pre-generating sitemap based on existing static files:
+### Example of pre-generating sitemap based on existing static files:
 
 ```javascript
 var sm = require('sitemap')
@@ -141,7 +141,7 @@ var sitemap = sm.createSitemap({
 fs.writeFileSync("app/assets/sitemap.xml", sitemap.toString());
 ```
 
-###Example of images with captions:
+### Example of images with captions:
 
 ```javascript
 var sitemap = sm.createSitemap({
@@ -167,7 +167,7 @@ var sitemap = sm.createSitemap({
     });
 ```
 
-###Example of videos:
+### Example of videos:
 
 [Description](https://developers.google.com/webmasters/videosearch/sitemaps) specifications. Required fields are thumbnail_loc, title, and description.
 
@@ -184,7 +184,7 @@ var sitemap = sm.createSitemap({
 ```
 
 
-###Example of indicating alternate language pages:
+### Example of indicating alternate language pages:
 
 [Description](https://support.google.com/webmasters/answer/2620865?hl=en) in
 the google's Search Console Help.
@@ -204,7 +204,7 @@ var sitemap = sm.createSitemap({
 ```
 
 
-###Example of indicating Android app deep linking:
+### Example of indicating Android app deep linking:
 
 [Description](https://developer.android.com/training/app-indexing/enabling-app-indexing.html#sitemap) in
 the google's Search Console Help.
@@ -220,7 +220,7 @@ var sitemap = sm.createSitemap({
     });
 ```
 
-###Example of Sitemap Styling
+### Example of Sitemap Styling
 
 ```javascript
 var sitemap = sm.createSitemap({
