@@ -59,14 +59,14 @@ module.exports = {
     assert.eql(smi.toString(),
               '<url> '+
                   '<loc>http://ya.ru</loc> '+
-                  '<image:image>'+
-                    '<image:loc>'+
-                      'http://urlTest.com'+
-                    '</image:loc>'+
-                  '</image:image> '+
                   '<lastmod>2011-06-27</lastmod> '+
                   '<changefreq>always</changefreq> '+
                   '<priority>0.9</priority> '+
+                  '<image:image>'+
+                  '<image:loc>'+
+                  'http://urlTest.com'+
+                  '</image:loc>'+
+                  '</image:image> '+
                   '<mobile:mobile/> '+
               '</url>');
   },
@@ -111,14 +111,14 @@ module.exports = {
     assert.eql(smi.toString(),
               '<url> '+
                   '<loc>http://ya.ru</loc> '+
-                  '<image:image>'+
-                    '<image:loc>'+
-                      'http://urlTest.com'+
-                    '</image:loc>'+
-                  '</image:image> '+
                   '<lastmod>'+ lastmod +'</lastmod> '+
                   '<changefreq>always</changefreq> '+
                   '<priority>0.9</priority> '+
+                  '<image:image>'+
+                  '<image:loc>'+
+                  'http://urlTest.com'+
+                  '</image:loc>'+
+                  '</image:image> '+
               '</url>');
   },
   'sitemap item: lastmod from file with lastmodrealtime': function () {
@@ -145,14 +145,14 @@ module.exports = {
     assert.eql(smi.toString(),
               '<url> '+
                   '<loc>http://ya.ru</loc> '+
-                  '<image:image>'+
-                    '<image:loc>'+
-                      'http://urlTest.com'+
-                    '</image:loc>'+
-                  '</image:image> '+
                   '<lastmod>'+ lastmod +'</lastmod> '+
                   '<changefreq>always</changefreq> '+
                   '<priority>0.9</priority> '+
+                  '<image:image>'+
+                  '<image:loc>'+
+                  'http://urlTest.com'+
+                  '</image:loc>'+
+                  '</image:image> '+
               '</url>');
   },
   'sitemap item: toXML': function () {
@@ -168,14 +168,14 @@ module.exports = {
     assert.eql(smi.toString(),
               '<url> '+
                   '<loc>http://ya.ru</loc> '+
+                  '<lastmod>2011-06-27</lastmod> '+
+                  '<changefreq>always</changefreq> '+
+                  '<priority>0.9</priority> '+
                   '<image:image>'+
                       '<image:loc>'+
                         'http://urlTest.com'+
                       '</image:loc>'+
                   '</image:image> '+
-                  '<lastmod>2011-06-27</lastmod> '+
-                  '<changefreq>always</changefreq> '+
-                  '<priority>0.9</priority> '+
               '</url>');
   },
   'sitemap empty urls': function () {
@@ -434,11 +434,11 @@ module.exports = {
                 '</url>\n'+
                 '<url> '+
                     '<loc>http://test.com/page-3/</loc> '+
+                    '<changefreq>monthly</changefreq> '+
+                    '<priority>0.2</priority> '+
                     '<image:image>'+
                         '<image:loc>http://test.com/image.jpg</image:loc>'+
                     '</image:image> '+
-                    '<changefreq>monthly</changefreq> '+
-                    '<priority>0.2</priority> '+
                 '</url>\n'+
                 '<url> '+
                     '<loc>http://www.test.com/page-4/</loc> '+
