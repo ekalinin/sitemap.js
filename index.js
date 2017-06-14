@@ -11,9 +11,6 @@ module.exports.errors = require('./lib/errors');
 /**
  * Framework version.
  */
-var fs = require('fs');
-
 if (!module.exports.version) {
-  module.exports.version = JSON.parse(
-    fs.readFileSync(__dirname + "/package.json", 'utf8')).version;
+  module.exports.version = "1.12.1"
 }
