@@ -12,5 +12,5 @@ module.exports.errors = require('./lib/errors');
  * Framework version.
  */
 if (!module.exports.version) {
-  module.exports.version = "1.12.1"
+  module.exports.version = "1.13.0"
 }
