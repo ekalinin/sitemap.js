@@ -9,6 +9,9 @@
   ],
   "repository": "git://github.com/ekalinin/sitemap.js.git",
   "author": "Eugene Kalinin <e.v.kalinin@gmail.com>",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
   "dependencies": {
     "underscore": "^1.7.0",
     "url-join": "^2.0.2"
