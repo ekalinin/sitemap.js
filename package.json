@@ -10,7 +10,7 @@
   "author": "Eugene Kalinin <e.v.kalinin@gmail.com>",
   "dependencies": {
     "underscore": "^1.7.0",
-    "url-join": "^1.1.0"
+    "url-join": "^2.0.2"
   },
   "devDependencies": {
     "expresso": "^0.9.2",
