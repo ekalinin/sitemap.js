@@ -2,6 +2,7 @@
   "name": "sitemap",
   "version": "1.13.0",
   "description": "Sitemap-generating framework",
+  "License": "MIT",
   "keywords": [
     "sitemap",
     "sitemap.xml"
