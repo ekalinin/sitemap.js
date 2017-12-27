@@ -3,6 +3,7 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
+'use strict';
 
 const sm = require('../index')
 const fs = require('fs')
