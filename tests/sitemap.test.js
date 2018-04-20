@@ -563,6 +563,24 @@ module.exports = {
 
     assert.eql(smap.toString(), xml);
   },
+  'sitemap: handle urls with "&" in the path': function() {
+    var smap = sm.createSitemap({
+          hostname: 'http://test.com',
+          urls: [
+            { url: '/page-that-mentions-&-in-the-url/',  changefreq: 'weekly', priority: 0.3 }
+          ]
+        })
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
+              urlset + '\n'+
+                '<url> '+
+                    '<loc>http://test.com/page-that-mentions-&amp;-in-the-url/</loc> '+
+                    '<changefreq>weekly</changefreq> '+
+                    '<priority>0.3</priority> '+
+                '</url>\n'+
+              '</urlset>';
+
+    assert.eql(smap.toString(), xml);
+  },
   'sitemap: keep urls that start with http:// or https://': function() {
     var smap = sm.createSitemap({
           hostname: 'http://test.com',
@@ -769,7 +787,7 @@ module.exports = {
   'sitemap: image with caption': function() {
     var smap = sm.createSitemap({
       urls: [
-        { url: 'http://test.com', img: {url: 'http://test.com/image.jpg', caption: 'Test Caption'}}
+        { url: 'http://test.com', img: {url: 'http://test.com/image.jpg?param&otherparam', caption: 'Test Caption'}}
       ]
     });
 
@@ -779,7 +797,7 @@ module.exports = {
         '<url> '+
             '<loc>http://test.com</loc> '+
             '<image:image>'+
-                '<image:loc>http://test.com/image.jpg</image:loc>'+
+                '<image:loc>http://test.com/image.jpg?param&amp;otherparam</image:loc>'+
                 '<image:caption><![CDATA[Test Caption]]></image:caption>'+
             '</image:image> '+
         '</url>\n'+
@@ -880,5 +898,59 @@ module.exports = {
             '</image:image> '+
         '</url>\n'+
       '</urlset>');
+  },
+  'sitemap: video': function() {
+    var smap = sm.createSitemap({
+      urls: [
+        {
+          "url":"https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club",
+          "video":[{
+            "title":"2008:E2 - Burnout Paradise: Millionaire's Club",
+            "description":"Jack gives us a walkthrough on getting the Millionaire's Club Achievement in Burnout Paradise.",
+            "player_loc":"https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club?a&b",
+            "thumbnail_loc":"https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg?a&b",
+            "duration":174,
+            "publication_date":"2008-07-29T14:58:04.000Z",
+            "requires_subscription":false
+          }]
+        }
+      ]
+    });
+
+    assert.eql(smap.toString(),
+      '<?xml version="1.0" encoding="UTF-8"?>\n'+
+      urlset + '\n'+
+        '<url> '+
+            '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> '+
+            '<video:video>'+
+                '<video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg?a&amp;b</video:thumbnail_loc>' +
+                '<video:title><![CDATA[2008:E2 - Burnout Paradise: Millionaire\'s Club]]></video:title>' +
+                '<video:description><![CDATA[Jack gives us a walkthrough on getting the Millionaire\'s Club Achievement in Burnout Paradise.]]></video:description>' +
+                '<video:player_loc>https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club?a&amp;b</video:player_loc>' +
+                '<video:duration>174</video:duration>' +
+                '<video:publication_date>2008-07-29T14:58:04.000Z</video:publication_date>' +
+            '</video:video> ' +
+        '</url>\n'+
+      '</urlset>')
+  },
+  'sitemap: video duration': function() {
+    assert.throws( function() {
+      var smap = new sm.SitemapItem({
+            "url":"https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club",
+            "video":[{
+              "title":"2008:E2 - Burnout Paradise: Millionaire's Club",
+              "description":"Jack gives us a walkthrough on getting the Millionaire's Club Achievement in Burnout Paradise.",
+              "player_loc":"https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club?a&b",
+              "thumbnail_loc":"https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg?a&b",
+              "duration": -1,
+              "publication_date":"2008-07-29T14:58:04.000Z",
+              "requires_subscription":false
+            }]
+      });
+      smap.toString()
+    },
+      /duration must be an integer/
+    );
+
   }
 }
