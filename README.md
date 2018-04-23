@@ -177,7 +177,13 @@ var sitemap = sm.createSitemap({
         url: 'http://test.com/page-1/',
         video: [
           { thumbnail_loc: 'http://test.com/tmbn1.jpg', title: 'A video title', description: 'This is a video' },
-          { thumbnail_loc: 'http://test.com/tmbn2.jpg', title: 'Another video title', description: 'This is another video' },
+          {
+            thumbnail_loc: 'http://test.com/tmbn2.jpg',
+            title: 'A video with an attribute',
+            description: 'This is another video',
+            'player_loc': 'http://www.example.com/videoplayer.mp4?video=123',
+            'player_loc:autoplay': 'ap=1'
+          }
         ]
       }]
     });
