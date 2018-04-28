@@ -876,15 +876,14 @@ module.exports = {
 
     smap.urls.push({url: '/index2.html', img: [{url: '/image3.jpg', caption: 'Test Caption 3'}]});
 
-    assert.eql(smap.toString(),
-      '<?xml version="1.0" encoding="UTF-8"?>\n'+
+    var expected = '<?xml version="1.0" encoding="UTF-8"?>\n'+
       urlset + '\n'+
         '<url> '+
             '<loc>http://test.com/index.html</loc> '+
             '<image:image>'+
                 '<image:loc>http://test.com/image.jpg</image:loc>'+
                 '<image:caption><![CDATA[Test Caption]]></image:caption>'+
-            '</image:image> '+
+            '</image:image>'+
             '<image:image>'+
                 '<image:loc>http://test.com/image2.jpg</image:loc>'+
                 '<image:caption><![CDATA[Test Caption 2]]></image:caption>'+
@@ -897,7 +896,8 @@ module.exports = {
                 '<image:caption><![CDATA[Test Caption 3]]></image:caption>'+
             '</image:image> '+
         '</url>\n'+
-      '</urlset>');
+      '</urlset>'
+    assert.eql(smap.toString(), expected)
   },
   'sitemap: video': function() {
     var smap = sm.createSitemap({

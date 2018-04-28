@@ -11,7 +11,8 @@
   "author": "Eugene Kalinin <e.v.kalinin@gmail.com>",
   "dependencies": {
     "underscore": "^1.7.0",
-    "url-join": "^4.0.0"
+    "url-join": "^4.0.0",
+    "xmlbuilder": "^10.0.0"
   },
   "devDependencies": {
     "expresso": "^0.9.2",
