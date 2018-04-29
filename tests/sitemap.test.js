@@ -664,17 +664,17 @@ module.exports = {
             ] },
           ]
         });
-    assert.eql(smap.toString(),
-              '<?xml version="1.0" encoding="UTF-8"?>\n'+
+    var expected = '<?xml version="1.0" encoding="UTF-8"?>\n'+
               urlset + '\n'+
                 '<url> '+
                     '<loc>http://test.com/page-1/</loc> '+
                     '<changefreq>weekly</changefreq> '+
                     '<priority>0.3</priority> '+
-                    '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/" /> '+
-                    '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/" /> '+
+                    '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/"/> '+
+                    '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/"/> '+
                 '</url>\n'+
-              '</urlset>');
+              '</urlset>'
+    assert.eql(smap.toString(), expected)
   },
   'sitemap: normalize urls, see #39': function() {
     ["http://ya.ru", "http://ya.ru/"].forEach(function(hostname){
@@ -713,8 +713,8 @@ module.exports = {
                     '<loc>http://test.com/page-1/</loc> '+
                     '<changefreq>weekly</changefreq> '+
                     '<priority>0.3</priority> '+
-                    '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/" /> '+
-                    '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/" /> '+
+                    '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/"/> '+
+                    '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/"/> '+
                 '</url>\n'+
               '</urlset>');
   },
@@ -736,7 +736,7 @@ module.exports = {
     var smap = sm.createSitemap({
           urls: [
             { url: 'http://test.com/page-1/',  changefreq: 'weekly', priority: 0.3,
-              androidLink: 'android-app://com.company.test/page-1/' },
+              androidLink: 'android-app://com.company.test/page-1/' }
             ]
           });
     assert.eql(smap.toString(),
@@ -746,7 +746,7 @@ module.exports = {
                   '<loc>http://test.com/page-1/</loc> '+
                   '<changefreq>weekly</changefreq> '+
                   '<priority>0.3</priority> '+
-                  '<xhtml:link rel="alternate" href="android-app://com.company.test/page-1/" /> '+
+                  '<xhtml:link rel="alternate" href="android-app://com.company.test/page-1/"/> '+
                 '</url>\n'+
               '</urlset>');
   },
@@ -757,15 +757,15 @@ module.exports = {
               ampLink: 'http://ampproject.org/article.amp.html' },
             ]
           });
-    assert.eql(smap.toString(),
-      '<?xml version="1.0" encoding="UTF-8"?>\n'+ urlset + '\n'+
+    var expected = '<?xml version="1.0" encoding="UTF-8"?>\n'+ urlset + '\n'+
         '<url> '+
           '<loc>http://test.com/page-1/</loc> '+
           '<changefreq>weekly</changefreq> '+
           '<priority>0.3</priority> '+
-          '<xhtml:link rel="amphtml" href="http://ampproject.org/article.amp.html" />'+
+          '<xhtml:link rel="amphtml" href="http://ampproject.org/article.amp.html"/>'+
         '</url>\n'+
-      '</urlset>');
+      '</urlset>';
+    assert.eql(smap.toString(), expected)
   },
   'sitemap: expires': function() {
     var smap = sm.createSitemap({
@@ -917,8 +917,7 @@ module.exports = {
       ]
     });
 
-    assert.eql(smap.toString(),
-      '<?xml version="1.0" encoding="UTF-8"?>\n'+
+    var expected = '<?xml version="1.0" encoding="UTF-8"?>\n'+
       urlset + '\n'+
         '<url> '+
             '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> '+
@@ -931,7 +930,8 @@ module.exports = {
                 '<video:publication_date>2008-07-29T14:58:04.000Z</video:publication_date>' +
             '</video:video> ' +
         '</url>\n'+
-      '</urlset>')
+      '</urlset>'
+    assert.eql(smap.toString(), expected)
   },
   'sitemap: video duration': function() {
     assert.throws( function() {
