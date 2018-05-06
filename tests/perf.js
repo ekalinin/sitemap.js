@@ -74,4 +74,3 @@ function toXMLCB (xml) {
 }
 start = performance.now()
 sitemap.toXML(toXMLCB)
-console.log(runs)
