@@ -20,17 +20,28 @@
  */
 
 var sm = require('../index')
-  , sitemap = new sm.Sitemap();
 
 console.time(' * generating test data');
-for (var i=1; i<50000; i++) {
-  sitemap.add({
-    "url": '/test-url-'+i+'/',
-    "safe": true
-  });
-}
+// for (var i=1; i<50000; i++) {
+  // sitemap.add({
+    // "url": '/test-url-'+i+'/',
+    // "safe": true
+  // });
+// }
+let episodes = require('../episodes').episodes
+var i = 0
+var sitemap = sm.createSitemap({
+  hostname: 'https://roosterteeth.com',
+  urls: episodes.map(e => {
+    if (e.video[0].description.length > 2048) {
+      i++
+      e.video[0].description = e.video[0].description.slice(0, 2048)
+    }
+    return e
+  })
+})
 console.timeEnd(' * generating test data');
-
+debugger
 console.time(' * test sitemap synco');
 sitemap.toString();
 console.timeEnd(' * test sitemap synco');
