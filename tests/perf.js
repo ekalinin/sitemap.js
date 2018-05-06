@@ -20,24 +20,58 @@
  */
 
 var sm = require('../index')
-  , sitemap = new sm.Sitemap();
+var urls = require('./perf-data')
+const { performance } = require('perf_hooks')
+var stats = require('stats-lite')
+var [ runs = 20 ] = process.argv.slice(2)
 
-console.time(' * generating test data');
-for (var i=1; i<50000; i++) {
-  sitemap.add({
-    "url": '/test-url-'+i+'/',
-    "safe": true
-  });
+function printPerf (label, data) {
+  console.log('========= ', label, ' =============')
+  console.log('mean: %s', stats.mean(data).toFixed(2))
+  console.log('median: %s', stats.median(data).toFixed(2))
+  console.log('variance: %s', stats.variance(data).toFixed(2))
+  console.log('standard deviation: %s', stats.stdev(data).toFixed(2))
+  console.log('90th percentile: %s', stats.percentile(data, 0.9).toFixed(2))
+  console.log('99th percentile: %s', stats.percentile(data, 0.99).toFixed(2))
 }
-console.timeEnd(' * generating test data');
 
-console.time(' * test sitemap synco');
-sitemap.toString();
-console.timeEnd(' * test sitemap synco');
+function createSitemap () {
+  return sm.createSitemap({
+    hostname: 'https://roosterteeth.com',
+    urls
+  })
+}
 
-console.time(' * test sitemap async');
-console.time(' * sitemap async done');
-sitemap.toXML( function (xml) {
-  console.timeEnd(' * sitemap async done');
-});
-console.timeEnd(' * test sitemap async');
+let durations = []
+for (let i = 0; i < runs; i++) {
+  let start = performance.now()
+  createSitemap()
+  durations.push(performance.now() - start)
+}
+printPerf('sitemap creation', durations)
+let sitemap = createSitemap()
+
+let syncToString = []
+for (let i = 0; i < runs; i++) {
+  let start = performance.now()
+  sitemap.toString()
+  syncToString.push(performance.now() - start)
+}
+printPerf('sync', syncToString)
+
+var i = 0
+let start
+let asyncDurations = []
+function toXMLCB (xml) {
+  asyncDurations.push(performance.now() - start)
+  if (i < runs) {
+    i++
+    start = performance.now()
+    sitemap.toXML(toXMLCB)
+  } else {
+    printPerf('async', asyncDurations)
+  }
+}
+start = performance.now()
+sitemap.toXML(toXMLCB)
+console.log(runs)
