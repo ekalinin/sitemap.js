@@ -14,7 +14,9 @@ test:
 	./node_modules/expresso/bin/expresso ./tests/sitemap.test.js
 
 test-perf:
-	node --prof tests/perf.js
+	node tests/perf.js $(runs)
+perf-prof:
+	node --prof tests/perf.js $(runs)
 	node --prof-process iso* && rm isolate-*
 
 deploy-github:

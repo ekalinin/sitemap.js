@@ -21,34 +21,58 @@
 
 var sm = require('../index')
 
-console.time(' * generating test data');
-// for (var i=1; i<50000; i++) {
-  // sitemap.add({
-    // "url": '/test-url-'+i+'/',
-    // "safe": true
-  // });
-// }
-let episodes = require('../episodes').episodes
-var i = 0
-var sitemap = sm.createSitemap({
-  hostname: 'https://roosterteeth.com',
-  urls: episodes.map(e => {
-    if (e.video[0].description.length > 2048) {
-      i++
-      e.video[0].description = e.video[0].description.slice(0, 2048)
-    }
-    return e
-  })
-})
-console.timeEnd(' * generating test data');
-debugger
-console.time(' * test sitemap synco');
-sitemap.toString();
-console.timeEnd(' * test sitemap synco');
+var urls = require('./perf-data')
+const { performance } = require('perf_hooks')
+var stats = require('stats-lite')
+var [ runs = 20 ] = process.argv.slice(2)
+console.log('runs:', runs)
 
-console.time(' * test sitemap async');
-console.time(' * sitemap async done');
-sitemap.toXML( function (xml) {
-  console.timeEnd(' * sitemap async done');
-});
-console.timeEnd(' * test sitemap async');
+function printPerf (label, data) {
+  console.log('========= ', label, ' =============')
+  console.log('mean: %s', stats.mean(data).toFixed(1))
+  console.log('median: %s', stats.median(data).toFixed(1))
+  console.log('variance: %s', stats.variance(data).toFixed(1))
+  console.log('standard deviation: %s', stats.stdev(data).toFixed(1))
+  console.log('90th percentile: %s', stats.percentile(data, 0.9).toFixed(1))
+  console.log('99th percentile: %s', stats.percentile(data, 0.99).toFixed(1))
+}
+
+function createSitemap () {
+  return sm.createSitemap({
+    hostname: 'https://roosterteeth.com',
+    urls
+  })
+}
+
+let durations = []
+for (let i = 0; i < runs; i++) {
+  let start = performance.now()
+  createSitemap()
+  durations.push(performance.now() - start)
+}
+printPerf('sitemap creation', durations)
+let sitemap = createSitemap()
+
+let syncToString = []
+for (let i = 0; i < runs; i++) {
+  let start = performance.now()
+  sitemap.toString()
+  syncToString.push(performance.now() - start)
+}
+printPerf('sync', syncToString)
+
+var i = 0
+let start
+let asyncDurations = []
+function toXMLCB (xml) {
+  asyncDurations.push(performance.now() - start)
+  if (i < runs) {
+    i++
+    start = performance.now()
+    sitemap.toXML(toXMLCB)
+  } else {
+    printPerf('async', asyncDurations)
+  }
+}
+start = performance.now()
+sitemap.toXML(toXMLCB)
