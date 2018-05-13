@@ -189,20 +189,21 @@ module.exports = {
 
     assert.eql(sm_one.urls, [url]);
   },
-  'simple sitemap': function() {
-    var url = 'http://ya.ru';
-    var ssp = new sm.Sitemap();
-    ssp.add(url);
+  'simple sitemap': function () {
+    var url = 'http://ya.ru'
+    var ssp = new sm.Sitemap()
+    ssp.add(url)
 
-    assert.eql(ssp.toString(),
-              '<?xml version="1.0" encoding="UTF-8"?>\n'+
-                urlset + '\n'+
-                '<url>'+
-                    '<loc>http://ya.ru</loc>'+
-                '</url>\n'+
-              '</urlset>');
+    const expected = '<?xml version="1.0" encoding="UTF-8"?>' +
+                urlset +
+                '<url>' +
+                    '<loc>http://ya.ru</loc>' +
+                '</url>' +
+              '</urlset>'
+    const actual = ssp.toString()
+    assert.eql(actual, expected)
   },
-  'simple sitemap with dynamic xmlNs': function() {
+  /*'simple sitemap with dynamic xmlNs': function() {
     var url = 'http://ya.ru';
     var ssp = sm.createSitemap({
       xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
@@ -216,7 +217,7 @@ module.exports = {
                     '<loc>http://ya.ru</loc>'+
                 '</url>\n'+
               '</urlset>');
-  },
+  },*/
   'simple sitemap toXML async with two callback arguments': function(beforeExit, assert) {
     var url = 'http://ya.ru';
     var ssp = new sm.Sitemap();
@@ -225,11 +226,11 @@ module.exports = {
     ssp.toXML(function(err, xml) {
       assert.isNull(err);
       assert.eql(xml,
-                '<?xml version="1.0" encoding="UTF-8"?>\n'+
-                urlset + '\n'+
+                '<?xml version="1.0" encoding="UTF-8"?>'+
+                urlset +
                   '<url>'+
                       '<loc>http://ya.ru</loc>'+
-                  '</url>\n'+
+                  '</url>'+
                 '</urlset>');
     });
   },
@@ -239,11 +240,11 @@ module.exports = {
     ssp.add(url);
 
     assert.eql(ssp.toXML(),
-              '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+              '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset +
                 '<url>'+
                     '<loc>http://ya.ru</loc>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>');
   },
   'simple sitemap toGzip sync': function() {
@@ -251,11 +252,11 @@ module.exports = {
     ssp.add('http://ya.ru');
 
     assert.eql(ssp.toGzip(), zlib.gzipSync(
-              '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+              '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset +
                 '<url>'+
                     '<loc>http://ya.ru</loc>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>'
     ));
   },
@@ -266,11 +267,11 @@ module.exports = {
     ssp.toGzip(function(error, result) {
       assert.eql(error, null);
       assert.eql(zlib.gunzipSync(result).toString(),
-            '<?xml version="1.0" encoding="UTF-8"?>\n' +
-            urlset + '\n'+
+            '<?xml version="1.0" encoding="UTF-8"?>' +
+            urlset +
             '<url>' +
             '<loc>http://ya.ru</loc>' +
-            '</url>\n' +
+            '</url>' +
             '</urlset>'
       );
     });
@@ -415,23 +416,23 @@ module.exports = {
         });
 
     assert.eql(smap.toString(),
-              '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+              '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset +
                 '<url>'+
                     '<loc>http://test.com/</loc>'+
                     '<changefreq>always</changefreq>'+
                     '<priority>1.0</priority>'+
-                '</url>\n'+
+                '</url>'+
                 '<url>'+
                     '<loc>http://test.com/page-1/</loc>'+
                     '<changefreq>weekly</changefreq>'+
                     '<priority>0.3</priority>'+
-                '</url>\n'+
+                '</url>'+
                 '<url>'+
                     '<loc>http://test.com/page-2/</loc>'+
                     '<changefreq>daily</changefreq>'+
                     '<priority>0.7</priority>'+
-                '</url>\n'+
+                '</url>'+
                 '<url>'+
                     '<loc>http://test.com/page-3/</loc>'+
                     '<changefreq>monthly</changefreq>'+
@@ -439,12 +440,12 @@ module.exports = {
                     '<image:image>'+
                         '<image:loc>http://test.com/image.jpg</image:loc>'+
                     '</image:image>'+
-                '</url>\n'+
+                '</url>'+
                 '<url>'+
                     '<loc>http://www.test.com/page-4/</loc>'+
                     '<changefreq>never</changefreq>'+
                     '<priority>0.8</priority>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>');
   },
   'sitemap: invalid changefreq error': function() {
@@ -477,13 +478,13 @@ module.exports = {
             { url: '/page-1/',  changefreq: 'weekly', priority: 0.3 }
           ]
         })
-      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset + 
                 '<url>'+
                     '<loc>http://test.com/page-1/</loc>'+
                     '<changefreq>weekly</changefreq>'+
                     '<priority>0.3</priority>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>';
 
     // fill cache
@@ -498,16 +499,16 @@ module.exports = {
     setTimeout( function () {
       // check new sitemap
       assert.eql(smap.toString(),
-                '<?xml version="1.0" encoding="UTF-8"?>\n'+
-                urlset + '\n'+
+                '<?xml version="1.0" encoding="UTF-8"?>'+
+                urlset +
                   '<url>'+
                       '<loc>http://test.com/page-1/</loc>'+
                       '<changefreq>weekly</changefreq>'+
                       '<priority>0.3</priority>'+
-                  '</url>\n'+
+                  '</url>'+
                   '<url>'+
                       '<loc>http://test.com/new-page/</loc>'+
-                  '</url>\n'+
+                  '</url>'+
                 '</urlset>');
     }, 1000);
   },
@@ -519,31 +520,32 @@ module.exports = {
             { url: '/page-1/',  changefreq: 'weekly', priority: 0.3 }
           ]
         })
-      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset +
                 '<url>'+
                     '<loc>http://test.com/page-1/</loc>'+
                     '<changefreq>weekly</changefreq>'+
                     '<priority>0.3</priority>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>';
 
-    assert.eql(smap.toString(), xml);
+    const actual = smap.toString()
+    assert.eql(actual, xml);
     // change urls
     smap.add('http://test.com/new-page/');
-    // check result without cache (changed one)
-    assert.eql(smap.toString(),
-              '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+    const expected = '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset +
                 '<url>'+
                     '<loc>http://test.com/page-1/</loc>'+
                     '<changefreq>weekly</changefreq>'+
                     '<priority>0.3</priority>'+
-                '</url>\n'+
+                '</url>'+
                 '<url>'+
                     '<loc>http://test.com/new-page/</loc>'+
-                '</url>\n'+
-              '</urlset>');
+                '</url>'+
+              '</urlset>'
+    // check result without cache (changed one)
+    assert.eql(smap.toString(), expected)
   },
   'sitemap: handle urls with "http" in the path': function() {
     var smap = sm.createSitemap({
@@ -552,13 +554,13 @@ module.exports = {
             { url: '/page-that-mentions-http:-in-the-url/',  changefreq: 'weekly', priority: 0.3 }
           ]
         })
-      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset +
                 '<url>'+
                     '<loc>http://test.com/page-that-mentions-http:-in-the-url/</loc>'+
                     '<changefreq>weekly</changefreq>'+
                     '<priority>0.3</priority>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>';
 
     assert.eql(smap.toString(), xml);
@@ -570,13 +572,13 @@ module.exports = {
             { url: '/page-that-mentions-&-in-the-url/',  changefreq: 'weekly', priority: 0.3 }
           ]
         })
-      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset +
                 '<url>'+
                     '<loc>http://test.com/page-that-mentions-&amp;-in-the-url/</loc>'+
                     '<changefreq>weekly</changefreq>'+
                     '<priority>0.3</priority>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>';
 
     assert.eql(smap.toString(), xml);
@@ -589,18 +591,18 @@ module.exports = {
             { url: 'https://ya.ru/page-2/',  changefreq: 'weekly', priority: 0.3 },
           ]
         })
-      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-                urlset + '\n'+
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>'+
+                urlset +
                 '<url>'+
                     '<loc>http://ya.ru/page-1/</loc>'+
                     '<changefreq>weekly</changefreq>'+
                     '<priority>0.3</priority>'+
-                '</url>\n'+
+                '</url>'+
                 '<url>'+
                     '<loc>https://ya.ru/page-2/</loc>'+
                     '<changefreq>weekly</changefreq>'+
                     '<priority>0.3</priority>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>';
 
     assert.eql(smap.toString(), xml);
@@ -613,13 +615,13 @@ module.exports = {
             { url: 'https://ya.ru/page-2/',  changefreq: 'weekly', priority: 0.3 },
           ]
         })
-      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset +
                 '<url>'+
                     '<loc>https://ya.ru/page-2/</loc>'+
                     '<changefreq>weekly</changefreq>'+
                     '<priority>0.3</priority>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>';
     smap.del('http://ya.ru/page-1/');
 
@@ -633,13 +635,13 @@ module.exports = {
             { url: 'https://ya.ru/page-2/',  changefreq: 'weekly', priority: 0.3 },
           ]
         })
-      , xml = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+      , xml = '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset +
                 '<url>'+
                     '<loc>https://ya.ru/page-2/</loc>'+
                     '<changefreq>weekly</changefreq>'+
                     '<priority>0.3</priority>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>';
     smap.del({url: 'http://ya.ru/page-1/'});
 
@@ -664,15 +666,15 @@ module.exports = {
             ] },
           ]
         });
-    var expected = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+    var expected = '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset +
                 '<url>'+
                     '<loc>http://test.com/page-1/</loc>'+
                     '<changefreq>weekly</changefreq>'+
                     '<priority>0.3</priority>'+
                     '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/"/>'+
                     '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/"/>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>'
     assert.eql(smap.toString(), expected)
   },
@@ -684,14 +686,14 @@ module.exports = {
 
       ssp.toXML(function(err, xml) {
         assert.eql(xml,
-          '<?xml version="1.0" encoding="UTF-8"?>\n'+
-          urlset + '\n'+
+          '<?xml version="1.0" encoding="UTF-8"?>'+
+          urlset +
             '<url>'+
                 '<loc>http://ya.ru/page1</loc>'+
-            '</url>\n'+
+            '</url>'+
             '<url>'+
                 '<loc>http://ya.ru/page2</loc>'+
-            '</url>\n'+
+            '</url>'+
           '</urlset>');
       });
     })
@@ -707,15 +709,15 @@ module.exports = {
           ]
         });
     assert.eql(smap.toString(),
-              '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+              '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset +
                 '<url>'+
                     '<loc>http://test.com/page-1/</loc>'+
                     '<changefreq>weekly</changefreq>'+
                     '<priority>0.3</priority>'+
                     '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/"/>'+
                     '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/"/>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>');
   },
   'sitemap: error thrown in async-style .toXML()': function() {
@@ -740,14 +742,14 @@ module.exports = {
             ]
           });
     assert.eql(smap.toString(),
-              '<?xml version="1.0" encoding="UTF-8"?>\n'+
-              urlset + '\n'+
+              '<?xml version="1.0" encoding="UTF-8"?>'+
+              urlset +
                 '<url>'+
                   '<loc>http://test.com/page-1/</loc>'+
                   '<changefreq>weekly</changefreq>'+
                   '<priority>0.3</priority>'+
                   '<xhtml:link rel="alternate" href="android-app://com.company.test/page-1/"/>'+
-                '</url>\n'+
+                '</url>'+
               '</urlset>');
   },
   'sitemap: AMP': function() {
@@ -757,13 +759,13 @@ module.exports = {
               ampLink: 'http://ampproject.org/article.amp.html' },
             ]
           });
-    var expected = '<?xml version="1.0" encoding="UTF-8"?>\n'+ urlset + '\n'+
+    var expected = '<?xml version="1.0" encoding="UTF-8"?>'+ urlset +
         '<url>'+
           '<loc>http://test.com/page-1/</loc>'+
           '<changefreq>weekly</changefreq>'+
           '<priority>0.3</priority>'+
           '<xhtml:link rel="amphtml" href="http://ampproject.org/article.amp.html"/>'+
-        '</url>\n'+
+        '</url>'+
       '</urlset>';
     assert.eql(smap.toString(), expected)
   },
@@ -775,13 +777,13 @@ module.exports = {
             ]
           });
     assert.eql(smap.toString(),
-      '<?xml version="1.0" encoding="UTF-8"?>\n'+ urlset + '\n'+
+      '<?xml version="1.0" encoding="UTF-8"?>'+ urlset +
         '<url>'+
           '<loc>http://test.com/page-1/</loc>'+
           '<changefreq>weekly</changefreq>'+
           '<priority>0.3</priority>'+
           '<expires>2016-09-13T00:00:00.000Z</expires>'+
-        '</url>\n'+
+        '</url>'+
       '</urlset>');
   },
   'sitemap: image with caption': function() {
@@ -792,15 +794,15 @@ module.exports = {
     });
 
     assert.eql(smap.toString(),
-      '<?xml version="1.0" encoding="UTF-8"?>\n'+
-      urlset + '\n'+
+      '<?xml version="1.0" encoding="UTF-8"?>'+
+      urlset +
         '<url>'+
             '<loc>http://test.com</loc>'+
             '<image:image>'+
                 '<image:loc>http://test.com/image.jpg?param&amp;otherparam</image:loc>'+
                 '<image:caption><![CDATA[Test Caption]]></image:caption>'+
             '</image:image>'+
-        '</url>\n'+
+        '</url>'+
       '</urlset>')
   },
   'sitemap: image with caption, title, geo_location, license': function() {
@@ -819,8 +821,8 @@ module.exports = {
     });
 
     assert.eql(smap.toString(),
-      '<?xml version="1.0" encoding="UTF-8"?>\n'+
-      urlset + '\n'+
+      '<?xml version="1.0" encoding="UTF-8"?>'+
+      urlset +
         '<url>'+
             '<loc>http://test.com</loc>'+
             '<image:image>'+
@@ -830,7 +832,7 @@ module.exports = {
                 '<image:title><![CDATA[Test title]]></image:title>'+
                 '<image:license>http://test.com/license.txt</image:license>'+
             '</image:image>'+
-        '</url>\n'+
+        '</url>'+
       '</urlset>')
   },
   'sitemap: images with captions': function() {
@@ -842,22 +844,22 @@ module.exports = {
     });
 
     assert.eql(smap.toString(),
-      '<?xml version="1.0" encoding="UTF-8"?>\n'+
-      urlset + '\n'+
+      '<?xml version="1.0" encoding="UTF-8"?>'+
+      urlset +
         '<url>'+
             '<loc>http://test.com</loc>'+
             '<image:image>'+
                 '<image:loc>http://test.com/image.jpg</image:loc>'+
                 '<image:caption><![CDATA[Test Caption]]></image:caption>'+
             '</image:image>'+
-        '</url>\n'+
+        '</url>'+
         '<url>'+
             '<loc>http://test.com/page2/</loc>'+
             '<image:image>'+
                 '<image:loc>http://test.com/image2.jpg</image:loc>'+
                 '<image:caption><![CDATA[Test Caption 2]]></image:caption>'+
             '</image:image>'+
-        '</url>\n'+
+        '</url>'+
       '</urlset>')
   },
   'sitemap: images with captions': function() {
@@ -876,8 +878,8 @@ module.exports = {
 
     smap.urls.push({url: '/index2.html', img: [{url: '/image3.jpg', caption: 'Test Caption 3'}]});
 
-    var expected = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-      urlset + '\n'+
+    var expected = '<?xml version="1.0" encoding="UTF-8"?>'+
+      urlset +
         '<url>'+
             '<loc>http://test.com/index.html</loc>'+
             '<image:image>'+
@@ -888,14 +890,14 @@ module.exports = {
                 '<image:loc>http://test.com/image2.jpg</image:loc>'+
                 '<image:caption><![CDATA[Test Caption 2]]></image:caption>'+
             '</image:image>'+
-        '</url>\n'+
+        '</url>'+
         '<url>'+
             '<loc>http://test.com/index2.html</loc>'+
             '<image:image>'+
                 '<image:loc>http://test.com/image3.jpg</image:loc>'+
                 '<image:caption><![CDATA[Test Caption 3]]></image:caption>'+
             '</image:image>'+
-        '</url>\n'+
+        '</url>'+
       '</urlset>'
     assert.eql(smap.toString(), expected)
   },
@@ -917,8 +919,8 @@ module.exports = {
       ]
     });
 
-    var expected = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-      urlset + '\n'+
+    var expected = '<?xml version="1.0" encoding="UTF-8"?>'+
+      urlset +
         '<url>'+
             '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>'+
             '<video:video>'+
@@ -929,7 +931,7 @@ module.exports = {
                 '<video:duration>174</video:duration>' +
                 '<video:publication_date>2008-07-29T14:58:04.000Z</video:publication_date>' +
             '</video:video>' +
-        '</url>\n'+
+        '</url>'+
       '</urlset>'
     assert.eql(smap.toString(), expected)
   },
@@ -1003,8 +1005,8 @@ module.exports = {
     });
 
     var result = smap.toString()
-    var expectedResult = '<?xml version="1.0" encoding="UTF-8"?>\n'+
-      urlset + '\n'+
+    var expectedResult = '<?xml version="1.0" encoding="UTF-8"?>'+
+      urlset +
         '<url>'+
             '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>'+
             '<video:video>'+
@@ -1020,7 +1022,7 @@ module.exports = {
                 '<video:requires_subscription>yes</video:requires_subscription>' +
                 '<video:platform relationship="allow">WEB</video:platform>' +
             '</video:video>' +
-        '</url>\n'+
+        '</url>'+
       '</urlset>';
     assert.eql(result, expectedResult)
 
@@ -1119,5 +1121,20 @@ module.exports = {
       /is not a valid value for attr: "restriction:relationship"/
     );
 
+  },
+  'simple sitemap 2': function () {
+    var url = 'http://ya.ru'
+    var ssp = new sm.Sitemap()
+    ssp.add(url)
+
+    const expected = '<?xml version="1.0" encoding="UTF-8"?>' +
+                urlset +
+                '<url>' +
+                    '<loc>http://ya.ru</loc>' +
+                '</url>' +
+              '</urlset>'
+    const actual = ssp.toString()
+    assert.eql(actual, expected)
+    assert.eql(actual, ssp.toString())
   }
 }
