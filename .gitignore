@@ -10,3 +10,4 @@ node_modules/
 
 # code coverage
 coverage/*
+.DS_Store
