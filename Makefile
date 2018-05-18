@@ -11,7 +11,7 @@ env:
 		npm install
 
 test:
-	./node_modules/expresso/bin/expresso ./tests/sitemap.test.js
+	./node_modules/.bin/jasmine ./tests/sitemap.test.js
 
 test-perf:
 	node tests/perf.js $(runs)
