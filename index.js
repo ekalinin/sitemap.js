@@ -3,6 +3,7 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
+'use strict';
 
 module.exports = require('./lib/sitemap');
 module.exports.utils = require('./lib/utils');
