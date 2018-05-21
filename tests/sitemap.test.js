@@ -1615,13 +1615,3 @@ describe('sitemapIndex', () => {
     })
   })
 })
-
-describe('utils', () => {
-  it('lpad test', () => {
-    expect(sm.utils.lpad(5, 2)).toBe('05')
-    expect(sm.utils.lpad(6, 2, '-')).toBe('-6')
-  })
-  it('distinctValues test', () => {
-    expect(sm.utils.distinctArray([1, 2, 2, 5, 2])).toEqual(['1', '2', '5'])
-  })
-})
