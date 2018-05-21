@@ -1,5 +1,8 @@
 tests/
 node_modules/
 env/
+coverage/
 Makefile
 *.swp
+.editorconfig
+.travis.yml
