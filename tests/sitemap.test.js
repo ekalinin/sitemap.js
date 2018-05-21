@@ -31,22 +31,29 @@ var removeFilesArray = function (files) {
 }
 
 describe('sitemapItem', () => {
-  it('sitemap item: default values && escape', () => {
+  beforeEach(() => {
+    jasmine.addMatchers(require('jasmine-diff')(jasmine, {
+      colors: true,
+      inline: true
+    }))
+  })
+
+  it('default values && escape', () => {
     const url = 'http://ya.ru/view?widget=3&count>2'
     const smi = new sm.SitemapItem({'url': url})
 
     expect(smi.toString()).toBe(
       '<url> ' +
-                  '<loc>http://ya.ru/view?widget=3&amp;count&gt;2</loc> ' +
-              '</url>')
+        '<loc>http://ya.ru/view?widget=3&amp;count&gt;2</loc> ' +
+      '</url>')
   })
-  it('sitemap item: error for url absence', () => {
+  it('throws an error for url absence', () => {
     /* eslint-disable no-new */
     expect(
       function () { new sm.SitemapItem() }
     ).toThrowError(/URL is required/)
   })
-  it('sitemap item: full options', () => {
+  it('full options', () => {
     const url = 'http://ya.ru'
     const smi = new sm.SitemapItem({
       'url': url,
@@ -59,19 +66,20 @@ describe('sitemapItem', () => {
 
     expect(smi.toString()).toBe(
       '<url> ' +
-                  xmlLoc +
-                  '<lastmod>2011-06-27</lastmod> ' +
-                  '<changefreq>always</changefreq> ' +
-                  xmlPriority +
-                  '<image:image>' +
-                  '<image:loc>' +
-                  'http://urlTest.com' +
-                  '</image:loc>' +
-                  '</image:image> ' +
-                  '<mobile:mobile/> ' +
-              '</url>')
+        xmlLoc +
+        '<lastmod>2011-06-27</lastmod> ' +
+        '<changefreq>always</changefreq> ' +
+        xmlPriority +
+        '<image:image>' +
+        '<image:loc>' +
+        'http://urlTest.com' +
+        '</image:loc>' +
+        '</image:image> ' +
+        '<mobile:mobile/> ' +
+      '</url>')
   })
-  it('sitemap item: lastmodISO', () => {
+
+  it('lastmodISO', () => {
     const url = 'http://ya.ru'
     const smi = new sm.SitemapItem({
       'url': url,
@@ -82,13 +90,14 @@ describe('sitemapItem', () => {
 
     expect(smi.toString()).toBe(
       '<url> ' +
-                  xmlLoc +
-                  '<lastmod>2011-06-27T00:00:00.000Z</lastmod> ' +
-                  '<changefreq>always</changefreq> ' +
-                  xmlPriority +
-              '</url>')
+        xmlLoc +
+        '<lastmod>2011-06-27T00:00:00.000Z</lastmod> ' +
+        '<changefreq>always</changefreq> ' +
+        xmlPriority +
+      '</url>')
   })
-  it('sitemap item: lastmod from file', () => {
+
+  it('lastmod from file', () => {
     var tempFile = require('fs').openSync('/tmp/tempFile.tmp', 'w')
     require('fs').closeSync(tempFile)
 
@@ -110,18 +119,19 @@ describe('sitemapItem', () => {
 
     expect(smi.toString()).toBe(
       '<url> ' +
-                  xmlLoc +
-                  '<lastmod>' + lastmod + '</lastmod> ' +
-                  '<changefreq>always</changefreq> ' +
-                  xmlPriority +
-                  '<image:image>' +
-                  '<image:loc>' +
-                  'http://urlTest.com' +
-                  '</image:loc>' +
-                  '</image:image> ' +
-              '</url>')
+        xmlLoc +
+        '<lastmod>' + lastmod + '</lastmod> ' +
+        '<changefreq>always</changefreq> ' +
+        xmlPriority +
+        '<image:image>' +
+        '<image:loc>' +
+        'http://urlTest.com' +
+        '</image:loc>' +
+        '</image:image> ' +
+      '</url>')
   })
-  it('sitemap item: lastmod from file with lastmodrealtime', () => {
+
+  it('lastmod from file with lastmodrealtime', () => {
     var tempFile = require('fs').openSync('/tmp/tempFile.tmp', 'w')
     require('fs').closeSync(tempFile)
 
@@ -144,18 +154,19 @@ describe('sitemapItem', () => {
 
     expect(smi.toString()).toBe(
       '<url> ' +
-                  xmlLoc +
-                  '<lastmod>' + lastmod + '</lastmod> ' +
-                  '<changefreq>always</changefreq> ' +
-                  xmlPriority +
-                  '<image:image>' +
-                  '<image:loc>' +
-                  'http://urlTest.com' +
-                  '</image:loc>' +
-                  '</image:image> ' +
-              '</url>')
+        xmlLoc +
+        '<lastmod>' + lastmod + '</lastmod> ' +
+        '<changefreq>always</changefreq> ' +
+        xmlPriority +
+        '<image:image>' +
+        '<image:loc>' +
+        'http://urlTest.com' +
+        '</image:loc>' +
+        '</image:image> ' +
+      '</url>')
   })
-  it('sitemap item: toXML', () => {
+
+  it('toXML', () => {
     const url = 'http://ya.ru'
     const smi = new sm.SitemapItem({
       'url': url,
@@ -167,18 +178,19 @@ describe('sitemapItem', () => {
 
     expect(smi.toString()).toBe(
       '<url> ' +
-                  xmlLoc +
-                  '<lastmod>2011-06-27</lastmod> ' +
-                  '<changefreq>always</changefreq> ' +
-                  xmlPriority +
-                  '<image:image>' +
-                      '<image:loc>' +
-                        'http://urlTest.com' +
-                      '</image:loc>' +
-                  '</image:image> ' +
-              '</url>')
+        xmlLoc +
+        '<lastmod>2011-06-27</lastmod> ' +
+        '<changefreq>always</changefreq> ' +
+        xmlPriority +
+        '<image:image>' +
+          '<image:loc>' +
+            'http://urlTest.com' +
+          '</image:loc>' +
+        '</image:image> ' +
+      '</url>')
   })
-  it('sitemap: video price type', () => {
+
+  it('video price type', () => {
     expect(function () {
       var smap = new sm.SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
@@ -194,7 +206,8 @@ describe('sitemapItem', () => {
       smap.toString()
     }).toThrowError(/is not a valid value for attr: "price:type"/)
   })
-  it('sitemap: video price currency', () => {
+
+  it('video price currency', () => {
     expect(function () {
       var smap = new sm.SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
@@ -210,7 +223,8 @@ describe('sitemapItem', () => {
       smap.toString()
     }).toThrowError(/is not a valid value for attr: "price:currency"/)
   })
-  it('sitemap: video price resolution', () => {
+
+  it('video price resolution', () => {
     expect(function () {
       var smap = new sm.SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
@@ -226,7 +240,8 @@ describe('sitemapItem', () => {
       smap.toString()
     }).toThrowError(/is not a valid value for attr: "price:resolution"/)
   })
-  it('sitemap: video platform relationship', () => {
+
+  it('video platform relationship', () => {
     expect(function () {
       var smap = new sm.SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
@@ -242,7 +257,8 @@ describe('sitemapItem', () => {
       smap.toString()
     }).toThrowError(/is not a valid value for attr: "platform:relationship"/)
   })
-  it('sitemap: video restriction', () => {
+
+  it('video restriction', () => {
     expect(function () {
       var smap = new sm.SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
@@ -258,7 +274,8 @@ describe('sitemapItem', () => {
       smap.toString()
     }).toThrowError(/is not a valid value for attr: "restriction:relationship"/)
   })
-  it('sitemap: video duration', () => {
+
+  it('video duration', () => {
     expect(function () {
       var smap = new sm.SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
@@ -275,7 +292,8 @@ describe('sitemapItem', () => {
       smap.toString()
     }).toThrowError(/duration must be an integer/)
   })
-  it('sitemap: video description limit', () => {
+
+  it('video description limit', () => {
     expect(function () {
       var smap = new sm.SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
@@ -292,19 +310,478 @@ describe('sitemapItem', () => {
       smap.toString()
     }).toThrowError(/2048 characters/)
   })
+
+  it('accepts a url without escaping it if a cdata flag is passed', () => {
+    const mockUri = 'https://a.b/?a&b'
+    const smi = new sm.SitemapItem({
+      cdata: true,
+      url: mockUri
+    })
+
+    expect(smi.toString()).toBe(`<url> <loc>${mockUri}</loc> </url>`)
+  })
+
+  describe('toXML', () => {
+    it('is equivilant to toString', () => {
+      const smi = new sm.SitemapItem({ url: 'https://a.b/?a&b' })
+      expect(smi.toString()).toBe(smi.toXML())
+    })
+  })
+
+  describe('video', () => {
+    let testvideo
+    let thumbnailLoc
+    let title
+    let description
+    let playerLoc
+    let duration
+    let publicationDate
+    let restriction
+    let galleryLoc
+    let price
+    let requiresSubscription
+    let platform
+    beforeEach(() => {
+      testvideo = {
+        url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+        video: {
+          title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+          description: "Jack gives us a walkthrough on getting the Millionaire's Club Achievement in Burnout Paradise.",
+          player_loc: 'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+          'player_loc:autoplay': 'ap=1',
+          restriction: 'IE GB US CA',
+          'restriction:relationship': 'allow',
+          gallery_loc: 'https://roosterteeth.com/series/awhu',
+          'gallery_loc:title': 'awhu series page',
+          price: '1.99',
+          'price:currency': 'EUR',
+          'price:type': 'rent',
+          'price:resolution': 'HD',
+          platform: 'WEB',
+          'platform:relationship': 'allow',
+          thumbnail_loc: 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+          duration: 174,
+          publication_date: '2008-07-29T14:58:04.000Z',
+          requires_subscription: 'yes'
+        }
+      }
+      thumbnailLoc = '<video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg</video:thumbnail_loc>'
+      title = '<video:title><![CDATA[2008:E2 - Burnout Paradise: Millionaire\'s Club]]></video:title>'
+      description = '<video:description><![CDATA[Jack gives us a walkthrough on getting the Millionaire\'s Club Achievement in Burnout Paradise.]]></video:description>'
+      playerLoc = '<video:player_loc autoplay="ap=1">https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</video:player_loc>'
+      duration = '<video:duration>174</video:duration>'
+      publicationDate = '<video:publication_date>2008-07-29T14:58:04.000Z</video:publication_date>'
+      restriction = '<video:restriction relationship="allow">IE GB US CA</video:restriction>'
+      galleryLoc = '<video:gallery_loc title="awhu series page">https://roosterteeth.com/series/awhu</video:gallery_loc>'
+      price = '<video:price resolution="HD" currency="EUR" type="rent">1.99</video:price>'
+      requiresSubscription = '<video:requires_subscription>yes</video:requires_subscription>'
+      platform = '<video:platform relationship="allow">WEB</video:platform>'
+    })
+
+    it('accepts an object', () => {
+      var smap = new sm.SitemapItem(testvideo)
+
+      var result = smap.toString()
+      var expectedResult = '<url> ' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+        '<video:video>' +
+          thumbnailLoc +
+          title +
+          description +
+          playerLoc +
+          duration +
+          publicationDate +
+          restriction +
+          galleryLoc +
+          price +
+          requiresSubscription +
+          platform +
+        '</video:video> ' +
+      '</url>'
+      expect(result).toBe(expectedResult)
+    })
+
+    it('throws if a required attr is not provided', () => {
+      expect(() => {
+        let test = Object.assign({}, testvideo)
+        delete test.video.title
+        var smap = new sm.SitemapItem(test)
+
+        smap.toString()
+      }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
+
+      expect(() => {
+        let test = Object.assign({}, testvideo)
+        test.video = 'a'
+        var smap = new sm.SitemapItem(test)
+
+        smap.toString()
+      }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
+
+      expect(() => {
+        let test = Object.assign({}, testvideo)
+        delete test.video.thumbnail_loc
+        var smap = new sm.SitemapItem(test)
+
+        smap.toString()
+      }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
+
+      expect(() => {
+        let test = Object.assign({}, testvideo)
+        delete test.video.description
+        var smap = new sm.SitemapItem(test)
+
+        smap.toString()
+      }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
+    })
+
+    it('supports content_loc', () => {
+      testvideo.video.content_loc = 'https://a.b.c'
+      delete testvideo.video.player_loc
+      var smap = new sm.SitemapItem(testvideo)
+
+      var result = smap.toString()
+      var expectedResult = '<url> ' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+        '<video:video>' +
+          thumbnailLoc +
+          title +
+          description +
+          `<video:content_loc>${testvideo.video.content_loc}</video:content_loc>` +
+          duration +
+          publicationDate +
+          restriction +
+          galleryLoc +
+          price +
+          requiresSubscription +
+          platform +
+        '</video:video> ' +
+      '</url>'
+      expect(result).toBe(expectedResult)
+    })
+
+    it('supports expiration_date', () => {
+      testvideo.video.expiration_date = '2012-07-16T19:20:30+08:00'
+      var smap = new sm.SitemapItem(testvideo)
+
+      var result = smap.toString()
+      var expectedResult = '<url> ' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+        '<video:video>' +
+          thumbnailLoc +
+          title +
+          description +
+          playerLoc +
+          duration +
+          '<video:expiration_date>2012-07-16T19:20:30+08:00</video:expiration_date>' +
+          publicationDate +
+          restriction +
+          galleryLoc +
+          price +
+          requiresSubscription +
+          platform +
+        '</video:video> ' +
+      '</url>'
+      expect(result).toBe(expectedResult)
+    })
+
+    it('supports rating', () => {
+      testvideo.video.rating = 2.5
+      var smap = new sm.SitemapItem(testvideo)
+
+      var result = smap.toString()
+      var expectedResult = '<url> ' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+        '<video:video>' +
+          thumbnailLoc +
+          title +
+          description +
+          playerLoc +
+          duration +
+          '<video:rating>2.5</video:rating>' +
+          publicationDate +
+          restriction +
+          galleryLoc +
+          price +
+          requiresSubscription +
+          platform +
+        '</video:video> ' +
+      '</url>'
+      expect(result).toBe(expectedResult)
+    })
+
+    it('supports view_count', () => {
+      testvideo.video.view_count = 1234
+      var smap = new sm.SitemapItem(testvideo)
+
+      var result = smap.toString()
+      var expectedResult = '<url> ' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+        '<video:video>' +
+          thumbnailLoc +
+          title +
+          description +
+          playerLoc +
+          duration +
+          '<video:view_count>1234</video:view_count>' +
+          publicationDate +
+          restriction +
+          galleryLoc +
+          price +
+          requiresSubscription +
+          platform +
+        '</video:video> ' +
+      '</url>'
+      expect(result).toBe(expectedResult)
+    })
+
+    it('supports family_friendly', () => {
+      testvideo.video.family_friendly = 'yes'
+      var smap = new sm.SitemapItem(testvideo)
+
+      var result = smap.toString()
+      var expectedResult = '<url> ' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+        '<video:video>' +
+          thumbnailLoc +
+          title +
+          description +
+          playerLoc +
+          duration +
+          publicationDate +
+          '<video:family_friendly>yes</video:family_friendly>' +
+          restriction +
+          galleryLoc +
+          price +
+          requiresSubscription +
+          platform +
+        '</video:video> ' +
+      '</url>'
+      expect(result).toBe(expectedResult)
+    })
+
+    it('supports tag', () => {
+      testvideo.video.tag = 'steak'
+      var smap = new sm.SitemapItem(testvideo)
+
+      var result = smap.toString()
+      var expectedResult = '<url> ' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+        '<video:video>' +
+          thumbnailLoc +
+          title +
+          description +
+          playerLoc +
+          duration +
+          publicationDate +
+          '<video:tag>steak</video:tag>' +
+          restriction +
+          galleryLoc +
+          price +
+          requiresSubscription +
+          platform +
+        '</video:video> ' +
+      '</url>'
+      expect(result).toBe(expectedResult)
+    })
+
+    it('supports category', () => {
+      testvideo.video.category = 'Baking'
+      var smap = new sm.SitemapItem(testvideo)
+
+      var result = smap.toString()
+      var expectedResult = '<url> ' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+        '<video:video>' +
+          thumbnailLoc +
+          title +
+          description +
+          playerLoc +
+          duration +
+          publicationDate +
+          '<video:category>Baking</video:category>' +
+          restriction +
+          galleryLoc +
+          price +
+          requiresSubscription +
+          platform +
+        '</video:video> ' +
+      '</url>'
+      expect(result).toBe(expectedResult)
+    })
+
+    it('supports uploader', () => {
+      testvideo.video.uploader = 'GrillyMcGrillerson'
+      var smap = new sm.SitemapItem(testvideo)
+
+      var result = smap.toString()
+      var expectedResult = '<url> ' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+        '<video:video>' +
+          thumbnailLoc +
+          title +
+          description +
+          playerLoc +
+          duration +
+          publicationDate +
+          restriction +
+          galleryLoc +
+          price +
+          requiresSubscription +
+          '<video:uploader>GrillyMcGrillerson</video:uploader>' +
+          platform +
+        '</video:video> ' +
+      '</url>'
+      expect(result).toBe(expectedResult)
+    })
+
+    it('supports live', () => {
+      testvideo.video.live = 'yes'
+      var smap = new sm.SitemapItem(testvideo)
+
+      var result = smap.toString()
+      var expectedResult = '<url> ' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+        '<video:video>' +
+          thumbnailLoc +
+          title +
+          description +
+          playerLoc +
+          duration +
+          publicationDate +
+          restriction +
+          galleryLoc +
+          price +
+          requiresSubscription +
+          platform +
+          '<video:live>yes</video:live>' +
+        '</video:video> ' +
+      '</url>'
+      expect(result).toBe(expectedResult)
+    })
+  })
+
+  describe('news', () => {
+    let news
+    beforeEach(() => {
+      news = {
+        url: 'http://www.example.org/business/article55.html',
+        news: {
+          publication: {
+            name: 'The Example Times',
+            language: 'en'
+          },
+          genres: 'PressRelease, Blog',
+          publication_date: '2008-12-23',
+          title: 'Companies A, B in Merger Talks',
+          keywords: 'business, merger, acquisition, A, B',
+          stock_tickers: 'NASDAQ:A, NASDAQ:B'
+        }
+      }
+    })
+
+    it('matches the example from google', () => {
+      var smi = new sm.SitemapItem(news)
+
+      expect(smi.toString()).toBe(`<url> <loc>${news.url}</loc> <news:news><news:publication><news:name>${news.news.publication.name}</news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title>${news.news.title}</news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news> </url>`)
+    })
+
+    it('can render with only the required params', () => {
+      delete news.news.genres
+      delete news.news.keywords
+      delete news.news.stock_tickers
+      var smi = new sm.SitemapItem(news)
+
+      expect(smi.toString()).toBe(`<url> <loc>${news.url}</loc> <news:news><news:publication><news:name>${news.news.publication.name}</news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:publication_date>${news.news.publication_date}</news:publication_date><news:title>${news.news.title}</news:title></news:news> </url>`)
+    })
+
+    it('will throw if you dont provide required attr publication', () => {
+      delete news.news.publication
+      var smi = new sm.SitemapItem(news)
+
+      expect(() => {
+        smi.toString()
+      }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
+    })
+
+    it('will throw if you dont provide required attr publication name', () => {
+      delete news.news.publication.name
+      var smi = new sm.SitemapItem(news)
+
+      expect(() => {
+        smi.toString()
+      }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
+    })
+
+    it('will throw if you dont provide required attr publication language', () => {
+      delete news.news.publication.language
+      var smi = new sm.SitemapItem(news)
+
+      expect(() => {
+        smi.toString()
+      }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
+    })
+
+    it('will throw if you dont provide required attr title', () => {
+      delete news.news.title
+      var smi = new sm.SitemapItem(news)
+
+      expect(() => {
+        smi.toString()
+      }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
+    })
+
+    it('will throw if you dont provide required attr publication_date', () => {
+      delete news.news.publication_date
+      var smi = new sm.SitemapItem(news)
+
+      expect(() => {
+        smi.toString()
+      }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
+    })
+
+    it('will throw if you provide an invalid value for access', () => {
+      news.news.access = 'a'
+      var smi = new sm.SitemapItem(news)
+
+      expect(() => {
+        smi.toString()
+      }).toThrowError(/News access must be either Registration, Subscription or not be present/)
+    })
+
+    it('supports access', () => {
+      news.news.access = 'Registration'
+      var smi = new sm.SitemapItem(news)
+
+      expect(smi.toString()).toBe(`<url> <loc>${news.url}</loc> <news:news><news:publication><news:name>${news.news.publication.name}</news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:access>${news.news.access}</news:access><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title>${news.news.title}</news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news> </url>`)
+      news.news.access = 'Subscription'
+      smi = new sm.SitemapItem(news)
+      expect(smi.toString()).toBe(`<url> <loc>${news.url}</loc> <news:news><news:publication><news:name>${news.news.publication.name}</news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:access>${news.news.access}</news:access><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title>${news.news.title}</news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news> </url>`)
+    })
+  })
 })
+
 describe('sitemap', () => {
+  beforeEach(() => {
+    jasmine.addMatchers(require('jasmine-diff')(jasmine, {
+      colors: true,
+      inline: true
+    }))
+  })
+
   it('sitemap empty urls', () => {
     const smEmpty = new sm.Sitemap()
 
     expect(smEmpty.urls).toEqual([])
   })
+
   it('sitemap.urls is an array', () => {
     const url = 'ya.ru'
     const smOne = new sm.Sitemap(url)
 
     expect(smOne.urls).toEqual([url])
   })
+
   it('simple sitemap', () => {
     var url = 'http://ya.ru'
     var ssp = new sm.Sitemap()
@@ -318,6 +795,7 @@ describe('sitemap', () => {
                 '</url>\n' +
               '</urlset>')
   })
+
   it('simple sitemap with dynamic xmlNs', () => {
     var url = 'http://ya.ru'
     var ssp = sm.createSitemap({
@@ -333,6 +811,7 @@ describe('sitemap', () => {
                 '</url>\n' +
               '</urlset>')
   })
+
   it('simple sitemap toXML async with two callback arguments', done => {
     var url = 'http://ya.ru'
     var ssp = new sm.Sitemap()
@@ -350,6 +829,7 @@ describe('sitemap', () => {
       done()
     })
   })
+
   it('simple sitemap toXML sync', () => {
     var url = 'http://ya.ru'
     var ssp = new sm.Sitemap()
@@ -363,6 +843,7 @@ describe('sitemap', () => {
                 '</url>\n' +
               '</urlset>')
   })
+
   it('simple sitemap toGzip sync', () => {
     var ssp = new sm.Sitemap()
     ssp.add('http://ya.ru')
@@ -376,6 +857,7 @@ describe('sitemap', () => {
               '</urlset>'
     ))
   })
+
   it('simple sitemap toGzip async', () => {
     var ssp = new sm.Sitemap()
     ssp.add('http://ya.ru')
@@ -392,7 +874,8 @@ describe('sitemap', () => {
       )
     })
   })
-  it('sitemap: video attributes', () => {
+
+  it('video attributes', () => {
     var smap = sm.createSitemap({
       urls: [
         {
@@ -443,6 +926,7 @@ describe('sitemap', () => {
       '</urlset>'
     expect(result).toBe(expectedResult)
   })
+
   it('sitemap: hostname, createSitemap', () => {
     var smap = sm.createSitemap({
       hostname: 'http://test.com',
@@ -488,6 +972,27 @@ describe('sitemap', () => {
                 '</url>\n' +
               '</urlset>')
   })
+
+  it('custom xslUrl', () => {
+    var smap = sm.createSitemap({
+      urls: [
+        { url: 'http://test.com/', changefreq: 'always', priority: 1 }
+      ],
+      xslUrl: 'sitemap.xsl'
+    })
+
+    expect(smap.toString()).toBe(
+      xmlDef +
+      '<?xml-stylesheet type="text/xsl" href="sitemap.xsl"?>' + '\n' +
+              urlset + '\n' +
+                '<url> ' +
+                    '<loc>http://test.com/</loc> ' +
+                    '<changefreq>always</changefreq> ' +
+                    '<priority>1.0</priority> ' +
+                '</url>\n' +
+              '</urlset>')
+  })
+
   it('sitemap: invalid changefreq error', () => {
     expect(
       function () {
@@ -839,8 +1344,9 @@ describe('sitemap', () => {
   })
   it('sitemap: image with caption', () => {
     var smap = sm.createSitemap({
+      hostname: 'http://test.com',
       urls: [
-        { url: 'http://test.com', img: {url: 'http://test.com/image.jpg?param&otherparam', caption: 'Test Caption'} }
+        { url: '/a', img: {url: '/image.jpg?param&otherparam', caption: 'Test Caption'} }
       ]
     })
 
@@ -848,7 +1354,7 @@ describe('sitemap', () => {
       xmlDef +
       urlset + '\n' +
         '<url> ' +
-            '<loc>http://test.com</loc> ' +
+            '<loc>http://test.com/a</loc> ' +
             '<image:image>' +
                 '<image:loc>http://test.com/image.jpg?param&amp;otherparam</image:loc>' +
                 '<image:caption><![CDATA[Test Caption]]></image:caption>' +
