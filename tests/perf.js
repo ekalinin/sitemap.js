@@ -18,6 +18,7 @@
  *    * test sitemap: 217ms
  *
  */
+'use strict';
 
 var sm = require('../index')
 
