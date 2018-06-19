@@ -6,6 +6,7 @@
 'use strict';
 
 const sm = require('../index')
+const {getTimestampFromDate} = require('../lib/utils.js')
 const fs = require('fs')
 const zlib = require('zlib')
 
@@ -105,7 +106,7 @@ describe('sitemapItem', () => {
     var stat = require('fs').statSync('/tmp/tempFile.tmp')
 
     var dt = new Date(stat.mtime)
-    var lastmod = sm.utils.getTimestampFromDate(dt)
+    var lastmod = getTimestampFromDate(dt)
 
     const url = 'http://ya.ru'
     const smi = new sm.SitemapItem({
@@ -139,7 +140,7 @@ describe('sitemapItem', () => {
     var stat = require('fs').statSync('/tmp/tempFile.tmp')
 
     var dt = new Date(stat.mtime)
-    var lastmod = sm.utils.getTimestampFromDate(dt, true)
+    var lastmod = getTimestampFromDate(dt, true)
 
     const url = 'http://ya.ru'
     const smi = new sm.SitemapItem({
