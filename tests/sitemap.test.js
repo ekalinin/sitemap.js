@@ -3,7 +3,7 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-'use strict';
+'use strict'
 
 const sm = require('../index')
 const {getTimestampFromDate} = require('../lib/utils.js')
@@ -18,9 +18,9 @@ const urlset = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
              'xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">'
 
 const dynamicUrlSet = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>\n'
-const xmlPriority = '<priority>0.9</priority> '
-const xmlLoc = '<loc>http://ya.ru</loc> '
+const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>'
+const xmlPriority = '<priority>0.9</priority>'
+const xmlLoc = '<loc>http://ya.ru</loc>'
 
 var removeFilesArray = function (files) {
   if (files && files.length) {
@@ -45,8 +45,8 @@ describe('sitemapItem', () => {
     const smi = new sm.SitemapItem({'url': url})
 
     expect(smi.toString()).toBe(
-      '<url> ' +
-        '<loc>http://ya.ru/view?widget=3&amp;count&gt;2</loc> ' +
+      '<url>' +
+        '<loc>http://ya.ru/view?widget=3&amp;count&gt;2</loc>' +
       '</url>')
   })
   it('throws an error for url absence', () => {
@@ -67,17 +67,17 @@ describe('sitemapItem', () => {
     })
 
     expect(smi.toString()).toBe(
-      '<url> ' +
+      '<url>' +
         xmlLoc +
-        '<lastmod>2011-06-27</lastmod> ' +
-        '<changefreq>always</changefreq> ' +
+        '<lastmod>2011-06-27</lastmod>' +
+        '<changefreq>always</changefreq>' +
         xmlPriority +
         '<image:image>' +
         '<image:loc>' +
         'http://urlTest.com' +
         '</image:loc>' +
-        '</image:image> ' +
-        '<mobile:mobile/> ' +
+        '</image:image>' +
+        '<mobile:mobile/>' +
       '</url>')
   })
 
@@ -91,10 +91,10 @@ describe('sitemapItem', () => {
     })
 
     expect(smi.toString()).toBe(
-      '<url> ' +
+      '<url>' +
         xmlLoc +
-        '<lastmod>2011-06-27T00:00:00.000Z</lastmod> ' +
-        '<changefreq>always</changefreq> ' +
+        '<lastmod>2011-06-27T00:00:00.000Z</lastmod>' +
+        '<changefreq>always</changefreq>' +
         xmlPriority +
       '</url>')
   })
@@ -120,16 +120,16 @@ describe('sitemapItem', () => {
     require('fs').unlinkSync('/tmp/tempFile.tmp')
 
     expect(smi.toString()).toBe(
-      '<url> ' +
+      '<url>' +
         xmlLoc +
-        '<lastmod>' + lastmod + '</lastmod> ' +
-        '<changefreq>always</changefreq> ' +
+        '<lastmod>' + lastmod + '</lastmod>' +
+        '<changefreq>always</changefreq>' +
         xmlPriority +
         '<image:image>' +
         '<image:loc>' +
         'http://urlTest.com' +
         '</image:loc>' +
-        '</image:image> ' +
+        '</image:image>' +
       '</url>')
   })
 
@@ -155,16 +155,16 @@ describe('sitemapItem', () => {
     require('fs').unlinkSync('/tmp/tempFile.tmp')
 
     expect(smi.toString()).toBe(
-      '<url> ' +
+      '<url>' +
         xmlLoc +
-        '<lastmod>' + lastmod + '</lastmod> ' +
-        '<changefreq>always</changefreq> ' +
+        '<lastmod>' + lastmod + '</lastmod>' +
+        '<changefreq>always</changefreq>' +
         xmlPriority +
         '<image:image>' +
         '<image:loc>' +
         'http://urlTest.com' +
         '</image:loc>' +
-        '</image:image> ' +
+        '</image:image>' +
       '</url>')
   })
 
@@ -179,16 +179,16 @@ describe('sitemapItem', () => {
     })
 
     expect(smi.toString()).toBe(
-      '<url> ' +
+      '<url>' +
         xmlLoc +
-        '<lastmod>2011-06-27</lastmod> ' +
-        '<changefreq>always</changefreq> ' +
+        '<lastmod>2011-06-27</lastmod>' +
+        '<changefreq>always</changefreq>' +
         xmlPriority +
         '<image:image>' +
           '<image:loc>' +
             'http://urlTest.com' +
           '</image:loc>' +
-        '</image:image> ' +
+        '</image:image>' +
       '</url>')
   })
 
@@ -320,7 +320,7 @@ describe('sitemapItem', () => {
       url: mockUri
     })
 
-    expect(smi.toString()).toBe(`<url> <loc>${mockUri}</loc> </url>`)
+    expect(smi.toString()).toBe(`<url><loc>${mockUri}</loc></url>`)
   })
 
   describe('toXML', () => {
@@ -384,8 +384,8 @@ describe('sitemapItem', () => {
       var smap = new sm.SitemapItem(testvideo)
 
       var result = smap.toString()
-      var expectedResult = '<url> ' +
-        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+      var expectedResult = '<url>' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
           title +
@@ -398,7 +398,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
-        '</video:video> ' +
+        '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
     })
@@ -443,8 +443,8 @@ describe('sitemapItem', () => {
       var smap = new sm.SitemapItem(testvideo)
 
       var result = smap.toString()
-      var expectedResult = '<url> ' +
-        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+      var expectedResult = '<url>' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
           title +
@@ -457,7 +457,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
-        '</video:video> ' +
+        '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
     })
@@ -467,8 +467,8 @@ describe('sitemapItem', () => {
       var smap = new sm.SitemapItem(testvideo)
 
       var result = smap.toString()
-      var expectedResult = '<url> ' +
-        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+      var expectedResult = '<url>' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
           title +
@@ -482,7 +482,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
-        '</video:video> ' +
+        '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
     })
@@ -492,8 +492,8 @@ describe('sitemapItem', () => {
       var smap = new sm.SitemapItem(testvideo)
 
       var result = smap.toString()
-      var expectedResult = '<url> ' +
-        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+      var expectedResult = '<url>' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
           title +
@@ -507,7 +507,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
-        '</video:video> ' +
+        '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
     })
@@ -517,8 +517,8 @@ describe('sitemapItem', () => {
       var smap = new sm.SitemapItem(testvideo)
 
       var result = smap.toString()
-      var expectedResult = '<url> ' +
-        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+      var expectedResult = '<url>' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
           title +
@@ -532,7 +532,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
-        '</video:video> ' +
+        '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
     })
@@ -542,8 +542,8 @@ describe('sitemapItem', () => {
       var smap = new sm.SitemapItem(testvideo)
 
       var result = smap.toString()
-      var expectedResult = '<url> ' +
-        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+      var expectedResult = '<url>' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
           title +
@@ -557,7 +557,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
-        '</video:video> ' +
+        '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
     })
@@ -567,8 +567,8 @@ describe('sitemapItem', () => {
       var smap = new sm.SitemapItem(testvideo)
 
       var result = smap.toString()
-      var expectedResult = '<url> ' +
-        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+      var expectedResult = '<url>' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
           title +
@@ -582,7 +582,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
-        '</video:video> ' +
+        '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
     })
@@ -592,8 +592,8 @@ describe('sitemapItem', () => {
       var smap = new sm.SitemapItem(testvideo)
 
       var result = smap.toString()
-      var expectedResult = '<url> ' +
-        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+      var expectedResult = '<url>' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
           title +
@@ -607,7 +607,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
-        '</video:video> ' +
+        '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
     })
@@ -617,8 +617,8 @@ describe('sitemapItem', () => {
       var smap = new sm.SitemapItem(testvideo)
 
       var result = smap.toString()
-      var expectedResult = '<url> ' +
-        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+      var expectedResult = '<url>' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
           title +
@@ -632,7 +632,7 @@ describe('sitemapItem', () => {
           requiresSubscription +
           '<video:uploader>GrillyMcGrillerson</video:uploader>' +
           platform +
-        '</video:video> ' +
+        '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
     })
@@ -642,8 +642,8 @@ describe('sitemapItem', () => {
       var smap = new sm.SitemapItem(testvideo)
 
       var result = smap.toString()
-      var expectedResult = '<url> ' +
-        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+      var expectedResult = '<url>' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
           title +
@@ -657,9 +657,9 @@ describe('sitemapItem', () => {
           requiresSubscription +
           platform +
           '<video:live>yes</video:live>' +
-        '</video:video> ' +
+        '</video:video>' +
       '</url>'
-      expect(result).toBe(expectedResult)
+      expect(result.slice(1000)).toBe(expectedResult.slice(1000))
     })
   })
 
@@ -685,7 +685,7 @@ describe('sitemapItem', () => {
     it('matches the example from google', () => {
       var smi = new sm.SitemapItem(news)
 
-      expect(smi.toString()).toBe(`<url> <loc>${news.url}</loc> <news:news><news:publication><news:name>${news.news.publication.name}</news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title>${news.news.title}</news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news> </url>`)
+      expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name>${news.news.publication.name}</news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title>${news.news.title}</news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news></url>`)
     })
 
     it('can render with only the required params', () => {
@@ -694,7 +694,7 @@ describe('sitemapItem', () => {
       delete news.news.stock_tickers
       var smi = new sm.SitemapItem(news)
 
-      expect(smi.toString()).toBe(`<url> <loc>${news.url}</loc> <news:news><news:publication><news:name>${news.news.publication.name}</news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:publication_date>${news.news.publication_date}</news:publication_date><news:title>${news.news.title}</news:title></news:news> </url>`)
+      expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name>${news.news.publication.name}</news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:publication_date>${news.news.publication_date}</news:publication_date><news:title>${news.news.title}</news:title></news:news></url>`)
     })
 
     it('will throw if you dont provide required attr publication', () => {
@@ -755,10 +755,10 @@ describe('sitemapItem', () => {
       news.news.access = 'Registration'
       var smi = new sm.SitemapItem(news)
 
-      expect(smi.toString()).toBe(`<url> <loc>${news.url}</loc> <news:news><news:publication><news:name>${news.news.publication.name}</news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:access>${news.news.access}</news:access><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title>${news.news.title}</news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news> </url>`)
+      expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name>${news.news.publication.name}</news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:access>${news.news.access}</news:access><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title>${news.news.title}</news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news></url>`)
       news.news.access = 'Subscription'
       smi = new sm.SitemapItem(news)
-      expect(smi.toString()).toBe(`<url> <loc>${news.url}</loc> <news:news><news:publication><news:name>${news.news.publication.name}</news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:access>${news.news.access}</news:access><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title>${news.news.title}</news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news> </url>`)
+      expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name>${news.news.publication.name}</news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:access>${news.news.access}</news:access><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title>${news.news.title}</news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news></url>`)
     })
   })
 })
@@ -791,10 +791,10 @@ describe('sitemap', () => {
 
     expect(ssp.toString()).toBe(
       xmlDef +
-                urlset + '\n' +
-                '<url> ' +
+                urlset +
+                '<url>' +
                     xmlLoc +
-                '</url>\n' +
+                '</url>' +
               '</urlset>')
   })
 
@@ -805,13 +805,12 @@ describe('sitemap', () => {
     })
     ssp.add(url)
 
-    expect(ssp.toString()).toBe(
-      xmlDef +
-                dynamicUrlSet + '\n' +
-                '<url> ' +
-                    xmlLoc +
-                '</url>\n' +
-              '</urlset>')
+    expect(ssp.toString()).toBe(xmlDef +
+      dynamicUrlSet +
+      '<url>' +
+        xmlLoc +
+      '</url>' +
+    '</urlset>')
   })
 
   it('simple sitemap toXML async with two callback arguments', done => {
@@ -823,10 +822,10 @@ describe('sitemap', () => {
       expect(err).toBe(null)
       expect(xml).toBe(
         xmlDef +
-                urlset + '\n' +
-                  '<url> ' +
+                urlset +
+                  '<url>' +
                       xmlLoc +
-                  '</url>\n' +
+                  '</url>' +
                 '</urlset>')
       done()
     })
@@ -839,10 +838,10 @@ describe('sitemap', () => {
 
     expect(ssp.toXML()).toBe(
       xmlDef +
-              urlset + '\n' +
-                '<url> ' +
+              urlset +
+                '<url>' +
                     xmlLoc +
-                '</url>\n' +
+                '</url>' +
               '</urlset>')
   })
 
@@ -852,10 +851,10 @@ describe('sitemap', () => {
 
     expect(ssp.toGzip()).toEqual(zlib.gzipSync(
       xmlDef +
-              urlset + '\n' +
-                '<url> ' +
+              urlset +
+                '<url>' +
                     xmlLoc +
-                '</url>\n' +
+                '</url>' +
               '</urlset>'
     ))
   })
@@ -868,10 +867,10 @@ describe('sitemap', () => {
       expect(error).toBe(null)
       expect(zlib.gunzipSync(result).toString()).toBe(
         xmlDef +
-            urlset + '\n' +
-            '<url> ' +
+            urlset +
+            '<url>' +
             xmlLoc +
-            '</url>\n' +
+            '</url>' +
             '</urlset>'
       )
     })
@@ -908,9 +907,9 @@ describe('sitemap', () => {
 
     var result = smap.toString()
     var expectedResult = xmlDef +
-      urlset + '\n' +
-        '<url> ' +
-            '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+      urlset +
+        '<url>' +
+            '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
             '<video:video>' +
                 '<video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg</video:thumbnail_loc>' +
                 '<video:title><![CDATA[2008:E2 - Burnout Paradise: Millionaire\'s Club]]></video:title>' +
@@ -923,8 +922,8 @@ describe('sitemap', () => {
                 '<video:price resolution="HD" currency="EUR" type="rent">1.99</video:price>' +
                 '<video:requires_subscription>yes</video:requires_subscription>' +
                 '<video:platform relationship="allow">WEB</video:platform>' +
-            '</video:video> ' +
-        '</url>\n' +
+            '</video:video>' +
+        '</url>' +
       '</urlset>'
     expect(result).toBe(expectedResult)
   })
@@ -943,35 +942,35 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(
       xmlDef +
-              urlset + '\n' +
-                '<url> ' +
-                    '<loc>http://test.com/</loc> ' +
-                    '<changefreq>always</changefreq> ' +
-                    '<priority>1.0</priority> ' +
-                '</url>\n' +
-                '<url> ' +
-                    '<loc>http://test.com/page-1/</loc> ' +
-                    '<changefreq>weekly</changefreq> ' +
-                    '<priority>0.3</priority> ' +
-                '</url>\n' +
-                '<url> ' +
-                    '<loc>http://test.com/page-2/</loc> ' +
-                    '<changefreq>daily</changefreq> ' +
-                    '<priority>0.7</priority> ' +
-                '</url>\n' +
-                '<url> ' +
-                    '<loc>http://test.com/page-3/</loc> ' +
-                    '<changefreq>monthly</changefreq> ' +
-                    '<priority>0.2</priority> ' +
+              urlset +
+                '<url>' +
+                    '<loc>http://test.com/</loc>' +
+                    '<changefreq>always</changefreq>' +
+                    '<priority>1.0</priority>' +
+                '</url>' +
+                '<url>' +
+                    '<loc>http://test.com/page-1/</loc>' +
+                    '<changefreq>weekly</changefreq>' +
+                    '<priority>0.3</priority>' +
+                '</url>' +
+                '<url>' +
+                    '<loc>http://test.com/page-2/</loc>' +
+                    '<changefreq>daily</changefreq>' +
+                    '<priority>0.7</priority>' +
+                '</url>' +
+                '<url>' +
+                    '<loc>http://test.com/page-3/</loc>' +
+                    '<changefreq>monthly</changefreq>' +
+                    '<priority>0.2</priority>' +
                     '<image:image>' +
                         '<image:loc>http://test.com/image.jpg</image:loc>' +
-                    '</image:image> ' +
-                '</url>\n' +
-                '<url> ' +
-                    '<loc>http://www.test.com/page-4/</loc> ' +
-                    '<changefreq>never</changefreq> ' +
-                    '<priority>0.8</priority> ' +
-                '</url>\n' +
+                    '</image:image>' +
+                '</url>' +
+                '<url>' +
+                    '<loc>http://www.test.com/page-4/</loc>' +
+                    '<changefreq>never</changefreq>' +
+                    '<priority>0.8</priority>' +
+                '</url>' +
               '</urlset>')
   })
 
@@ -985,13 +984,13 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(
       xmlDef +
-      '<?xml-stylesheet type="text/xsl" href="sitemap.xsl"?>' + '\n' +
-              urlset + '\n' +
-                '<url> ' +
-                    '<loc>http://test.com/</loc> ' +
-                    '<changefreq>always</changefreq> ' +
-                    '<priority>1.0</priority> ' +
-                '</url>\n' +
+      '<?xml-stylesheet type="text/xsl" href="sitemap.xsl"?>' +
+              urlset +
+                '<url>' +
+                    '<loc>http://test.com/</loc>' +
+                    '<changefreq>always</changefreq>' +
+                    '<priority>1.0</priority>' +
+                '</url>' +
               '</urlset>')
   })
 
@@ -1024,12 +1023,12 @@ describe('sitemap', () => {
       ]
     })
     const xml = xmlDef +
-              urlset + '\n' +
-                '<url> ' +
-                    '<loc>http://test.com/page-1/</loc> ' +
-                    '<changefreq>weekly</changefreq> ' +
-                    '<priority>0.3</priority> ' +
-                '</url>\n' +
+              urlset +
+                '<url>' +
+                    '<loc>http://test.com/page-1/</loc>' +
+                    '<changefreq>weekly</changefreq>' +
+                    '<priority>0.3</priority>' +
+                '</url>' +
               '</urlset>'
 
     // fill cache
@@ -1045,15 +1044,15 @@ describe('sitemap', () => {
       // check new sitemap
       expect(smap.toString()).toBe(
         xmlDef +
-                urlset + '\n' +
-                  '<url> ' +
-                      '<loc>http://test.com/page-1/</loc> ' +
-                      '<changefreq>weekly</changefreq> ' +
-                      '<priority>0.3</priority> ' +
-                  '</url>\n' +
-                  '<url> ' +
-                      '<loc>http://test.com/new-page/</loc> ' +
-                  '</url>\n' +
+                urlset +
+                  '<url>' +
+                      '<loc>http://test.com/page-1/</loc>' +
+                      '<changefreq>weekly</changefreq>' +
+                      '<priority>0.3</priority>' +
+                  '</url>' +
+                  '<url>' +
+                      '<loc>http://test.com/new-page/</loc>' +
+                  '</url>' +
                 '</urlset>')
     }, 1000)
   })
@@ -1066,12 +1065,12 @@ describe('sitemap', () => {
       ]
     })
     const xml = xmlDef +
-              urlset + '\n' +
-                '<url> ' +
-                    '<loc>http://test.com/page-1/</loc> ' +
-                    '<changefreq>weekly</changefreq> ' +
-                    '<priority>0.3</priority> ' +
-                '</url>\n' +
+              urlset +
+                '<url>' +
+                    '<loc>http://test.com/page-1/</loc>' +
+                    '<changefreq>weekly</changefreq>' +
+                    '<priority>0.3</priority>' +
+                '</url>' +
               '</urlset>'
 
     expect(smap.toString()).toBe(xml)
@@ -1080,15 +1079,15 @@ describe('sitemap', () => {
     // check result without cache (changed one)
     expect(smap.toString()).toBe(
       xmlDef +
-              urlset + '\n' +
-                '<url> ' +
-                    '<loc>http://test.com/page-1/</loc> ' +
-                    '<changefreq>weekly</changefreq> ' +
-                    '<priority>0.3</priority> ' +
-                '</url>\n' +
-                '<url> ' +
-                    '<loc>http://test.com/new-page/</loc> ' +
-                '</url>\n' +
+              urlset +
+                '<url>' +
+                    '<loc>http://test.com/page-1/</loc>' +
+                    '<changefreq>weekly</changefreq>' +
+                    '<priority>0.3</priority>' +
+                '</url>' +
+                '<url>' +
+                    '<loc>http://test.com/new-page/</loc>' +
+                '</url>' +
               '</urlset>')
   })
   it('sitemap: handle urls with "http" in the path', () => {
@@ -1099,12 +1098,12 @@ describe('sitemap', () => {
       ]
     })
     const xml = xmlDef +
-              urlset + '\n' +
-                '<url> ' +
-                    '<loc>http://test.com/page-that-mentions-http:-in-the-url/</loc> ' +
-                    '<changefreq>weekly</changefreq> ' +
-                    '<priority>0.3</priority> ' +
-                '</url>\n' +
+              urlset +
+                '<url>' +
+                    '<loc>http://test.com/page-that-mentions-http:-in-the-url/</loc>' +
+                    '<changefreq>weekly</changefreq>' +
+                    '<priority>0.3</priority>' +
+                '</url>' +
               '</urlset>'
 
     expect(smap.toString()).toBe(xml)
@@ -1117,12 +1116,12 @@ describe('sitemap', () => {
       ]
     })
     const xml = xmlDef +
-              urlset + '\n' +
-                '<url> ' +
-                    '<loc>http://test.com/page-that-mentions-&amp;-in-the-url/</loc> ' +
-                    '<changefreq>weekly</changefreq> ' +
-                    '<priority>0.3</priority> ' +
-                '</url>\n' +
+              urlset +
+                '<url>' +
+                    '<loc>http://test.com/page-that-mentions-&amp;-in-the-url/</loc>' +
+                    '<changefreq>weekly</changefreq>' +
+                    '<priority>0.3</priority>' +
+                '</url>' +
               '</urlset>'
 
     expect(smap.toString()).toBe(xml)
@@ -1136,17 +1135,17 @@ describe('sitemap', () => {
       ]
     })
     const xml = xmlDef +
-                urlset + '\n' +
-                '<url> ' +
-                    '<loc>http://ya.ru/page-1/</loc> ' +
-                    '<changefreq>weekly</changefreq> ' +
-                    '<priority>0.3</priority> ' +
-                '</url>\n' +
-                '<url> ' +
-                    '<loc>https://ya.ru/page-2/</loc> ' +
-                    '<changefreq>weekly</changefreq> ' +
-                    '<priority>0.3</priority> ' +
-                '</url>\n' +
+                urlset +
+                '<url>' +
+                    '<loc>http://ya.ru/page-1/</loc>' +
+                    '<changefreq>weekly</changefreq>' +
+                    '<priority>0.3</priority>' +
+                '</url>' +
+                '<url>' +
+                    '<loc>https://ya.ru/page-2/</loc>' +
+                    '<changefreq>weekly</changefreq>' +
+                    '<priority>0.3</priority>' +
+                '</url>' +
               '</urlset>'
 
     expect(smap.toString()).toBe(xml)
@@ -1160,12 +1159,12 @@ describe('sitemap', () => {
       ]
     })
     const xml = xmlDef +
-              urlset + '\n' +
-                '<url> ' +
-                    '<loc>https://ya.ru/page-2/</loc> ' +
-                    '<changefreq>weekly</changefreq> ' +
-                    '<priority>0.3</priority> ' +
-                '</url>\n' +
+              urlset +
+                '<url>' +
+                    '<loc>https://ya.ru/page-2/</loc>' +
+                    '<changefreq>weekly</changefreq>' +
+                    '<priority>0.3</priority>' +
+                '</url>' +
               '</urlset>'
     smap.del('http://ya.ru/page-1/')
 
@@ -1180,12 +1179,12 @@ describe('sitemap', () => {
       ]
     })
     const xml = xmlDef +
-              urlset + '\n' +
-                '<url> ' +
-                    '<loc>https://ya.ru/page-2/</loc> ' +
-                    '<changefreq>weekly</changefreq> ' +
-                    '<priority>0.3</priority> ' +
-                '</url>\n' +
+              urlset +
+                '<url>' +
+                    '<loc>https://ya.ru/page-2/</loc>' +
+                    '<changefreq>weekly</changefreq>' +
+                    '<priority>0.3</priority>' +
+                '</url>' +
               '</urlset>'
     smap.del({url: 'http://ya.ru/page-1/'})
 
@@ -1215,14 +1214,14 @@ describe('sitemap', () => {
     })
     expect(smap.toString()).toBe(
       xmlDef +
-              urlset + '\n' +
-                '<url> ' +
-                    '<loc>http://test.com/page-1/</loc> ' +
-                    '<changefreq>weekly</changefreq> ' +
-                    '<priority>0.3</priority> ' +
-                    '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/" /> ' +
-                    '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/" /> ' +
-                '</url>\n' +
+              urlset +
+                '<url>' +
+                    '<loc>http://test.com/page-1/</loc>' +
+                    '<changefreq>weekly</changefreq>' +
+                    '<priority>0.3</priority>' +
+                    '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/"/>' +
+                    '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/"/>' +
+                '</url>' +
               '</urlset>')
   })
   it('sitemap: normalize urls, see #39', () => {
@@ -1237,13 +1236,13 @@ describe('sitemap', () => {
         }
         expect(xml).toBe(
           xmlDef +
-          urlset + '\n' +
-            '<url> ' +
-                '<loc>http://ya.ru/page1</loc> ' +
-            '</url>\n' +
-            '<url> ' +
-                '<loc>http://ya.ru/page2</loc> ' +
-            '</url>\n' +
+          urlset +
+            '<url>' +
+                '<loc>http://ya.ru/page1</loc>' +
+            '</url>' +
+            '<url>' +
+                '<loc>http://ya.ru/page2</loc>' +
+            '</url>' +
           '</urlset>')
       })
     })
@@ -1263,14 +1262,14 @@ describe('sitemap', () => {
     })
     expect(smap.toString()).toBe(
       xmlDef +
-              urlset + '\n' +
-                '<url> ' +
-                    '<loc>http://test.com/page-1/</loc> ' +
-                    '<changefreq>weekly</changefreq> ' +
-                    '<priority>0.3</priority> ' +
-                    '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/" /> ' +
-                    '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/" /> ' +
-                '</url>\n' +
+              urlset +
+                '<url>' +
+                    '<loc>http://test.com/page-1/</loc>' +
+                    '<changefreq>weekly</changefreq>' +
+                    '<priority>0.3</priority>' +
+                    '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/"/>' +
+                    '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/"/>' +
+                '</url>' +
               '</urlset>')
   })
   it('sitemap: error thrown in async-style .toXML()', () => {
@@ -1297,13 +1296,13 @@ describe('sitemap', () => {
     })
     expect(smap.toString()).toBe(
       xmlDef +
-              urlset + '\n' +
-                '<url> ' +
-                  '<loc>http://test.com/page-1/</loc> ' +
-                  '<changefreq>weekly</changefreq> ' +
-                  '<priority>0.3</priority> ' +
-                  '<xhtml:link rel="alternate" href="android-app://com.company.test/page-1/" /> ' +
-                '</url>\n' +
+              urlset +
+                '<url>' +
+                  '<loc>http://test.com/page-1/</loc>' +
+                  '<changefreq>weekly</changefreq>' +
+                  '<priority>0.3</priority>' +
+                  '<xhtml:link rel="alternate" href="android-app://com.company.test/page-1/"/>' +
+                '</url>' +
               '</urlset>')
   })
   it('sitemap: AMP', () => {
@@ -1316,13 +1315,13 @@ describe('sitemap', () => {
       ]
     })
     expect(smap.toString()).toBe(
-      xmlDef + urlset + '\n' +
-        '<url> ' +
-          '<loc>http://test.com/page-1/</loc> ' +
-          '<changefreq>weekly</changefreq> ' +
-          '<priority>0.3</priority> ' +
-          '<xhtml:link rel="amphtml" href="http://ampproject.org/article.amp.html" />' +
-        '</url>\n' +
+      xmlDef + urlset +
+        '<url>' +
+          '<loc>http://test.com/page-1/</loc>' +
+          '<changefreq>weekly</changefreq>' +
+          '<priority>0.3</priority>' +
+          '<xhtml:link rel="amphtml" href="http://ampproject.org/article.amp.html"/>' +
+        '</url>' +
       '</urlset>')
   })
   it('sitemap: expires', () => {
@@ -1335,13 +1334,13 @@ describe('sitemap', () => {
       ]
     })
     expect(smap.toString()).toBe(
-      xmlDef + urlset + '\n' +
-        '<url> ' +
-          '<loc>http://test.com/page-1/</loc> ' +
-          '<changefreq>weekly</changefreq> ' +
-          '<priority>0.3</priority> ' +
-          '<expires>2016-09-13T00:00:00.000Z</expires> ' +
-        '</url>\n' +
+      xmlDef + urlset +
+        '<url>' +
+          '<loc>http://test.com/page-1/</loc>' +
+          '<changefreq>weekly</changefreq>' +
+          '<priority>0.3</priority>' +
+          '<expires>2016-09-13T00:00:00.000Z</expires>' +
+        '</url>' +
       '</urlset>')
   })
   it('sitemap: image with caption', () => {
@@ -1354,14 +1353,14 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(
       xmlDef +
-      urlset + '\n' +
-        '<url> ' +
-            '<loc>http://test.com/a</loc> ' +
+      urlset +
+        '<url>' +
+            '<loc>http://test.com/a</loc>' +
             '<image:image>' +
                 '<image:loc>http://test.com/image.jpg?param&amp;otherparam</image:loc>' +
                 '<image:caption><![CDATA[Test Caption]]></image:caption>' +
-            '</image:image> ' +
-        '</url>\n' +
+            '</image:image>' +
+        '</url>' +
       '</urlset>')
   })
   it('sitemap: image with caption, title, geo_location, license', () => {
@@ -1381,17 +1380,17 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(
       xmlDef +
-      urlset + '\n' +
-        '<url> ' +
-            '<loc>http://test.com</loc> ' +
+      urlset +
+        '<url>' +
+            '<loc>http://test.com</loc>' +
             '<image:image>' +
                 '<image:loc>http://test.com/image.jpg</image:loc>' +
                 '<image:caption><![CDATA[Test Caption]]></image:caption>' +
                 '<image:geo_location>Test Geo Location</image:geo_location>' +
                 '<image:title><![CDATA[Test title]]></image:title>' +
                 '<image:license>http://test.com/license.txt</image:license>' +
-            '</image:image> ' +
-        '</url>\n' +
+            '</image:image>' +
+        '</url>' +
       '</urlset>')
   })
   it('sitemap: images with captions', () => {
@@ -1404,21 +1403,21 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(
       xmlDef +
-      urlset + '\n' +
-        '<url> ' +
-            '<loc>http://test.com</loc> ' +
+      urlset +
+        '<url>' +
+            '<loc>http://test.com</loc>' +
             '<image:image>' +
                 '<image:loc>http://test.com/image.jpg</image:loc>' +
                 '<image:caption><![CDATA[Test Caption]]></image:caption>' +
-            '</image:image> ' +
-        '</url>\n' +
-        '<url> ' +
-            '<loc>http://test.com/page2/</loc> ' +
+            '</image:image>' +
+        '</url>' +
+        '<url>' +
+            '<loc>http://test.com/page2/</loc>' +
             '<image:image>' +
                 '<image:loc>http://test.com/image2.jpg</image:loc>' +
                 '<image:caption><![CDATA[Test Caption 2]]></image:caption>' +
-            '</image:image> ' +
-        '</url>\n' +
+            '</image:image>' +
+        '</url>' +
       '</urlset>')
   })
   it('sitemap: images with captions add', () => {
@@ -1439,25 +1438,25 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(
       xmlDef +
-      urlset + '\n' +
-        '<url> ' +
-            '<loc>http://test.com/index.html</loc> ' +
+      urlset +
+        '<url>' +
+            '<loc>http://test.com/index.html</loc>' +
             '<image:image>' +
                 '<image:loc>http://test.com/image.jpg</image:loc>' +
                 '<image:caption><![CDATA[Test Caption]]></image:caption>' +
-            '</image:image> ' +
+            '</image:image>' +
             '<image:image>' +
                 '<image:loc>http://test.com/image2.jpg</image:loc>' +
                 '<image:caption><![CDATA[Test Caption 2]]></image:caption>' +
-            '</image:image> ' +
-        '</url>\n' +
-        '<url> ' +
-            '<loc>http://test.com/index2.html</loc> ' +
+            '</image:image>' +
+        '</url>' +
+        '<url>' +
+            '<loc>http://test.com/index2.html</loc>' +
             '<image:image>' +
                 '<image:loc>http://test.com/image3.jpg</image:loc>' +
                 '<image:caption><![CDATA[Test Caption 3]]></image:caption>' +
-            '</image:image> ' +
-        '</url>\n' +
+            '</image:image>' +
+        '</url>' +
       '</urlset>')
   })
   it('sitemap: video', () => {
@@ -1480,9 +1479,9 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(
       xmlDef +
-      urlset + '\n' +
-        '<url> ' +
-            '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc> ' +
+      urlset +
+        '<url>' +
+            '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
             '<video:video>' +
                 '<video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg?a&amp;b</video:thumbnail_loc>' +
                 '<video:title><![CDATA[2008:E2 - Burnout Paradise: Millionaire\'s Club]]></video:title>' +
@@ -1490,14 +1489,14 @@ describe('sitemap', () => {
                 '<video:player_loc>https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club?a&amp;b</video:player_loc>' +
                 '<video:duration>174</video:duration>' +
                 '<video:publication_date>2008-07-29T14:58:04.000Z</video:publication_date>' +
-            '</video:video> ' +
-        '</url>\n' +
+            '</video:video>' +
+        '</url>' +
       '</urlset>')
   })
 })
 describe('sitemapIndex', () => {
   it('build sitemap index', () => {
-    var expectedResult = xmlDef +
+    var expectedResult = xmlDef + '\n' +
     '<?xml-stylesheet type="text/xsl" href="https://test.com/style.xsl"?>\n' +
     '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n' +
     '<sitemap>\n' +
@@ -1516,7 +1515,7 @@ describe('sitemapIndex', () => {
     expect(result).toBe(expectedResult)
   })
   it('build sitemap index with custom xmlNS', () => {
-    var expectedResult = xmlDef +
+    var expectedResult = xmlDef + '\n' +
     '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
         '<sitemap>\n' +
             '<loc>https://test.com/s1.xml</loc>\n' +

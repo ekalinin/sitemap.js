@@ -21,19 +21,21 @@
 'use strict';
 
 var sm = require('../index')
+
 var urls = require('./perf-data')
 const { performance } = require('perf_hooks')
 var stats = require('stats-lite')
 var [ runs = 20 ] = process.argv.slice(2)
+console.log('runs:', runs)
 
 function printPerf (label, data) {
   console.log('========= ', label, ' =============')
-  console.log('mean: %s', stats.mean(data).toFixed(2))
-  console.log('median: %s', stats.median(data).toFixed(2))
-  console.log('variance: %s', stats.variance(data).toFixed(2))
-  console.log('standard deviation: %s', stats.stdev(data).toFixed(2))
-  console.log('90th percentile: %s', stats.percentile(data, 0.9).toFixed(2))
-  console.log('99th percentile: %s', stats.percentile(data, 0.99).toFixed(2))
+  console.log('mean: %s', stats.mean(data).toFixed(1))
+  console.log('median: %s', stats.median(data).toFixed(1))
+  console.log('variance: %s', stats.variance(data).toFixed(1))
+  console.log('standard deviation: %s', stats.stdev(data).toFixed(1))
+  console.log('90th percentile: %s', stats.percentile(data, 0.9).toFixed(1))
+  console.log('99th percentile: %s', stats.percentile(data, 0.99).toFixed(1))
 }
 
 function createSitemap () {
