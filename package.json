@@ -21,7 +21,7 @@
     "stats-lite": "^2.1.1"
   },
   "engines": {
-    "npm": "^4.0.0",
+    "npm": ">=4.0.0",
     "node": ">=6.0.0"
   },
   "standard": {
