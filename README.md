@@ -280,7 +280,7 @@ var sm = require('sitemap')
 ```javascript
 var sm = require('sitemap')
   , smi = sm.buildSitemapIndex({
-      urls: ['https://example.com/sitemap1.xml', 'https://example.com/sitemap2.xml']
+      urls: ['https://example.com/sitemap1.xml', 'https://example.com/sitemap2.xml'],
       xslUrl: 'https://example.com/style.xsl' // optional
     });
 ```
