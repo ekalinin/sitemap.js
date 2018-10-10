@@ -81,6 +81,20 @@ describe('sitemapItem', () => {
       '</url>')
   })
 
+  it('mobile with type', () => {
+    const url = 'http://ya.ru'
+    const smi = new sm.SitemapItem({
+      'url': url,
+      'mobile': 'pc,mobile'
+    })
+
+    expect(smi.toString()).toBe(
+      '<url>' +
+        xmlLoc +
+        '<mobile:mobile type="pc,mobile"/>' +
+      '</url>')
+  });
+
   it('lastmodISO', () => {
     const url = 'http://ya.ru'
     const smi = new sm.SitemapItem({
