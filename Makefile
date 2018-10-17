@@ -1,6 +1,6 @@
 .PHONY: deploy deploy-github deploy-npm test env
 
-VERSIONS_COUNT=`grep 'version' package.json bower.json index.js | grep -o -E '[0-9]\.[0-9]{1,2}\.[0-9]{1,2}' | sort | uniq | wc -l`
+VERSIONS_COUNT=`grep 'version' package.json index.js | grep -o -E '[0-9]\.[0-9]{1,2}\.[0-9]{1,2}' | sort | uniq | wc -l`
 
 env:
 	@rm -rf env 			&& \
