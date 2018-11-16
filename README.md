@@ -25,6 +25,7 @@ Table of Contents
       * [Example of using HH:MM:SS in lastmod](#example-of-using-hhmmss-in-lastmod)
       * [Example of Sitemap Index as String](#example-of-sitemap-index-as-string)
       * [Example of Sitemap Index](#example-of-sitemap-index)
+      * [Example of overriding default xmlns* attributes in urlset element](#example-of-overriding-default-xmlns-attributes-in-urlset-element)
     * [Testing](#testing)
     * [License](#license)
 
