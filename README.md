@@ -301,6 +301,16 @@ var sm = require('sitemap')
     });
 ```
 
+### Example of overriding default xmlns* attributes in urlset element
+
+Also see 'simple sitemap with dynamic xmlNs' test in tests/sitemap.js
+
+```javascript
+var sitemap = sm.createSitemapIndex({
+      xmlns: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
+    });
+```
+
 Testing
 -------
 
