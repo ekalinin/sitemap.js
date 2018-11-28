@@ -25,6 +25,7 @@ Table of Contents
       * [Example of using HH:MM:SS in lastmod](#example-of-using-hhmmss-in-lastmod)
       * [Example of Sitemap Index as String](#example-of-sitemap-index-as-string)
       * [Example of Sitemap Index](#example-of-sitemap-index)
+      * [Example of overriding default xmlns* attributes in urlset element](#example-of-overriding-default-xmlns-attributes-in-urlset-element)
     * [Testing](#testing)
     * [License](#license)
 
@@ -298,6 +299,16 @@ var sm = require('sitemap')
       urls: ['http://ya.ru', 'http://ya2.ru']
       // optional:
       // callback: function(err, result) {}
+    });
+```
+
+### Example of overriding default xmlns* attributes in urlset element
+
+Also see 'simple sitemap with dynamic xmlNs' test in tests/sitemap.js
+
+```javascript
+var sitemap = sm.createSitemapIndex({
+      xmlns: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
     });
 ```
 
