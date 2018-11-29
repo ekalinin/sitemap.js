@@ -1546,6 +1546,35 @@ describe('sitemapIndex', () => {
 
     expect(result).toBe(expectedResult)
   })
+  it('build sitemap index with lastmod', () => {
+    var expectedResult = xmlDef + '\n' +
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+        '<sitemap>\n' +
+            '<loc>https://test.com/s1.xml</loc>\n' +
+            '<lastmod>2018-11-26</lastmod>\n' +
+        '</sitemap>\n' +
+        '<sitemap>\n' +
+            '<loc>https://test.com/s2.xml</loc>\n' +
+            '<lastmod>2018-11-27</lastmod>\n' +
+        '</sitemap>\n' +
+    '</sitemapindex>';
+
+    var result = sm.buildSitemapIndex({
+      urls: [
+      {
+        url: "https://test.com/s1.xml",
+        lastmod: "2018-11-26"
+      },
+       {
+        url: "https://test.com/s2.xml",
+        lastmod: "2018-11-27"
+      },
+      ],
+      xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
+    });
+
+    expect(result).toBe(expectedResult);
+  })
   it('simple sitemap index', () => {
     const tmp = require('os').tmpdir()
     const url1 = 'http://ya.ru'
