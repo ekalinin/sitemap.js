@@ -601,6 +601,31 @@ describe('sitemapItem', () => {
       expect(result).toBe(expectedResult)
     })
 
+    it('supports array of tags', () => {
+      testvideo.video.tag = ['steak', 'fries']
+      var smap = new sm.SitemapItem(testvideo)
+
+      var result = smap.toString()
+      var expectedResult = '<url>' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
+        '<video:video>' +
+          thumbnailLoc +
+          title +
+          description +
+          playerLoc +
+          duration +
+          publicationDate +
+          '<video:tag>steak</video:tag><video:tag>fries</video:tag>' +
+          restriction +
+          galleryLoc +
+          price +
+          requiresSubscription +
+          platform +
+        '</video:video>' +
+      '</url>'
+      expect(result).toBe(expectedResult)
+    })
+
     it('supports category', () => {
       testvideo.video.category = 'Baking'
       var smap = new sm.SitemapItem(testvideo)
