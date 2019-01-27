@@ -26,6 +26,7 @@ Table of Contents
       * [Example of Sitemap Index as String](#example-of-sitemap-index-as-string)
       * [Example of Sitemap Index](#example-of-sitemap-index)
       * [Example of overriding default xmlns* attributes in urlset element](#example-of-overriding-default-xmlns-attributes-in-urlset-element)
+      * [Example of news usage](#example-of-news)
     * [Testing](#testing)
     * [License](#license)
 
@@ -304,12 +305,32 @@ var sm = require('sitemap')
 
 ### Example of overriding default xmlns* attributes in urlset element
 
-Also see 'simple sitemap with dynamic xmlNs' test in tests/sitemap.js
+Also see 'simple sitemap with dynamic xmlNs' test in [tests/sitemap.js](https://github.com/ekalinin/sitemap.js/blob/master/tests/sitemap.test.js)
 
 ```javascript
 var sitemap = sm.createSitemapIndex({
       xmlns: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
     });
+```
+
+### Example of news
+
+```javascript
+const sm = require('sitemap')
+const smi = new sm.SitemapItem({
+    url: 'http://www.example.org/business/article55.html',
+    news: {
+      publication: {
+        name: 'The Example Times',
+        language: 'en'
+      },
+      genres: 'PressRelease, Blog',
+      publication_date: '2008-12-23',
+      title: 'Companies A, B in Merger Talks',
+      keywords: 'business, merger, acquisition, A, B',
+      stock_tickers: 'NASDAQ:A, NASDAQ:B'
+    }
+})
 ```
 
 Testing
