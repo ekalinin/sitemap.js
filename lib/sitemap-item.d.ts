@@ -20,14 +20,8 @@ export declare interface SitemapImg {
   license: string
 }
 
-export declare enum yesno {
-  yes = 'yes',
-  no = 'no'
-}
-export declare enum allowdeny {
-  allow = 'allow',
-  deny = 'deny'
-}
+export declare type yesno = 'yes' | 'no'
+export declare type allowdeny = 'allow' | 'deny'
 export declare type ChangeFrequency = 'always'|'hourly'|'daily'|'weekly'|'monthly'|'yearly'|'never'
 export declare interface VideoItem {
   thumbnail_loc: string;
