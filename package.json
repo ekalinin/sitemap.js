@@ -12,7 +12,7 @@
   "dependencies": {
     "lodash": "^4.17.10",
     "url-join": "^4.0.0",
-    "xmlbuilder": "^10.0.0"
+    "xmlbuilder": "^13.0.0"
   },
   "devDependencies": {
     "istanbul": "^0.4.5",
