@@ -1,5 +1,6 @@
 import builder = require('xmlbuilder');
-import SitemapItem = require('./sitemap-item');
+import * as SitemapItem from './sitemap-item';
+export type Callback<E, T> = (err: E, data: T) => void;
 /**
  * Shortcut for `new Sitemap (...)`.
  *
@@ -21,14 +22,7 @@ export declare function createSitemap(conf: {
 export declare class Sitemap {
     limit: number;
     hostname: string;
-    urls: (string | {
-        url: string;
-        root?: Sitemap["root"];
-        img?: any;
-        links?: {
-            url: string;
-        }[];
-    })[];
+    urls: (string | SitemapItem.SitemapItemOptions)[];
     cacheResetPeriod: number;
     cache: string;
     xslUrl: string;
@@ -59,12 +53,12 @@ export declare class Sitemap {
     /**
      *  Fill cache
      */
-    setCache(newCache: any): string;
+    setCache(newCache: string): string;
     /**
      *  Add url to sitemap
      *  @param {String} url
      */
-    add(url: any): number;
+    add(url: string): number;
     /**
      *  Delete url from sitemap
      *  @param {String} url
@@ -74,13 +68,16 @@ export declare class Sitemap {
      *  Create sitemap xml
      *  @param {Function}     callback  Callback function with one argument — xml
      */
-    toXML(callback: any): string;
+    toXML(callback: Callback<Error, string>): void
+    toXML(): string;
     /**
      *  Synchronous alias for toXML()
      *  @return {String}
      */
     toString(): string;
-    toGzip(callback?: Function): any;
+  // returns Buffer | void - not sure how to import
+    // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/node/v10/globals.d.ts#L229
+    toGzip(callback?: (error: Error | null, result: Buffer) => void): any;
 }
 /**
  * Shortcut for `new SitemapIndex (...)`.
