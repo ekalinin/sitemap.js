@@ -11,10 +11,10 @@ env:
 		npm install
 
 test:
-	./node_modules/.bin/jasmine ./tests/sitemap.test.js
+	npm run test
 
 test-perf:
-	node tests/perf.js $(runs)
+	npm run test-perf $(runs)
 perf-prof:
 	node --prof tests/perf.js $(runs)
 	node --prof-process iso* && rm isolate-*

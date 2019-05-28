@@ -18,6 +18,7 @@
     "istanbul": "^0.4.5",
     "jasmine": "^3.1.0",
     "jasmine-diff": "^0.1.3",
+    "nyc": "^14.1.1",
     "stats-lite": "^2.1.1"
   },
   "engines": {
@@ -33,7 +34,39 @@
   "license": "MIT",
   "main": "index",
   "scripts": {
-    "test": "istanbul cover --include-all-sources jasmine tests/sitemap.test.js",
+    "justtest": "jasmine tests/sitemap.test.js",
+    "test": "nyc --reporter=lcov --reporter=text-summary npm run justtest",
+    "test-perf": "node ./tests/perf.js",
     "coverage": "open ./coverage/lcov-report/index.html"
+  },
+  "nyc": {
+    "all": true,
+    "check-coverage": true,
+    "include": [
+      "lib/**"
+    ],
+    "watermarks": {
+      "lines": [
+        80,
+        95
+      ],
+      "functions": [
+        80,
+        95
+      ],
+      "branches": [
+        80,
+        95
+      ],
+      "statements": [
+        80,
+        95
+      ]
+    },
+    "per-file": true,
+    "branches": 80,
+    "lines": 80,
+    "functions": 80,
+    "statements": 80
   }
 }

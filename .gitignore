@@ -1,3 +1,4 @@
+.DS_Store
 *.swp
 env/
 node_modules/
@@ -10,5 +11,6 @@ node_modules/
 
 # code coverage
 coverage/*
-.DS_Store
+.nyc_output/
+
 package-lock.json
