@@ -6,15 +6,13 @@
 'use strict';
 
 export * from './lib/sitemap'
-import errors = require('./lib/sitemap');
+import errors = require('./lib/errors');
 
 export { errors }
-
-export declare const version: string;
 
 /**
  * Framework version.
  */
-if (!exports.version) {
-  exports.version = "2.1.0"
-}
+export declare const version: string;
+
+Object.defineProperty(exports, "version", { get(){ return "2.1.0" }});

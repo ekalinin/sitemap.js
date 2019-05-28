@@ -1,9 +1,10 @@
 import ut = require('./utils')
 import fs = require('fs')
-import err = require('./errors')
+import { ChangeFreqInvalidError, NoURLError, NoURLProtocolError, PriorityInvalidError, InvalidVideoDuration, InvalidAttr, InvalidAttrValue, InvalidNewsAccessValue, InvalidNewsFormat, InvalidVideoDescription, InvalidVideoFormat, UndefinedTargetFolder } from './errors'
 import builder = require('xmlbuilder')
 import isArray = require('lodash/isArray')
 import { XMLElementOrXMLNode } from 'xmlbuilder';
+import { CHANGEFREQ, EnumAllowDeny, EnumChangefreq, EnumYesNo } from './types';
 
 export type ICallback<E extends Error, T> = (err: E, data?: T) => void;
 
@@ -28,9 +29,6 @@ export interface ISitemapImg {
 	length?: never,
 }
 
-export type IYesNo = 'yes' | 'no'
-export type IAllowDeny = 'allow' | 'deny'
-export type IChangeFrequency = 'always'|'hourly'|'daily'|'weekly'|'monthly'|'yearly'|'never'
 export interface IVideoItem {
 	thumbnail_loc: string;
 	title: string;
@@ -43,7 +41,7 @@ export interface IVideoItem {
 	rating?: string|number;
 	view_count?: string|number;
 	publication_date?: string;
-	family_friendly?: IYesNo;
+	family_friendly?: EnumYesNo;
 	tag?: string | string[];
 	category?: string;
 	restriction?: string;
@@ -53,11 +51,11 @@ export interface IVideoItem {
 	'price:resolution'?: string;
 	'price:currency'?: string;
 	'price:type'?: string;
-	requires_subscription?: IYesNo;
+	requires_subscription?: EnumYesNo;
 	uploader?: string;
 	platform?: string;
-	'platform:relationship'?: IAllowDeny;
-	live?: IYesNo;
+	'platform:relationship'?: EnumAllowDeny;
+	live?: EnumYesNo;
 }
 
 export interface ILinkItem {
@@ -71,7 +69,7 @@ export interface SitemapItemOptions {
 	lastmodrealtime?: boolean;
 	lastmod?: string;
 	lastmodISO?: string;
-	changefreq?: IChangeFrequency;
+	changefreq?: EnumChangefreq;
 	priority?: number;
 	news?: INewsItem;
 	img?: Partial<ISitemapImg> | Partial<ISitemapImg>[];
@@ -89,14 +87,14 @@ export interface SitemapItemOptions {
 
 function safeDuration (duration) {
   if (duration < 0 || duration > 28800) {
-    throw new err.InvalidVideoDuration()
+    throw new InvalidVideoDuration()
   }
 
   return duration
 }
 
-var allowDeny = /^allow|deny$/
-var validators = {
+const allowDeny = /^allow|deny$/
+const validators = {
   'price:currency': /^[A-Z]{3}$/,
   'price:type': /^rent|purchase|RENT|PURCHASE$/,
   'price:resolution': /^HD|hd|sd|SD$/,
@@ -109,15 +107,15 @@ function attrBuilder (conf, keys) {
     keys = [keys]
   }
 
-  var attrs = keys.reduce((attrs, key) => {
+  let attrs = keys.reduce((attrs, key) => {
     if (conf[key] !== undefined) {
-      var keyAr = key.split(':')
+			let keyAr = key.split(':')
       if (keyAr.length !== 2) {
-        throw new err.InvalidAttr(key)
+        throw new InvalidAttr(key)
       }
 
       if (validators[key] && !validators[key].test(conf[key])) {
-        throw new err.InvalidAttrValue(key, conf[key], validators[key])
+        throw new InvalidAttrValue(key, conf[key], validators[key])
       }
       attrs[keyAr[1]] = conf[key]
     }
@@ -157,7 +155,7 @@ export class SitemapItem {
     const isSafeUrl = conf.safe
 
     if (!conf.url) {
-      throw new err.NoURLError()
+      throw new NoURLError()
     }
 
     // URL of the page
@@ -167,11 +165,11 @@ export class SitemapItem {
     // If given a file to use for last modified date
     if (conf.lastmodfile) {
       // console.log('should read stat from file: ' + conf.lastmodfile);
-      var file = conf.lastmodfile
+      let file = conf.lastmodfile
 
-      var stat = fs.statSync(file)
+      let stat = fs.statSync(file)
 
-      var mtime = stat.mtime
+      let mtime = stat.mtime
 
       dt = new Date(mtime)
       this.lastmod = ut.getTimestampFromDate(dt, conf.lastmodrealtime)
@@ -180,7 +178,7 @@ export class SitemapItem {
     } else if (conf.lastmod) {
       // append the timezone offset so that dates are treated as local time.
       // Otherwise the Unit tests fail sometimes.
-      var timezoneOffset = 'UTC-' + (new Date().getTimezoneOffset() / 60) + '00'
+      let timezoneOffset = 'UTC-' + (new Date().getTimezoneOffset() / 60) + '00'
       timezoneOffset = timezoneOffset.replace('--', '-')
       dt = new Date(conf.lastmod + ' ' + timezoneOffset)
       this.lastmod = ut.getTimestampFromDate(dt, conf.lastmodrealtime)
@@ -193,9 +191,8 @@ export class SitemapItem {
     // please see: http://www.sitemaps.org/protocol.html
     this.changefreq = conf.changefreq
     if (!isSafeUrl && this.changefreq) {
-      if (['always', 'hourly', 'daily', 'weekly', 'monthly',
-        'yearly', 'never'].indexOf(this.changefreq) === -1) {
-        throw new err.ChangeFreqInvalidError()
+      if (CHANGEFREQ.indexOf(this.changefreq) === -1) {
+        throw new ChangeFreqInvalidError()
       }
     }
 
@@ -205,7 +202,7 @@ export class SitemapItem {
     this.priority = conf.priority
     if (!isSafeUrl && this.priority) {
       if (!(this.priority >= 0.0 && this.priority <= 1.0) || typeof this.priority !== 'number') {
-        throw new err.PriorityInvalidError()
+        throw new PriorityInvalidError()
       }
     }
 
@@ -233,11 +230,11 @@ export class SitemapItem {
     const videoxml = this.url.element('video:video')
     if (typeof (video) !== 'object' || !video.thumbnail_loc || !video.title || !video.description) {
       // has to be an object and include required categories https://developers.google.com/webmasters/videosearch/sitemaps
-      throw new err.InvalidVideoFormat()
+      throw new InvalidVideoFormat()
     }
 
     if (video.description.length > 2048) {
-      throw new err.InvalidVideoDescription()
+      throw new InvalidVideoDescription()
     }
 
     videoxml.element('video:thumbnail_loc', video.thumbnail_loc)
@@ -391,7 +388,7 @@ export class SitemapItem {
       } else if (this[p] && p === 'ampLink') {
         this.url.element('xhtml:link', { rel: 'amphtml', href: this[p] })
       } else if (this[p] && p === 'news') {
-        var newsitem = this.url.element('news:news')
+        let newsitem = this.url.element('news:news')
 
         if (!this[p].publication ||
             !this[p].publication.name ||
@@ -399,11 +396,11 @@ export class SitemapItem {
             !this[p].publication_date ||
             !this[p].title
         ) {
-          throw new err.InvalidNewsFormat()
+          throw new InvalidNewsFormat()
         }
 
         if (this[p].publication) {
-          var publication = newsitem.element('news:publication')
+          let publication = newsitem.element('news:publication')
           if (this[p].publication.name) {
             publication.element('news:name').cdata(this[p].publication.name)
           }
@@ -417,7 +414,7 @@ export class SitemapItem {
             this[p].access !== 'Registration' &&
             this[p].access !== 'Subscription'
           ) {
-            throw new err.InvalidNewsAccessValue()
+            throw new InvalidNewsAccessValue()
           }
           newsitem.element('news:access', this[p].access)
         }

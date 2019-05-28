@@ -1,4 +1,5 @@
 import builder = require('xmlbuilder');
+import { EnumAllowDeny, EnumChangefreq, EnumYesNo } from './types';
 export declare type ICallback<E extends Error, T> = (err: E, data?: T) => void;
 export interface INewsItem {
     publication: {
@@ -19,9 +20,6 @@ export interface ISitemapImg {
     license: string;
     length?: never;
 }
-export declare type IYesNo = 'yes' | 'no';
-export declare type IAllowDeny = 'allow' | 'deny';
-export declare type IChangeFrequency = 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
 export interface IVideoItem {
     thumbnail_loc: string;
     title: string;
@@ -34,7 +32,7 @@ export interface IVideoItem {
     rating?: string | number;
     view_count?: string | number;
     publication_date?: string;
-    family_friendly?: IYesNo;
+    family_friendly?: EnumYesNo;
     tag?: string | string[];
     category?: string;
     restriction?: string;
@@ -44,11 +42,11 @@ export interface IVideoItem {
     'price:resolution'?: string;
     'price:currency'?: string;
     'price:type'?: string;
-    requires_subscription?: IYesNo;
+    requires_subscription?: EnumYesNo;
     uploader?: string;
     platform?: string;
-    'platform:relationship'?: IAllowDeny;
-    live?: IYesNo;
+    'platform:relationship'?: EnumAllowDeny;
+    live?: EnumYesNo;
 }
 export interface ILinkItem {
     lang: string;
@@ -60,7 +58,7 @@ export interface SitemapItemOptions {
     lastmodrealtime?: boolean;
     lastmod?: string;
     lastmodISO?: string;
-    changefreq?: IChangeFrequency;
+    changefreq?: EnumChangefreq;
     priority?: number;
     news?: INewsItem;
     img?: Partial<ISitemapImg> | Partial<ISitemapImg>[];

@@ -76,7 +76,8 @@ export declare class Sitemap {
      *  @return {String}
      */
     toString(): string;
-    toGzip(callback?: ICallback<Error, Buffer>): any;
+    toGzip(callback: ICallback<Error, Buffer>): void;
+    toGzip(): Buffer;
 }
 /**
  * Shortcut for `new SitemapIndex (...)`.
@@ -122,7 +123,7 @@ declare class SitemapIndex {
     targetFolder: string;
     urls: unknown[];
     chunks: any;
-    callback: any;
+    callback?: ICallback<Error, boolean>;
     cacheTime: number;
     xmlNs: string;
     /**
@@ -136,6 +137,6 @@ declare class SitemapIndex {
      * @param {Boolean}       gzip          optional
      * @param {Function}      callback      optional
      */
-    constructor(urls: string | string[], targetFolder: string, hostname?: string, cacheTime?: number, sitemapName?: string, sitemapSize?: number, xslUrl?: string, gzip?: boolean, callback?: any);
+    constructor(urls: string | string[], targetFolder: string, hostname?: string, cacheTime?: number, sitemapName?: string, sitemapSize?: number, xslUrl?: string, gzip?: boolean, callback?: ICallback<Error, boolean>);
 }
 export { SitemapItem };

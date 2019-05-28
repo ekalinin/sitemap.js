@@ -6,7 +6,7 @@
  */
 'use strict';
 
-import err = require('./errors');
+import { UndefinedTargetFolder } from './errors';
 import urljoin = require('url-join');
 import fs = require('fs');
 import builder = require('xmlbuilder');
@@ -105,7 +105,7 @@ export class Sitemap {
    *  Can cache be used
    */
   isCacheValid() {
-    var currTimestamp = Date.now();
+    let currTimestamp = Date.now();
     return this.cacheResetPeriod && this.cache &&
       (this.cacheSetTimestamp + this.cacheResetPeriod) >= currTimestamp;
   }
@@ -214,7 +214,7 @@ export class Sitemap {
     this.urls.forEach((elem, index) => {
       // SitemapItem
       // create object with url property
-      var smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root: this.root} : Object.assign({root: this.root}, elem)
+      let smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root: this.root} : Object.assign({root: this.root}, elem)
 
       // insert domain name
       if (this.hostname) {
@@ -252,8 +252,10 @@ export class Sitemap {
     return this.setCache(this.root.end())
   }
 
+  toGzip(callback: ICallback<Error, Buffer>): void
+  toGzip(): Buffer
   toGzip(callback?: ICallback<Error, Buffer>) {
-    const zlib = require('zlib');
+    const zlib: typeof import('zlib') = require('zlib');
 
     if (typeof callback === 'function') {
       zlib.gzip(this.toString(), callback);
@@ -306,8 +308,8 @@ export function buildSitemapIndex (conf: {
   lastmodrealtime?: boolean,
   lastmod?: number | string
 }) {
-  var xml = [];
-  var lastmod;
+  let xml = [];
+  let lastmod;
 
   xml.push('<?xml version="1.0" encoding="UTF-8"?>');
   if (conf.xslUrl) {
@@ -365,7 +367,7 @@ class SitemapIndex {
   urls: unknown[]
 
   chunks
-  callback
+  callback?: ICallback<Error, boolean>
   cacheTime: number
 
   xmlNs: string
@@ -382,7 +384,7 @@ class SitemapIndex {
    * @param {Boolean}       gzip          optional
    * @param {Function}      callback      optional
    */
-  constructor (urls: string | string[], targetFolder: string, hostname?: string, cacheTime?: number, sitemapName?: string, sitemapSize?: number, xslUrl?: string, gzip?: boolean, callback?) {
+  constructor (urls: string | string[], targetFolder: string, hostname?: string, cacheTime?: number, sitemapName?: string, sitemapSize?: number, xslUrl?: string, gzip?: boolean, callback?: ICallback<Error, boolean>) {
     // Base domain
     this.hostname = hostname;
 
@@ -406,7 +408,7 @@ class SitemapIndex {
 
     try {
       if (!fs.statSync(targetFolder).isDirectory()) {
-        throw new err.UndefinedTargetFolder();
+        throw new UndefinedTargetFolder();
       }
     } catch (err) {
       throw new err.UndefinedTargetFolder();
@@ -426,7 +428,7 @@ class SitemapIndex {
 
     this.callback = callback;
 
-    var processesCount = this.chunks.length + 1;
+    let processesCount = this.chunks.length + 1;
 
     this.chunks.forEach((chunk, index) => {
       const extension = '.xml' + (gzip ? '.gz' : '');
@@ -434,14 +436,14 @@ class SitemapIndex {
 
       this.sitemaps.push(filename);
 
-      var sitemap = createSitemap({
+      let sitemap = createSitemap({
         hostname: this.hostname,
         cacheTime: this.cacheTime, // 600 sec - cache purge period
         urls: chunk,
         xslUrl: this.xslUrl
       });
 
-      var stream = fs.createWriteStream(targetFolder + '/' + filename);
+      let stream = fs.createWriteStream(targetFolder + '/' + filename);
       stream.once('open', fd => {
         stream.write(gzip ? sitemap.toGzip() : sitemap.toString());
         stream.end();
@@ -453,11 +455,11 @@ class SitemapIndex {
 
     });
 
-    var sitemapUrls = this.sitemaps.map(sitemap => hostname + '/' + sitemap);
-    var smConf = {urls: sitemapUrls, xslUrl: this.xslUrl, xmlNs: this.xmlNs};
-    var xmlString = buildSitemapIndex(smConf);
+    let sitemapUrls = this.sitemaps.map(sitemap => hostname + '/' + sitemap);
+    let smConf = {urls: sitemapUrls, xslUrl: this.xslUrl, xmlNs: this.xmlNs};
+    let xmlString = buildSitemapIndex(smConf);
 
-    var stream = fs.createWriteStream(targetFolder + '/' +
+    let stream = fs.createWriteStream(targetFolder + '/' +
       this.sitemapName + '-index.xml');
     stream.once('open', (fd) => {
       stream.write(xmlString);

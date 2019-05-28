@@ -8,7 +8,7 @@
 import padStart = require('lodash/padStart');
 
 export function getTimestampFromDate (dt: Date, bRealtime: boolean) {
-  var timestamp = [dt.getUTCFullYear(), padStart((dt.getUTCMonth() + 1) as any, 2, '0'),
+  let timestamp = [dt.getUTCFullYear(), padStart((dt.getUTCMonth() + 1) as any, 2, '0'),
     padStart(dt.getUTCDate() as any, 2, '0')].join('-');
 
   // Indicate that lastmod should include minutes and seconds (and timezone)
@@ -22,5 +22,4 @@ export function getTimestampFromDate (dt: Date, bRealtime: boolean) {
   }
 
   return timestamp;
-};
-
+}

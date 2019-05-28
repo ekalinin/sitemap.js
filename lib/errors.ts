@@ -93,7 +93,7 @@ export class InvalidVideoDescription extends Error {
 }
 
 export class InvalidAttrValue extends Error {
-  constructor(key: string, val, validator: RegExp) {
+  constructor(key: string, val: any, validator: RegExp) {
     super('"' + val + '" tested against: ' + validator + ' is not a valid value for attr: "' + key + '"');
     this.name = 'InvalidAttrValue';
     // @ts-ignore
