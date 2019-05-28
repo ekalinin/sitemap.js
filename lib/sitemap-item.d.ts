@@ -1,72 +1,111 @@
 import builder = require('xmlbuilder');
+
+export declare interface NewsItem {
+  publication: {
+    name: string,
+    language: string
+  },
+  genres: string,
+  publication_date: string,
+  title: string,
+  keywords: string,
+  stock_tickers: string
+}
+
+export declare interface SitemapImg {
+  url: string,
+  caption: string,
+  title: string,
+  geoLocation: string,
+  license: string
+}
+
+export declare type yesno = 'yes' | 'no'
+export declare type allowdeny = 'allow' | 'deny'
+export declare type ChangeFrequency = 'always'|'hourly'|'daily'|'weekly'|'monthly'|'yearly'|'never'
+export declare interface VideoItem {
+  thumbnail_loc: string;
+  title: string;
+  description: string;
+  content_loc?: string;
+  player_loc?: string;
+  'player_loc:autoplay'
+  duration?: string|number;
+  expiration_date?: string;
+  rating?: string|number;
+  view_count?: string|number;
+  publication_date?: string;
+  family_friendly?: yesno;
+  tag?: string | string[];
+  category?: string;
+  restriction?: string;
+  'restriction:relationship': string,
+  gallery_loc?: any;
+  price?: string;
+  'price:resolution'?: string;
+  'price:currency'?: string;
+  'price:type'?: string;
+  requires_subscription?: yesno;
+  uploader?: string;
+  platform?: string;
+  'platform:relationship'?: allowdeny;
+  live?: yesno;
+}
+
+export declare interface LinkItem {
+  lang: string;
+  url: string;
+}
+
+export declare interface SitemapItemOptions {
+  safe?: boolean;
+  lastmodfile?: any;
+  lastmodrealtime?: boolean;
+  lastmod?: string;
+  lastmodISO?: string;
+  changefreq?: ChangeFrequency;
+  priority?: number;
+  news?: NewsItem;
+  img?: SitemapImg;
+  links?: LinkItem[];
+  expires?: string;
+  androidLink?: string;
+  mobile?: boolean|string;
+  video?: VideoItem;
+  ampLink?: string;
+  root?: builder.XMLElementOrXMLNode;
+  url?: string;
+}
+
 /**
  * Item in sitemap
  */
-declare class SitemapItem {
-    conf: any;
-    loc: any;
-    lastmod: any;
-    changefreq: any;
-    priority: any;
-    news?: any;
-    img?: any;
-    links?: any;
-    expires?: any;
-    androidLink?: any;
-    mobile?: any;
-    video?: any;
-    ampLink?: any;
+export declare class SitemapItem {
+    conf: SitemapItemOptions;
+    loc: SitemapItemOptions["url"];
+    lastmod: SitemapItemOptions["lastmod"];
+    changefreq: SitemapItemOptions["changefreq"];
+    priority: SitemapItemOptions["priority"];
+    news?: SitemapItemOptions["news"];
+    img?: SitemapItemOptions["img"];
+    links?: SitemapItemOptions["links"];
+    expires?: SitemapItemOptions["expires"];
+    androidLink?: SitemapItemOptions["androidLink"];
+    mobile?: SitemapItemOptions["mobile"];
+    video?: SitemapItemOptions["video"];
+    ampLink?: SitemapItemOptions["ampLink"];
     root: builder.XMLElementOrXMLNode;
     url: builder.XMLElementOrXMLNode & {
         children?: [];
         attributes?: {};
     };
-    constructor(conf?: {
-        safe?: any;
-        lastmodfile?: any;
-        lastmodrealtime?: boolean;
-        lastmod?: any;
-        lastmodISO?: any;
-        changefreq?: any;
-        priority?: any;
-        news?: any;
-        img?: any;
-        links?: any;
-        expires?: any;
-        androidLink?: any;
-        mobile?: any;
-        video?: any;
-        ampLink?: any;
-        root?: builder.XMLElementOrXMLNode;
-        url?: any;
-    });
+    constructor(conf?: SitemapItemOptions);
     /**
      *  Create sitemap xml
      *  @return {String}
      */
     toXML(): string;
-    buildVideoElement(video: {
-        thumbnail_loc: any;
-        title: any;
-        description: any;
-        content_loc?: any;
-        player_loc?: any;
-        duration?: any;
-        expiration_date?: any;
-        rating?: any;
-        view_count?: any;
-        publication_date?: any;
-        family_friendly?: any;
-        tag?: string | string[];
-        category?: any;
-        restriction?: any;
-        gallery_loc?: any;
-        price?: any;
-        requires_subscription?: any;
-        uploader?: any;
-        platform?: any;
-        live?: any;
-    }): void;
+    buildVideoElement(video: VideoItem): void;
     buildXML(): builder.XMLElementOrXMLNode;
     /**
      *  Alias for toXML()
@@ -74,4 +113,3 @@ declare class SitemapItem {
      */
     toString(): string;
 }
-export = SitemapItem;
