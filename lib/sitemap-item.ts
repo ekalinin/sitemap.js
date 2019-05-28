@@ -1,8 +1,91 @@
-const ut = require('./utils')
-const fs = require('fs')
-const err = require('./errors')
-const builder = require('xmlbuilder')
-const isArray = require('lodash/isArray')
+import ut = require('./utils')
+import fs = require('fs')
+import err = require('./errors')
+import builder = require('xmlbuilder')
+import isArray = require('lodash/isArray')
+import { XMLElementOrXMLNode } from 'xmlbuilder';
+
+export type ICallback<E extends Error, T> = (err: E, data?: T) => void;
+
+export interface INewsItem {
+	publication: {
+		name: string,
+		language: string
+	},
+	genres: string,
+	publication_date: string,
+	title: string,
+	keywords: string,
+	stock_tickers: string
+}
+
+export interface ISitemapImg {
+	url: string,
+	caption: string,
+	title: string,
+	geoLocation: string,
+	license: string,
+	length?: never,
+}
+
+export type IYesNo = 'yes' | 'no'
+export type IAllowDeny = 'allow' | 'deny'
+export type IChangeFrequency = 'always'|'hourly'|'daily'|'weekly'|'monthly'|'yearly'|'never'
+export interface IVideoItem {
+	thumbnail_loc: string;
+	title: string;
+	description: string;
+	content_loc?: string;
+	player_loc?: string;
+	'player_loc:autoplay'
+	duration?: string|number;
+	expiration_date?: string;
+	rating?: string|number;
+	view_count?: string|number;
+	publication_date?: string;
+	family_friendly?: IYesNo;
+	tag?: string | string[];
+	category?: string;
+	restriction?: string;
+	'restriction:relationship': string,
+	gallery_loc?: any;
+	price?: string;
+	'price:resolution'?: string;
+	'price:currency'?: string;
+	'price:type'?: string;
+	requires_subscription?: IYesNo;
+	uploader?: string;
+	platform?: string;
+	'platform:relationship'?: IAllowDeny;
+	live?: IYesNo;
+}
+
+export interface ILinkItem {
+	lang: string;
+	url: string;
+}
+
+export interface SitemapItemOptions {
+	safe?: boolean;
+	lastmodfile?: any;
+	lastmodrealtime?: boolean;
+	lastmod?: string;
+	lastmodISO?: string;
+	changefreq?: IChangeFrequency;
+	priority?: number;
+	news?: INewsItem;
+	img?: Partial<ISitemapImg> | Partial<ISitemapImg>[];
+	links?: ILinkItem[];
+	expires?: string;
+	androidLink?: string;
+	mobile?: boolean|string;
+	video?: IVideoItem;
+	ampLink?: string;
+	root?: builder.XMLElementOrXMLNode;
+	url?: string;
+
+	cdata?
+}
 
 function safeDuration (duration) {
   if (duration < 0 || duration > 28800) {
@@ -48,8 +131,28 @@ function attrBuilder (conf, keys) {
 /**
  * Item in sitemap
  */
-class SitemapItem {
-  constructor (conf = {}) {
+export class SitemapItem {
+
+	conf: SitemapItemOptions;
+	loc: SitemapItemOptions["url"];
+	lastmod: SitemapItemOptions["lastmod"];
+	changefreq: SitemapItemOptions["changefreq"];
+	priority: SitemapItemOptions["priority"];
+	news?: SitemapItemOptions["news"];
+	img?: SitemapItemOptions["img"];
+	links?: SitemapItemOptions["links"];
+	expires?: SitemapItemOptions["expires"];
+	androidLink?: SitemapItemOptions["androidLink"];
+	mobile?: SitemapItemOptions["mobile"];
+	video?: SitemapItemOptions["video"];
+	ampLink?: SitemapItemOptions["ampLink"];
+  root: builder.XMLElementOrXMLNode;
+  url: builder.XMLElementOrXMLNode & {
+    children?: [],
+    attributes?: {}
+  };
+
+  constructor (conf: SitemapItemOptions = {}) {
     this.conf = conf
     const isSafeUrl = conf.safe
 
@@ -126,7 +229,7 @@ class SitemapItem {
     return this.toString()
   }
 
-  buildVideoElement (video) {
+  buildVideoElement (video: IVideoItem) {
     const videoxml = this.url.element('video:video')
     if (typeof (video) !== 'object' || !video.thumbnail_loc || !video.title || !video.description) {
       // has to be an object and include required categories https://developers.google.com/webmasters/videosearch/sitemaps
@@ -215,11 +318,11 @@ class SitemapItem {
     }
   }
 
-  buildXML () {
+  buildXML (): builder.XMLElementOrXMLNode {
     this.url.children = []
     this.url.attributes = {}
     // xml property
-    const props = ['loc', 'lastmod', 'changefreq', 'priority', 'img', 'video', 'links', 'expires', 'androidLink', 'mobile', 'news', 'ampLink']
+    const props = ['loc', 'lastmod', 'changefreq', 'priority', 'img', 'video', 'links', 'expires', 'androidLink', 'mobile', 'news', 'ampLink'] as const;
     // property array size (for loop)
     let ps = 0
     // current property name (for loop)
@@ -353,9 +456,9 @@ class SitemapItem {
    *  Alias for toXML()
    *  @return {String}
    */
-  toString () {
+  toString (): string {
     return this.buildXML().toString()
   }
 }
 
-module.exports = SitemapItem
+export default SitemapItem

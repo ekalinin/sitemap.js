@@ -6,12 +6,13 @@
  */
 'use strict';
 
-const err = require('./errors');
-const urljoin = require('url-join');
-const fs = require('fs');
-const builder = require('xmlbuilder');
-const SitemapItem = require('./sitemap-item');
-const chunk = require('lodash/chunk');
+import err = require('./errors');
+import urljoin = require('url-join');
+import fs = require('fs');
+import builder = require('xmlbuilder');
+import SitemapItem, { ICallback, ISitemapImg, SitemapItemOptions } from './sitemap-item';
+import chunk = require('lodash/chunk');
+import { Profiler } from 'inspector';
 
 /**
  * Shortcut for `new Sitemap (...)`.
@@ -24,13 +25,37 @@ const chunk = require('lodash/chunk');
  * @param   {String}        conf.xmlNs
  * @return  {Sitemap}
  */
-function createSitemap(conf) {
+export function createSitemap(conf: {
+  urls: string | Sitemap["urls"],
+  hostname: string,
+  cacheTime: number,
+  xslUrl: string,
+  xmlNs?: string,
+}) {
   return new Sitemap(conf.urls, conf.hostname, conf.cacheTime, conf.xslUrl, conf.xmlNs);
 }
 
 const reProto = /^https?:\/\//i;
 
-class Sitemap {
+export class Sitemap {
+
+  limit: number;
+  hostname: string
+  urls: (string | SitemapItemOptions)[]
+
+  cacheResetPeriod: number;
+  cache: string
+  xslUrl: string
+  xmlNs: string
+  root: builder.XMLElementOrXMLNode & {
+    attributes?: [],
+    children?: [],
+
+    instructionBefore?(...argv)
+  };
+  cacheSetTimestamp: number;
+
+
   /**
    * Sitemap constructor
    * @param {String|Array}  urls
@@ -39,7 +64,7 @@ class Sitemap {
    * @param {String}        xslUrl            optional
    * @param {String}        xmlNs            optional
    */
-  constructor(urls, hostname, cacheTime, xslUrl, xmlNs) {
+  constructor(urls: string | Sitemap["urls"], hostname: string, cacheTime: number, xslUrl: string, xmlNs: string) {
     // This limit is defined by Google. See:
     // http://sitemaps.org/protocol.php#index
     this.limit = 50000
@@ -88,7 +113,7 @@ class Sitemap {
   /**
    *  Fill cache
    */
-  setCache(newCache) {
+  setCache(newCache: string) {
     this.cache = newCache;
     this.cacheSetTimestamp = Date.now();
     return this.cache;
@@ -98,7 +123,7 @@ class Sitemap {
    *  Add url to sitemap
    *  @param {String} url
    */
-  add(url) {
+  add(url: string) {
     return this.urls.push(url);
   }
 
@@ -106,13 +131,16 @@ class Sitemap {
    *  Delete url from sitemap
    *  @param {String} url
    */
-  del(url) {
+  del(url: string | {
+    url: string
+  }) {
     const index_to_remove = []
     let key = ''
 
     if (typeof url === 'string') {
       key = url;
     } else {
+      // @ts-ignore
       key = url.url;
     }
 
@@ -139,7 +167,7 @@ class Sitemap {
    *  Create sitemap xml
    *  @param {Function}     callback  Callback function with one argument — xml
    */
-  toXML(callback) {
+  toXML(callback: ICallback<Error, string>) {
     if (typeof callback === 'undefined') {
       return this.toString();
     }
@@ -186,7 +214,7 @@ class Sitemap {
     this.urls.forEach((elem, index) => {
       // SitemapItem
       // create object with url property
-      var smi = (typeof elem === 'string') ? {'url': elem, root: this.root} : Object.assign({root: this.root}, elem)
+      var smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root: this.root} : Object.assign({root: this.root}, elem)
 
       // insert domain name
       if (this.hostname) {
@@ -196,14 +224,14 @@ class Sitemap {
         if (smi.img) {
           if (typeof smi.img === 'string') {
             // string -> array of objects
-            smi.img = [{url: smi.img}];
+            smi.img = [{url: smi.img as string}];
           }
           if (typeof smi.img === 'object' && smi.img.length === undefined) {
             // object -> array of objects
-            smi.img = [smi.img];
+            smi.img = [smi.img as ISitemapImg];
           }
           // prepend hostname to all image urls
-          smi.img.forEach(img => {
+          (smi.img as ISitemapImg[]).forEach(img => {
             if (!reProto.test(img.url)) {
               img.url = urljoin(this.hostname, img.url);
             }
@@ -224,8 +252,8 @@ class Sitemap {
     return this.setCache(this.root.end())
   }
 
-  toGzip(callback) {
-    var zlib = require('zlib');
+  toGzip(callback?: ICallback<Error, Buffer>) {
+    const zlib = require('zlib');
 
     if (typeof callback === 'function') {
       zlib.gzip(this.toString(), callback);
@@ -248,7 +276,7 @@ class Sitemap {
  * @param   {String}        conf.xslUrl
  * @return  {SitemapIndex}
  */
-function createSitemapIndex (conf) {
+export function createSitemapIndex (conf) {
   return new SitemapIndex(conf.urls,
     conf.targetFolder,
     conf.hostname,
@@ -269,7 +297,15 @@ function createSitemapIndex (conf) {
  * @param   {String}    conf.xmlNs
  * @return  {String}    XML String of SitemapIndex
  */
-function buildSitemapIndex (conf) {
+export function buildSitemapIndex (conf: {
+  urls: any[],
+  xslUrl: string,
+  xmlNs: string,
+
+  lastmodISO?: Date
+  lastmodrealtime?: boolean,
+  lastmod?: number | string
+}) {
   var xml = [];
   var lastmod;
 
@@ -318,6 +354,23 @@ function buildSitemapIndex (conf) {
  * Sitemap index (for several sitemaps)
  */
 class SitemapIndex {
+
+  hostname: string;
+  sitemapName: string;
+  sitemapSize: number
+  xslUrl: string
+  sitemapId: number
+  sitemaps: unknown[]
+  targetFolder: string;
+  urls: unknown[]
+
+  chunks
+  callback
+  cacheTime: number
+
+  xmlNs: string
+
+
   /**
    * @param {String|Array}  urls
    * @param {String}        targetFolder
@@ -329,7 +382,7 @@ class SitemapIndex {
    * @param {Boolean}       gzip          optional
    * @param {Function}      callback      optional
    */
-  constructor (urls, targetFolder, hostname, cacheTime, sitemapName, sitemapSize, xslUrl, gzip, callback) {
+  constructor (urls: string | string[], targetFolder: string, hostname?: string, cacheTime?: number, sitemapName?: string, sitemapSize?: number, xslUrl?: string, gzip?: boolean, callback?) {
     // Base domain
     this.hostname = hostname;
 
@@ -362,8 +415,10 @@ class SitemapIndex {
     this.targetFolder = targetFolder;
 
     // URL list for sitemap
+    // @ts-ignore
     this.urls = urls || [];
     if (!Array.isArray(this.urls)) {
+      // @ts-ignore
       this.urls = [this.urls]
     }
 
@@ -415,10 +470,4 @@ class SitemapIndex {
   }
 }
 
-module.exports = {
-  Sitemap,
-  SitemapItem,
-  createSitemap,
-  createSitemapIndex,
-  buildSitemapIndex
-};
+export { SitemapItem }

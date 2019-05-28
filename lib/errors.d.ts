@@ -41,7 +41,7 @@ export declare class InvalidAttrValue extends Error {
     constructor(key: string, val: any, validator: RegExp);
 }
 export declare class InvalidAttr extends Error {
-    constructor(key: any);
+    constructor(key: string);
 }
 export declare class InvalidNewsFormat extends Error {
     constructor(message?: string);

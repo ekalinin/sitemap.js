@@ -2,38 +2,55 @@
   "name": "sitemap",
   "version": "2.1.0",
   "description": "Sitemap-generating framework",
-  "License": "MIT",
   "keywords": [
     "sitemap",
     "sitemap.xml"
   ],
-  "repository": "git://github.com/ekalinin/sitemap.js.git",
+  "homepage": "https://github.com/ekalinin/sitemap.js#readme",
+  "bugs": {
+    "url": "https://github.com/ekalinin/sitemap.js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ekalinin/sitemap.js.git"
+  },
+  "license": "MIT",
   "author": "Eugene Kalinin <e.v.kalinin@gmail.com>",
+  "main": "index",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "scripts": {
+    "ncu": "npx yarn-tool ncu -u",
+    "prepublishOnly": "npm run sort-package-json && npm run test",
+    "sort-package-json": "npx sort-package-json ./package.json",
+    "test": "istanbul cover --include-all-sources jasmine tests/sitemap.test.js",
+    "test:jasmine": "jasmine tests/sitemap.test.js"
+  },
   "dependencies": {
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.11",
     "url-join": "^4.0.0",
-    "xmlbuilder": "^10.0.0"
+    "xmlbuilder": "^12.0.1"
   },
   "devDependencies": {
+    "@bluelovers/tsconfig": "^1.0.3",
+    "@types/lodash": "^4.14.123",
+    "@types/node": "^11.13.8",
     "istanbul": "^0.4.5",
-    "jasmine": "^3.1.0",
+    "jasmine": "^3.4.0",
     "jasmine-diff": "^0.1.3",
-    "stats-lite": "^2.1.1"
+    "stats-lite": "^2.2.0"
   },
   "engines": {
-    "npm": ">=4.0.0",
-    "node": ">=6.0.0"
+    "node": ">=6.0.0",
+    "npm": ">=4.0.0"
   },
+  "License": "MIT",
   "standard": {
     "env": {
       "jasmine": true,
       "node": true
     }
-  },
-  "license": "MIT",
-  "main": "index",
-  "scripts": {
-    "test": "istanbul cover --include-all-sources jasmine tests/sitemap.test.js",
-    "coverage": "open ./coverage/lcov-report/index.html"
   }
 }

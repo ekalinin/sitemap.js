@@ -1,6 +1,6 @@
+/// <reference types="node" />
 import builder = require('xmlbuilder');
-import * as SitemapItem from './sitemap-item';
-export type Callback<E, T> = (err: E, data: T) => void;
+import SitemapItem, { ICallback, SitemapItemOptions } from './sitemap-item';
 /**
  * Shortcut for `new Sitemap (...)`.
  *
@@ -22,7 +22,7 @@ export declare function createSitemap(conf: {
 export declare class Sitemap {
     limit: number;
     hostname: string;
-    urls: (string | SitemapItem.SitemapItemOptions)[];
+    urls: (string | SitemapItemOptions)[];
     cacheResetPeriod: number;
     cache: string;
     xslUrl: string;
@@ -63,21 +63,20 @@ export declare class Sitemap {
      *  Delete url from sitemap
      *  @param {String} url
      */
-    del(url: any): number;
+    del(url: string | {
+        url: string;
+    }): number;
     /**
      *  Create sitemap xml
      *  @param {Function}     callback  Callback function with one argument — xml
      */
-    toXML(callback: Callback<Error, string>): void
-    toXML(): string;
+    toXML(callback: ICallback<Error, string>): string;
     /**
      *  Synchronous alias for toXML()
      *  @return {String}
      */
     toString(): string;
-  // returns Buffer | void - not sure how to import
-    // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/node/v10/globals.d.ts#L229
-    toGzip(callback?: (error: Error | null, result: Buffer) => void): any;
+    toGzip(callback?: ICallback<Error, Buffer>): any;
 }
 /**
  * Shortcut for `new SitemapIndex (...)`.
