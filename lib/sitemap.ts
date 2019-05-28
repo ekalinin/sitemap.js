@@ -10,9 +10,10 @@ import { UndefinedTargetFolder } from './errors';
 import urljoin = require('url-join');
 import fs = require('fs');
 import builder = require('xmlbuilder');
-import SitemapItem, { ICallback, ISitemapImg, SitemapItemOptions } from './sitemap-item';
+import SitemapItem = require('./sitemap-item');
 import chunk = require('lodash/chunk');
 import { Profiler } from 'inspector';
+import { ICallback, ISitemapImg, SitemapItemOptions } from './types';
 
 /**
  * Shortcut for `new Sitemap (...)`.

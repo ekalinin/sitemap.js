@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import builder = require('xmlbuilder');
-import SitemapItem, { ICallback, SitemapItemOptions } from './sitemap-item';
+import SitemapItem = require('./sitemap-item');
+import { ICallback, SitemapItemOptions } from './types';
 /**
  * Shortcut for `new Sitemap (...)`.
  *

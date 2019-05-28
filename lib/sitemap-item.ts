@@ -1,89 +1,20 @@
-import ut = require('./utils')
-import fs = require('fs')
-import { ChangeFreqInvalidError, NoURLError, NoURLProtocolError, PriorityInvalidError, InvalidVideoDuration, InvalidAttr, InvalidAttrValue, InvalidNewsAccessValue, InvalidNewsFormat, InvalidVideoDescription, InvalidVideoFormat, UndefinedTargetFolder } from './errors'
-import builder = require('xmlbuilder')
-import isArray = require('lodash/isArray')
-import { XMLElementOrXMLNode } from 'xmlbuilder';
-import { CHANGEFREQ, EnumAllowDeny, EnumChangefreq, EnumYesNo } from './types';
-
-export type ICallback<E extends Error, T> = (err: E, data?: T) => void;
-
-export interface INewsItem {
-	publication: {
-		name: string,
-		language: string
-	},
-	genres: string,
-	publication_date: string,
-	title: string,
-	keywords: string,
-	stock_tickers: string
-}
-
-export interface ISitemapImg {
-	url: string,
-	caption: string,
-	title: string,
-	geoLocation: string,
-	license: string,
-	length?: never,
-}
-
-export interface IVideoItem {
-	thumbnail_loc: string;
-	title: string;
-	description: string;
-	content_loc?: string;
-	player_loc?: string;
-	'player_loc:autoplay'
-	duration?: string|number;
-	expiration_date?: string;
-	rating?: string|number;
-	view_count?: string|number;
-	publication_date?: string;
-	family_friendly?: EnumYesNo;
-	tag?: string | string[];
-	category?: string;
-	restriction?: string;
-	'restriction:relationship': string,
-	gallery_loc?: any;
-	price?: string;
-	'price:resolution'?: string;
-	'price:currency'?: string;
-	'price:type'?: string;
-	requires_subscription?: EnumYesNo;
-	uploader?: string;
-	platform?: string;
-	'platform:relationship'?: EnumAllowDeny;
-	live?: EnumYesNo;
-}
-
-export interface ILinkItem {
-	lang: string;
-	url: string;
-}
-
-export interface SitemapItemOptions {
-	safe?: boolean;
-	lastmodfile?: any;
-	lastmodrealtime?: boolean;
-	lastmod?: string;
-	lastmodISO?: string;
-	changefreq?: EnumChangefreq;
-	priority?: number;
-	news?: INewsItem;
-	img?: Partial<ISitemapImg> | Partial<ISitemapImg>[];
-	links?: ILinkItem[];
-	expires?: string;
-	androidLink?: string;
-	mobile?: boolean|string;
-	video?: IVideoItem;
-	ampLink?: string;
-	root?: builder.XMLElementOrXMLNode;
-	url?: string;
-
-	cdata?
-}
+import ut = require('./utils');
+import fs = require('fs');
+import builder = require('xmlbuilder');
+import isArray = require('lodash/isArray');
+import {
+	ChangeFreqInvalidError,
+	InvalidAttr,
+	InvalidAttrValue,
+	InvalidNewsAccessValue,
+	InvalidNewsFormat,
+	InvalidVideoDescription,
+	InvalidVideoDuration,
+	InvalidVideoFormat,
+	NoURLError,
+	PriorityInvalidError,
+} from './errors'
+import { CHANGEFREQ, IVideoItem, SitemapItemOptions } from './types';
 
 function safeDuration (duration) {
   if (duration < 0 || duration > 28800) {
@@ -129,7 +60,7 @@ function attrBuilder (conf, keys) {
 /**
  * Item in sitemap
  */
-export class SitemapItem {
+class SitemapItem {
 
 	conf: SitemapItemOptions;
 	loc: SitemapItemOptions["url"];
@@ -458,4 +389,4 @@ export class SitemapItem {
   }
 }
 
-export default SitemapItem
+export = SitemapItem
