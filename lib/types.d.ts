@@ -8,7 +8,7 @@ export declare const enum EnumChangefreq {
     YEARLY = "yearly",
     NEVER = "never"
 }
-export declare const CHANGEFREQ: EnumChangefreq[];
+export declare const CHANGEFREQ: readonly [EnumChangefreq.ALWAYS, EnumChangefreq.HOURLY, EnumChangefreq.DAILY, EnumChangefreq.WEEKLY, EnumChangefreq.MONTHLY, EnumChangefreq.YEARLY, EnumChangefreq.NEVER];
 export declare const enum EnumYesNo {
     YES = "yes",
     NO = "no"
@@ -43,7 +43,7 @@ export interface IVideoItem {
     description: string;
     content_loc?: string;
     player_loc?: string;
-    'player_loc:autoplay': any;
+    'player_loc:autoplay': boolean;
     duration?: string | number;
     expiration_date?: string;
     rating?: string | number;
@@ -54,7 +54,7 @@ export interface IVideoItem {
     category?: string;
     restriction?: string;
     'restriction:relationship': string;
-    gallery_loc?: any;
+    gallery_loc?: string;
     price?: string;
     'price:resolution'?: string;
     'price:currency'?: string;
