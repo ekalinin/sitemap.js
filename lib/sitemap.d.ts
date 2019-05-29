@@ -19,7 +19,7 @@ export declare function createSitemap(conf: {
     cacheTime: number;
     xslUrl: string;
     xmlNs?: string;
-}): Sitemap;
+}): any;
 export declare class Sitemap {
     limit: number;
     hostname: string;
@@ -50,7 +50,7 @@ export declare class Sitemap {
     /**
      *  Can cache be used
      */
-    isCacheValid(): boolean;
+    isCacheValid(): boolean | "" | 0;
     /**
      *  Fill cache
      */
@@ -71,7 +71,7 @@ export declare class Sitemap {
      *  Create sitemap xml
      *  @param {Function}     callback  Callback function with one argument — xml
      */
-    toXML(callback: ICallback<Error, string>): string;
+    toXML(callback: ICallback<Error, string>): string | undefined;
     /**
      *  Synchronous alias for toXML()
      *  @return {String}

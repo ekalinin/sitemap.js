@@ -1,22 +1,22 @@
-import ut = require('./utils');
-import fs = require('fs');
-import builder = require('xmlbuilder');
-import isArray = require('lodash/isArray');
+import ut from './utils';
+import fs from 'fs';
+import builder from 'xmlbuilder';
+import isArray from 'lodash/isArray';
 import {
-	ChangeFreqInvalidError,
-	InvalidAttr,
-	InvalidAttrValue,
-	InvalidNewsAccessValue,
-	InvalidNewsFormat,
-	InvalidVideoDescription,
-	InvalidVideoDuration,
-	InvalidVideoFormat,
-	NoURLError,
-	PriorityInvalidError,
+  ChangeFreqInvalidError,
+  InvalidAttr,
+  InvalidAttrValue,
+  InvalidNewsAccessValue,
+  InvalidNewsFormat,
+  InvalidVideoDescription,
+  InvalidVideoDuration,
+  InvalidVideoFormat,
+  NoURLError,
+  PriorityInvalidError,
 } from './errors'
 import { CHANGEFREQ, IVideoItem, SitemapItemOptions } from './types';
 
-function safeDuration (duration) {
+function safeDuration (duration: number): number {
   if (duration < 0 || duration > 28800) {
     throw new InvalidVideoDuration()
   }
@@ -61,24 +61,23 @@ function attrBuilder (conf, keys) {
  * Item in sitemap
  */
 class SitemapItem {
-
-	conf: SitemapItemOptions;
-	loc: SitemapItemOptions["url"];
-	lastmod: SitemapItemOptions["lastmod"];
-	changefreq: SitemapItemOptions["changefreq"];
-	priority: SitemapItemOptions["priority"];
-	news?: SitemapItemOptions["news"];
-	img?: SitemapItemOptions["img"];
-	links?: SitemapItemOptions["links"];
-	expires?: SitemapItemOptions["expires"];
-	androidLink?: SitemapItemOptions["androidLink"];
-	mobile?: SitemapItemOptions["mobile"];
-	video?: SitemapItemOptions["video"];
-	ampLink?: SitemapItemOptions["ampLink"];
-  root: builder.XMLElementOrXMLNode;
-  url: builder.XMLElementOrXMLNode & {
-    children?: [],
-    attribs?: {}
+  conf: SitemapItemOptions;
+  loc: SitemapItemOptions["url"];
+  lastmod: SitemapItemOptions["lastmod"];
+  changefreq: SitemapItemOptions["changefreq"];
+  priority: SitemapItemOptions["priority"];
+  news?: SitemapItemOptions["news"];
+  img?: SitemapItemOptions["img"];
+  links?: SitemapItemOptions["links"];
+  expires?: SitemapItemOptions["expires"];
+  androidLink?: SitemapItemOptions["androidLink"];
+  mobile?: SitemapItemOptions["mobile"];
+  video?: SitemapItemOptions["video"];
+  ampLink?: SitemapItemOptions["ampLink"];
+  root: builder.XMLElement;
+  url: builder.XMLElement & {
+    children?: [];
+    attribs?: {};
   };
 
   constructor (conf: SitemapItemOptions = {}) {
@@ -153,11 +152,11 @@ class SitemapItem {
    *  Create sitemap xml
    *  @return {String}
    */
-  toXML () {
+  toXML (): string {
     return this.toString()
   }
 
-  buildVideoElement (video: IVideoItem) {
+  buildVideoElement (video: IVideoItem): void {
     const videoxml = this.url.element('video:video')
     if (typeof (video) !== 'object' || !video.thumbnail_loc || !video.title || !video.description) {
       // has to be an object and include required categories https://developers.google.com/webmasters/videosearch/sitemaps

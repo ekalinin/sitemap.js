@@ -22,11 +22,10 @@
     "test": "tests"
   },
   "scripts": {
-    "ncu": "npx yarn-tool ncu -u",
     "prepublishOnly": "npm run sort-package-json && npm run test",
     "sort-package-json": "npx sort-package-json ./package.json",
-    "test": "istanbul cover --include-all-sources jasmine tests/sitemap.test.js",
-    "test:jasmine": "jasmine tests/sitemap.test.js"
+    "test": "tsc && jest",
+    "test:typecheck": "tsc"
   },
   "dependencies": {
     "lodash": "^4.17.11",
@@ -34,23 +33,76 @@
     "xmlbuilder": "^13.0.0"
   },
   "devDependencies": {
-    "@bluelovers/tsconfig": "^1.0.3",
+    "@babel/core": "^7.4.4",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/plugin-transform-typescript": "^7.4.5",
+    "@babel/preset-env": "^7.4.4",
+    "@babel/preset-typescript": "^7.3.3",
+    "@types/jest": "^24.0.12",
     "@types/lodash": "^4.14.123",
     "@types/node": "^12.0.2",
+    "@typescript-eslint/eslint-plugin": "^1.9.0",
+    "@typescript-eslint/parser": "^1.9.0",
+    "babel-eslint": "^10.0.1",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-minify": "^0.5.0",
     "istanbul": "^0.4.5",
     "jasmine": "^3.4.0",
     "jasmine-diff": "^0.1.3",
-    "stats-lite": "^2.2.0"
+    "jest": "^24.8.0",
+    "source-map": "~0.7.3",
+    "standard": "^12.0.1",
+    "stats-lite": "^2.2.0",
+    "typescript": "^3.4.5"
   },
   "engines": {
     "node": ">=6.0.0",
     "npm": ">=4.0.0"
   },
   "License": "MIT",
-  "standard": {
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
     "env": {
+      "es6": true,
       "jasmine": true,
+      "jest": true,
       "node": true
+    },
+    "rules": {
+      "no-case-declarations": 0,
+      "no-console": 0,
+      "no-unused-vars": 0,
+      "react/prop-types": 0,
+      "indent": "off",
+      "no-dupe-class-members": "off",
+      "@typescript-eslint/indent": [
+        "error",
+        2
+      ],
+      "@typescript-eslint/no-parameter-properties": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          "args": "none"
+        }
+      ],
+      "@typescript-eslint/explicit-member-accessibility": "off"
     }
+  },
+  "jest": {
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "lib/**/*.ts",
+      "!lib/**/*.d.ts",
+      "!node_modules/"
+    ]
   }
 }

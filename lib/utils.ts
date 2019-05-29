@@ -5,9 +5,9 @@
  */
 'use strict';
 
-import padStart = require('lodash/padStart');
+import padStart from 'lodash/padStart';
 
-export function getTimestampFromDate (dt: Date, bRealtime: boolean) {
+export function getTimestampFromDate (dt: Date, bRealtime: boolean): string {
   let timestamp = [dt.getUTCFullYear(), padStart((dt.getUTCMonth() + 1) as any, 2, '0'),
     padStart(dt.getUTCDate() as any, 2, '0')].join('-');
 
