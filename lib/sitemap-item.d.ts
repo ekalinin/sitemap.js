@@ -20,7 +20,7 @@ declare class SitemapItem {
     root: builder.XMLElementOrXMLNode;
     url: builder.XMLElementOrXMLNode & {
         children?: [];
-        attributes?: {};
+        attribs?: {};
     };
     constructor(conf?: SitemapItemOptions);
     /**

@@ -29,7 +29,7 @@ export declare class Sitemap {
     xslUrl: string;
     xmlNs: string;
     root: builder.XMLElementOrXMLNode & {
-        attributes?: [];
+        attribs?: [];
         children?: [];
         instructionBefore?(...argv: any[]): any;
     };

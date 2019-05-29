@@ -16,3 +16,4 @@ package-lock.json
 /.eslintrc.json.tpl
 /.browserslistrc
 /.nvmrc
+/tests/~tempFile.tmp

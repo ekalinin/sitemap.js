@@ -9,6 +9,8 @@ const sm = require('../index')
 const {getTimestampFromDate} = require('../lib/utils.js')
 const fs = require('fs')
 const zlib = require('zlib')
+const path = require('path')
+const testUtil = require('./util')
 
 const urlset = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
              'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" ' +
@@ -114,10 +116,7 @@ describe('sitemapItem', () => {
   })
 
   it('lastmod from file', () => {
-    var tempFile = require('fs').openSync('/tmp/tempFile.tmp', 'w')
-    require('fs').closeSync(tempFile)
-
-    var stat = require('fs').statSync('/tmp/tempFile.tmp')
+    const { cacheFile, stat } = testUtil.createCache();
 
     var dt = new Date(stat.mtime)
     var lastmod = getTimestampFromDate(dt)
@@ -126,12 +125,12 @@ describe('sitemapItem', () => {
     const smi = new sm.SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
-      'lastmodfile': '/tmp/tempFile.tmp',
+      'lastmodfile': cacheFile,
       'changefreq': 'always',
       'priority': 0.9
     })
 
-    require('fs').unlinkSync('/tmp/tempFile.tmp')
+    testUtil.unlinkCache()
 
     expect(smi.toString()).toBe(
       '<url>' +
@@ -148,10 +147,7 @@ describe('sitemapItem', () => {
   })
 
   it('lastmod from file with lastmodrealtime', () => {
-    var tempFile = require('fs').openSync('/tmp/tempFile.tmp', 'w')
-    require('fs').closeSync(tempFile)
-
-    var stat = require('fs').statSync('/tmp/tempFile.tmp')
+    const { cacheFile, stat } = testUtil.createCache();
 
     var dt = new Date(stat.mtime)
     var lastmod = getTimestampFromDate(dt, true)
@@ -160,13 +156,13 @@ describe('sitemapItem', () => {
     const smi = new sm.SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
-      'lastmodfile': '/tmp/tempFile.tmp',
+      'lastmodfile': cacheFile,
       'lastmodrealtime': true,
       'changefreq': 'always',
       'priority': 0.9
     })
 
-    require('fs').unlinkSync('/tmp/tempFile.tmp')
+    testUtil.unlinkCache()
 
     expect(smi.toString()).toBe(
       '<url>' +
