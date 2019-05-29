@@ -19,7 +19,7 @@ export const CHANGEFREQ = [
 	EnumChangefreq.MONTHLY,
 	EnumChangefreq.YEARLY,
 	EnumChangefreq.NEVER
-];
+] as const;
 
 export const enum EnumYesNo
 {
@@ -65,7 +65,7 @@ export interface IVideoItem
 	description: string;
 	content_loc?: string;
 	player_loc?: string;
-	'player_loc:autoplay'
+	'player_loc:autoplay': boolean;
 	duration?: string | number;
 	expiration_date?: string;
 	rating?: string | number;
@@ -76,7 +76,7 @@ export interface IVideoItem
 	category?: string;
 	restriction?: string;
 	'restriction:relationship': string,
-	gallery_loc?: any;
+	gallery_loc?: string;
 	price?: string;
 	'price:resolution'?: string;
 	'price:currency'?: string;
