@@ -1,22 +1,22 @@
-import ut = require('./utils');
-import fs = require('fs');
-import builder = require('xmlbuilder');
-import isArray = require('lodash/isArray');
+import ut from './utils';
+import fs from 'fs';
+import builder from 'xmlbuilder';
+import isArray from 'lodash/isArray';
 import {
-	ChangeFreqInvalidError,
-	InvalidAttr,
-	InvalidAttrValue,
-	InvalidNewsAccessValue,
-	InvalidNewsFormat,
-	InvalidVideoDescription,
-	InvalidVideoDuration,
-	InvalidVideoFormat,
-	NoURLError,
-	PriorityInvalidError,
+  ChangeFreqInvalidError,
+  InvalidAttr,
+  InvalidAttrValue,
+  InvalidNewsAccessValue,
+  InvalidNewsFormat,
+  InvalidVideoDescription,
+  InvalidVideoDuration,
+  InvalidVideoFormat,
+  NoURLError,
+  PriorityInvalidError,
 } from './errors'
-import { CHANGEFREQ, IVideoItem, SitemapItemOptions } from './types';
+import { CHANGEFREQ, IVideoItem, SitemapItemOptions, ISitemapImg } from './types';
 
-function safeDuration (duration) {
+function safeDuration (duration: number): number {
   if (duration < 0 || duration > 28800) {
     throw new InvalidVideoDuration()
   }
@@ -25,7 +25,7 @@ function safeDuration (duration) {
 }
 
 const allowDeny = /^allow|deny$/
-const validators = {
+const validators: {[index: string]: RegExp} = {
   'price:currency': /^[A-Z]{3}$/,
   'price:type': /^rent|purchase|RENT|PURCHASE$/,
   'price:resolution': /^HD|hd|sd|SD$/,
@@ -33,14 +33,14 @@ const validators = {
   'restriction:relationship': allowDeny
 }
 
-function attrBuilder (conf, keys) {
+function attrBuilder (conf: object, keys: string | string[]): object {
   if (typeof keys === 'string') {
     keys = [keys]
   }
 
   let attrs = keys.reduce((attrs, key) => {
     if (conf[key] !== undefined) {
-			let keyAr = key.split(':')
+      let keyAr = key.split(':')
       if (keyAr.length !== 2) {
         throw new InvalidAttr(key)
       }
@@ -61,24 +61,23 @@ function attrBuilder (conf, keys) {
  * Item in sitemap
  */
 class SitemapItem {
-
-	conf: SitemapItemOptions;
-	loc: SitemapItemOptions["url"];
-	lastmod: SitemapItemOptions["lastmod"];
-	changefreq: SitemapItemOptions["changefreq"];
-	priority: SitemapItemOptions["priority"];
-	news?: SitemapItemOptions["news"];
-	img?: SitemapItemOptions["img"];
-	links?: SitemapItemOptions["links"];
-	expires?: SitemapItemOptions["expires"];
-	androidLink?: SitemapItemOptions["androidLink"];
-	mobile?: SitemapItemOptions["mobile"];
-	video?: SitemapItemOptions["video"];
-	ampLink?: SitemapItemOptions["ampLink"];
-  root: builder.XMLElementOrXMLNode;
-  url: builder.XMLElementOrXMLNode & {
-    children?: [],
-    attribs?: {}
+  conf: SitemapItemOptions;
+  loc: SitemapItemOptions["url"];
+  lastmod: SitemapItemOptions["lastmod"];
+  changefreq: SitemapItemOptions["changefreq"];
+  priority: SitemapItemOptions["priority"];
+  news?: SitemapItemOptions["news"];
+  img?: SitemapItemOptions["img"];
+  links?: SitemapItemOptions["links"];
+  expires?: SitemapItemOptions["expires"];
+  androidLink?: SitemapItemOptions["androidLink"];
+  mobile?: SitemapItemOptions["mobile"];
+  video?: SitemapItemOptions["video"];
+  ampLink?: SitemapItemOptions["ampLink"];
+  root: builder.XMLElement;
+  url: builder.XMLElement & {
+    children?: [];
+    attribs?: {};
   };
 
   constructor (conf: SitemapItemOptions = {}) {
@@ -137,14 +136,14 @@ class SitemapItem {
       }
     }
 
-    this.news = conf.news || null
-    this.img = conf.img || null
-    this.links = conf.links || null
-    this.expires = conf.expires || null
-    this.androidLink = conf.androidLink || null
-    this.mobile = conf.mobile || null
-    this.video = conf.video || null
-    this.ampLink = conf.ampLink || null
+    this.news = conf.news
+    this.img = conf.img
+    this.links = conf.links
+    this.expires = conf.expires
+    this.androidLink = conf.androidLink
+    this.mobile = conf.mobile
+    this.video = conf.video
+    this.ampLink = conf.ampLink
     this.root = conf.root || builder.create('root')
     this.url = this.root.element('url')
   }
@@ -153,11 +152,11 @@ class SitemapItem {
    *  Create sitemap xml
    *  @return {String}
    */
-  toXML () {
+  toXML (): string {
     return this.toString()
   }
 
-  buildVideoElement (video: IVideoItem) {
+  buildVideoElement (video: IVideoItem): void {
     const videoxml = this.url.element('video:video')
     if (typeof (video) !== 'object' || !video.thumbnail_loc || !video.title || !video.description) {
       // has to be an object and include required categories https://developers.google.com/webmasters/videosearch/sitemaps
@@ -246,7 +245,7 @@ class SitemapItem {
     }
   }
 
-  buildXML (): builder.XMLElementOrXMLNode {
+  buildXML (): builder.XMLElement {
     this.url.children = []
     this.url.attribs = {}
     // xml property
@@ -260,14 +259,14 @@ class SitemapItem {
       p = props[ps]
       ps++
 
-      if (this[p] && p === 'img') {
+      if (this.img && p === 'img') {
         // Image handling
-        if (typeof (this[p]) !== 'object' || this[p].length === undefined) {
+        if (typeof (this.img) !== 'object' || this.img.length === undefined) {
           // make it an array
-          this[p] = [this[p]]
+          this.img = [this.img]
         }
-        this[p].forEach(image => {
-          const xmlObj = {}
+        this.img.forEach((image): void => {
+          const xmlObj: {[index: string]: ISitemapImg} = {}
           if (typeof (image) !== 'object') {
             // it’s a string
             // make it an object
@@ -290,79 +289,79 @@ class SitemapItem {
 
           this.url.element({'image:image': xmlObj})
         })
-      } else if (this[p] && p === 'video') {
+      } else if (this.video && p === 'video') {
         // Image handling
-        if (typeof (this[p]) !== 'object' || this[p].length === undefined) {
+        if (typeof (this.video) !== 'object' || this[p].length === undefined) {
           // make it an array
-          this[p] = [this[p]]
+          this.video = [this.video]
         }
-        this[p].forEach(this.buildVideoElement, this)
-      } else if (this[p] && p === 'links') {
-        this[p].forEach(link => {
+        this.video.forEach(this.buildVideoElement, this)
+      } else if (this.links && p === 'links') {
+        this.links.forEach((link): void => {
           this.url.element({'xhtml:link': {
             '@rel': 'alternate',
             '@hreflang': link.lang,
             '@href': link.url
           }})
         })
-      } else if (this[p] && p === 'expires') {
-        this.url.element('expires', new Date(this[p]).toISOString())
-      } else if (this[p] && p === 'androidLink') {
-        this.url.element('xhtml:link', {rel: 'alternate', href: this[p]})
-      } else if (this[p] && p === 'mobile') {
+      } else if (this.expires && p === 'expires') {
+        this.url.element('expires', new Date(this.expires).toISOString())
+      } else if (this.androidLink && p === 'androidLink') {
+        this.url.element('xhtml:link', {rel: 'alternate', href: this.androidLink})
+      } else if (this.mobile && p === 'mobile') {
         const mobileitem = this.url.element('mobile:mobile')
-        if (typeof this[p] === 'string') {
-          mobileitem.att('type', this[p])
+        if (typeof this.mobile === 'string') {
+          mobileitem.att('type', this.mobile)
         }
-      } else if (p === 'priority' && (this[p] >= 0.0 && this[p] <= 1.0)) {
-        this.url.element(p, parseFloat(this[p]).toFixed(1))
-      } else if (this[p] && p === 'ampLink') {
-        this.url.element('xhtml:link', { rel: 'amphtml', href: this[p] })
-      } else if (this[p] && p === 'news') {
+      } else if (this.priority !== undefined && p === 'priority' && (this.priority >= 0.0 && this.priority <= 1.0)) {
+        this.url.element(p, parseFloat(this.priority).toFixed(1))
+      } else if (this.ampLink && p === 'ampLink') {
+        this.url.element('xhtml:link', { rel: 'amphtml', href: this.ampLink })
+      } else if (this.news && p === 'news') {
         let newsitem = this.url.element('news:news')
 
-        if (!this[p].publication ||
-            !this[p].publication.name ||
-            !this[p].publication.language ||
-            !this[p].publication_date ||
-            !this[p].title
+        if (!this.news.publication ||
+            !this.news.publication.name ||
+            !this.news.publication.language ||
+            !this.news.publication_date ||
+            !this.news.title
         ) {
           throw new InvalidNewsFormat()
         }
 
-        if (this[p].publication) {
+        if (this.news.publication) {
           let publication = newsitem.element('news:publication')
-          if (this[p].publication.name) {
-            publication.element('news:name').cdata(this[p].publication.name)
+          if (this.news.publication.name) {
+            publication.element('news:name').cdata(this.news.publication.name)
           }
-          if (this[p].publication.language) {
-            publication.element('news:language', this[p].publication.language)
+          if (this.news.publication.language) {
+            publication.element('news:language', this.news.publication.language)
           }
         }
 
-        if (this[p].access) {
+        if (this.news.access) {
           if (
-            this[p].access !== 'Registration' &&
-            this[p].access !== 'Subscription'
+            this.news.access !== 'Registration' &&
+            this.news.access !== 'Subscription'
           ) {
             throw new InvalidNewsAccessValue()
           }
-          newsitem.element('news:access', this[p].access)
+          newsitem.element('news:access', this.news.access)
         }
 
-        if (this[p].genres) {
-          newsitem.element('news:genres', this[p].genres)
+        if (this.news.genres) {
+          newsitem.element('news:genres', this.news.genres)
         }
 
-        newsitem.element('news:publication_date', this[p].publication_date)
-        newsitem.element('news:title').cdata(this[p].title)
+        newsitem.element('news:publication_date', this.news.publication_date)
+        newsitem.element('news:title').cdata(this.news.title)
 
-        if (this[p].keywords) {
-          newsitem.element('news:keywords', this[p].keywords)
+        if (this.news.keywords) {
+          newsitem.element('news:keywords', this.news.keywords)
         }
 
-        if (this[p].stock_tickers) {
-          newsitem.element('news:stock_tickers', this[p].stock_tickers)
+        if (this.news.stock_tickers) {
+          newsitem.element('news:stock_tickers', this.news.stock_tickers)
         }
       } else if (this[p]) {
         if (p === 'loc' && this.conf.cdata) {

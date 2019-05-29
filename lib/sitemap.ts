@@ -7,11 +7,11 @@
 'use strict';
 
 import { UndefinedTargetFolder } from './errors';
-import urljoin = require('url-join');
-import fs = require('fs');
-import builder = require('xmlbuilder');
-import SitemapItem = require('./sitemap-item');
-import chunk = require('lodash/chunk');
+import urljoin from 'url-join';
+import fs from 'fs';
+import builder from 'xmlbuilder';
+import SitemapItem from './sitemap-item';
+import chunk from 'lodash/chunk';
 import { Profiler } from 'inspector';
 import { ICallback, ISitemapImg, SitemapItemOptions } from './types';
 
@@ -27,33 +27,29 @@ import { ICallback, ISitemapImg, SitemapItemOptions } from './types';
  * @return  {Sitemap}
  */
 export function createSitemap(conf: {
-  urls: string | Sitemap["urls"],
-  hostname: string,
-  cacheTime: number,
-  xslUrl: string,
-  xmlNs?: string,
-}) {
+  urls: string | Sitemap["urls"];
+  hostname: string;
+  cacheTime: number;
+  xslUrl: string;
+  xmlNs?: string;
+}): Sitemap {
   return new Sitemap(conf.urls, conf.hostname, conf.cacheTime, conf.xslUrl, conf.xmlNs);
 }
 
 const reProto = /^https?:\/\//i;
 
 export class Sitemap {
-
-  limit: number;
-  hostname: string
+  // This limit is defined by Google. See:
+  // http://sitemaps.org/protocol.php#index
+  limit = 5000
+  hostname: string;
   urls: (string | SitemapItemOptions)[]
 
   cacheResetPeriod: number;
-  cache: string
-  xslUrl: string
-  xmlNs: string
-  root: builder.XMLElementOrXMLNode & {
-    attribs?: [],
-    children?: [],
-
-    instructionBefore?(...argv)
-  };
+  cache: string;
+  xslUrl: string;
+  xmlNs: string;
+  root: builder.XMLElement;
   cacheSetTimestamp: number;
 
 
@@ -65,10 +61,7 @@ export class Sitemap {
    * @param {String}        xslUrl            optional
    * @param {String}        xmlNs            optional
    */
-  constructor(urls: string | Sitemap["urls"], hostname: string, cacheTime: number, xslUrl: string, xmlNs: string) {
-    // This limit is defined by Google. See:
-    // http://sitemaps.org/protocol.php#index
-    this.limit = 50000
+  constructor (urls: string | Sitemap["urls"], hostname: string, cacheTime: number, xslUrl: string, xmlNs?: string) {
 
     // Base domain
     this.hostname = hostname;
@@ -84,9 +77,9 @@ export class Sitemap {
     this.cache = '';
 
     this.xslUrl = xslUrl;
-    this.xmlNs = xmlNs;
     this.root = builder.create('urlset', {encoding: 'UTF-8'})
-    if (this.xmlNs) {
+    if (xmlNs) {
+      this.xmlNs = xmlNs;
       const ns = this.xmlNs.split(' ')
       for (let attr of ns) {
         const [k, v] = attr.split('=')
@@ -98,23 +91,23 @@ export class Sitemap {
   /**
    *  Clear sitemap cache
    */
-  clearCache() {
+  clearCache (): void {
     this.cache = '';
   }
 
   /**
    *  Can cache be used
    */
-  isCacheValid() {
+  isCacheValid (): boolean {
     let currTimestamp = Date.now();
-    return this.cacheResetPeriod && this.cache &&
-      (this.cacheSetTimestamp + this.cacheResetPeriod) >= currTimestamp;
+    return !!(this.cacheResetPeriod && this.cache &&
+      (this.cacheSetTimestamp + this.cacheResetPeriod) >= currTimestamp);
   }
 
   /**
    *  Fill cache
    */
-  setCache(newCache: string) {
+  setCache (newCache: string): string {
     this.cache = newCache;
     this.cacheSetTimestamp = Date.now();
     return this.cache;
@@ -124,7 +117,7 @@ export class Sitemap {
    *  Add url to sitemap
    *  @param {String} url
    */
-  add(url: string) {
+  add (url: string): number {
     return this.urls.push(url);
   }
 
@@ -132,10 +125,10 @@ export class Sitemap {
    *  Delete url from sitemap
    *  @param {String} url
    */
-  del(url: string | {
-    url: string
-  }) {
-    const index_to_remove = []
+  del (url: string | {
+    url: string;
+  }): number {
+    const indexToRemove: number[] = []
     let key = ''
 
     if (typeof url === 'string') {
@@ -146,38 +139,38 @@ export class Sitemap {
     }
 
     // find
-    this.urls.forEach((elem, index) => {
+    this.urls.forEach((elem, index): void => {
       if (typeof elem === 'string') {
         if (elem === key) {
-          index_to_remove.push(index);
+          indexToRemove.push(index);
         }
       } else {
         if (elem.url === key) {
-          index_to_remove.push(index);
+          indexToRemove.push(index);
         }
       }
     });
 
     // delete
-    index_to_remove.forEach((elem) => this.urls.splice(elem, 1));
+    indexToRemove.forEach((elem): void => {this.urls.splice(elem, 1)});
 
-    return index_to_remove.length;
+    return indexToRemove.length;
   }
 
   /**
    *  Create sitemap xml
    *  @param {Function}     callback  Callback function with one argument — xml
    */
-  toXML(callback: ICallback<Error, string>) {
+  toXML (callback: ICallback<Error, string>): string|void {
     if (typeof callback === 'undefined') {
       return this.toString();
     }
 
-    process.nextTick(() => {
+    process.nextTick((): void => {
       try {
-        return callback(null, this.toString());
+        callback(undefined, this.toString());
       } catch (err) {
-        return callback(err);
+        callback(err);
       }
     });
   }
@@ -186,7 +179,7 @@ export class Sitemap {
    *  Synchronous alias for toXML()
    *  @return {String}
    */
-  toString() {
+  toString (): string {
     if (this.root.attribs.length) {
       this.root.attribs = []
     }
@@ -212,7 +205,7 @@ export class Sitemap {
 
     // TODO: if size > limit: create sitemapindex
 
-    this.urls.forEach((elem, index) => {
+    this.urls.forEach((elem, index): void => {
       // SitemapItem
       // create object with url property
       let smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root: this.root} : Object.assign({root: this.root}, elem)
@@ -232,14 +225,14 @@ export class Sitemap {
             smi.img = [smi.img as ISitemapImg];
           }
           // prepend hostname to all image urls
-          (smi.img as ISitemapImg[]).forEach(img => {
+          (smi.img as ISitemapImg[]).forEach((img): void => {
             if (!reProto.test(img.url)) {
               img.url = urljoin(this.hostname, img.url);
             }
           });
         }
         if (smi.links) {
-          smi.links.forEach(link => {
+          smi.links.forEach((link): void => {
             if (!reProto.test(link.url)) {
               link.url = urljoin(this.hostname, link.url);
             }
@@ -253,9 +246,9 @@ export class Sitemap {
     return this.setCache(this.root.end())
   }
 
-  toGzip(callback: ICallback<Error, Buffer>): void
-  toGzip(): Buffer
-  toGzip(callback?: ICallback<Error, Buffer>) {
+  toGzip (callback: ICallback<Error, Buffer>): void;
+  toGzip (): Buffer;
+  toGzip (callback?: CompressCallback<Error, Buffer>): Buffer|void {
     const zlib: typeof import('zlib') = require('zlib');
 
     if (typeof callback === 'function') {
@@ -279,7 +272,7 @@ export class Sitemap {
  * @param   {String}        conf.xslUrl
  * @return  {SitemapIndex}
  */
-export function createSitemapIndex (conf) {
+export function createSitemapIndex (conf): SitemapIndex {
   return new SitemapIndex(conf.urls,
     conf.targetFolder,
     conf.hostname,
@@ -301,14 +294,14 @@ export function createSitemapIndex (conf) {
  * @return  {String}    XML String of SitemapIndex
  */
 export function buildSitemapIndex (conf: {
-  urls: any[],
-  xslUrl: string,
-  xmlNs: string,
+  urls: any[];
+  xslUrl: string;
+  xmlNs: string;
 
-  lastmodISO?: Date
-  lastmodrealtime?: boolean,
-  lastmod?: number | string
-}) {
+  lastmodISO?: Date;
+  lastmodrealtime?: boolean;
+  lastmod?: number | string;
+}): string {
   let xml = [];
   let lastmod;
 

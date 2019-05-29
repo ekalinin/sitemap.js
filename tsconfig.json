@@ -1,3 +1,20 @@
 {
-  "extends": "@bluelovers/tsconfig"
+  "compilerOptions": {
+    "sourceMap": true,
+    "outDir": "./dist/",
+    "noEmit": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "strict": true,
+    "module": "UMD",
+    "target": "ES2015",
+		"isolatedModules": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "allowJs": true,
+    "lib": ["ES2018"]
+  },
+  "include": ["lib/**/*"],
+  "exclude": ["node_modules"]
 }
