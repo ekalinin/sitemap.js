@@ -42,19 +42,14 @@ export class Sitemap {
   // This limit is defined by Google. See:
   // http://sitemaps.org/protocol.php#index
   limit = 5000
-  hostname: string
+  hostname: string;
   urls: (string | SitemapItemOptions)[]
 
   cacheResetPeriod: number;
-  cache: string
-  xslUrl: string
-  xmlNs: string
-  root: builder.XMLElement & {
-    attribs?: [];
-    children?: [];
-
-    instructionBefore?(...argv)
-  };
+  cache: string;
+  xslUrl: string;
+  xmlNs: string;
+  root: builder.XMLElement;
   cacheSetTimestamp: number;
 
 
@@ -171,11 +166,11 @@ export class Sitemap {
       return this.toString();
     }
 
-    process.nextTick(() => {
+    process.nextTick((): void => {
       try {
-        return callback(null, this.toString());
+        callback(undefined, this.toString());
       } catch (err) {
-        return callback(err);
+        callback(err);
       }
     });
   }
@@ -230,7 +225,7 @@ export class Sitemap {
             smi.img = [smi.img as ISitemapImg];
           }
           // prepend hostname to all image urls
-          (smi.img as ISitemapImg[]).forEach(img => {
+          (smi.img as ISitemapImg[]).forEach((img): void => {
             if (!reProto.test(img.url)) {
               img.url = urljoin(this.hostname, img.url);
             }
@@ -277,7 +272,7 @@ export class Sitemap {
  * @param   {String}        conf.xslUrl
  * @return  {SitemapIndex}
  */
-export function createSitemapIndex (conf) {
+export function createSitemapIndex (conf): SitemapIndex {
   return new SitemapIndex(conf.urls,
     conf.targetFolder,
     conf.hostname,
@@ -299,14 +294,14 @@ export function createSitemapIndex (conf) {
  * @return  {String}    XML String of SitemapIndex
  */
 export function buildSitemapIndex (conf: {
-  urls: any[],
-  xslUrl: string,
-  xmlNs: string,
+  urls: any[];
+  xslUrl: string;
+  xmlNs: string;
 
-  lastmodISO?: Date
-  lastmodrealtime?: boolean,
-  lastmod?: number | string
-}) {
+  lastmodISO?: Date;
+  lastmodrealtime?: boolean;
+  lastmod?: number | string;
+}): string {
   let xml = [];
   let lastmod;
 
