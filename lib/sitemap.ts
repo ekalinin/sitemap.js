@@ -49,7 +49,7 @@ export class Sitemap {
   xslUrl: string
   xmlNs: string
   root: builder.XMLElementOrXMLNode & {
-    attributes?: [],
+    attribs?: [],
     children?: [],
 
     instructionBefore?(...argv)
@@ -187,8 +187,8 @@ export class Sitemap {
    *  @return {String}
    */
   toString() {
-    if (this.root.attributes.length) {
-      this.root.attributes = []
+    if (this.root.attribs.length) {
+      this.root.attribs = []
     }
     if (this.root.children.length) {
       this.root.children = []

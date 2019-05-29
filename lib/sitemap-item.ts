@@ -78,7 +78,7 @@ class SitemapItem {
   root: builder.XMLElementOrXMLNode;
   url: builder.XMLElementOrXMLNode & {
     children?: [],
-    attributes?: {}
+    attribs?: {}
   };
 
   constructor (conf: SitemapItemOptions = {}) {
@@ -248,7 +248,7 @@ class SitemapItem {
 
   buildXML (): builder.XMLElementOrXMLNode {
     this.url.children = []
-    this.url.attributes = {}
+    this.url.attribs = {}
     // xml property
     const props = ['loc', 'lastmod', 'changefreq', 'priority', 'img', 'video', 'links', 'expires', 'androidLink', 'mobile', 'news', 'ampLink'] as const;
     // property array size (for loop)
