@@ -5,8 +5,8 @@
  */
 'use strict';
 
-export * from './lib/sitemap'
-import errors = require('./lib/errors');
+import * as sm from './lib/sitemap'
+import * as errors from './lib/errors';
 
 export { errors }
 
@@ -15,4 +15,8 @@ export { errors }
  */
 export declare const version: string;
 
-Object.defineProperty(exports, "version", { get(){ return "2.1.0" }});
+//@ts-ignore
+sm.errors = errors
+//@ts-ignore
+sm.version = "2.2.0"
+export default sm

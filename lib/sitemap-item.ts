@@ -1,4 +1,4 @@
-import ut from './utils';
+import * as ut from './utils';
 import fs from 'fs';
 import builder from 'xmlbuilder';
 import isArray from 'lodash/isArray';
@@ -14,7 +14,7 @@ import {
   NoURLError,
   PriorityInvalidError,
 } from './errors'
-import { CHANGEFREQ, IVideoItem, SitemapItemOptions, ISitemapImg } from './types';
+import { CHANGEFREQ, IVideoItem, SitemapItemOptions } from './types';
 
 function safeDuration (duration: number): number {
   if (duration < 0 || duration > 28800) {
@@ -32,19 +32,23 @@ const validators: {[index: string]: RegExp} = {
   'platform:relationship': allowDeny,
   'restriction:relationship': allowDeny
 }
-
-function attrBuilder (conf: object, keys: string | string[]): object {
+// eslint-disable-next-line
+interface IStringObj { [index: string]: any }
+function attrBuilder (conf: IStringObj, keys: string | string[]): object {
   if (typeof keys === 'string') {
     keys = [keys]
   }
 
-  let attrs = keys.reduce((attrs, key) => {
+  const iv: IStringObj = {}
+  return keys.reduce((attrs, key): IStringObj => {
+    // eslint-disable-next-line
     if (conf[key] !== undefined) {
       let keyAr = key.split(':')
       if (keyAr.length !== 2) {
         throw new InvalidAttr(key)
       }
 
+      // eslint-disable-next-line
       if (validators[key] && !validators[key].test(conf[key])) {
         throw new InvalidAttrValue(key, conf[key], validators[key])
       }
@@ -52,9 +56,7 @@ function attrBuilder (conf: object, keys: string | string[]): object {
     }
 
     return attrs
-  }, {})
-
-  return attrs
+  }, iv)
 }
 
 /**
@@ -75,10 +77,7 @@ class SitemapItem {
   video?: SitemapItemOptions["video"];
   ampLink?: SitemapItemOptions["ampLink"];
   root: builder.XMLElement;
-  url: builder.XMLElement & {
-    children?: [];
-    attribs?: {};
-  };
+  url: builder.XMLElement;
 
   constructor (conf: SitemapItemOptions = {}) {
     this.conf = conf
@@ -247,9 +246,10 @@ class SitemapItem {
 
   buildXML (): builder.XMLElement {
     this.url.children = []
+    // @ts-ignore
     this.url.attribs = {}
     // xml property
-    const props = ['loc', 'lastmod', 'changefreq', 'priority', 'img', 'video', 'links', 'expires', 'androidLink', 'mobile', 'news', 'ampLink'] as const;
+    const props = ['loc', 'lastmod', 'changefreq', 'priority', 'img', 'video', 'links', 'expires', 'androidLink', 'mobile', 'news', 'ampLink'];
     // property array size (for loop)
     let ps = 0
     // current property name (for loop)
@@ -266,7 +266,7 @@ class SitemapItem {
           this.img = [this.img]
         }
         this.img.forEach((image): void => {
-          const xmlObj: {[index: string]: ISitemapImg} = {}
+          const xmlObj: {[index: string]: string|{'#cdata': string}} = {}
           if (typeof (image) !== 'object') {
             // it’s a string
             // make it an object
@@ -291,7 +291,7 @@ class SitemapItem {
         })
       } else if (this.video && p === 'video') {
         // Image handling
-        if (typeof (this.video) !== 'object' || this[p].length === undefined) {
+        if (!Array.isArray(this.video)) {
           // make it an array
           this.video = [this.video]
         }
@@ -313,8 +313,8 @@ class SitemapItem {
         if (typeof this.mobile === 'string') {
           mobileitem.att('type', this.mobile)
         }
-      } else if (this.priority !== undefined && p === 'priority' && (this.priority >= 0.0 && this.priority <= 1.0)) {
-        this.url.element(p, parseFloat(this.priority).toFixed(1))
+      } else if (this.priority !== undefined && p === 'priority') {
+        this.url.element(p, parseFloat(this.priority + '').toFixed(1))
       } else if (this.ampLink && p === 'ampLink') {
         this.url.element('xhtml:link', { rel: 'amphtml', href: this.ampLink })
       } else if (this.news && p === 'news') {
@@ -363,16 +363,18 @@ class SitemapItem {
         if (this.news.stock_tickers) {
           newsitem.element('news:stock_tickers', this.news.stock_tickers)
         }
-      } else if (this[p]) {
-        if (p === 'loc' && this.conf.cdata) {
-          this.url.element({
-            [p]: {
-              '#raw': this[p]
-            }
-          })
-        } else {
-          this.url.element(p, this[p])
-        }
+      } else if (this.loc && p === 'loc' && this.conf.cdata) {
+        this.url.element({
+          loc: {
+            '#raw': this.loc
+          }
+        })
+      } else if (this.loc && p === 'loc') {
+        this.url.element(p, this.loc)
+      } else if (this.changefreq && p === 'changefreq') {
+        this.url.element(p, this.changefreq)
+      } else if (this.lastmod && p === 'lastmod') {
+        this.url.element(p, this.lastmod)
       }
     }
 
@@ -388,4 +390,4 @@ class SitemapItem {
   }
 }
 
-export = SitemapItem
+export default SitemapItem

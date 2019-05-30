@@ -14,6 +14,7 @@ import SitemapItem from './sitemap-item';
 import chunk from 'lodash/chunk';
 import { Profiler } from 'inspector';
 import { ICallback, ISitemapImg, SitemapItemOptions } from './types';
+import zlib from 'zlib';
 
 /**
  * Shortcut for `new Sitemap (...)`.
@@ -28,11 +29,13 @@ import { ICallback, ISitemapImg, SitemapItemOptions } from './types';
  */
 export function createSitemap(conf: {
   urls: string | Sitemap["urls"];
-  hostname: string;
-  cacheTime: number;
-  xslUrl: string;
+  hostname?: string;
+  cacheTime?: number;
+  xslUrl?: string;
   xmlNs?: string;
 }): Sitemap {
+  // cleaner diff
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
   return new Sitemap(conf.urls, conf.hostname, conf.cacheTime, conf.xslUrl, conf.xmlNs);
 }
 
@@ -42,15 +45,15 @@ export class Sitemap {
   // This limit is defined by Google. See:
   // http://sitemaps.org/protocol.php#index
   limit = 5000
-  hostname: string;
+  xmlNs = ''
+  cacheSetTimestamp = 0;
+  hostname?: string;
   urls: (string | SitemapItemOptions)[]
 
   cacheResetPeriod: number;
   cache: string;
-  xslUrl: string;
-  xmlNs: string;
+  xslUrl?: string;
   root: builder.XMLElement;
-  cacheSetTimestamp: number;
 
 
   /**
@@ -61,7 +64,7 @@ export class Sitemap {
    * @param {String}        xslUrl            optional
    * @param {String}        xmlNs            optional
    */
-  constructor (urls: string | Sitemap["urls"], hostname: string, cacheTime: number, xslUrl: string, xmlNs?: string) {
+  constructor (urls: string | Sitemap["urls"], hostname?: string, cacheTime?: number, xslUrl?: string, xmlNs?: string) {
 
     // Base domain
     this.hostname = hostname;
@@ -180,9 +183,6 @@ export class Sitemap {
    *  @return {String}
    */
   toString (): string {
-    if (this.root.attribs.length) {
-      this.root.attribs = []
-    }
     if (this.root.children.length) {
       this.root.children = []
     }
@@ -212,7 +212,7 @@ export class Sitemap {
 
       // insert domain name
       if (this.hostname) {
-        if (!reProto.test(smi.url)) {
+        if (smi.url && !reProto.test(smi.url)) {
           smi.url = urljoin(this.hostname, smi.url);
         }
         if (smi.img) {
@@ -227,14 +227,14 @@ export class Sitemap {
           // prepend hostname to all image urls
           (smi.img as ISitemapImg[]).forEach((img): void => {
             if (!reProto.test(img.url)) {
-              img.url = urljoin(this.hostname, img.url);
+              img.url = urljoin(this.hostname as string, img.url);
             }
           });
         }
         if (smi.links) {
           smi.links.forEach((link): void => {
             if (!reProto.test(link.url)) {
-              link.url = urljoin(this.hostname, link.url);
+              link.url = urljoin(this.hostname as string, link.url);
             }
           });
         }
@@ -246,11 +246,9 @@ export class Sitemap {
     return this.setCache(this.root.end())
   }
 
-  toGzip (callback: ICallback<Error, Buffer>): void;
+  toGzip (callback: zlib.CompressCallback): void;
   toGzip (): Buffer;
-  toGzip (callback?: CompressCallback<Error, Buffer>): Buffer|void {
-    const zlib: typeof import('zlib') = require('zlib');
-
+  toGzip (callback?: zlib.CompressCallback): Buffer|void {
     if (typeof callback === 'function') {
       zlib.gzip(this.toString(), callback);
     } else {
@@ -272,7 +270,19 @@ export class Sitemap {
  * @param   {String}        conf.xslUrl
  * @return  {SitemapIndex}
  */
-export function createSitemapIndex (conf): SitemapIndex {
+export function createSitemapIndex (conf: {
+  urls: SitemapIndex["urls"];
+  targetFolder: SitemapIndex["targetFolder"];
+  hostname?: SitemapIndex["hostname"];
+  cacheTime?: SitemapIndex["cacheTime"];
+  sitemapName?: SitemapIndex["sitemapName"];
+  sitemapSize?: SitemapIndex["sitemapSize"];
+  xslUrl?: SitemapIndex["xslUrl"];
+  gzip?: boolean;
+  callback?: SitemapIndex["callback"];
+}): SitemapIndex {
+  // cleaner diff
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
   return new SitemapIndex(conf.urls,
     conf.targetFolder,
     conf.hostname,
@@ -294,16 +304,16 @@ export function createSitemapIndex (conf): SitemapIndex {
  * @return  {String}    XML String of SitemapIndex
  */
 export function buildSitemapIndex (conf: {
-  urls: any[];
-  xslUrl: string;
-  xmlNs: string;
+  urls: Sitemap["urls"];
+  xslUrl?: string;
+  xmlNs?: string;
 
-  lastmodISO?: Date;
+  lastmodISO?: string;
   lastmodrealtime?: boolean;
   lastmod?: number | string;
 }): string {
   let xml = [];
-  let lastmod;
+  let lastmod = '';
 
   xml.push('<?xml version="1.0" encoding="UTF-8"?>');
   if (conf.xslUrl) {
@@ -327,8 +337,8 @@ export function buildSitemapIndex (conf: {
   }
 
 
-  conf.urls.forEach(url => {
-    if (url instanceof Object) {
+  conf.urls.forEach((url): void => {
+    if (url instanceof Object && url.url) {
       lastmod = url.lastmod ? url.lastmod : lastmod;
 
       url = url.url;
@@ -351,20 +361,20 @@ export function buildSitemapIndex (conf: {
  */
 class SitemapIndex {
 
-  hostname: string;
+  hostname?: string;
   sitemapName: string;
-  sitemapSize: number
-  xslUrl: string
+  sitemapSize?: number
+  xslUrl?: string
   sitemapId: number
-  sitemaps: unknown[]
+  sitemaps: string[]
   targetFolder: string;
-  urls: unknown[]
+  urls: Sitemap["urls"]
 
-  chunks
+  chunks: Sitemap["urls"][]
   callback?: ICallback<Error, boolean>
-  cacheTime: number
+  cacheTime?: number
 
-  xmlNs: string
+  xmlNs?: string
 
 
   /**
@@ -378,7 +388,7 @@ class SitemapIndex {
    * @param {Boolean}       gzip          optional
    * @param {Function}      callback      optional
    */
-  constructor (urls: string | string[], targetFolder: string, hostname?: string, cacheTime?: number, sitemapName?: string, sitemapSize?: number, xslUrl?: string, gzip?: boolean, callback?: ICallback<Error, boolean>) {
+  constructor (urls: Sitemap["urls"], targetFolder: string, hostname?: string, cacheTime?: number, sitemapName?: string, sitemapSize?: number, xslUrl?: string, gzip?: boolean, callback?: ICallback<Error, boolean>) {
     // Base domain
     this.hostname = hostname;
 
@@ -424,7 +434,7 @@ class SitemapIndex {
 
     let processesCount = this.chunks.length + 1;
 
-    this.chunks.forEach((chunk, index) => {
+    this.chunks.forEach((chunk: Sitemap["urls"], index: number): void => {
       const extension = '.xml' + (gzip ? '.gz' : '');
       const filename = this.sitemapName + '-' + this.sitemapId++ + extension;
 
@@ -438,29 +448,29 @@ class SitemapIndex {
       });
 
       let stream = fs.createWriteStream(targetFolder + '/' + filename);
-      stream.once('open', fd => {
+      stream.once('open', (fd): void => {
         stream.write(gzip ? sitemap.toGzip() : sitemap.toString());
         stream.end();
         processesCount--;
         if (processesCount === 0 && typeof this.callback === 'function') {
-          this.callback(null, true);
+          this.callback(undefined, true);
         }
       });
 
     });
 
-    let sitemapUrls = this.sitemaps.map(sitemap => hostname + '/' + sitemap);
+    let sitemapUrls = this.sitemaps.map((sitemap): string  => hostname + '/' + sitemap);
     let smConf = {urls: sitemapUrls, xslUrl: this.xslUrl, xmlNs: this.xmlNs};
     let xmlString = buildSitemapIndex(smConf);
 
     let stream = fs.createWriteStream(targetFolder + '/' +
       this.sitemapName + '-index.xml');
-    stream.once('open', (fd) => {
+    stream.once('open', (fd): void => {
       stream.write(xmlString);
       stream.end();
       processesCount--;
       if (processesCount === 0 && typeof this.callback === 'function') {
-        this.callback(null, true);
+        this.callback(undefined, true);
       }
     });
   }
