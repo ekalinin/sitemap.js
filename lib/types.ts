@@ -1,6 +1,7 @@
-import builder = require('xmlbuilder');
-
-export const enum EnumChangefreq {
+import builder from 'xmlbuilder';
+// can't be const enum if we use babel to compile
+// https://github.com/babel/babel/issues/8741
+export enum EnumChangefreq {
   DAILY = 'daily',
   MONTHLY = 'monthly',
   ALWAYS = 'always',
@@ -18,14 +19,14 @@ export const CHANGEFREQ = [
   EnumChangefreq.MONTHLY,
   EnumChangefreq.YEARLY,
   EnumChangefreq.NEVER
-] as const;
+];
 
-export const enum EnumYesNo {
+export enum EnumYesNo {
   YES = 'yes',
   NO = 'no'
 }
 
-export const enum EnumAllowDeny {
+export enum EnumAllowDeny {
   ALLOW = 'allow',
   DENY = 'deny'
 }
@@ -33,6 +34,7 @@ export const enum EnumAllowDeny {
 export type ICallback<E extends Error, T> = (err?: E, data?: T) => void;
 
 export interface INewsItem {
+  access: 'Registration' | 'Subscription';
   publication: {
     name: string;
     language: string;
@@ -71,6 +73,7 @@ export interface IVideoItem {
   restriction?: string;
   'restriction:relationship': string;
   gallery_loc?: string;
+  'gallery_loc:title'?: string;
   price?: string;
   'price:resolution'?: string;
   'price:currency'?: string;
@@ -101,7 +104,7 @@ export interface SitemapItemOptions {
   expires?: string;
   androidLink?: string;
   mobile?: boolean | string;
-  video?: IVideoItem;
+  video?: IVideoItem | IVideoItem[];
   ampLink?: string;
   root?: builder.XMLElement;
   url?: string;

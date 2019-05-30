@@ -1,6 +1,7 @@
 *.swp
 env/
 node_modules/
+dist
 
 # WebStorm
 .idea/
