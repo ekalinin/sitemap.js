@@ -6,7 +6,7 @@
  */
 'use strict';
 
-import { UndefinedTargetFolder } from './errors';
+import * as errors from './errors';
 import urljoin from 'url-join';
 import fs from 'fs';
 import builder from 'xmlbuilder';
@@ -15,6 +15,9 @@ import chunk from 'lodash/chunk';
 import { Profiler } from 'inspector';
 import { ICallback, ISitemapImg, SitemapItemOptions } from './types';
 import zlib from 'zlib';
+
+export { errors };
+export const version = '2.2.0'
 
 /**
  * Shortcut for `new Sitemap (...)`.
@@ -412,7 +415,7 @@ class SitemapIndex {
 
     try {
       if (!fs.statSync(targetFolder).isDirectory()) {
-        throw new UndefinedTargetFolder();
+        throw new errors.UndefinedTargetFolder();
       }
     } catch (err) {
       throw new err.UndefinedTargetFolder();

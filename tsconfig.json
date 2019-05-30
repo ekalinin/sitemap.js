@@ -2,19 +2,17 @@
   "compilerOptions": {
     "sourceMap": true,
     "outDir": "./dist/",
-    "noEmit": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "strictNullChecks": true,
     "strict": true,
-    "module": "UMD",
+    "declaration": true,
+    "module": "CommonJS",
     "target": "ES2015",
-		"isolatedModules": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "allowJs": true,
     "lib": ["ES2018"]
   },
-  "include": ["lib/**/*"],
+  "include": ["index.ts"],
   "exclude": ["node_modules"]
 }
