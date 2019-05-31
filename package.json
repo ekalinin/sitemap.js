@@ -11,14 +11,14 @@
   "author": "Eugene Kalinin <e.v.kalinin@gmail.com>",
   "dependencies": {
     "lodash": "^4.17.10",
-    "xmlbuilder": "^10.0.0"
+    "xmlbuilder": "^10.0.0",
+    "whatwg-url": "^7.0.0"
   },
   "devDependencies": {
     "istanbul": "^0.4.5",
     "jasmine": "^3.1.0",
     "jasmine-diff": "^0.1.3",
-    "stats-lite": "^2.1.1",
-    "whatwg-url": "^7.0.0"
+    "stats-lite": "^2.1.1"
   },
   "engines": {
     "npm": ">=4.0.0",
