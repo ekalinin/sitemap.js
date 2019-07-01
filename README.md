@@ -171,7 +171,7 @@ var sitemap = sm.createSitemap({
 
 ### Example of videos:
 
-[Description](https://developers.google.com/webmasters/videosearch/sitemaps) specifications. Required fields are thumbnail_loc, title, and description.
+[Description](https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190) specifications. Required fields are thumbnail_loc, title, and description.
 
 ```javascript
 var sitemap = sm.createSitemap({

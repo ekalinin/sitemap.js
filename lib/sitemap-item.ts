@@ -158,7 +158,7 @@ class SitemapItem {
   buildVideoElement (video: IVideoItem): void {
     const videoxml = this.url.element('video:video')
     if (typeof (video) !== 'object' || !video.thumbnail_loc || !video.title || !video.description) {
-      // has to be an object and include required categories https://developers.google.com/webmasters/videosearch/sitemaps
+      // has to be an object and include required categories https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190
       throw new InvalidVideoFormat()
     }
 
