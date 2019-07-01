@@ -7,7 +7,6 @@
 'use strict';
 
 import * as errors from './errors';
-import urljoin from 'url-join';
 import fs from 'fs';
 import builder from 'xmlbuilder';
 import SitemapItem from './sitemap-item';
@@ -15,6 +14,8 @@ import chunk from 'lodash/chunk';
 import { Profiler } from 'inspector';
 import { ICallback, ISitemapImg, SitemapItemOptions } from './types';
 import zlib from 'zlib';
+// remove once we drop node 8
+import { URL } from 'whatwg-url'
 
 export { errors };
 export const version = '2.2.0'
@@ -41,8 +42,6 @@ export function createSitemap(conf: {
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
   return new Sitemap(conf.urls, conf.hostname, conf.cacheTime, conf.xslUrl, conf.xmlNs);
 }
-
-const reProto = /^https?:\/\//i;
 
 export class Sitemap {
   // This limit is defined by Google. See:
@@ -215,13 +214,11 @@ export class Sitemap {
 
       // insert domain name
       if (this.hostname) {
-        if (smi.url && !reProto.test(smi.url)) {
-          smi.url = urljoin(this.hostname, smi.url);
-        }
+        smi.url = (new URL(smi.url, this.hostname)).toString();
         if (smi.img) {
           if (typeof smi.img === 'string') {
             // string -> array of objects
-            smi.img = [{url: smi.img as string}];
+            smi.img = [{ url: smi.img as string }];
           }
           if (typeof smi.img === 'object' && smi.img.length === undefined) {
             // object -> array of objects
@@ -229,18 +226,16 @@ export class Sitemap {
           }
           // prepend hostname to all image urls
           (smi.img as ISitemapImg[]).forEach((img): void => {
-            if (!reProto.test(img.url)) {
-              img.url = urljoin(this.hostname as string, img.url);
-            }
+            img.url = (new URL(img.url, this.hostname)).toString();
           });
         }
         if (smi.links) {
           smi.links.forEach((link): void => {
-            if (!reProto.test(link.url)) {
-              link.url = urljoin(this.hostname as string, link.url);
-            }
+            link.url = (new URL(link.url, this.hostname)).toString();
           });
         }
+      } else {
+        smi.url = (new URL(smi.url)).toString();
       }
       const sitemapItem = new SitemapItem(smi)
       sitemapItem.buildXML()

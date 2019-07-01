@@ -23,7 +23,7 @@ const urlset = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
 const dynamicUrlSet = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
 const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>'
 const xmlPriority = '<priority>0.9</priority>'
-const xmlLoc = '<loc>http://ya.ru</loc>'
+const xmlLoc = '<loc>http://ya.ru/</loc>'
 
 var removeFilesArray = function (files) {
   if (files && files.length) {
@@ -45,14 +45,20 @@ describe('sitemapItem', () => {
         '<loc>http://ya.ru/view?widget=3&amp;count&gt;2</loc>' +
       '</url>')
   })
-  it('throws an error for url absence', () => {
+  it('throws when no config is passed', () => {
     /* eslint-disable no-new */
     expect(
       function () { new sm.SitemapItem() }
+    ).toThrowError(/SitemapItem requires a configuration/)
+  })
+  it('throws an error for url absence', () => {
+    /* eslint-disable no-new */
+    expect(
+      function () { new sm.SitemapItem({}) }
     ).toThrowError(/URL is required/)
   })
   it('full options', () => {
-    const url = 'http://ya.ru'
+    const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
@@ -78,7 +84,7 @@ describe('sitemapItem', () => {
   })
 
   it('mobile with type', () => {
-    const url = 'http://ya.ru'
+    const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({
       'url': url,
       'mobile': 'pc,mobile'
@@ -92,7 +98,7 @@ describe('sitemapItem', () => {
   });
 
   it('lastmodISO', () => {
-    const url = 'http://ya.ru'
+    const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({
       'url': url,
       'lastmodISO': '2011-06-27T00:00:00.000Z',
@@ -115,7 +121,7 @@ describe('sitemapItem', () => {
     var dt = new Date(stat.mtime)
     var lastmod = getTimestampFromDate(dt)
 
-    const url = 'http://ya.ru'
+    const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
@@ -146,7 +152,7 @@ describe('sitemapItem', () => {
     var dt = new Date(stat.mtime)
     var lastmod = getTimestampFromDate(dt, true)
 
-    const url = 'http://ya.ru'
+    const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
@@ -173,7 +179,7 @@ describe('sitemapItem', () => {
   })
 
   it('toXML', () => {
-    const url = 'http://ya.ru'
+    const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
@@ -820,6 +826,20 @@ describe('sitemap', () => {
               '</urlset>')
   })
 
+  it('encodes URLs', () => {
+    var url = 'http://ya.ru/?foo=bar baz'
+    var ssp = new sm.Sitemap()
+    ssp.add(url)
+
+    expect(ssp.toString()).toBe(
+      xmlDef +
+                urlset +
+                '<url>' +
+                    '<loc>http://ya.ru/?foo=bar%20baz</loc>' +
+                '</url>' +
+              '</urlset>')
+  })
+
   it('simple sitemap with dynamic xmlNs', () => {
     var url = 'http://ya.ru'
     var ssp = sm.createSitemap({
@@ -1410,7 +1430,7 @@ describe('sitemap', () => {
       xmlDef +
       urlset +
         '<url>' +
-            '<loc>http://test.com</loc>' +
+            '<loc>http://test.com/</loc>' +
             '<image:image>' +
                 '<image:loc>http://test.com/image.jpg</image:loc>' +
                 '<image:caption><![CDATA[Test Caption]]></image:caption>' +
@@ -1433,7 +1453,7 @@ describe('sitemap', () => {
       xmlDef +
       urlset +
         '<url>' +
-            '<loc>http://test.com</loc>' +
+            '<loc>http://test.com/</loc>' +
             '<image:image>' +
                 '<image:loc>http://test.com/image.jpg</image:loc>' +
                 '<image:caption><![CDATA[Test Caption]]></image:caption>' +

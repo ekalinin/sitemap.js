@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.11",
-    "url-join": "^4.0.0",
+    "whatwg-url": "^7.0.0",
     "xmlbuilder": "^13.0.0"
   },
   "devDependencies": {
@@ -44,6 +44,7 @@
     "@types/lodash.chunk": "^4.2.6",
     "@types/node": "^12.0.2",
     "@types/url-join": "^4.0.0",
+    "@types/whatwg-url": "^6.4.0",
     "@typescript-eslint/eslint-plugin": "^1.9.0",
     "@typescript-eslint/parser": "^1.9.0",
     "babel-eslint": "^10.0.1",
