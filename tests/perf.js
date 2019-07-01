@@ -20,7 +20,7 @@
  */
 'use strict';
 
-var sm = require('../index')
+var sm = require('../dist/index')
 
 var urls = require('./perf-data')
 const { performance } = require('perf_hooks')
