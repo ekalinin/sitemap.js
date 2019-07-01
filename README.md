@@ -4,6 +4,12 @@ sitemap.js
 **sitemap.js** is a high-level sitemap-generating framework that
 makes creating [sitemap XML](http://www.sitemaps.org/) files easy.
 
+Maintainers
+-----------
+
+- [@ekalinin](https://github.com/ekalinin)
+- [@derduher](https://github.com/derduher)
+
 [![Build Status](https://travis-ci.org/ekalinin/sitemap.js.svg?branch=master)](https://travis-ci.org/ekalinin/sitemap.js)
 
 Table of Contents
