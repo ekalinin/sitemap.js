@@ -45,10 +45,16 @@ describe('sitemapItem', () => {
         '<loc>http://ya.ru/view?widget=3&amp;count&gt;2</loc>' +
       '</url>')
   })
-  it('throws an error for url absence', () => {
+  it('throws when no config is passed', () => {
     /* eslint-disable no-new */
     expect(
       function () { new sm.SitemapItem() }
+    ).toThrowError(/SitemapItem requires a configuration/)
+  })
+  it('throws an error for url absence', () => {
+    /* eslint-disable no-new */
+    expect(
+      function () { new sm.SitemapItem({}) }
     ).toThrowError(/URL is required/)
   })
   it('full options', () => {

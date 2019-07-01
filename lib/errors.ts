@@ -18,6 +18,18 @@ export class NoURLError extends Error {
 }
 
 /**
+ * Config was not passed to SitemapItem constructor
+ */
+export class NoConfigError extends Error {
+  constructor(message?: string) {
+    super(message || 'SitemapItem requires a configuration');
+    this.name = 'NoConfigError';
+    // @ts-ignore
+    Error.captureStackTrace(this, NoConfigError);
+  }
+}
+
+/**
  * Protocol in URL does not exists
  */
 export class NoURLProtocolError extends Error {

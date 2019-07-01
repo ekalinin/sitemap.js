@@ -12,6 +12,7 @@ import {
   InvalidVideoDuration,
   InvalidVideoFormat,
   NoURLError,
+  NoConfigError,
   PriorityInvalidError,
 } from './errors'
 import { CHANGEFREQ, IVideoItem, SitemapItemOptions } from './types';
@@ -79,13 +80,17 @@ class SitemapItem {
   root: builder.XMLElement;
   url: builder.XMLElement;
 
-  constructor (conf: SitemapItemOptions = {}) {
+  constructor (conf: SitemapItemOptions) {
     this.conf = conf
-    const isSafeUrl = conf.safe
+
+    if (!conf) {
+      throw new NoConfigError()
+    }
 
     if (!conf.url) {
       throw new NoURLError()
     }
+    const isSafeUrl = conf.safe
 
     // URL of the page
     this.loc = conf.url

@@ -107,6 +107,6 @@ export interface SitemapItemOptions {
   video?: IVideoItem | IVideoItem[];
   ampLink?: string;
   root?: builder.XMLElement;
-  url?: string;
+  url: string;
   cdata?: builder.XMLCData;
 }
