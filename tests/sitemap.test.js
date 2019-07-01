@@ -3,12 +3,14 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-'use strict'
+import 'babel-polyfill'
 
-const sm = require('../index')
-const {getTimestampFromDate} = require('../lib/utils.js')
-const fs = require('fs')
-const zlib = require('zlib')
+import sm from '../index'
+import { getTimestampFromDate } from '../lib/utils'
+import fs from 'fs'
+import zlib from 'zlib'
+import * as testUtil from './util'
+import os from 'os'
 
 const urlset = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
              'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" ' +
@@ -20,7 +22,7 @@ const urlset = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
 const dynamicUrlSet = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
 const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>'
 const xmlPriority = '<priority>0.9</priority>'
-const xmlLoc = '<loc>http://ya.ru</loc>'
+const xmlLoc = '<loc>http://ya.ru/</loc>'
 
 var removeFilesArray = function (files) {
   if (files && files.length) {
@@ -33,13 +35,6 @@ var removeFilesArray = function (files) {
 }
 
 describe('sitemapItem', () => {
-  beforeEach(() => {
-    jasmine.addMatchers(require('jasmine-diff')(jasmine, {
-      colors: true,
-      inline: true
-    }))
-  })
-
   it('default values && escape', () => {
     const url = 'http://ya.ru/view?widget=3&count>2'
     const smi = new sm.SitemapItem({'url': url})
@@ -49,14 +44,20 @@ describe('sitemapItem', () => {
         '<loc>http://ya.ru/view?widget=3&amp;count&gt;2</loc>' +
       '</url>')
   })
-  it('throws an error for url absence', () => {
+  it('throws when no config is passed', () => {
     /* eslint-disable no-new */
     expect(
       function () { new sm.SitemapItem() }
+    ).toThrowError(/SitemapItem requires a configuration/)
+  })
+  it('throws an error for url absence', () => {
+    /* eslint-disable no-new */
+    expect(
+      function () { new sm.SitemapItem({}) }
     ).toThrowError(/URL is required/)
   })
   it('full options', () => {
-    const url = 'http://ya.ru'
+    const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
@@ -82,7 +83,7 @@ describe('sitemapItem', () => {
   })
 
   it('mobile with type', () => {
-    const url = 'http://ya.ru'
+    const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({
       'url': url,
       'mobile': 'pc,mobile'
@@ -96,7 +97,7 @@ describe('sitemapItem', () => {
   });
 
   it('lastmodISO', () => {
-    const url = 'http://ya.ru'
+    const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({
       'url': url,
       'lastmodISO': '2011-06-27T00:00:00.000Z',
@@ -114,24 +115,21 @@ describe('sitemapItem', () => {
   })
 
   it('lastmod from file', () => {
-    var tempFile = require('fs').openSync('/tmp/tempFile.tmp', 'w')
-    require('fs').closeSync(tempFile)
-
-    var stat = require('fs').statSync('/tmp/tempFile.tmp')
+    const { cacheFile, stat } = testUtil.createCache();
 
     var dt = new Date(stat.mtime)
     var lastmod = getTimestampFromDate(dt)
 
-    const url = 'http://ya.ru'
+    const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
-      'lastmodfile': '/tmp/tempFile.tmp',
+      'lastmodfile': cacheFile,
       'changefreq': 'always',
       'priority': 0.9
     })
 
-    require('fs').unlinkSync('/tmp/tempFile.tmp')
+    testUtil.unlinkCache()
 
     expect(smi.toString()).toBe(
       '<url>' +
@@ -148,25 +146,22 @@ describe('sitemapItem', () => {
   })
 
   it('lastmod from file with lastmodrealtime', () => {
-    var tempFile = require('fs').openSync('/tmp/tempFile.tmp', 'w')
-    require('fs').closeSync(tempFile)
-
-    var stat = require('fs').statSync('/tmp/tempFile.tmp')
+    const { cacheFile, stat } = testUtil.createCache();
 
     var dt = new Date(stat.mtime)
     var lastmod = getTimestampFromDate(dt, true)
 
-    const url = 'http://ya.ru'
+    const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
-      'lastmodfile': '/tmp/tempFile.tmp',
+      'lastmodfile': cacheFile,
       'lastmodrealtime': true,
       'changefreq': 'always',
       'priority': 0.9
     })
 
-    require('fs').unlinkSync('/tmp/tempFile.tmp')
+    testUtil.unlinkCache()
 
     expect(smi.toString()).toBe(
       '<url>' +
@@ -183,7 +178,7 @@ describe('sitemapItem', () => {
   })
 
   it('toXML', () => {
-    const url = 'http://ya.ru'
+    const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
@@ -803,13 +798,6 @@ describe('sitemapItem', () => {
 })
 
 describe('sitemap', () => {
-  beforeEach(() => {
-    jasmine.addMatchers(require('jasmine-diff')(jasmine, {
-      colors: true,
-      inline: true
-    }))
-  })
-
   it('sitemap empty urls', () => {
     const smEmpty = new sm.Sitemap()
 
@@ -837,6 +825,20 @@ describe('sitemap', () => {
               '</urlset>')
   })
 
+  it('encodes URLs', () => {
+    var url = 'http://ya.ru/?foo=bar baz'
+    var ssp = new sm.Sitemap()
+    ssp.add(url)
+
+    expect(ssp.toString()).toBe(
+      xmlDef +
+                urlset +
+                '<url>' +
+                    '<loc>http://ya.ru/?foo=bar%20baz</loc>' +
+                '</url>' +
+              '</urlset>')
+  })
+
   it('simple sitemap with dynamic xmlNs', () => {
     var url = 'http://ya.ru'
     var ssp = sm.createSitemap({
@@ -852,22 +854,22 @@ describe('sitemap', () => {
     '</urlset>')
   })
 
-  it('simple sitemap toXML async with two callback arguments', done => {
+  it('simple sitemap toXML async with two callback arguments', async () => {
     var url = 'http://ya.ru'
     var ssp = new sm.Sitemap()
     ssp.add(url)
 
-    ssp.toXML(function (err, xml) {
-      expect(err).toBe(null)
-      expect(xml).toBe(
-        xmlDef +
-                urlset +
-                  '<url>' +
-                      xmlLoc +
-                  '</url>' +
-                '</urlset>')
-      done()
+    const [ err, xml ] = await new Promise(resolve => {
+      ssp.toXML((...args) => { resolve(args) })
     })
+    expect(err).toBeUndefined()
+    expect(xml).toBe(
+      xmlDef +
+              urlset +
+                '<url>' +
+                    xmlLoc +
+                '</url>' +
+              '</urlset>')
   })
 
   it('simple sitemap toXML sync', () => {
@@ -1263,28 +1265,34 @@ describe('sitemap', () => {
                 '</url>' +
               '</urlset>')
   })
-  it('sitemap: normalize urls, see #39', () => {
-    ['http://ya.ru', 'http://ya.ru/'].forEach(function (hostname) {
-      var ssp = new sm.Sitemap(null, hostname)
-      ssp.add('page1')
-      ssp.add('/page2')
+  it('sitemap: normalize urls, see #39', async () => {
+    const [xml1, xml2] = await Promise.all(
+      ['http://ya.ru', 'http://ya.ru/'].map(function (hostname) {
+        var ssp = new sm.Sitemap(null, hostname)
+        ssp.add('page1')
+        ssp.add('/page2')
 
-      ssp.toXML(function (err, xml) {
-        if (err) {
-          console.error(err)
-        }
-        expect(xml).toBe(
-          xmlDef +
-          urlset +
-            '<url>' +
-                '<loc>http://ya.ru/page1</loc>' +
-            '</url>' +
-            '<url>' +
-                '<loc>http://ya.ru/page2</loc>' +
-            '</url>' +
-          '</urlset>')
+        return new Promise(resolve => {
+          ssp.toXML(function (err, xml) {
+            if (err) {
+              console.error(err)
+            }
+            resolve(xml)
+          })
+        })
       })
-    })
+    )
+    expect(xml1).toBe(xml2)
+    expect(xml1).toBe(
+      xmlDef +
+      urlset +
+        '<url>' +
+            '<loc>http://ya.ru/page1</loc>' +
+        '</url>' +
+        '<url>' +
+            '<loc>http://ya.ru/page2</loc>' +
+        '</url>' +
+      '</urlset>')
   })
   it('sitemap: langs with hostname', () => {
     var smap = sm.createSitemap({
@@ -1421,7 +1429,7 @@ describe('sitemap', () => {
       xmlDef +
       urlset +
         '<url>' +
-            '<loc>http://test.com</loc>' +
+            '<loc>http://test.com/</loc>' +
             '<image:image>' +
                 '<image:loc>http://test.com/image.jpg</image:loc>' +
                 '<image:caption><![CDATA[Test Caption]]></image:caption>' +
@@ -1444,7 +1452,7 @@ describe('sitemap', () => {
       xmlDef +
       urlset +
         '<url>' +
-            '<loc>http://test.com</loc>' +
+            '<loc>http://test.com/</loc>' +
             '<image:image>' +
                 '<image:loc>http://test.com/image.jpg</image:loc>' +
                 '<image:caption><![CDATA[Test Caption]]></image:caption>' +
@@ -1600,8 +1608,8 @@ describe('sitemapIndex', () => {
 
     expect(result).toBe(expectedResult);
   })
-  it('simple sitemap index', () => {
-    const tmp = require('os').tmpdir()
+  it('simple sitemap index', async () => {
+    const tmp = os.tmpdir()
     const url1 = 'http://ya.ru'
     const url2 = 'http://ya2.ru'
     const expectedFiles = [
@@ -1626,20 +1634,22 @@ describe('sitemapIndex', () => {
     // Cleanup before run test
     removeFilesArray(expectedFiles)
 
-    sm.createSitemapIndex({
-      cacheTime: 600000,
-      hostname: 'http://www.sitemap.org',
-      sitemapName: 'sm-test',
-      sitemapSize: 1,
-      targetFolder: tmp,
-      urls: [url1, url2],
-      callback: function (err, result) {
-        expect(err).toBe(null)
-        expect(result).toBe(true)
-        expectedFiles.forEach(function (expectedFile) {
-          expect(fs.existsSync(expectedFile)).toBe(true)
-        })
-      }
+    const [err, result] = await new Promise(resolve => {
+      sm.createSitemapIndex({
+        cacheTime: 600000,
+        hostname: 'http://www.sitemap.org',
+        sitemapName: 'sm-test',
+        sitemapSize: 1,
+        targetFolder: tmp,
+        urls: [url1, url2],
+        callback: (...args) => { resolve(args) }
+      })
+    })
+
+    expect(err).toBeFalsy()
+    expect(result).toBe(true)
+    expectedFiles.forEach(function (expectedFile) {
+      expect(fs.existsSync(expectedFile)).toBe(true)
     })
   })
   it('sitemap without callback', () => {
@@ -1648,12 +1658,12 @@ describe('sitemapIndex', () => {
       hostname: 'http://www.sitemap.org',
       sitemapName: 'sm-test',
       sitemapSize: 1,
-      targetFolder: require('os').tmpdir(),
+      targetFolder: os.tmpdir(),
       urls: ['http://ya.ru', 'http://ya2.ru']
     })
   })
-  it('sitemap with gzip files', () => {
-    const tmp = require('os').tmpdir()
+  it('sitemap with gzip files', async () => {
+    const tmp = os.tmpdir()
     const url1 = 'http://ya.ru'
     const url2 = 'http://ya2.ru'
     const expectedFiles = [
@@ -1665,21 +1675,22 @@ describe('sitemapIndex', () => {
     // Cleanup before run test
     removeFilesArray(expectedFiles)
 
-    sm.createSitemapIndex({
-      cacheTime: 600000,
-      hostname: 'http://www.sitemap.org',
-      sitemapName: 'sm-test',
-      sitemapSize: 1,
-      targetFolder: tmp,
-      gzip: true,
-      urls: [url1, url2],
-      callback: function (err, result) {
-        expect(err).toBe(null)
-        expect(result).toBe(true)
-        expectedFiles.forEach(function (expectedFile) {
-          expect(fs.existsSync(expectedFile)).toBe(true)
-        })
-      }
+    const [err, result] = await new Promise(resolve => {
+      sm.createSitemapIndex({
+        cacheTime: 600000,
+        hostname: 'http://www.sitemap.org',
+        sitemapName: 'sm-test',
+        sitemapSize: 1,
+        targetFolder: tmp,
+        gzip: true,
+        urls: [url1, url2],
+        callback: (...args) => { resolve(args) }
+      })
+    })
+    expect(err).toBeFalsy()
+    expect(result).toBe(true)
+    expectedFiles.forEach(function (expectedFile) {
+      expect(fs.existsSync(expectedFile)).toBe(true)
     })
   })
 })

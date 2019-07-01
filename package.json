@@ -2,70 +2,119 @@
   "name": "sitemap",
   "version": "2.2.0",
   "description": "Sitemap-generating framework",
-  "License": "MIT",
   "keywords": [
     "sitemap",
     "sitemap.xml"
   ],
-  "repository": "git://github.com/ekalinin/sitemap.js.git",
+  "homepage": "https://github.com/ekalinin/sitemap.js#readme",
+  "bugs": {
+    "url": "https://github.com/ekalinin/sitemap.js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ekalinin/sitemap.js.git"
+  },
+  "license": "MIT",
   "author": "Eugene Kalinin <e.v.kalinin@gmail.com>",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "tests"
+  },
+  "scripts": {
+    "prepublishOnly": "sort-package-json && npm run test",
+    "test": "tsc && jest",
+    "test-perf": "node ./tests/perf.js",
+    "test:typecheck": "tsc"
+  },
+  "eslintConfig": {
+    "env": {
+      "es6": true,
+      "jasmine": true,
+      "jest": true,
+      "node": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-case-declarations": 0,
+      "no-console": 0,
+      "no-unused-vars": 0,
+      "react/prop-types": 0,
+      "indent": "off",
+      "no-dupe-class-members": "off",
+      "@typescript-eslint/indent": [
+        "error",
+        2
+      ],
+      "@typescript-eslint/no-parameter-properties": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          "args": "none"
+        }
+      ],
+      "@typescript-eslint/explicit-member-accessibility": "off",
+      "@typescript-eslint/interface-name-prefix": "always"
+    }
+  },
+  "jest": {
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "lib/**/*.ts",
+      "!lib/**/*.d.ts",
+      "!node_modules/"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      }
+    }
+  },
   "dependencies": {
-    "lodash": "^4.17.10",
-    "url-join": "^4.0.0",
+    "lodash": "^4.17.11",
+    "whatwg-url": "^7.0.0",
     "xmlbuilder": "^13.0.0"
   },
   "devDependencies": {
-    "jasmine": "^3.1.0",
-    "jasmine-diff": "^0.1.3",
-    "nyc": "^14.1.1",
-    "stats-lite": "^2.1.1"
+    "@babel/core": "^7.4.4",
+    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/plugin-transform-typescript": "^7.4.5",
+    "@babel/preset-env": "^7.4.4",
+    "@babel/preset-typescript": "^7.3.3",
+    "@types/jest": "^24.0.12",
+    "@types/lodash": "^4.14.123",
+    "@types/lodash.chunk": "^4.2.6",
+    "@types/node": "^12.0.2",
+    "@types/url-join": "^4.0.0",
+    "@types/whatwg-url": "^6.4.0",
+    "@typescript-eslint/eslint-plugin": "^1.9.0",
+    "@typescript-eslint/parser": "^1.9.0",
+    "babel-eslint": "^10.0.1",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-minify": "^0.5.0",
+    "jasmine": "^3.4.0",
+    "jest": "^24.8.0",
+    "sort-package-json": "^1.22.1",
+    "source-map": "~0.7.3",
+    "standard": "^12.0.1",
+    "stats-lite": "^2.2.0",
+    "typescript": "^3.4.5"
   },
   "engines": {
-    "npm": ">=4.0.0",
-    "node": ">=6.0.0"
+    "node": ">=6.0.0",
+    "npm": ">=4.0.0"
   },
-  "standard": {
-    "env": {
-      "jasmine": true,
-      "node": true
-    }
-  },
-  "license": "MIT",
-  "main": "index",
-  "scripts": {
-    "justtest": "jasmine tests/sitemap.test.js",
-    "test": "nyc --reporter=lcov --reporter=text-summary npm run justtest",
-    "test-perf": "node ./tests/perf.js",
-    "coverage": "open ./coverage/lcov-report/index.html"
-  },
-  "nyc": {
-    "all": true,
-    "check-coverage": true,
-    "include": [
-      "lib/**"
-    ],
-    "watermarks": {
-      "lines": [
-        80,
-        95
-      ],
-      "functions": [
-        80,
-        95
-      ],
-      "branches": [
-        80,
-        95
-      ],
-      "statements": [
-        80,
-        95
-      ]
-    },
-    "per-file": true,
-    "branches": 80,
-    "lines": 80,
-    "functions": 80,
-    "statements": 80
-  }
+  "License": "MIT"
 }
