@@ -1,6 +1,7 @@
 *.swp
 env/
 node_modules/
+dist
 
 # WebStorm
 .idea/
@@ -12,3 +13,8 @@ node_modules/
 coverage/*
 .DS_Store
 package-lock.json
+/yarn.lock
+/.eslintrc.json.tpl
+/.browserslistrc
+/.nvmrc
+/tests/~tempFile.tmp
