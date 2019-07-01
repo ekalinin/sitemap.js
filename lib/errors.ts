@@ -129,18 +129,3 @@ export class InvalidNewsAccessValue extends Error {
     Error.captureStackTrace(this, InvalidNewsAccessValue);
   }
 }
-
-module.exports = {
-  NoURLError,
-  NoConfigError,
-  ChangeFreqInvalidError,
-  PriorityInvalidError,
-  UndefinedTargetFolder,
-  InvalidVideoFormat,
-  InvalidVideoDuration,
-  InvalidVideoDescription,
-  InvalidAttrValue,
-  InvalidAttr,
-  InvalidNewsFormat,
-  InvalidNewsAccessValue
-};
