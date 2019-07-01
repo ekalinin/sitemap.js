@@ -37,13 +37,23 @@ var removeFilesArray = function (files) {
 describe('sitemapItem', () => {
   it('default values && escape', () => {
     const url = 'http://ya.ru/view?widget=3&count>2'
-    const smi = new sm.SitemapItem({'url': url})
+    const smi = new sm.SitemapItem({ 'url': url })
 
     expect(smi.toString()).toBe(
       '<url>' +
         '<loc>http://ya.ru/view?widget=3&amp;count&gt;2</loc>' +
       '</url>')
   })
+  it('properly handles url fragments', () => {
+    const url = 'http://ya.ru/#!/home'
+    const smi = new sm.SitemapItem({ 'url': url })
+
+    expect(smi.toString()).toBe(
+      '<url>' +
+        '<loc>http://ya.ru/#!/home</loc>' +
+      '</url>')
+  })
+
   it('throws when no config is passed', () => {
     /* eslint-disable no-new */
     expect(
@@ -94,7 +104,7 @@ describe('sitemapItem', () => {
         xmlLoc +
         '<mobile:mobile type="pc,mobile"/>' +
       '</url>')
-  });
+  })
 
   it('lastmodISO', () => {
     const url = 'http://ya.ru/'
@@ -115,7 +125,7 @@ describe('sitemapItem', () => {
   })
 
   it('lastmod from file', () => {
-    const { cacheFile, stat } = testUtil.createCache();
+    const { cacheFile, stat } = testUtil.createCache()
 
     var dt = new Date(stat.mtime)
     var lastmod = getTimestampFromDate(dt)
@@ -146,7 +156,7 @@ describe('sitemapItem', () => {
   })
 
   it('lastmod from file with lastmodrealtime', () => {
-    const { cacheFile, stat } = testUtil.createCache();
+    const { cacheFile, stat } = testUtil.createCache()
 
     var dt = new Date(stat.mtime)
     var lastmod = getTimestampFromDate(dt, true)
@@ -824,6 +834,36 @@ describe('sitemap', () => {
                 '</url>' +
               '</urlset>')
   })
+  describe('add', () => {
+    it('accepts url strings', () => {
+      var url = '/some_page'
+      let hostname = 'http://ya.ru'
+      var ssp = new sm.Sitemap(undefined, hostname)
+      ssp.add(url)
+
+      expect(ssp.toString()).toBe(
+        xmlDef +
+                  urlset +
+                  '<url>' +
+                      `<loc>${hostname}${url}</loc>` +
+                  '</url>' +
+                '</urlset>')
+    })
+    it('accepts config url objects', () => {
+      var url = 'http://ya.ru'
+      var ssp = new sm.Sitemap()
+      ssp.add({ url, changefreq: 'daily' })
+
+      expect(ssp.toString()).toBe(
+        xmlDef +
+                  urlset +
+                  '<url>' +
+                      xmlLoc +
+                    '<changefreq>daily</changefreq>' +
+                  '</url>' +
+                '</urlset>')
+    })
+  })
 
   it('encodes URLs', () => {
     var url = 'http://ya.ru/?foo=bar baz'
@@ -1227,18 +1267,18 @@ describe('sitemap', () => {
                     '<priority>0.3</priority>' +
                 '</url>' +
               '</urlset>'
-    smap.del({url: 'http://ya.ru/page-1/'})
+    smap.del({ url: 'http://ya.ru/page-1/' })
 
     expect(smap.toString()).toBe(xml)
   })
   it('test for #27', () => {
     var staticUrls = ['/', '/terms', '/login']
-    var sitemap = sm.createSitemap({urls: staticUrls})
-    sitemap.add({url: '/details/' + 'url1'})
+    var sitemap = sm.createSitemap({ urls: staticUrls })
+    sitemap.add({ url: '/details/' + 'url1' })
 
-    var sitemap2 = sm.createSitemap({urls: staticUrls})
+    var sitemap2 = sm.createSitemap({ urls: staticUrls })
 
-    expect(sitemap.urls).toEqual(['/', '/terms', '/login', {url: '/details/url1'}])
+    expect(sitemap.urls).toEqual(['/', '/terms', '/login', { url: '/details/url1' }])
     expect(sitemap2.urls).toEqual(['/', '/terms', '/login'])
   })
   it('sitemap: langs', () => {
@@ -1394,7 +1434,7 @@ describe('sitemap', () => {
     var smap = sm.createSitemap({
       hostname: 'http://test.com',
       urls: [
-        { url: '/a', img: {url: '/image.jpg?param&otherparam', caption: 'Test Caption'} }
+        { url: '/a', img: { url: '/image.jpg?param&otherparam', caption: 'Test Caption' } }
       ]
     })
 
@@ -1443,8 +1483,8 @@ describe('sitemap', () => {
   it('sitemap: images with captions', () => {
     var smap = sm.createSitemap({
       urls: [
-        { url: 'http://test.com', img: {url: 'http://test.com/image.jpg', caption: 'Test Caption'} },
-        { url: 'http://test.com/page2/', img: {url: 'http://test.com/image2.jpg', caption: 'Test Caption 2'} }
+        { url: 'http://test.com', img: { url: 'http://test.com/image.jpg', caption: 'Test Caption' } },
+        { url: 'http://test.com/page2/', img: { url: 'http://test.com/image2.jpg', caption: 'Test Caption 2' } }
       ]
     })
 
@@ -1474,14 +1514,14 @@ describe('sitemap', () => {
         {
           url: '/index.html',
           img: [
-            {url: 'http://test.com/image.jpg', caption: 'Test Caption'},
-            {url: 'http://test.com/image2.jpg', caption: 'Test Caption 2'}
+            { url: 'http://test.com/image.jpg', caption: 'Test Caption' },
+            { url: 'http://test.com/image2.jpg', caption: 'Test Caption 2' }
           ]
         }
       ]
     })
 
-    smap.urls.push({url: '/index2.html', img: [{url: '/image3.jpg', caption: 'Test Caption 3'}]})
+    smap.urls.push({ url: '/index2.html', img: [{ url: '/image3.jpg', caption: 'Test Caption 3' }] })
 
     expect(smap.toString()).toBe(
       xmlDef +
@@ -1590,23 +1630,23 @@ describe('sitemapIndex', () => {
             '<loc>https://test.com/s2.xml</loc>\n' +
             '<lastmod>2018-11-27</lastmod>\n' +
         '</sitemap>\n' +
-    '</sitemapindex>';
+    '</sitemapindex>'
 
     var result = sm.buildSitemapIndex({
       urls: [
-      {
-        url: "https://test.com/s1.xml",
-        lastmod: "2018-11-26"
-      },
-       {
-        url: "https://test.com/s2.xml",
-        lastmod: "2018-11-27"
-      },
+        {
+          url: 'https://test.com/s1.xml',
+          lastmod: '2018-11-26'
+        },
+        {
+          url: 'https://test.com/s2.xml',
+          lastmod: '2018-11-27'
+        }
       ],
       xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
-    });
+    })
 
-    expect(result).toBe(expectedResult);
+    expect(result).toBe(expectedResult)
   })
   it('simple sitemap index', async () => {
     const tmp = os.tmpdir()
