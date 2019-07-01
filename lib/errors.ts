@@ -30,18 +30,6 @@ export class NoConfigError extends Error {
 }
 
 /**
- * Protocol in URL does not exists
- */
-export class NoURLProtocolError extends Error {
- constructor(message?: string) {
-   super(message || 'Protocol is required');
-   this.name = 'NoURLProtocolError';
-   // @ts-ignore
-   Error.captureStackTrace(this, NoURLProtocolError);
- }
-}
-
-/**
  * changefreq property in sitemap is invalid
  */
 export class ChangeFreqInvalidError extends Error {
@@ -57,12 +45,12 @@ export class ChangeFreqInvalidError extends Error {
  * priority property in sitemap is invalid
  */
 export class PriorityInvalidError extends Error {
- constructor(message?: string) {
-   super(message || 'priority is invalid');
-   this.name = 'PriorityInvalidError';
-   // @ts-ignore
-   Error.captureStackTrace(this, PriorityInvalidError);
- }
+  constructor(message?: string) {
+    super(message || 'priority is invalid');
+    this.name = 'PriorityInvalidError';
+    // @ts-ignore
+    Error.captureStackTrace(this, PriorityInvalidError);
+  }
 }
 
 /**
@@ -113,6 +101,8 @@ export class InvalidAttrValue extends Error {
   }
 }
 
+// InvalidAttr is only thrown when attrbuilder is called incorrectly internally
+/* istanbul ignore next */
 export class InvalidAttr extends Error {
   constructor(key: string) {
     super('"' + key + '" is malformed');
@@ -139,4 +129,3 @@ export class InvalidNewsAccessValue extends Error {
     Error.captureStackTrace(this, InvalidNewsAccessValue);
   }
 }
-

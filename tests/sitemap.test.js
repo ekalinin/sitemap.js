@@ -9,7 +9,6 @@ import sm from '../index'
 import { getTimestampFromDate } from '../lib/utils'
 import fs from 'fs'
 import zlib from 'zlib'
-import path from 'path'
 import * as testUtil from './util'
 import os from 'os'
 
