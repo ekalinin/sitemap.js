@@ -1,3 +1,6 @@
+# 3.1.0
+ - fixes #187, #188 typescript errors
+ - adds support for full precision priority #176
 # 3.0.0
  - Converted project to typescript
  - properly encode URLs #179
