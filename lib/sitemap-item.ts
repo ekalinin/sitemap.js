@@ -319,7 +319,11 @@ class SitemapItem {
           mobileitem.att('type', this.mobile)
         }
       } else if (this.priority !== undefined && p === 'priority') {
-        this.url.element(p, parseFloat(this.priority + '').toFixed(1))
+        if (this.conf.fullPrecisionPriority) {
+          this.url.element(p, this.priority + '')
+        } else {
+          this.url.element(p, parseFloat(this.priority + '').toFixed(1))
+        }
       } else if (this.ampLink && p === 'ampLink') {
         this.url.element('xhtml:link', { rel: 'amphtml', href: this.ampLink })
       } else if (this.news && p === 'news') {
