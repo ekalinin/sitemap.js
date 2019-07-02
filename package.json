@@ -108,7 +108,6 @@
     "jest": "^24.8.0",
     "sort-package-json": "^1.22.1",
     "source-map": "~0.7.3",
-    "standard": "^12.0.1",
     "stats-lite": "^2.2.0",
     "typescript": "^3.4.5"
   },

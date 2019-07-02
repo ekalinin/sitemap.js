@@ -3,6 +3,7 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
+/* eslint-env jest, jasmine */
 import 'babel-polyfill'
 
 import sm from '../index'
@@ -66,6 +67,24 @@ describe('sitemapItem', () => {
       function () { new sm.SitemapItem({}) }
     ).toThrowError(/URL is required/)
   })
+
+  it('allows for full precision priority', () => {
+    const url = 'http://ya.ru/'
+    const smi = new sm.SitemapItem({
+      'url': url,
+      'changefreq': 'always',
+      'priority': 0.99934,
+      'fullPrecisionPriority': true
+    })
+
+    expect(smi.toString()).toBe(
+      '<url>' +
+        xmlLoc +
+        '<changefreq>always</changefreq>' +
+        '<priority>0.99934</priority>' +
+      '</url>')
+  })
+
   it('full options', () => {
     const url = 'http://ya.ru/'
     const smi = new sm.SitemapItem({

@@ -97,6 +97,7 @@ export interface SitemapItemOptions {
   lastmod?: string;
   lastmodISO?: string;
   changefreq?: EnumChangefreq;
+  fullPrecisionPriority?: boolean;
   priority?: number;
   news?: INewsItem;
   img?: Partial<ISitemapImg> | Partial<ISitemapImg>[];
