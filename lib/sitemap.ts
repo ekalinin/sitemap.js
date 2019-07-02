@@ -66,16 +66,19 @@ export class Sitemap {
    * @param {String}        xslUrl            optional
    * @param {String}        xmlNs            optional
    */
-  constructor (urls: string | Sitemap["urls"], hostname?: string, cacheTime?: number, xslUrl?: string, xmlNs?: string) {
+  constructor (urls?: string | Sitemap["urls"], hostname?: string, cacheTime?: number, xslUrl?: string, xmlNs?: string) {
 
     // Base domain
     this.hostname = hostname;
 
-    // URL list for sitemap
-    this.urls = [];
 
     // Make copy of object
-    if (urls) this.urls = Array.isArray(urls) ? Array.from(urls) : [urls];
+    if (urls) {
+      this.urls = Array.isArray(urls) ? Array.from(urls) : [urls];
+    } else {
+      // URL list for sitemap
+      this.urls = [];
+    }
 
     // sitemap cache
     this.cacheResetPeriod = cacheTime || 0;
@@ -122,7 +125,7 @@ export class Sitemap {
    *  Add url to sitemap
    *  @param {String} url
    */
-  add (url: string): number {
+  add (url: string | SitemapItemOptions): number {
     return this.urls.push(url);
   }
 
@@ -130,9 +133,7 @@ export class Sitemap {
    *  Delete url from sitemap
    *  @param {String} url
    */
-  del (url: string | {
-    url: string;
-  }): number {
+  del (url: string | SitemapItemOptions): number {
     const indexToRemove: number[] = []
     let key = ''
 

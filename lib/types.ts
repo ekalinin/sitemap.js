@@ -34,16 +34,16 @@ export enum EnumAllowDeny {
 export type ICallback<E extends Error, T> = (err?: E, data?: T) => void;
 
 export interface INewsItem {
-  access: 'Registration' | 'Subscription';
+  access?: 'Registration' | 'Subscription';
   publication: {
     name: string;
     language: string;
   };
-  genres: string;
+  genres?: string;
   publication_date: string;
   title: string;
-  keywords: string;
-  stock_tickers: string;
+  keywords?: string;
+  stock_tickers?: string;
 }
 
 export interface ISitemapImg {
