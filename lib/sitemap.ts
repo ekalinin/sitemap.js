@@ -133,9 +133,7 @@ export class Sitemap {
    *  Delete url from sitemap
    *  @param {String} url
    */
-  del (url: string | {
-    url: string;
-  }): number {
+  del (url: string | SitemapItemOptions): number {
     const indexToRemove: number[] = []
     let key = ''
 
