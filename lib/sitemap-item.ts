@@ -1,6 +1,6 @@
 import * as ut from './utils';
 import fs from 'fs';
-import builder from 'xmlbuilder';
+import { create, XMLElement } from 'xmlbuilder';
 import isArray from 'lodash/isArray';
 import {
   ChangeFreqInvalidError,
@@ -77,8 +77,8 @@ class SitemapItem {
   mobile?: SitemapItemOptions["mobile"];
   video?: SitemapItemOptions["video"];
   ampLink?: SitemapItemOptions["ampLink"];
-  root: builder.XMLElement;
-  url: builder.XMLElement;
+  root: XMLElement;
+  url: XMLElement;
 
   constructor (conf: SitemapItemOptions) {
     this.conf = conf
@@ -148,7 +148,7 @@ class SitemapItem {
     this.mobile = conf.mobile
     this.video = conf.video
     this.ampLink = conf.ampLink
-    this.root = conf.root || builder.create('root')
+    this.root = conf.root || create('root')
     this.url = this.root.element('url')
   }
 
@@ -249,7 +249,7 @@ class SitemapItem {
     }
   }
 
-  buildXML (): builder.XMLElement {
+  buildXML (): XMLElement {
     this.url.children = []
     // @ts-ignore
     this.url.attribs = {}
@@ -266,7 +266,7 @@ class SitemapItem {
 
       if (this.img && p === 'img') {
         // Image handling
-        if (typeof (this.img) !== 'object' || this.img.length === undefined) {
+        if (!Array.isArray(this.img)) {
           // make it an array
           this.img = [this.img]
         }
@@ -275,10 +275,11 @@ class SitemapItem {
           if (typeof (image) !== 'object') {
             // it’s a string
             // make it an object
-            xmlObj['image:loc'] = image
-          } else if (image.url) {
-            xmlObj['image:loc'] = image.url
+            image = {url: image}
           }
+
+          xmlObj['image:loc'] = image.url
+
           if (image.caption) {
             xmlObj['image:caption'] = {'#cdata': image.caption}
           }
