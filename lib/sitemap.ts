@@ -8,11 +8,11 @@
 
 import * as errors from './errors';
 import fs from 'fs';
-import builder from 'xmlbuilder';
+import { create, XMLElement } from 'xmlbuilder';
 import SitemapItem from './sitemap-item';
 import chunk from 'lodash/chunk';
 import { Profiler } from 'inspector';
-import { ICallback, ISitemapImg, SitemapItemOptions } from './types';
+import { ICallback, SitemapItemOptions } from './types';
 import zlib from 'zlib';
 // remove once we drop node 8
 import { URL } from 'whatwg-url'
@@ -32,7 +32,7 @@ export const version = '2.2.0'
  * @return  {Sitemap}
  */
 export function createSitemap(conf: {
-  urls: string | Sitemap["urls"];
+  urls?: string | Sitemap["urls"];
   hostname?: string;
   cacheTime?: number;
   xslUrl?: string;
@@ -55,7 +55,7 @@ export class Sitemap {
   cacheResetPeriod: number;
   cache: string;
   xslUrl?: string;
-  root: builder.XMLElement;
+  root: XMLElement;
 
 
   /**
@@ -85,7 +85,7 @@ export class Sitemap {
     this.cache = '';
 
     this.xslUrl = xslUrl;
-    this.root = builder.create('urlset', {encoding: 'UTF-8'})
+    this.root = create('urlset', {encoding: 'UTF-8'})
     if (xmlNs) {
       this.xmlNs = xmlNs;
       const ns = this.xmlNs.split(' ')
@@ -167,7 +167,7 @@ export class Sitemap {
    *  Create sitemap xml
    *  @param {Function}     callback  Callback function with one argument — xml
    */
-  toXML (callback: ICallback<Error, string>): string|void {
+  toXML (callback?: ICallback<Error, string>): string|void {
     if (typeof callback === 'undefined') {
       return this.toString();
     }
@@ -219,14 +219,16 @@ export class Sitemap {
         if (smi.img) {
           if (typeof smi.img === 'string') {
             // string -> array of objects
-            smi.img = [{ url: smi.img as string }];
-          }
-          if (typeof smi.img === 'object' && smi.img.length === undefined) {
+            smi.img = [{ url: smi.img }];
+          } else if (!Array.isArray(smi.img)) {
             // object -> array of objects
-            smi.img = [smi.img as ISitemapImg];
+            smi.img = [smi.img];
           }
           // prepend hostname to all image urls
-          (smi.img as ISitemapImg[]).forEach((img): void => {
+          smi.img.forEach((img): void => {
+            if (typeof img === 'string') {
+              img = {url: img}
+            }
             img.url = (new URL(img.url, this.hostname)).toString();
           });
         }

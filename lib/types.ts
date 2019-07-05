@@ -48,11 +48,10 @@ export interface INewsItem {
 
 export interface ISitemapImg {
   url: string;
-  caption: string;
-  title: string;
-  geoLocation: string;
-  license: string;
-  length?: never;
+  caption?: string;
+  title?: string;
+  geoLocation?: string;
+  license?: string;
 }
 
 export interface IVideoItem {
@@ -61,7 +60,7 @@ export interface IVideoItem {
   description: string;
   content_loc?: string;
   player_loc?: string;
-  'player_loc:autoplay': boolean;
+  'player_loc:autoplay'?: string;
   duration?: number;
   expiration_date?: string;
   rating?: string | number;
@@ -71,7 +70,7 @@ export interface IVideoItem {
   tag?: string | string[];
   category?: string;
   restriction?: string;
-  'restriction:relationship': string;
+  'restriction:relationship'?: string;
   gallery_loc?: string;
   'gallery_loc:title'?: string;
   price?: string;
@@ -100,7 +99,7 @@ export interface SitemapItemOptions {
   fullPrecisionPriority?: boolean;
   priority?: number;
   news?: INewsItem;
-  img?: Partial<ISitemapImg> | Partial<ISitemapImg>[];
+  img?: string | ISitemapImg | (string | ISitemapImg)[];
   links?: ILinkItem[];
   expires?: string;
   androidLink?: string;
