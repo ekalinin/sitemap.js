@@ -1,6 +1,7 @@
-# 3.1.1
+# 3.2.0
   - fixes #192, fixes #193 typescript errors
   - correct types on player:loc and restriction:relationship types
+  - use https urls in xmlns
 # 3.1.0
  - fixes #187, #188 typescript errors
  - adds support for full precision priority #176
