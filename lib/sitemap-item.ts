@@ -1,7 +1,6 @@
 import * as ut from './utils';
 import fs from 'fs';
 import { create, XMLElement } from 'xmlbuilder';
-import isArray from 'lodash/isArray';
 import {
   ChangeFreqInvalidError,
   InvalidAttr,
@@ -199,7 +198,7 @@ class SitemapItem {
       videoxml.element('video:family_friendly', video.family_friendly)
     }
     if (video.tag) {
-      if (!isArray(video.tag)) {
+      if (!Array.isArray(video.tag)) {
         videoxml.element('video:tag', video.tag)
       } else {
         for (const tag of video.tag) {
