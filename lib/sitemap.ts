@@ -45,7 +45,7 @@ export function createSitemap(conf: {
 
 export class Sitemap {
   // This limit is defined by Google. See:
-  // http://sitemaps.org/protocol.php#index
+  // https://sitemaps.org/protocol.php#index
   limit = 5000
   xmlNs = ''
   cacheSetTimestamp = 0;
@@ -190,12 +190,12 @@ export class Sitemap {
       this.root.children = []
     }
     if (!this.xmlNs) {
-      this.root.att('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9')
-      this.root.att('xmlns:news', 'http://www.google.com/schemas/sitemap-news/0.9')
-      this.root.att('xmlns:xhtml', 'http://www.w3.org/1999/xhtml')
-      this.root.att('xmlns:mobile', 'http://www.google.com/schemas/sitemap-mobile/1.0')
-      this.root.att('xmlns:image', 'http://www.google.com/schemas/sitemap-image/1.1')
-      this.root.att('xmlns:video', 'http://www.google.com/schemas/sitemap-video/1.1')
+      this.root.att('xmlns', 'https://www.sitemaps.org/schemas/sitemap/0.9')
+      this.root.att('xmlns:news', 'https://www.google.com/schemas/sitemap-news/0.9')
+      this.root.att('xmlns:xhtml', 'https://www.w3.org/1999/xhtml')
+      this.root.att('xmlns:mobile', 'https://www.google.com/schemas/sitemap-mobile/1.0')
+      this.root.att('xmlns:image', 'https://www.google.com/schemas/sitemap-image/1.1')
+      this.root.att('xmlns:video', 'https://www.google.com/schemas/sitemap-video/1.1')
     }
 
     if (this.xslUrl) {
@@ -321,10 +321,10 @@ export function buildSitemapIndex (conf: {
     xml.push('<?xml-stylesheet type="text/xsl" href="' + conf.xslUrl + '"?>');
   }
   if (!conf.xmlNs) {
-    xml.push('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
-      'xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" ' +
-      'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" ' +
-      'xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">');
+    xml.push('<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9" ' +
+      'xmlns:mobile="https://www.google.com/schemas/sitemap-mobile/1.0" ' +
+      'xmlns:image="https://www.google.com/schemas/sitemap-image/1.1" ' +
+      'xmlns:video="https://www.google.com/schemas/sitemap-video/1.1">');
   } else {
     xml.push('<sitemapindex ' + conf.xmlNs + '>')
   }
@@ -400,7 +400,7 @@ class SitemapIndex {
     }
 
     // This limit is defined by Google. See:
-    // http://sitemaps.org/protocol.php#index
+    // https://sitemaps.org/protocol.php#index
     this.sitemapSize = sitemapSize;
 
     this.xslUrl = xslUrl;
