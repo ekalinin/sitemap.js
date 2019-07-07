@@ -102,7 +102,7 @@ describe('sitemapIndex', () => {
           urls: [url1, url2]
         })
       }
-    ).toThrowError(/UndefinedTargetFolder/)
+    ).toThrowError(/Target folder must exist/)
 
     // Cleanup before run test
     removeFilesArray(expectedFiles)

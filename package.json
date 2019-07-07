@@ -28,6 +28,12 @@
     "test-perf": "node ./tests/perf.js",
     "test:typecheck": "tsc"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "sort-package-json",
+      "pre-push": "npm test"
+    }
+  },
   "eslintConfig": {
     "env": {
       "es6": true,
@@ -105,6 +111,8 @@
     "babel-eslint": "^10.0.1",
     "babel-polyfill": "^6.26.0",
     "babel-preset-minify": "^0.5.0",
+    "eslint": "^5.0.0",
+    "husky": "^3.0.0",
     "jasmine": "^3.4.0",
     "jest": "^24.8.0",
     "sort-package-json": "^1.22.1",

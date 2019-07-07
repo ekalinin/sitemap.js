@@ -4,16 +4,14 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-'use strict';
-
 import * as errors from './errors';
-import fs from 'fs';
+import { statSync, createWriteStream } from 'fs';
 import { create, XMLElement } from 'xmlbuilder';
 import SitemapItem from './sitemap-item';
-import chunk from 'lodash/chunk';
+import chunk from 'lodash.chunk';
 import { Profiler } from 'inspector';
 import { ICallback, SitemapItemOptions } from './types';
-import zlib from 'zlib';
+import { gzip, gzipSync, CompressCallback } from 'zlib';
 // remove once we drop node 8
 import { URL } from 'whatwg-url'
 
@@ -247,13 +245,13 @@ export class Sitemap {
     return this.setCache(this.root.end())
   }
 
-  toGzip (callback: zlib.CompressCallback): void;
+  toGzip (callback: CompressCallback): void;
   toGzip (): Buffer;
-  toGzip (callback?: zlib.CompressCallback): Buffer|void {
+  toGzip (callback?: CompressCallback): Buffer|void {
     if (typeof callback === 'function') {
-      zlib.gzip(this.toString(), callback);
+      gzip(this.toString(), callback);
     } else {
-      return zlib.gzipSync(this.toString());
+      return gzipSync(this.toString());
     }
   }
 }
@@ -412,11 +410,11 @@ class SitemapIndex {
     this.targetFolder = '.';
 
     try {
-      if (!fs.statSync(targetFolder).isDirectory()) {
+      if (!statSync(targetFolder).isDirectory()) {
         throw new errors.UndefinedTargetFolder();
       }
     } catch (err) {
-      throw new err.UndefinedTargetFolder();
+      throw new errors.UndefinedTargetFolder();
     }
 
     this.targetFolder = targetFolder;
@@ -448,7 +446,7 @@ class SitemapIndex {
         xslUrl: this.xslUrl
       });
 
-      let stream = fs.createWriteStream(targetFolder + '/' + filename);
+      let stream = createWriteStream(targetFolder + '/' + filename);
       stream.once('open', (fd): void => {
         stream.write(gzip ? sitemap.toGzip() : sitemap.toString());
         stream.end();
@@ -464,7 +462,7 @@ class SitemapIndex {
     let smConf = {urls: sitemapUrls, xslUrl: this.xslUrl, xmlNs: this.xmlNs};
     let xmlString = buildSitemapIndex(smConf);
 
-    let stream = fs.createWriteStream(targetFolder + '/' +
+    let stream = createWriteStream(targetFolder + '/' +
       this.sitemapName + '-index.xml');
     stream.once('open', (fd): void => {
       stream.write(xmlString);

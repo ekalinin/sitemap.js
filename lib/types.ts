@@ -1,4 +1,4 @@
-import builder from 'xmlbuilder';
+import { XMLElement, XMLCData } from 'xmlbuilder';
 // can't be const enum if we use babel to compile
 // https://github.com/babel/babel/issues/8741
 export enum EnumChangefreq {
@@ -106,7 +106,7 @@ export interface SitemapItemOptions {
   mobile?: boolean | string;
   video?: IVideoItem | IVideoItem[];
   ampLink?: string;
-  root?: builder.XMLElement;
+  root?: XMLElement;
   url: string;
-  cdata?: builder.XMLCData;
+  cdata?: XMLCData;
 }
