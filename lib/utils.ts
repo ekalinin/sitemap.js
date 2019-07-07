@@ -3,7 +3,7 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-import padStart from 'lodash.padStart';
+import padStart from 'lodash.padstart';
 
 export function getTimestampFromDate (dt: Date, bRealtime?: boolean): string {
   let timestamp = [dt.getUTCFullYear(), padStart((dt.getUTCMonth() + 1) as any, 2, '0'),
