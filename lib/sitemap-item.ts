@@ -1,5 +1,5 @@
-import * as ut from './utils';
-import fs from 'fs';
+import { getTimestampFromDate } from './utils';
+import { statSync } from 'fs';
 import { create, XMLElement } from 'xmlbuilder';
 import {
   ChangeFreqInvalidError,
@@ -100,12 +100,12 @@ class SitemapItem {
       // console.log('should read stat from file: ' + conf.lastmodfile);
       let file = conf.lastmodfile
 
-      let stat = fs.statSync(file)
+      let stat = statSync(file)
 
       let mtime = stat.mtime
 
       dt = new Date(mtime)
-      this.lastmod = ut.getTimestampFromDate(dt, conf.lastmodrealtime)
+      this.lastmod = getTimestampFromDate(dt, conf.lastmodrealtime)
 
       // The date of last modification (YYYY-MM-DD)
     } else if (conf.lastmod) {
@@ -114,7 +114,7 @@ class SitemapItem {
       let timezoneOffset = 'UTC-' + (new Date().getTimezoneOffset() / 60) + '00'
       timezoneOffset = timezoneOffset.replace('--', '-')
       dt = new Date(conf.lastmod + ' ' + timezoneOffset)
-      this.lastmod = ut.getTimestampFromDate(dt, conf.lastmodrealtime)
+      this.lastmod = getTimestampFromDate(dt, conf.lastmodrealtime)
     } else if (conf.lastmodISO) {
       this.lastmod = conf.lastmodISO
     }

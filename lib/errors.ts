@@ -3,7 +3,6 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-'use strict';
 
 /**
  * URL in SitemapItem does not exists
