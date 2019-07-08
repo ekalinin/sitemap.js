@@ -42,16 +42,20 @@ TOC created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 Installation
 ------------
 
-    `npm install --save sitemap`
+    npm install --save sitemap
 
 Usage
 -----
 
 ## CLI
+
 Just feed the list of urls into sitemap
-    `npx sitemap < listofurls.txt`
+
+    npx sitemap < listofurls.txt
+
 Also supports line separated JSON for full configuration
-    `npx sitemap --json < listofurls.txt`
+
+    npx sitemap --json < listofurls.txt
 
 ## As a library
 
