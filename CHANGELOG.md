@@ -1,3 +1,6 @@
+# 3.2.1
+  - no really fixes ts errors for real this time
+  - fixes #193 in PR #198
 # 3.2.0
   - fixes #192, fixes #193 typescript errors
   - correct types on player:loc and restriction:relationship types
