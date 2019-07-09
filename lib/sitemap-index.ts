@@ -67,10 +67,10 @@ export function buildSitemapIndex (conf: {
     xml.push('<?xml-stylesheet type="text/xsl" href="' + conf.xslUrl + '"?>');
   }
   if (!conf.xmlNs) {
-    xml.push('<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9" ' +
-      'xmlns:mobile="https://www.google.com/schemas/sitemap-mobile/1.0" ' +
-      'xmlns:image="https://www.google.com/schemas/sitemap-image/1.1" ' +
-      'xmlns:video="https://www.google.com/schemas/sitemap-video/1.1">');
+    xml.push('<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
+      'xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" ' +
+      'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" ' +
+      'xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">');
   } else {
     xml.push('<sitemapindex ' + conf.xmlNs + '>')
   }
