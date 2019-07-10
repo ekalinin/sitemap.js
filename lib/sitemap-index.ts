@@ -68,10 +68,7 @@ export function buildSitemapIndex (conf: {
   }
 
   if (!conf.xmlNs) {
-    conf.xmlNs = 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9" ' +
-      'xmlns:mobile="https://www.google.com/schemas/sitemap-mobile/1.0" ' +
-      'xmlns:image="https://www.google.com/schemas/sitemap-image/1.1" ' +
-      'xmlns:video="https://www.google.com/schemas/sitemap-video/1.1"'
+    conf.xmlNs = 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"'
   }
 
   const ns = conf.xmlNs.split(' ')
