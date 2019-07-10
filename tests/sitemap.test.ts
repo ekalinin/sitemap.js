@@ -9,14 +9,14 @@ import 'babel-polyfill'
 import sm, { EnumChangefreq, EnumYesNo, EnumAllowDeny } from '../index'
 import zlib from 'zlib'
 
-const urlset = '<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9" ' +
-             'xmlns:news="https://www.google.com/schemas/sitemap-news/0.9" ' +
-             'xmlns:xhtml="https://www.w3.org/1999/xhtml" ' +
-             'xmlns:mobile="https://www.google.com/schemas/sitemap-mobile/1.0" ' +
-             'xmlns:image="https://www.google.com/schemas/sitemap-image/1.1" ' +
-             'xmlns:video="https://www.google.com/schemas/sitemap-video/1.1">'
+const urlset = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
+             'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" ' +
+             'xmlns:xhtml="http://www.w3.org/1999/xhtml" ' +
+             'xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" ' +
+             'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" ' +
+             'xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">'
 
-const dynamicUrlSet = '<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">'
+const dynamicUrlSet = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
 const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>'
 const xmlPriority = '<priority>0.9</priority>'
 const xmlLoc = '<loc>http://ya.ru/</loc>'
@@ -96,7 +96,7 @@ describe('sitemap', () => {
   it('simple sitemap with dynamic xmlNs', () => {
     var url = 'http://ya.ru'
     var ssp = sm.createSitemap({
-      xmlNs: 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"'
+      xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
     })
     ssp.add(url)
 

@@ -68,7 +68,7 @@ export function buildSitemapIndex (conf: {
   }
 
   if (!conf.xmlNs) {
-    conf.xmlNs = 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"'
+    conf.xmlNs = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
   }
 
   const ns = conf.xmlNs.split(' ')

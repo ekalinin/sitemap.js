@@ -18,7 +18,7 @@ describe('sitemapIndex', () => {
   it('build sitemap index', () => {
     var expectedResult = xmlDef +
     '<?xml-stylesheet type="text/xsl" href="https://test.com/style.xsl"?>' +
-    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">' +
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
     '<sitemap>' +
     '<loc>https://test.com/s1.xml</loc>' +
     '</sitemap>' +
@@ -36,7 +36,7 @@ describe('sitemapIndex', () => {
   })
   it('build sitemap index with custom xmlNS', () => {
     var expectedResult = xmlDef +
-    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">' +
+    '<sitemapindex xmlns="http://www.example.org/schemas/sitemap/0.9">' +
         '<sitemap>' +
             '<loc>https://test.com/s1.xml</loc>' +
         '</sitemap>' +
@@ -47,14 +47,14 @@ describe('sitemapIndex', () => {
 
     var result = sm.buildSitemapIndex({
       urls: ['https://test.com/s1.xml', 'https://test.com/s2.xml'],
-      xmlNs: 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"'
+      xmlNs: 'xmlns="http://www.example.org/schemas/sitemap/0.9"'
     })
 
     expect(result).toBe(expectedResult)
   })
   it('build sitemap index with lastmodISO', () => {
     var expectedResult = xmlDef +
-    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">' +
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
         '<sitemap>' +
             '<loc>https://test.com/s1.xml</loc>' +
             '<lastmod>2018-11-26</lastmod>' +
@@ -83,7 +83,7 @@ describe('sitemapIndex', () => {
           url: 'https://test.com/s3.xml'
         }
       ],
-      xmlNs: 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"',
+      xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
       lastmodISO: '2019-7-1'
     })
 
@@ -104,7 +104,7 @@ describe('sitemapIndex', () => {
       }
     };
     var expectedResult = xmlDef +
-    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">' +
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
         '<sitemap>' +
             '<loc>https://test.com/s1.xml</loc>' +
             `<lastmod>2019-05-14T11:01:58.135Z</lastmod>` +
@@ -117,7 +117,7 @@ describe('sitemapIndex', () => {
           url: 'https://test.com/s1.xml'
         }
       ],
-      xmlNs: 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"',
+      xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
       lastmodrealtime: true
     })
 
@@ -126,7 +126,7 @@ describe('sitemapIndex', () => {
   })
   it('build sitemap index with lastmod', () => {
     var expectedResult = xmlDef +
-    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">' +
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
         '<sitemap>' +
             '<loc>https://test.com/s1.xml</loc>' +
             '<lastmod>2018-11-26T00:00:00.000Z</lastmod>' +
@@ -139,7 +139,7 @@ describe('sitemapIndex', () => {
           url: 'https://test.com/s1.xml'
         }
       ],
-      xmlNs: 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"',
+      xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
       lastmod: '2018-11-26'
     })
 
