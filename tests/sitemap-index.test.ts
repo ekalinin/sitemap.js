@@ -16,15 +16,15 @@ function removeFilesArray  (files) {
 const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>'
 describe('sitemapIndex', () => {
   it('build sitemap index', () => {
-    var expectedResult = xmlDef + '\n' +
-    '<?xml-stylesheet type="text/xsl" href="https://test.com/style.xsl"?>\n' +
-    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9" xmlns:mobile="https://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="https://www.google.com/schemas/sitemap-image/1.1" xmlns:video="https://www.google.com/schemas/sitemap-video/1.1">\n' +
-    '<sitemap>\n' +
-    '<loc>https://test.com/s1.xml</loc>\n' +
-    '</sitemap>\n' +
-    '<sitemap>\n' +
-    '<loc>https://test.com/s2.xml</loc>\n' +
-    '</sitemap>\n' +
+    var expectedResult = xmlDef +
+    '<?xml-stylesheet type="text/xsl" href="https://test.com/style.xsl"?>' +
+    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9" xmlns:mobile="https://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="https://www.google.com/schemas/sitemap-image/1.1" xmlns:video="https://www.google.com/schemas/sitemap-video/1.1">' +
+    '<sitemap>' +
+    '<loc>https://test.com/s1.xml</loc>' +
+    '</sitemap>' +
+    '<sitemap>' +
+    '<loc>https://test.com/s2.xml</loc>' +
+    '</sitemap>' +
     '</sitemapindex>'
 
     var result = sm.buildSitemapIndex({
@@ -35,14 +35,14 @@ describe('sitemapIndex', () => {
     expect(result).toBe(expectedResult)
   })
   it('build sitemap index with custom xmlNS', () => {
-    var expectedResult = xmlDef + '\n' +
-    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-        '<sitemap>\n' +
-            '<loc>https://test.com/s1.xml</loc>\n' +
-        '</sitemap>\n' +
-        '<sitemap>\n' +
-            '<loc>https://test.com/s2.xml</loc>\n' +
-        '</sitemap>\n' +
+    var expectedResult = xmlDef +
+    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">' +
+        '<sitemap>' +
+            '<loc>https://test.com/s1.xml</loc>' +
+        '</sitemap>' +
+        '<sitemap>' +
+            '<loc>https://test.com/s2.xml</loc>' +
+        '</sitemap>' +
     '</sitemapindex>'
 
     var result = sm.buildSitemapIndex({
@@ -52,17 +52,21 @@ describe('sitemapIndex', () => {
 
     expect(result).toBe(expectedResult)
   })
-  it('build sitemap index with lastmod', () => {
-    var expectedResult = xmlDef + '\n' +
-    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-        '<sitemap>\n' +
-            '<loc>https://test.com/s1.xml</loc>\n' +
-            '<lastmod>2018-11-26</lastmod>\n' +
-        '</sitemap>\n' +
-        '<sitemap>\n' +
-            '<loc>https://test.com/s2.xml</loc>\n' +
-            '<lastmod>2018-11-27</lastmod>\n' +
-        '</sitemap>\n' +
+  it('build sitemap index with lastmodISO', () => {
+    var expectedResult = xmlDef +
+    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">' +
+        '<sitemap>' +
+            '<loc>https://test.com/s1.xml</loc>' +
+            '<lastmod>2018-11-26</lastmod>' +
+        '</sitemap>' +
+        '<sitemap>' +
+            '<loc>https://test.com/s2.xml</loc>' +
+            '<lastmod>2018-11-27</lastmod>' +
+        '</sitemap>' +
+        '<sitemap>' +
+            '<loc>https://test.com/s3.xml</loc>' +
+            '<lastmod>2019-7-1</lastmod>' +
+        '</sitemap>' +
     '</sitemapindex>'
 
     var result = sm.buildSitemapIndex({
@@ -73,10 +77,70 @@ describe('sitemapIndex', () => {
         },
         {
           url: 'https://test.com/s2.xml',
-          lastmod: '2018-11-27'
+          lastmodISO: '2018-11-27'
+        },
+        {
+          url: 'https://test.com/s3.xml'
         }
       ],
-      xmlNs: 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"'
+      xmlNs: 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"',
+      lastmodISO: '2019-7-1'
+    })
+
+    expect(result).toBe(expectedResult)
+  })
+  it('build sitemap index with lastmod realtime', () => {
+    const currentDate = new Date('2019-05-14T11:01:58.135Z');
+    const realDate = Date;
+    // @ts-ignore
+    global.Date = class extends Date {
+      constructor(date) {
+        if (date) {
+    // @ts-ignore
+          return super(date);
+        }
+
+        return currentDate;
+      }
+    };
+    var expectedResult = xmlDef +
+    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">' +
+        '<sitemap>' +
+            '<loc>https://test.com/s1.xml</loc>' +
+            `<lastmod>2019-05-14T11:01:58.135Z</lastmod>` +
+        '</sitemap>' +
+    '</sitemapindex>'
+
+    var result = sm.buildSitemapIndex({
+      urls: [
+        {
+          url: 'https://test.com/s1.xml'
+        }
+      ],
+      xmlNs: 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"',
+      lastmodrealtime: true
+    })
+
+    expect(result).toBe(expectedResult)
+    global.Date = realDate;
+  })
+  it('build sitemap index with lastmod', () => {
+    var expectedResult = xmlDef +
+    '<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">' +
+        '<sitemap>' +
+            '<loc>https://test.com/s1.xml</loc>' +
+            '<lastmod>2018-11-26T00:00:00.000Z</lastmod>' +
+        '</sitemap>' +
+    '</sitemapindex>'
+
+    var result = sm.buildSitemapIndex({
+      urls: [
+        {
+          url: 'https://test.com/s1.xml'
+        }
+      ],
+      xmlNs: 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"',
+      lastmod: '2018-11-26'
     })
 
     expect(result).toBe(expectedResult)
