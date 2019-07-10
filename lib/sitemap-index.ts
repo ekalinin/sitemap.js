@@ -1,4 +1,5 @@
 import { statSync, createWriteStream } from 'fs';
+import { create, XMLElement } from 'xmlbuilder';
 import { Sitemap, createSitemap } from './sitemap'
 import { ICallback } from './types';
 import { UndefinedTargetFolder } from './errors';
@@ -59,20 +60,21 @@ export function buildSitemapIndex (conf: {
   lastmodrealtime?: boolean;
   lastmod?: number | string;
 }): string {
-  let xml = [];
+  const root = create('sitemapindex', {encoding: 'UTF-8'});
   let lastmod = '';
 
-  xml.push('<?xml version="1.0" encoding="UTF-8"?>');
   if (conf.xslUrl) {
-    xml.push('<?xml-stylesheet type="text/xsl" href="' + conf.xslUrl + '"?>');
+    root.instructionBefore('xml-stylesheet', `type="text/xsl" href="${conf.xslUrl}"`);
   }
+
   if (!conf.xmlNs) {
-    xml.push('<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9" ' +
-      'xmlns:mobile="https://www.google.com/schemas/sitemap-mobile/1.0" ' +
-      'xmlns:image="https://www.google.com/schemas/sitemap-image/1.1" ' +
-      'xmlns:video="https://www.google.com/schemas/sitemap-video/1.1">');
-  } else {
-    xml.push('<sitemapindex ' + conf.xmlNs + '>')
+    conf.xmlNs = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
+  }
+
+  const ns = conf.xmlNs.split(' ')
+  for (let attr of ns) {
+    const [k, v] = attr.split('=')
+    root.attribute(k, v.replace(/^['"]|['"]$/g, ''))
   }
 
   if (conf.lastmodISO) {
@@ -85,22 +87,24 @@ export function buildSitemapIndex (conf: {
 
 
   conf.urls.forEach((url): void => {
+    let lm = lastmod
     if (url instanceof Object && url.url) {
-      lastmod = url.lastmod ? url.lastmod : lastmod;
+      if (url.lastmod) {
+        lm = url.lastmod
+      } else if (url.lastmodISO) {
+        lm = url.lastmodISO
+      }
 
       url = url.url;
     }
-    xml.push('<sitemap>');
-    xml.push('<loc>' + url + '</loc>');
-    if (lastmod) {
-      xml.push('<lastmod>' + lastmod + '</lastmod>');
+    const sm = root.element('sitemap');
+    sm.element('loc', url);
+    if (lm) {
+      sm.element('lastmod', lm);
     }
-    xml.push('</sitemap>');
   });
 
-  xml.push('</sitemapindex>');
-
-  return xml.join('\n');
+  return root.end();
 }
 
 /**
