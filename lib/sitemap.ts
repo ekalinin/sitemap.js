@@ -46,12 +46,10 @@ export class Sitemap {
   limit = 5000
   xmlNs = ''
   cacheSetTimestamp = 0;
-  hostname?: string;
   urls: (string | SitemapItemOptions)[]
 
   cacheResetPeriod: number;
   cache: string;
-  xslUrl?: string;
   root: XMLElement;
 
   /**
@@ -64,14 +62,11 @@ export class Sitemap {
    */
   constructor (
     urls?: string | Sitemap["urls"],
-    hostname?: string,
+    public hostname?: string,
     cacheTime?: number,
-    xslUrl?: string,
+    public xslUrl?: string,
     xmlNs?: string
   ) {
-
-    // Base domain
-    this.hostname = hostname;
 
 
     // Make copy of object
@@ -136,33 +131,22 @@ export class Sitemap {
    *  @param {String} url
    */
   del (url: string | SitemapItemOptions): number {
-    const indexToRemove: number[] = []
-    let key = ''
+    let key = url
 
-    if (typeof url === 'string') {
-      key = url;
-    } else {
-      // @ts-ignore
+    if (typeof url !== 'string') {
       key = url.url;
     }
 
-    // find
-    this.urls.forEach((elem, index): void => {
-      if (typeof elem === 'string') {
-        if (elem === key) {
-          indexToRemove.push(index);
-        }
+    let originalLength = this.urls.length
+    this.urls = this.urls.filter((u): boolean => {
+      if (typeof u === 'string') {
+        return u !== key
       } else {
-        if (elem.url === key) {
-          indexToRemove.push(index);
-        }
+        return u.url !== key
       }
-    });
+    })
 
-    // delete
-    indexToRemove.forEach((elem): void => {this.urls.splice(elem, 1)});
-
-    return indexToRemove.length;
+    return originalLength - this.urls.length;
   }
 
   /**
@@ -213,7 +197,7 @@ export class Sitemap {
     this.urls.forEach((elem, index): void => {
       // SitemapItem
       // create object with url property
-      let smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root: this.root} : Object.assign({root: this.root}, elem)
+      const smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root: this.root} : Object.assign({root: this.root}, elem)
 
       // insert domain name
       if (this.hostname) {
