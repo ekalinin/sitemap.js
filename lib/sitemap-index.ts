@@ -1,4 +1,5 @@
 import { statSync, createWriteStream } from 'fs';
+import { create } from 'xmlbuilder';
 import { Sitemap, createSitemap } from './sitemap'
 import { ICallback } from './types';
 import { UndefinedTargetFolder } from './errors';
@@ -59,20 +60,21 @@ export function buildSitemapIndex (conf: {
   lastmodrealtime?: boolean;
   lastmod?: number | string;
 }): string {
-  let xml = [];
+  const root = create('sitemapindex', {encoding: 'UTF-8'});
   let lastmod = '';
 
-  xml.push('<?xml version="1.0" encoding="UTF-8"?>');
   if (conf.xslUrl) {
-    xml.push('<?xml-stylesheet type="text/xsl" href="' + conf.xslUrl + '"?>');
+    root.instructionBefore('xml-stylesheet', `type="text/xsl" href="${conf.xslUrl}"`);
   }
+
   if (!conf.xmlNs) {
-    xml.push('<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9" ' +
-      'xmlns:mobile="https://www.google.com/schemas/sitemap-mobile/1.0" ' +
-      'xmlns:image="https://www.google.com/schemas/sitemap-image/1.1" ' +
-      'xmlns:video="https://www.google.com/schemas/sitemap-video/1.1">');
-  } else {
-    xml.push('<sitemapindex ' + conf.xmlNs + '>')
+    conf.xmlNs = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
+  }
+
+  const ns = conf.xmlNs.split(' ')
+  for (let attr of ns) {
+    const [k, v] = attr.split('=')
+    root.attribute(k, v.replace(/^['"]|['"]$/g, ''))
   }
 
   if (conf.lastmodISO) {
@@ -85,44 +87,36 @@ export function buildSitemapIndex (conf: {
 
 
   conf.urls.forEach((url): void => {
+    let lm = lastmod
     if (url instanceof Object && url.url) {
-      lastmod = url.lastmod ? url.lastmod : lastmod;
+      if (url.lastmod) {
+        lm = url.lastmod
+      } else if (url.lastmodISO) {
+        lm = url.lastmodISO
+      }
 
       url = url.url;
     }
-    xml.push('<sitemap>');
-    xml.push('<loc>' + url + '</loc>');
-    if (lastmod) {
-      xml.push('<lastmod>' + lastmod + '</lastmod>');
+    const sm = root.element('sitemap');
+    sm.element('loc', url);
+    if (lm) {
+      sm.element('lastmod', lm);
     }
-    xml.push('</sitemap>');
   });
 
-  xml.push('</sitemapindex>');
-
-  return xml.join('\n');
+  return root.end();
 }
 
 /**
  * Sitemap index (for several sitemaps)
  */
 class SitemapIndex {
-
-  hostname?: string;
   sitemapName: string;
-  sitemapSize?: number
-  xslUrl?: string
   sitemapId: number
   sitemaps: string[]
-  targetFolder: string;
-  urls: Sitemap["urls"]
 
   chunks: Sitemap["urls"][]
-  callback?: ICallback<Error, boolean>
   cacheTime?: number
-
-  xmlNs?: string
-
 
   /**
    * @param {String|Array}  urls
@@ -130,64 +124,46 @@ class SitemapIndex {
    * @param {String}        hostname      optional
    * @param {Number}        cacheTime     optional in milliseconds
    * @param {String}        sitemapName   optional
-   * @param {Number}        sitemapSize   optional
+   * @param {Number}        sitemapSize   optional This limit is defined by Google. See: https://sitemaps.org/protocol.php#index
    * @param {Number}        xslUrl                optional
    * @param {Boolean}       gzip          optional
    * @param {Function}      callback      optional
    */
   constructor (
-    urls: Sitemap["urls"],
-    targetFolder: string,
-    hostname?: string,
+    public urls: Sitemap["urls"] = [],
+    public targetFolder = '.',
+    public hostname?: string,
     cacheTime?: number,
     sitemapName?: string,
-    sitemapSize?: number,
-    xslUrl?: string,
-    gzip?: boolean,
-    callback?: ICallback<Error, boolean>
+    public sitemapSize?: number,
+    public xslUrl?: string,
+    gzip = false,
+    public callback?: ICallback<Error, boolean>
   ) {
-    // Base domain
-    this.hostname = hostname;
-
     if (sitemapName === undefined) {
       this.sitemapName = 'sitemap';
     } else {
       this.sitemapName = sitemapName;
     }
 
-    // This limit is defined by Google. See:
-    // https://sitemaps.org/protocol.php#index
-    this.sitemapSize = sitemapSize;
-
-    this.xslUrl = xslUrl;
-
     this.sitemapId = 0;
 
     this.sitemaps = [];
-
-    this.targetFolder = '.';
 
     try {
       if (!statSync(targetFolder).isDirectory()) {
         throw new UndefinedTargetFolder();
       }
-    } catch (err) {
+    } catch (e) {
       throw new UndefinedTargetFolder();
     }
 
-    this.targetFolder = targetFolder;
-
     // URL list for sitemap
-    // @ts-ignore
-    this.urls = urls || [];
     if (!Array.isArray(this.urls)) {
-      // @ts-ignore
       this.urls = [this.urls]
     }
 
     this.chunks = chunk(this.urls, this.sitemapSize);
-
-    this.callback = callback;
 
     let processesCount = this.chunks.length + 1;
 
@@ -198,10 +174,10 @@ class SitemapIndex {
       this.sitemaps.push(filename);
 
       let sitemap = createSitemap({
-        hostname: this.hostname,
-        cacheTime: this.cacheTime, // 600 sec - cache purge period
+        hostname,
+        cacheTime, // 600 sec - cache purge period
         urls: chunk,
-        xslUrl: this.xslUrl
+        xslUrl
       });
 
       let stream = createWriteStream(targetFolder + '/' + filename);
@@ -216,14 +192,13 @@ class SitemapIndex {
 
     });
 
-    let sitemapUrls = this.sitemaps.map((sitemap): string  => hostname + '/' + sitemap);
-    let smConf = {urls: sitemapUrls, xslUrl: this.xslUrl, xmlNs: this.xmlNs};
-    let xmlString = buildSitemapIndex(smConf);
-
-    let stream = createWriteStream(targetFolder + '/' +
+    const stream = createWriteStream(targetFolder + '/' +
       this.sitemapName + '-index.xml');
     stream.once('open', (fd): void => {
-      stream.write(xmlString);
+      stream.write(buildSitemapIndex({
+        urls: this.sitemaps.map((sitemap): string  => hostname + '/' + sitemap),
+        xslUrl
+      }));
       stream.end();
       processesCount--;
       if (processesCount === 0 && typeof this.callback === 'function') {

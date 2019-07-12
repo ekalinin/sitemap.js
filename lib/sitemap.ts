@@ -53,13 +53,13 @@ export class Sitemap {
   limit = 5000
   xmlNs = ''
   cacheSetTimestamp = 0;
-  hostname?: string;
   urls: (string | SitemapItemOptions)[]
 
   cacheTime: number;
   cache: string;
-  xslUrl?: string;
   root: XMLElement;
+  hostname?: string;
+  xslUrl?: string;
 
   /**
    * Sitemap constructor
@@ -145,33 +145,22 @@ export class Sitemap {
    *  @param {String} url
    */
   del (url: string | SitemapItemOptions): number {
-    const indexToRemove: number[] = []
-    let key = ''
+    let key = url
 
-    if (typeof url === 'string') {
-      key = url;
-    } else {
-      // @ts-ignore
+    if (typeof url !== 'string') {
       key = url.url;
     }
 
-    // find
-    this.urls.forEach((elem, index): void => {
-      if (typeof elem === 'string') {
-        if (elem === key) {
-          indexToRemove.push(index);
-        }
+    let originalLength = this.urls.length
+    this.urls = this.urls.filter((u): boolean => {
+      if (typeof u === 'string') {
+        return u !== key
       } else {
-        if (elem.url === key) {
-          indexToRemove.push(index);
-        }
+        return u.url !== key
       }
-    });
+    })
 
-    // delete
-    indexToRemove.forEach((elem): void => {this.urls.splice(elem, 1)});
-
-    return indexToRemove.length;
+    return originalLength - this.urls.length;
   }
 
   /**
@@ -201,12 +190,12 @@ export class Sitemap {
       this.root.children = []
     }
     if (!this.xmlNs) {
-      this.root.att('xmlns', 'https://www.sitemaps.org/schemas/sitemap/0.9')
-      this.root.att('xmlns:news', 'https://www.google.com/schemas/sitemap-news/0.9')
-      this.root.att('xmlns:xhtml', 'https://www.w3.org/1999/xhtml')
-      this.root.att('xmlns:mobile', 'https://www.google.com/schemas/sitemap-mobile/1.0')
-      this.root.att('xmlns:image', 'https://www.google.com/schemas/sitemap-image/1.1')
-      this.root.att('xmlns:video', 'https://www.google.com/schemas/sitemap-video/1.1')
+      this.root.att('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9')
+      this.root.att('xmlns:news', 'http://www.google.com/schemas/sitemap-news/0.9')
+      this.root.att('xmlns:xhtml', 'http://www.w3.org/1999/xhtml')
+      this.root.att('xmlns:mobile', 'http://www.google.com/schemas/sitemap-mobile/1.0')
+      this.root.att('xmlns:image', 'http://www.google.com/schemas/sitemap-image/1.1')
+      this.root.att('xmlns:video', 'http://www.google.com/schemas/sitemap-video/1.1')
     }
 
     if (this.xslUrl) {
@@ -222,7 +211,7 @@ export class Sitemap {
     this.urls.forEach((elem, index): void => {
       // SitemapItem
       // create object with url property
-      let smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root: this.root} : Object.assign({root: this.root}, elem)
+      const smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root: this.root} : Object.assign({root: this.root}, elem)
 
       // insert domain name
       if (this.hostname) {
