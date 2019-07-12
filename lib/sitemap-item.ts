@@ -62,7 +62,7 @@ function attrBuilder (conf: IStringObj, keys: string | string[]): object {
 /**
  * Item in sitemap
  */
-class SitemapItem {
+export class SitemapItem {
   conf: SitemapItemOptions;
   loc: SitemapItemOptions["url"];
   lastmod: SitemapItemOptions["lastmod"];
@@ -398,5 +398,3 @@ class SitemapItem {
     return this.buildXML().toString()
   }
 }
-
-export default SitemapItem

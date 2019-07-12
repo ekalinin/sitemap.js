@@ -108,5 +108,5 @@ export interface SitemapItemOptions {
   ampLink?: string;
   root?: XMLElement;
   url: string;
-  cdata?: XMLCData;
+  cdata?: boolean;
 }

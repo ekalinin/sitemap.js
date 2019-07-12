@@ -1,13 +1,19 @@
 import 'babel-polyfill';
-import sm, { EnumChangefreq, EnumYesNo, EnumAllowDeny } from '../index'
-import os from 'os'
-import fs from 'fs'
+import {
+  buildSitemapIndex,
+  createSitemapIndex,
+  EnumChangefreq,
+  EnumYesNo,
+  EnumAllowDeny
+} from '../index'
+import { tmpdir } from 'os'
+import { existsSync, unlinkSync } from 'fs'
 /* eslint-env jest, jasmine */
 function removeFilesArray  (files) {
   if (files && files.length) {
     files.forEach(function (file) {
-      if (fs.existsSync(file)) {
-        fs.unlinkSync(file)
+      if (existsSync(file)) {
+        unlinkSync(file)
       }
     })
   }
@@ -27,7 +33,7 @@ describe('sitemapIndex', () => {
     '</sitemap>\n' +
     '</sitemapindex>'
 
-    var result = sm.buildSitemapIndex({
+    var result = buildSitemapIndex({
       urls: ['https://test.com/s1.xml', 'https://test.com/s2.xml'],
       xslUrl: 'https://test.com/style.xsl'
     })
@@ -45,7 +51,7 @@ describe('sitemapIndex', () => {
         '</sitemap>\n' +
     '</sitemapindex>'
 
-    var result = sm.buildSitemapIndex({
+    var result = buildSitemapIndex({
       urls: ['https://test.com/s1.xml', 'https://test.com/s2.xml'],
       xmlNs: 'xmlns="https://www.sitemaps.org/schemas/sitemap/0.9"'
     })
@@ -65,7 +71,7 @@ describe('sitemapIndex', () => {
         '</sitemap>\n' +
     '</sitemapindex>'
 
-    var result = sm.buildSitemapIndex({
+    var result = buildSitemapIndex({
       urls: [
         {
           url: 'https://test.com/s1.xml',
@@ -82,7 +88,7 @@ describe('sitemapIndex', () => {
     expect(result).toBe(expectedResult)
   })
   it('simple sitemap index', async () => {
-    const tmp = os.tmpdir()
+    const tmp = tmpdir()
     const url1 = 'http://ya.ru'
     const url2 = 'http://ya2.ru'
     const expectedFiles = [
@@ -93,7 +99,7 @@ describe('sitemapIndex', () => {
 
     expect(
       function () {
-        sm.createSitemapIndex({
+        createSitemapIndex({
           cacheTime: 600000,
           hostname: 'https://www.sitemap.org',
           sitemapName: 'sm-test',
@@ -108,7 +114,7 @@ describe('sitemapIndex', () => {
     removeFilesArray(expectedFiles)
 
     const [err, result] = await new Promise(resolve => {
-      sm.createSitemapIndex({
+      createSitemapIndex({
         cacheTime: 600000,
         hostname: 'https://www.sitemap.org',
         sitemapName: 'sm-test',
@@ -122,21 +128,21 @@ describe('sitemapIndex', () => {
     expect(err).toBeFalsy()
     expect(result).toBe(true)
     expectedFiles.forEach(function (expectedFile) {
-      expect(fs.existsSync(expectedFile)).toBe(true)
+      expect(existsSync(expectedFile)).toBe(true)
     })
   })
   it('sitemap without callback', () => {
-    sm.createSitemapIndex({
+    createSitemapIndex({
       cacheTime: 600000,
       hostname: 'http://www.sitemap.org',
       sitemapName: 'sm-test',
       sitemapSize: 1,
-      targetFolder: os.tmpdir(),
+      targetFolder: tmpdir(),
       urls: ['http://ya.ru', 'http://ya2.ru']
     })
   })
   it('sitemap with gzip files', async () => {
-    const tmp = os.tmpdir()
+    const tmp = tmpdir()
     const url1 = 'http://ya.ru'
     const url2 = 'http://ya2.ru'
     const expectedFiles = [
@@ -149,7 +155,7 @@ describe('sitemapIndex', () => {
     removeFilesArray(expectedFiles)
 
     const [err, result] = await new Promise(resolve => {
-      sm.createSitemapIndex({
+      createSitemapIndex({
         cacheTime: 600000,
         hostname: 'http://www.sitemap.org',
         sitemapName: 'sm-test',
@@ -163,7 +169,7 @@ describe('sitemapIndex', () => {
     expect(err).toBeFalsy()
     expect(result).toBe(true)
     expectedFiles.forEach(function (expectedFile) {
-      expect(fs.existsSync(expectedFile)).toBe(true)
+      expect(existsSync(expectedFile)).toBe(true)
     })
   })
 })

@@ -1,7 +1,7 @@
 /* eslint-env jest, jasmine */
 import { getTimestampFromDate } from '../lib/utils'
 import * as testUtil from './util'
-import sm, { EnumChangefreq, EnumYesNo } from '../index'
+import { SitemapItem, EnumChangefreq, EnumYesNo } from '../index'
 describe('sitemapItem', () => {
   let xmlLoc
   let xmlPriority
@@ -11,7 +11,7 @@ describe('sitemapItem', () => {
   })
   it('default values && escape', () => {
     const url = 'http://ya.ru/view?widget=3&count>2'
-    const smi = new sm.SitemapItem({ 'url': url })
+    const smi = new SitemapItem({ 'url': url })
 
     expect(smi.toString()).toBe(
       '<url>' +
@@ -20,7 +20,7 @@ describe('sitemapItem', () => {
   })
   it('properly handles url fragments', () => {
     const url = 'http://ya.ru/#!/home'
-    const smi = new sm.SitemapItem({ 'url': url })
+    const smi = new SitemapItem({ 'url': url })
 
     expect(smi.toString()).toBe(
       '<url>' +
@@ -31,19 +31,19 @@ describe('sitemapItem', () => {
   it('throws when no config is passed', () => {
     /* eslint-disable no-new */
     expect(
-      function () { new sm.SitemapItem() }
+      function () { new SitemapItem() }
     ).toThrowError(/SitemapItem requires a configuration/)
   })
   it('throws an error for url absence', () => {
     /* eslint-disable no-new */
     expect(
-      function () { new sm.SitemapItem({}) }
+      function () { new SitemapItem({}) }
     ).toThrowError(/URL is required/)
   })
 
   it('allows for full precision priority', () => {
     const url = 'http://ya.ru/'
-    const smi = new sm.SitemapItem({
+    const smi = new SitemapItem({
       'url': url,
       'changefreq': EnumChangefreq.ALWAYS,
       'priority': 0.99934,
@@ -60,7 +60,7 @@ describe('sitemapItem', () => {
 
   it('full options', () => {
     const url = 'http://ya.ru/'
-    const smi = new sm.SitemapItem({
+    const smi = new SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
       'lastmod': '2011-06-27',
@@ -86,7 +86,7 @@ describe('sitemapItem', () => {
 
   it('mobile with type', () => {
     const url = 'http://ya.ru/'
-    const smi = new sm.SitemapItem({
+    const smi = new SitemapItem({
       'url': url,
       'mobile': 'pc,mobile'
     })
@@ -100,7 +100,7 @@ describe('sitemapItem', () => {
 
   it('lastmodISO', () => {
     const url = 'http://ya.ru/'
-    const smi = new sm.SitemapItem({
+    const smi = new SitemapItem({
       'url': url,
       'lastmodISO': '2011-06-27T00:00:00.000Z',
       'changefreq': EnumChangefreq.ALWAYS,
@@ -123,7 +123,7 @@ describe('sitemapItem', () => {
     var lastmod = getTimestampFromDate(dt)
 
     const url = 'http://ya.ru/'
-    const smi = new sm.SitemapItem({
+    const smi = new SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
       'lastmodfile': cacheFile,
@@ -154,7 +154,7 @@ describe('sitemapItem', () => {
     var lastmod = getTimestampFromDate(dt, true)
 
     const url = 'http://ya.ru/'
-    const smi = new sm.SitemapItem({
+    const smi = new SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
       'lastmodfile': cacheFile,
@@ -181,7 +181,7 @@ describe('sitemapItem', () => {
 
   it('toXML', () => {
     const url = 'http://ya.ru/'
-    const smi = new sm.SitemapItem({
+    const smi = new SitemapItem({
       'url': url,
       'img': 'http://urlTest.com',
       'lastmod': '2011-06-27',
@@ -205,7 +205,7 @@ describe('sitemapItem', () => {
 
   it('video price type', () => {
     expect(function () {
-      var smap = new sm.SitemapItem({
+      var smap = new SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -222,7 +222,7 @@ describe('sitemapItem', () => {
 
   it('video price currency', () => {
     expect(function () {
-      var smap = new sm.SitemapItem({
+      var smap = new SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -239,7 +239,7 @@ describe('sitemapItem', () => {
 
   it('video price resolution', () => {
     expect(function () {
-      var smap = new sm.SitemapItem({
+      var smap = new SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -256,8 +256,9 @@ describe('sitemapItem', () => {
 
   it('video platform relationship', () => {
     expect(function () {
-      var smap = new sm.SitemapItem({
+      var smap = new SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+        // @ts-ignore
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
           'description': 'Lorem ipsum',
@@ -273,7 +274,7 @@ describe('sitemapItem', () => {
 
   it('video restriction', () => {
     expect(function () {
-      var smap = new sm.SitemapItem({
+      var smap = new SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -290,7 +291,7 @@ describe('sitemapItem', () => {
 
   it('video duration', () => {
     expect(function () {
-      var smap = new sm.SitemapItem({
+      var smap = new SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -308,7 +309,7 @@ describe('sitemapItem', () => {
 
   it('video description limit', () => {
     expect(function () {
-      var smap = new sm.SitemapItem({
+      var smap = new SitemapItem({
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -317,7 +318,7 @@ describe('sitemapItem', () => {
           'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
           'duration': -1,
           'publication_date': '2008-07-29T14:58:04.000Z',
-          'requires_subscription': false
+          'requires_subscription': EnumYesNo.NO
         }]
       })
       smap.toString()
@@ -326,7 +327,7 @@ describe('sitemapItem', () => {
 
   it('accepts a url without escaping it if a cdata flag is passed', () => {
     const mockUri = 'https://a.b/?a&b'
-    const smi = new sm.SitemapItem({
+    const smi = new SitemapItem({
       cdata: true,
       url: mockUri
     })
@@ -336,7 +337,7 @@ describe('sitemapItem', () => {
 
   describe('toXML', () => {
     it('is equivilant to toString', () => {
-      const smi = new sm.SitemapItem({ url: 'https://a.b/?a&b' })
+      const smi = new SitemapItem({ url: 'https://a.b/?a&b' })
       expect(smi.toString()).toBe(smi.toXML())
     })
   })
@@ -392,7 +393,7 @@ describe('sitemapItem', () => {
     })
 
     it('accepts an object', () => {
-      var smap = new sm.SitemapItem(testvideo)
+      var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
       var expectedResult = '<url>' +
@@ -418,7 +419,7 @@ describe('sitemapItem', () => {
       expect(() => {
         let test = Object.assign({}, testvideo)
         delete test.video.title
-        var smap = new sm.SitemapItem(test)
+        var smap = new SitemapItem(test)
 
         smap.toString()
       }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
@@ -426,7 +427,7 @@ describe('sitemapItem', () => {
       expect(() => {
         let test = Object.assign({}, testvideo)
         test.video = 'a'
-        var smap = new sm.SitemapItem(test)
+        var smap = new SitemapItem(test)
 
         smap.toString()
       }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
@@ -434,7 +435,7 @@ describe('sitemapItem', () => {
       expect(() => {
         let test = Object.assign({}, testvideo)
         delete test.video.thumbnail_loc
-        var smap = new sm.SitemapItem(test)
+        var smap = new SitemapItem(test)
 
         smap.toString()
       }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
@@ -442,7 +443,7 @@ describe('sitemapItem', () => {
       expect(() => {
         let test = Object.assign({}, testvideo)
         delete test.video.description
-        var smap = new sm.SitemapItem(test)
+        var smap = new SitemapItem(test)
 
         smap.toString()
       }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
@@ -451,7 +452,7 @@ describe('sitemapItem', () => {
     it('supports content_loc', () => {
       testvideo.video.content_loc = 'https://a.b.c'
       delete testvideo.video.player_loc
-      var smap = new sm.SitemapItem(testvideo)
+      var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
       var expectedResult = '<url>' +
@@ -475,7 +476,7 @@ describe('sitemapItem', () => {
 
     it('supports expiration_date', () => {
       testvideo.video.expiration_date = '2012-07-16T19:20:30+08:00'
-      var smap = new sm.SitemapItem(testvideo)
+      var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
       var expectedResult = '<url>' +
@@ -500,7 +501,7 @@ describe('sitemapItem', () => {
 
     it('supports rating', () => {
       testvideo.video.rating = 2.5
-      var smap = new sm.SitemapItem(testvideo)
+      var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
       var expectedResult = '<url>' +
@@ -525,7 +526,7 @@ describe('sitemapItem', () => {
 
     it('supports view_count', () => {
       testvideo.video.view_count = 1234
-      var smap = new sm.SitemapItem(testvideo)
+      var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
       var expectedResult = '<url>' +
@@ -550,7 +551,7 @@ describe('sitemapItem', () => {
 
     it('supports family_friendly', () => {
       testvideo.video.family_friendly = 'yes'
-      var smap = new sm.SitemapItem(testvideo)
+      var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
       var expectedResult = '<url>' +
@@ -575,7 +576,7 @@ describe('sitemapItem', () => {
 
     it('supports tag', () => {
       testvideo.video.tag = 'steak'
-      var smap = new sm.SitemapItem(testvideo)
+      var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
       var expectedResult = '<url>' +
@@ -600,7 +601,7 @@ describe('sitemapItem', () => {
 
     it('supports array of tags', () => {
       testvideo.video.tag = ['steak', 'fries']
-      var smap = new sm.SitemapItem(testvideo)
+      var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
       var expectedResult = '<url>' +
@@ -625,7 +626,7 @@ describe('sitemapItem', () => {
 
     it('supports category', () => {
       testvideo.video.category = 'Baking'
-      var smap = new sm.SitemapItem(testvideo)
+      var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
       var expectedResult = '<url>' +
@@ -650,7 +651,7 @@ describe('sitemapItem', () => {
 
     it('supports uploader', () => {
       testvideo.video.uploader = 'GrillyMcGrillerson'
-      var smap = new sm.SitemapItem(testvideo)
+      var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
       var expectedResult = '<url>' +
@@ -675,7 +676,7 @@ describe('sitemapItem', () => {
 
     it('supports live', () => {
       testvideo.video.live = 'yes'
-      var smap = new sm.SitemapItem(testvideo)
+      var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
       var expectedResult = '<url>' +
@@ -719,7 +720,7 @@ describe('sitemapItem', () => {
     })
 
     it('matches the example from google', () => {
-      var smi = new sm.SitemapItem(news)
+      var smi = new SitemapItem(news)
 
       expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name><![CDATA[${news.news.publication.name}]]></news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title><![CDATA[${news.news.title}]]></news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news></url>`)
     })
@@ -728,14 +729,14 @@ describe('sitemapItem', () => {
       delete news.news.genres
       delete news.news.keywords
       delete news.news.stock_tickers
-      var smi = new sm.SitemapItem(news)
+      var smi = new SitemapItem(news)
 
       expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name><![CDATA[${news.news.publication.name}]]></news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:publication_date>${news.news.publication_date}</news:publication_date><news:title><![CDATA[${news.news.title}]]></news:title></news:news></url>`)
     })
 
     it('will throw if you dont provide required attr publication', () => {
       delete news.news.publication
-      var smi = new sm.SitemapItem(news)
+      var smi = new SitemapItem(news)
 
       expect(() => {
         smi.toString()
@@ -744,7 +745,7 @@ describe('sitemapItem', () => {
 
     it('will throw if you dont provide required attr publication name', () => {
       delete news.news.publication.name
-      var smi = new sm.SitemapItem(news)
+      var smi = new SitemapItem(news)
 
       expect(() => {
         smi.toString()
@@ -753,7 +754,7 @@ describe('sitemapItem', () => {
 
     it('will throw if you dont provide required attr publication language', () => {
       delete news.news.publication.language
-      var smi = new sm.SitemapItem(news)
+      var smi = new SitemapItem(news)
 
       expect(() => {
         smi.toString()
@@ -762,7 +763,7 @@ describe('sitemapItem', () => {
 
     it('will throw if you dont provide required attr title', () => {
       delete news.news.title
-      var smi = new sm.SitemapItem(news)
+      var smi = new SitemapItem(news)
 
       expect(() => {
         smi.toString()
@@ -771,7 +772,7 @@ describe('sitemapItem', () => {
 
     it('will throw if you dont provide required attr publication_date', () => {
       delete news.news.publication_date
-      var smi = new sm.SitemapItem(news)
+      var smi = new SitemapItem(news)
 
       expect(() => {
         smi.toString()
@@ -780,7 +781,7 @@ describe('sitemapItem', () => {
 
     it('will throw if you provide an invalid value for access', () => {
       news.news.access = 'a'
-      var smi = new sm.SitemapItem(news)
+      var smi = new SitemapItem(news)
 
       expect(() => {
         smi.toString()
@@ -789,11 +790,11 @@ describe('sitemapItem', () => {
 
     it('supports access', () => {
       news.news.access = 'Registration'
-      var smi = new sm.SitemapItem(news)
+      var smi = new SitemapItem(news)
 
       expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name><![CDATA[${news.news.publication.name}]]></news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:access>${news.news.access}</news:access><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title><![CDATA[${news.news.title}]]></news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news></url>`)
       news.news.access = 'Subscription'
-      smi = new sm.SitemapItem(news)
+      smi = new SitemapItem(news)
       expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name><![CDATA[${news.news.publication.name}]]></news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:access>${news.news.access}</news:access><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title><![CDATA[${news.news.title}]]></news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news></url>`)
     })
   })
