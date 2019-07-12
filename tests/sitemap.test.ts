@@ -101,24 +101,6 @@ describe('sitemap', () => {
     '</urlset>')
   })
 
-  it('simple sitemap toXML async with two callback arguments', async () => {
-    var url = 'http://ya.ru'
-    var ssp = new Sitemap()
-    ssp.add(url)
-
-    const [ err, xml ] = await new Promise(resolve => {
-      ssp.toXML((...args) => { resolve(args) })
-    })
-    expect(err).toBeUndefined()
-    expect(xml).toBe(
-      xmlDef +
-              urlset +
-                '<url>' +
-                    xmlLoc +
-                '</url>' +
-              '</urlset>')
-  })
-
   it('simple sitemap toXML sync', () => {
     var url = 'http://ya.ru'
     var ssp = new Sitemap()
@@ -514,22 +496,13 @@ describe('sitemap', () => {
               '</urlset>')
   })
   it('sitemap: normalize urls, see #39', async () => {
-    const [xml1, xml2] = await Promise.all(
-      ['http://ya.ru', 'http://ya.ru/'].map(function (hostname) {
-        var ssp = new Sitemap({hostname})
-        ssp.add('page1')
-        ssp.add('/page2')
+    const [xml1, xml2] = ['http://ya.ru', 'http://ya.ru/'].map(function (hostname) {
+      var ssp = new Sitemap({hostname})
+      ssp.add('page1')
+      ssp.add('/page2')
 
-        return new Promise(resolve => {
-          ssp.toXML(function (err, xml) {
-            if (err) {
-              console.error(err)
-            }
-            resolve(xml)
-          })
-        })
-      })
-    )
+      return ssp.toXML()
+    })
     expect(xml1).toBe(xml2)
     expect(xml1).toBe(
       xmlDef +
@@ -566,19 +539,6 @@ describe('sitemap', () => {
                     '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/"/>' +
                 '</url>' +
               '</urlset>')
-  })
-  it('sitemap: error thrown in async-style .toXML()', () => {
-    var smap = createSitemap({
-      hostname: 'http://test.com',
-      urls: [
-        { url: '/page-1/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 }
-      ]
-    })
-    var error = new Error('Some error happens')
-    smap.toString = () => { throw error }
-    smap.toXML(function (err, xml) {
-      expect(err).toBe(error)
-    })
   })
   it('sitemap: android app linking', () => {
     var smap = createSitemap({

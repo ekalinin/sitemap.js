@@ -167,18 +167,8 @@ export class Sitemap {
    *  Create sitemap xml
    *  @param {Function}     callback  Callback function with one argument — xml
    */
-  toXML (callback?: ICallback<Error, string>): string|void {
-    if (typeof callback === 'undefined') {
-      return this.toString();
-    }
-
-    process.nextTick((): void => {
-      try {
-        callback(undefined, this.toString());
-      } catch (err) {
-        callback(err);
-      }
-    });
+  toXML (): string {
+    return this.toString();
   }
 
   /**
