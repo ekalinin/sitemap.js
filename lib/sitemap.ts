@@ -23,8 +23,14 @@ import { URL } from 'whatwg-url'
  * @param   {String}        conf.xmlNs
  * @return  {Sitemap}
  */
-export function createSitemap(conf: {
-  urls?: string | Sitemap["urls"];
+export function createSitemap({
+  urls,
+  hostname,
+  cacheTime,
+  xslUrl,
+  xmlNs
+}: {
+  urls?: Sitemap["urls"];
   hostname?: string;
   cacheTime?: number;
   xslUrl?: string;
@@ -32,7 +38,13 @@ export function createSitemap(conf: {
 }): Sitemap {
   // cleaner diff
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  return new Sitemap(conf.urls, conf.hostname, conf.cacheTime, conf.xslUrl, conf.xmlNs);
+  return new Sitemap({
+    urls,
+    hostname,
+    cacheTime,
+    xslUrl,
+    xmlNs
+  });
 }
 
 export class Sitemap {
@@ -44,7 +56,7 @@ export class Sitemap {
   hostname?: string;
   urls: (string | SitemapItemOptions)[]
 
-  cacheResetPeriod: number;
+  cacheTime: number;
   cache: string;
   xslUrl?: string;
   root: XMLElement;
@@ -57,31 +69,33 @@ export class Sitemap {
    * @param {String}        xslUrl            optional
    * @param {String}        xmlNs            optional
    */
-  constructor (
-    urls?: string | Sitemap["urls"],
-    hostname?: string,
-    cacheTime?: number,
-    xslUrl?: string,
-    xmlNs?: string
-  ) {
+  constructor ({
+    urls = [],
+    hostname,
+    cacheTime = 0,
+    xslUrl,
+    xmlNs
+  }: {
+    urls?: Sitemap["urls"];
+    hostname?: string;
+    cacheTime?: number;
+    xslUrl?: string;
+    xmlNs?: string;
+  }
+  = {}) {
 
     // Base domain
     this.hostname = hostname;
 
-
-    // Make copy of object
-    if (urls) {
-      this.urls = Array.isArray(urls) ? Array.from(urls) : [urls];
-    } else {
-      // URL list for sitemap
-      this.urls = [];
-    }
-
     // sitemap cache
-    this.cacheResetPeriod = cacheTime || 0;
+    this.cacheTime = cacheTime;
     this.cache = '';
 
     this.xslUrl = xslUrl;
+
+    // Make copy of object
+    this.urls = Array.from(urls);
+
     this.root = create('urlset', {encoding: 'UTF-8'})
     if (xmlNs) {
       this.xmlNs = xmlNs;
@@ -105,8 +119,8 @@ export class Sitemap {
    */
   isCacheValid (): boolean {
     let currTimestamp = Date.now();
-    return !!(this.cacheResetPeriod && this.cache &&
-      (this.cacheSetTimestamp + this.cacheResetPeriod) >= currTimestamp);
+    return !!(this.cacheTime && this.cache &&
+      (this.cacheSetTimestamp + this.cacheTime) >= currTimestamp);
   }
 
   /**

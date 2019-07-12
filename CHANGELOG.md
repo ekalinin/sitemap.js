@@ -1,3 +1,8 @@
+# next
+## breaking changes
+  - limit exports the default object of sitemap is very minimal now
+  - Sitemap constructor now uses a object for its constructor
+  - Sitemap no longer accepts a single string for its url
 # 3.2.0
   - fixes #192, fixes #193 typescript errors
   - correct types on player:loc and restriction:relationship types
