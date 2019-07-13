@@ -53,7 +53,7 @@ export class Sitemap {
   limit = 5000
   xmlNs = ''
   cacheSetTimestamp = 0;
-  private urls: SitemapItemOptions[]
+  private urls: Map<string, SitemapItemOptions>
 
   cacheTime: number;
   cache: string;
@@ -131,30 +131,35 @@ export class Sitemap {
     return this.cache;
   }
 
+  private _normalizeURL(url: string | SitemapItemOptions): SitemapItemOptions {
+    return Sitemap.normalizeURL(url, this.root, this.hostname)
+  }
+
   /**
    *  Add url to sitemap
    *  @param {String} url
    */
   add (url: string | SitemapItemOptions): number {
-    return this.urls.push(Sitemap.normalizeURL(url, this.root, this.hostname));
+    const smi = this._normalizeURL(url)
+    return this.urls.set(smi.url, smi).size;
+  }
+
+  contains (url: string | SitemapItemOptions): boolean {
+    return this.urls.has(this._normalizeURL(url).url)
   }
 
   /**
    *  Delete url from sitemap
-   *  @param {String} url
+   *  @param {String | SitemapItemOptions} url
+   *  @returns boolean whether the item was removed
    */
-  del (url: string | SitemapItemOptions): number {
-    let key = Sitemap.normalizeURL(url, this.root, this.hostname).url
+  del (url: string | SitemapItemOptions): boolean {
 
-    let originalLength = this.urls.length
-    this.urls = this.urls.filter((u): boolean => u.url !== key)
-
-    return originalLength - this.urls.length;
+    return this.urls.delete(this._normalizeURL(url).url)
   }
 
   /**
-   *  Create sitemap xml
-   *  @param {Function}     callback  Callback function with one argument — xml
+   *  Alias for toString
    */
   toXML (): string {
     return this.toString();
@@ -192,8 +197,13 @@ export class Sitemap {
     return smi
   }
 
-  static normalizeURLs (urls: (string | SitemapItemOptions)[], root: XMLElement, hostname?: string): SitemapItemOptions[] {
-    return urls.map((elem): SitemapItemOptions => Sitemap.normalizeURL(elem, root, hostname))
+  static normalizeURLs (urls: (string | SitemapItemOptions)[], root: XMLElement, hostname?: string): Map<string, SitemapItemOptions> {
+    const urlMap = new Map<string, SitemapItemOptions>()
+    urls.forEach((elem): void => {
+      const smio = Sitemap.normalizeURL(elem, root, hostname)
+      urlMap.set(smio.url, smio)
+    })
+    return urlMap
   }
 
   /**
@@ -223,9 +233,9 @@ export class Sitemap {
 
     // TODO: if size > limit: create sitemapindex
 
-    this.urls.forEach((smi): XMLElement =>
+    for (let [, smi] of this.urls) {
       (new SitemapItem(smi)).buildXML()
-    );
+    }
 
     return this.setCache(this.root.end())
   }
