@@ -89,6 +89,12 @@ export interface ILinkItem {
   url: string;
 }
 
+export interface SitemapIndexItemOptions {
+  url: string;
+  lastmod?: string;
+  lastmodISO?: string;
+}
+
 export interface SitemapItemOptions {
   safe?: boolean;
   lastmodfile?: any;

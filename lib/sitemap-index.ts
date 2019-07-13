@@ -1,7 +1,7 @@
 import { statSync, createWriteStream } from 'fs';
 import { create } from 'xmlbuilder';
 import { Sitemap, createSitemap } from './sitemap'
-import { ICallback } from './types';
+import { ICallback, SitemapIndexItemOptions, SitemapItemOptions } from './types';
 import { UndefinedTargetFolder } from './errors';
 /* eslint-disable @typescript-eslint/no-var-requires */
 const chunk = require('lodash.chunk');
@@ -52,7 +52,7 @@ export function createSitemapIndex (conf: {
  * @return  {String}    XML String of SitemapIndex
  */
 export function buildSitemapIndex (conf: {
-  urls: Sitemap["urls"];
+  urls: (SitemapIndexItemOptions|string)[];
   xslUrl?: string;
   xmlNs?: string;
 
@@ -130,7 +130,7 @@ class SitemapIndex {
    * @param {Function}      callback      optional
    */
   constructor (
-    public urls: Sitemap["urls"] = [],
+    public urls: (string|SitemapItemOptions)[] = [],
     public targetFolder = '.',
     public hostname?: string,
     cacheTime?: number,
@@ -158,16 +158,11 @@ class SitemapIndex {
       throw new UndefinedTargetFolder();
     }
 
-    // URL list for sitemap
-    if (!Array.isArray(this.urls)) {
-      this.urls = [this.urls]
-    }
-
-    this.chunks = chunk(this.urls, this.sitemapSize);
+    this.chunks = chunk(urls, this.sitemapSize);
 
     let processesCount = this.chunks.length + 1;
 
-    this.chunks.forEach((chunk: Sitemap["urls"], index: number): void => {
+    this.chunks.forEach((chunk: (string|SitemapItemOptions)[], index: number): void => {
       const extension = '.xml' + (gzip ? '.gz' : '');
       const filename = this.sitemapName + '-' + this.sitemapId++ + extension;
 

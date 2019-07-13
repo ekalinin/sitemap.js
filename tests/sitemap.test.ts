@@ -425,7 +425,7 @@ describe('sitemap', () => {
     const smap = createSitemap({
       hostname: 'http://test.com',
       urls: [
-        { url: 'http://ya.ru/page-1/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 },
+        { url: '/page-1/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 },
         { url: 'https://ya.ru/page-2/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 }
       ]
     })
@@ -437,7 +437,7 @@ describe('sitemap', () => {
                     '<priority>0.3</priority>' +
                 '</url>' +
               '</urlset>'
-    smap.del('http://ya.ru/page-1/')
+    smap.del('/page-1/')
 
     expect(smap.toString()).toBe(xml)
   })
@@ -463,13 +463,22 @@ describe('sitemap', () => {
   })
   it('test for #27', () => {
     var staticUrls = ['/', '/terms', '/login']
-    var sitemap = createSitemap({ urls: staticUrls })
+    var sitemap = createSitemap({ urls: staticUrls, hostname: 'http://example.com' })
     sitemap.add({ url: '/details/' + 'url1' })
 
-    var sitemap2 = createSitemap({ urls: staticUrls })
+    var sitemap2 = createSitemap({ urls: staticUrls, hostname: 'http://example.com'})
 
-    expect(sitemap.urls).toEqual(['/', '/terms', '/login', { url: '/details/url1' }])
-    expect(sitemap2.urls).toEqual(['/', '/terms', '/login'])
+    expect(sitemap.urls).toEqual([
+      expect.objectContaining({url: 'http://example.com/'}),
+      expect.objectContaining({url: 'http://example.com/terms'}),
+      expect.objectContaining({url: 'http://example.com/login'}),
+      expect.objectContaining({ url: 'http://example.com/details/url1' })
+    ])
+    expect(sitemap2.urls).toEqual([
+      expect.objectContaining({url: 'http://example.com/'}),
+      expect.objectContaining({url: 'http://example.com/terms'}),
+      expect.objectContaining({url: 'http://example.com/login'})
+    ])
   })
   it('sitemap: langs', () => {
     var smap = createSitemap({
@@ -689,7 +698,7 @@ describe('sitemap', () => {
       ]
     })
 
-    smap.urls.push({ url: '/index2.html', img: [{ url: '/image3.jpg', caption: 'Test Caption 3' }] })
+    smap.add({ url: '/index2.html', img: [{ url: '/image3.jpg', caption: 'Test Caption 3' }] })
 
     expect(smap.toString()).toBe(
       xmlDef +
