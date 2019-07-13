@@ -7,7 +7,7 @@
 import { create, XMLElement } from 'xmlbuilder';
 import { SitemapItem } from './sitemap-item';
 import { Profiler } from 'inspector';
-import { ICallback, SitemapItemOptions } from './types';
+import { SitemapItemOptions, ISitemapImg, ILinkItem } from './types';
 import { gzip, gzipSync, CompressCallback } from 'zlib';
 // remove once we drop node 8
 import { URL } from 'whatwg-url'
@@ -30,7 +30,7 @@ export function createSitemap({
   xslUrl,
   xmlNs
 }: {
-  urls?: Sitemap["urls"];
+  urls?: (SitemapItemOptions|string)[];
   hostname?: string;
   cacheTime?: number;
   xslUrl?: string;
@@ -53,7 +53,7 @@ export class Sitemap {
   limit = 5000
   xmlNs = ''
   cacheSetTimestamp = 0;
-  urls: (string | SitemapItemOptions)[]
+  private urls: SitemapItemOptions[]
 
   cacheTime: number;
   cache: string;
@@ -76,7 +76,7 @@ export class Sitemap {
     xslUrl,
     xmlNs
   }: {
-    urls?: Sitemap["urls"];
+    urls?: (SitemapItemOptions|string)[];
     hostname?: string;
     cacheTime?: number;
     xslUrl?: string;
@@ -93,9 +93,6 @@ export class Sitemap {
 
     this.xslUrl = xslUrl;
 
-    // Make copy of object
-    this.urls = Array.from(urls);
-
     this.root = create('urlset', {encoding: 'UTF-8'})
     if (xmlNs) {
       this.xmlNs = xmlNs;
@@ -105,6 +102,8 @@ export class Sitemap {
         this.root.attribute(k, v.replace(/^['"]|['"]$/g, ''))
       }
     }
+
+    this.urls = Sitemap.normalizeURLs(Array.from(urls), this.root, this.hostname)
   }
 
   /**
@@ -137,7 +136,7 @@ export class Sitemap {
    *  @param {String} url
    */
   add (url: string | SitemapItemOptions): number {
-    return this.urls.push(url);
+    return this.urls.push(Sitemap.normalizeURL(url, this.root, this.hostname));
   }
 
   /**
@@ -145,20 +144,10 @@ export class Sitemap {
    *  @param {String} url
    */
   del (url: string | SitemapItemOptions): number {
-    let key = url
-
-    if (typeof url !== 'string') {
-      key = url.url;
-    }
+    let key = Sitemap.normalizeURL(url, this.root, this.hostname).url
 
     let originalLength = this.urls.length
-    this.urls = this.urls.filter((u): boolean => {
-      if (typeof u === 'string') {
-        return u !== key
-      } else {
-        return u.url !== key
-      }
-    })
+    this.urls = this.urls.filter((u): boolean => u.url !== key)
 
     return originalLength - this.urls.length;
   }
@@ -169,6 +158,42 @@ export class Sitemap {
    */
   toXML (): string {
     return this.toString();
+  }
+
+  static normalizeURL (elem: string | SitemapItemOptions, root: XMLElement, hostname?: string): SitemapItemOptions {
+    // SitemapItem
+    // create object with url property
+    const smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root} : {root, ...elem}
+    let img: ISitemapImg[] = []
+    if (smi.img) {
+      if (typeof smi.img === 'string') {
+        // string -> array of objects
+        smi.img = [{ url: smi.img }];
+      } else if (!Array.isArray(smi.img)) {
+        // object -> array of objects
+        smi.img = [smi.img];
+      }
+
+      img = smi.img.map((el): ISitemapImg => typeof el === 'string' ? {url: el} : el);
+    }
+    smi.url = (new URL(smi.url, hostname)).toString();
+    // prepend hostname to all image urls
+    smi.img = img.map((el: ISitemapImg): ISitemapImg => (
+      {...el, url: (new URL(el.url, hostname)).toString()}
+    ));
+
+    let links: ILinkItem[] = []
+    if (smi.links) {
+      links = smi.links
+    }
+    smi.links = links.map((link): ILinkItem => {
+      return {...link, url: (new URL(link.url, hostname)).toString()};
+    });
+    return smi
+  }
+
+  static normalizeURLs (urls: (string | SitemapItemOptions)[], root: XMLElement, hostname?: string): SitemapItemOptions[] {
+    return urls.map((elem): SitemapItemOptions => Sitemap.normalizeURL(elem, root, hostname))
   }
 
   /**
@@ -198,41 +223,9 @@ export class Sitemap {
 
     // TODO: if size > limit: create sitemapindex
 
-    this.urls.forEach((elem, index): void => {
-      // SitemapItem
-      // create object with url property
-      const smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root: this.root} : Object.assign({root: this.root}, elem)
-
-      // insert domain name
-      if (this.hostname) {
-        smi.url = (new URL(smi.url, this.hostname)).toString();
-        if (smi.img) {
-          if (typeof smi.img === 'string') {
-            // string -> array of objects
-            smi.img = [{ url: smi.img }];
-          } else if (!Array.isArray(smi.img)) {
-            // object -> array of objects
-            smi.img = [smi.img];
-          }
-          // prepend hostname to all image urls
-          smi.img.forEach((img): void => {
-            if (typeof img === 'string') {
-              img = {url: img}
-            }
-            img.url = (new URL(img.url, this.hostname)).toString();
-          });
-        }
-        if (smi.links) {
-          smi.links.forEach((link): void => {
-            link.url = (new URL(link.url, this.hostname)).toString();
-          });
-        }
-      } else {
-        smi.url = (new URL(smi.url)).toString();
-      }
-      const sitemapItem = new SitemapItem(smi)
-      sitemapItem.buildXML()
-    });
+    this.urls.forEach((smi): XMLElement =>
+      (new SitemapItem(smi)).buildXML()
+    );
 
     return this.setCache(this.root.end())
   }
