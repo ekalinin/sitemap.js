@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.google.com/schemas/sitemap-image/1.1"
+    xmlns="http://www.google.com/schemas/sitemap-image/1.1"
+    elementFormDefault="qualified">
+
+<xsd:annotation>
+  <xsd:documentation>
+    XML Schema for the Image Sitemap extension. This schema defines the
+    Image-specific elements only; the core Sitemap elements are defined
+    separately.
+
+    Help Center documentation for the Image Sitemap extension:
+
+      http://www.google.com/support/webmasters/bin/answer.py?answer=178636
+
+    Copyright 2010 Google Inc. All Rights Reserved.
+  </xsd:documentation>
+</xsd:annotation>
+
+<xsd:element name="image">
+  <xsd:annotation>
+    <xsd:documentation>
+      Encloses all information about a single image. Each URL (&lt;loc&gt; tag)
+      can include up to 1,000 &lt;image:image&gt; tags.
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:complexType>
+    <xsd:sequence>
+      <xsd:element name="loc" type="xsd:anyURI">
+        <xsd:annotation>
+          <xsd:documentation>
+            The URL of the image.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="caption" type="xsd:string" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            The caption of the image.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="geo_location" type="xsd:string" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            The geographic location of the image. For example,
+            "Limerick, Ireland".
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="title" type="xsd:string" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            The title of the image.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="license" type="xsd:anyURI" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            A URL to the license of the image.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:element>
+
+</xsd:schema>

@@ -1,6 +1,6 @@
 {
   "name": "sitemap",
-  "version": "3.2.0",
+  "version": "3.2.2",
   "description": "Sitemap-generating framework",
   "keywords": [
     "sitemap",
@@ -25,8 +25,9 @@
   },
   "scripts": {
     "prepublishOnly": "sort-package-json && npm run test",
-    "test": "tsc && jest",
+    "test": "tsc && jest && npm run test:schema",
     "test-perf": "node ./tests/perf.js",
+    "test:schema": "node tests/alltags.js | xmllint --schema tests/all.xsd --noout -",
     "test:typecheck": "tsc"
   },
   "husky": {
@@ -91,9 +92,6 @@
   },
   "dependencies": {
     "arg": "^4.1.0",
-    "lodash.chunk": "^4.2.0",
-    "lodash.padstart": "^4.6.1",
-    "whatwg-url": "^7.0.0",
     "xmlbuilder": "^13.0.0"
   },
   "devDependencies": {
@@ -103,16 +101,11 @@
     "@babel/preset-env": "^7.4.4",
     "@babel/preset-typescript": "^7.3.3",
     "@types/jest": "^24.0.12",
-    "@types/lodash.chunk": "^4.2.6",
-    "@types/lodash.padstart": "^4.6.6",
     "@types/node": "^12.0.2",
-    "@types/url-join": "^4.0.0",
-    "@types/whatwg-url": "^6.4.0",
     "@typescript-eslint/eslint-plugin": "^1.9.0",
     "@typescript-eslint/parser": "^1.9.0",
     "babel-eslint": "^10.0.1",
     "babel-polyfill": "^6.26.0",
-    "babel-preset-minify": "^0.5.0",
     "eslint": "^5.0.0",
     "husky": "^3.0.0",
     "jasmine": "^3.4.0",
@@ -123,8 +116,8 @@
     "typescript": "^3.4.5"
   },
   "engines": {
-    "node": ">=6.0.0",
-    "npm": ">=4.0.0"
+    "node": ">=8.9.0",
+    "npm": ">=5.6.0"
   },
   "License": "MIT"
 }
