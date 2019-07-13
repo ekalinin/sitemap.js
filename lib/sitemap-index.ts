@@ -115,7 +115,7 @@ class SitemapIndex {
   sitemapId: number
   sitemaps: string[]
 
-  chunks: Sitemap["urls"][]
+  chunks: (string|SitemapItemOptions)[][]
   cacheTime?: number
 
   /**

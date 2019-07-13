@@ -22,10 +22,8 @@ const xmlPriority = '<priority>0.9</priority>'
 const xmlLoc = '<loc>http://ya.ru/</loc>'
 
 describe('sitemap', () => {
-  it('sitemap empty urls', () => {
-    const smEmpty = new Sitemap()
-
-    expect(smEmpty.urls).toEqual([])
+  it('can be instantiated without options', () => {
+    expect(() => (new Sitemap())).not.toThrow()
   })
 
   it('simple sitemap', () => {
@@ -468,17 +466,14 @@ describe('sitemap', () => {
 
     var sitemap2 = createSitemap({ urls: staticUrls, hostname: 'http://example.com'})
 
-    expect(sitemap.urls).toEqual([
-      expect.objectContaining({url: 'http://example.com/'}),
-      expect.objectContaining({url: 'http://example.com/terms'}),
-      expect.objectContaining({url: 'http://example.com/login'}),
-      expect.objectContaining({ url: 'http://example.com/details/url1' })
-    ])
-    expect(sitemap2.urls).toEqual([
-      expect.objectContaining({url: 'http://example.com/'}),
-      expect.objectContaining({url: 'http://example.com/terms'}),
-      expect.objectContaining({url: 'http://example.com/login'})
-    ])
+    expect(sitemap.contains({url: 'http://example.com/'})).toBeTruthy()
+    expect(sitemap.contains({url: 'http://example.com/terms'})).toBeTruthy()
+    expect(sitemap.contains({url: 'http://example.com/login'})).toBeTruthy()
+    expect(sitemap.contains({url: 'http://example.com/details/url1'})).toBeTruthy()
+    expect(sitemap2.contains({url: 'http://example.com/'})).toBeTruthy()
+    expect(sitemap2.contains({url: 'http://example.com/terms'})).toBeTruthy()
+    expect(sitemap2.contains({url: 'http://example.com/login'})).toBeTruthy()
+    expect(sitemap2.contains({url: 'http://example.com/details/url1'})).toBeFalsy()
   })
   it('sitemap: langs', () => {
     var smap = createSitemap({
@@ -594,7 +589,7 @@ describe('sitemap', () => {
         { url: 'http://test.com/page-1/',
           changefreq: EnumChangefreq.WEEKLY,
           priority: 0.3,
-          expires: new Date('2016-09-13') }
+          expires: new Date('2016-09-13').toString() }
       ]
     })
     expect(smap.toString()).toBe(
