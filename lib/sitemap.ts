@@ -9,8 +9,7 @@ import { create, XMLElement } from 'xmlbuilder';
 import SitemapItem from './sitemap-item';
 import { ICallback, SitemapItemOptions } from './types';
 import { gzip, gzipSync, CompressCallback } from 'zlib';
-// remove once we drop node 8
-import { URL } from 'whatwg-url'
+import { URL } from 'url'
 
 export { errors };
 export * from './sitemap-index'
