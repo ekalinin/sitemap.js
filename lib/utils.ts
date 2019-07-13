@@ -3,19 +3,20 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-/* eslint-disable @typescript-eslint/no-var-requires */
-const padStart = require('lodash.padstart');
+function padDateComponent(component: number): string {
+  return String(component).padStart(2, '0');
+}
 
 export function getTimestampFromDate (dt: Date, bRealtime?: boolean): string {
-  let timestamp = [dt.getUTCFullYear(), padStart((dt.getUTCMonth() + 1) as any, 2, '0'),
-    padStart(dt.getUTCDate() as any, 2, '0')].join('-');
+  let timestamp = [dt.getUTCFullYear(), padDateComponent(dt.getUTCMonth() + 1),
+    padDateComponent(dt.getUTCDate())].join('-');
 
   // Indicate that lastmod should include minutes and seconds (and timezone)
   if (bRealtime && bRealtime === true) {
     timestamp += 'T';
-    timestamp += [padStart(dt.getUTCHours() as any, 2, '0'),
-      padStart(dt.getUTCMinutes() as any, 2, '0'),
-      padStart(dt.getUTCSeconds() as any, 2, '0')
+    timestamp += [padDateComponent(dt.getUTCHours()),
+      padDateComponent(dt.getUTCMinutes()),
+      padDateComponent(dt.getUTCSeconds())
     ].join(':');
     timestamp += 'Z';
   }

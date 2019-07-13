@@ -90,7 +90,6 @@
   },
   "dependencies": {
     "lodash.chunk": "^4.2.0",
-    "lodash.padstart": "^4.6.1",
     "whatwg-url": "^7.0.0",
     "xmlbuilder": "^13.0.0"
   },
@@ -102,7 +101,6 @@
     "@babel/preset-typescript": "^7.3.3",
     "@types/jest": "^24.0.12",
     "@types/lodash.chunk": "^4.2.6",
-    "@types/lodash.padstart": "^4.6.6",
     "@types/node": "^12.0.2",
     "@types/url-join": "^4.0.0",
     "@types/whatwg-url": "^6.4.0",
@@ -122,7 +120,7 @@
   },
   "engines": {
     "node": ">=8.9.0",
-    "npm": ">=4.0.0"
+    "npm": ">=5.6.0"
   },
   "License": "MIT"
 }
