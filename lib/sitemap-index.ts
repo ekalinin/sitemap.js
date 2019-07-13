@@ -1,5 +1,5 @@
 import { statSync, createWriteStream } from 'fs';
-import { create, XMLElement } from 'xmlbuilder';
+import { create } from 'xmlbuilder';
 import { Sitemap, createSitemap } from './sitemap'
 import { ICallback } from './types';
 import { UndefinedTargetFolder } from './errors';
