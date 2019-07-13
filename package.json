@@ -24,7 +24,8 @@
   },
   "scripts": {
     "prepublishOnly": "sort-package-json && npm run test",
-    "test": "tsc && jest",
+    "test": "tsc && jest && npm run test:schema",
+    "test:schema": "node tests/alltags.js | xmllint --schema tests/all.xsd --noout -",
     "test-perf": "node ./tests/perf.js",
     "test:typecheck": "tsc"
   },

@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.google.com/schemas/sitemap-video/1.1"
+    xmlns="http://www.google.com/schemas/sitemap-video/1.1"
+    elementFormDefault="qualified">
+
+<xsd:annotation>
+  <xsd:documentation>
+    XML Schema for the Video Sitemap extension. This schema defines the
+    Video-specific elements only; the core Sitemap elements are defined
+    separately.
+
+    Help Center documentation for the Video Sitemap extension:
+
+      http://www.google.com/support/webmasters/bin/topic.py?topic=10079
+
+    Copyright 2010 Google Inc. All Rights Reserved.
+  </xsd:documentation>
+</xsd:annotation>
+
+<xsd:simpleType name="tYesNo">
+  <xsd:annotation>
+    <xsd:documentation>
+      A value that can be yes or no. Permitted cases are all-lowercase (yes/no),
+      all-uppercase (YES/NO) or starting with capital (Yes/No).
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:restriction base="xsd:string">
+    <xsd:enumeration value="yes"/>
+    <xsd:enumeration value="Yes"/>
+    <xsd:enumeration value="YES"/>
+    <xsd:enumeration value="no"/>
+    <xsd:enumeration value="No"/>
+    <xsd:enumeration value="NO"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="tCountryList">
+  <xsd:annotation>
+    <xsd:documentation>
+      Space-separated country codes in ISO 3166 format.
+
+      Country codes:
+      http://www.iso.org/iso/english_country_names_and_code_elements
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:restriction base="xsd:string">
+    <xsd:pattern value="([A-Z]{2}( +[A-Z]{2})*)?"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:simpleType name="tPlatformList">
+  <xsd:annotation>
+    <xsd:documentation>
+      Space-separated platform names.
+
+      Platform names:
+      web - desktop and laptop browsers.
+      mobile - mobile devices such as phones and tablets.
+      tv - tv platforms such as GoogleTV.
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:restriction base="xsd:string">
+    <xsd:pattern value="((web|mobile|tv)( (web|mobile|tv))*)?"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
+<xsd:element name="video">
+  <xsd:complexType>
+    <xsd:sequence>
+      <xsd:element name="thumbnail_loc" type="xsd:anyURI">
+        <xsd:annotation>
+          <xsd:documentation>
+            A URL pointing to the URL for the video thumbnail image file. We can
+            accept most image sizes/types but recommend your thumbnails are at
+            least 120x90 pixels in .jpg, .png, or. gif formats.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="title">
+        <xsd:annotation>
+          <xsd:documentation>
+            The title of the video.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="100"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+
+      <xsd:element name="description">
+        <xsd:annotation>
+          <xsd:documentation>
+            The description of the video.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="2048"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+
+      <xsd:element name="content_loc" minOccurs="0" type="xsd:anyURI">
+        <xsd:annotation>
+          <xsd:documentation>
+            At least one of &lt;video:player_loc&gt; and
+            &lt;video:content_loc&gt; is required.
+
+            This should be a .mpg, .mpeg, .mp4, .m4v, .mov, .wmv, .asf, .avi,
+            .ra, .ram, .rm, .flv, or other video file format, and can be omitted
+            if &lt;video:player_loc&gt; is specified. However, because Google
+            needs to be able to check that the Flash object is actually a player
+            for video (as opposed to some other use of Flash, e.g. games and
+            animations), it's helpful to provide both.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="player_loc" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            At least one of &lt;video:player_loc&gt; and
+            &lt;video:content_loc&gt; is required.
+
+            A URL pointing to a Flash player for a specific video. In general,
+            this is the information in the src element of an &lt;embed&gt; tag
+            and should not be the same as the content of the &lt;loc&gt; tag.
+            ​Since each video is uniquely identified by its content URL (the
+            location of the actual video file) or, if a content URL is not
+            present, a player URL (a URL pointing to a player for the video),
+            you must include either the &lt;video:player_loc&gt; or
+            &lt;video:content_loc&gt; tags. If these tags are omitted and we
+            can't find this information, we'll be unable to index your video.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:simpleContent>
+            <xsd:extension base="xsd:anyURI">
+              <xsd:attribute name="allow_embed" type="tYesNo">
+                <xsd:annotation>
+                  <xsd:documentation>
+                    Attribute allow_embed specifies whether Google can embed the
+                    video in search results. Allowed values are "Yes" or "No".
+                    The default value is "Yes".
+                  </xsd:documentation>
+                </xsd:annotation>
+              </xsd:attribute>
+              <xsd:attribute name="autoplay" type="xsd:string">
+                <xsd:annotation>
+                  <xsd:documentation>
+                    User-defined string that Google may append (if appropriate)
+                    to the flashvars parameter to enable autoplay of the video.
+                  </xsd:documentation>
+                </xsd:annotation>
+              </xsd:attribute>
+            </xsd:extension>
+          </xsd:simpleContent>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="duration" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            The duration of the video in seconds.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:nonNegativeInteger">
+            <xsd:maxInclusive value="28800"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+
+      <xsd:element name="expiration_date" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            The date after which the video will no longer be available, in
+            W3C format. Acceptable values are complete date (YYYY-MM-DD) and
+            complete date plus hours, minutes and seconds, and timezone
+            (YYYY-MM-DDThh:mm:ss+TZD). For example, 2007-07-16T19:20:30+08:00.
+            Don't supply this information if your video does not expire.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+          <xsd:union>
+            <xsd:simpleType>
+              <xsd:restriction base="xsd:date"/>
+            </xsd:simpleType>
+            <xsd:simpleType>
+              <xsd:restriction base="xsd:dateTime"/>
+            </xsd:simpleType>
+          </xsd:union>
+        </xsd:simpleType>
+      </xsd:element>
+
+      <xsd:element name="rating" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            The rating of the video.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:decimal">
+            <xsd:minInclusive value="0"/>
+            <xsd:maxInclusive value="5"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+
+      <xsd:element name="content_segment_loc"
+          minOccurs="0"
+          maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+            Use &lt;video:content_segment_loc&gt; only in conjunction with
+            &lt;video:player_loc&gt;.
+
+            If you publish your video as a series of raw videos (for example, if
+            you submit a full movie as a continuous series of shorter clips),
+            you can use the &lt;video:content_segment_loc&gt; to supply us with
+            a series of URLs, in the order in which they should be concatenated
+            to recreate the video in its entirety. Each URL should point to a
+            .mpg, .mpeg, .mp4, .m4v, .mov, .wmv, .asf, .avi, .ra, .ram, .rm,
+            .flv, or other video file format. It should not point to any Flash
+            content.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:simpleContent>
+            <xsd:extension base="xsd:anyURI">
+              <xsd:attribute name="duration">
+                <xsd:annotation>
+                  <xsd:documentation>
+                    The duration of the clip in seconds.
+                  </xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                  <xsd:restriction base="xsd:nonNegativeInteger">
+                    <xsd:maxInclusive value="28800"/>
+                  </xsd:restriction>
+                </xsd:simpleType>
+              </xsd:attribute>
+            </xsd:extension>
+          </xsd:simpleContent>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="view_count"
+          minOccurs="0"
+          type="xsd:nonNegativeInteger">
+        <xsd:annotation>
+          <xsd:documentation>
+            The number of times the video has been viewed.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="publication_date" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            The date the video was first published, in W3C format. Acceptable
+            values are complete date (YYYY-MM-DD) and complete date plus hours,
+            minutes and seconds, and timezone (YYYY-MM-DDThh:mm:ss+TZD).
+            For example, 2007-07-16T19:20:30+08:00.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+          <xsd:union>
+            <xsd:simpleType>
+              <xsd:restriction base="xsd:date"/>
+            </xsd:simpleType>
+            <xsd:simpleType>
+              <xsd:restriction base="xsd:dateTime"/>
+            </xsd:simpleType>
+          </xsd:union>
+        </xsd:simpleType>
+      </xsd:element>
+
+      <xsd:element name="tag" type="xsd:string" minOccurs="0" maxOccurs="32">
+        <xsd:annotation>
+          <xsd:documentation>
+            A tag associated with the video. Tags are generally very short
+            descriptions of key concepts associated with a video or piece of
+            content. A single video could have several tags, although it might
+            belong to only one category. For example, a video about grilling
+            food may belong in the Grilling category, but could be tagged
+            "steak", "meat", "summer", and "outdoor". Create a new
+            &lt;video:tag&gt; element for each tag associated with a video.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="category" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            The video's category - for example, cooking. In general, categories
+            are broad groupings of content by subject. For example, a site about
+            cooking could have categories for Broiling, Baking, and Grilling.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="256"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+
+      <xsd:element name="family_friendly" minOccurs="0" type="tYesNo">
+        <xsd:annotation>
+          <xsd:documentation>
+            Whether the video is suitable for viewing by children. No if the
+            video should be available only to users with SafeSearch turned off.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="restriction" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            A list of countries where the video may or may not be played.
+            If there is no &lt;video:restriction&gt; tag, it is assumed that
+            the video can be played in all territories.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:simpleContent>
+            <xsd:extension base="tCountryList">
+              <xsd:attribute name="relationship" use="required">
+                <xsd:annotation>
+                  <xsd:documentation>
+                    Attribute "relationship" specifies whether the video is
+                    restricted or permitted for the specified countries.
+                  </xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                  <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="allow"/>
+                    <xsd:enumeration value="deny"/>
+                  </xsd:restriction>
+                </xsd:simpleType>
+              </xsd:attribute>
+            </xsd:extension>
+          </xsd:simpleContent>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="gallery_loc" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            A link to the gallery (collection of videos) in which this video
+            appears.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:simpleContent>
+            <xsd:extension base="xsd:anyURI">
+              <xsd:attribute name="title" type="xsd:string">
+                <xsd:annotation>
+                  <xsd:documentation>
+                    The title of the gallery.
+                  </xsd:documentation>
+                </xsd:annotation>
+              </xsd:attribute>
+            </xsd:extension>
+          </xsd:simpleContent>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="price" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+            The price to download or view the video. More than one
+            &lt;video:price&gt; element can be listed (for example, in order to
+            specify various currencies). The price value must either be a
+            non-negative decimal or be empty. If a price value is specified, the
+            currency attribute is required. If no price value is specified, the
+            type attribute must be valid and present. The resolution attribute
+            is optional.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+              <xsd:attribute name="currency">
+                <xsd:annotation>
+                  <xsd:documentation>
+                    The currency in ISO 4217 format. This attribute is required
+                    if a value is given for price.
+                  </xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                  <xsd:restriction base="xsd:string">
+                    <xsd:pattern value="[A-Z]{3}"/>
+                  </xsd:restriction>
+                </xsd:simpleType>
+              </xsd:attribute>
+              <xsd:attribute name="type">
+                <xsd:annotation>
+                  <xsd:documentation>
+                    The type (purchase or rent) of price. This value is required
+                    if there is no value given for price.
+                  </xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                  <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="purchase"/>
+                    <xsd:enumeration value="PURCHASE"/>
+                    <xsd:enumeration value="rent"/>
+                    <xsd:enumeration value="RENT"/>
+                  </xsd:restriction>
+                </xsd:simpleType>
+              </xsd:attribute>
+              <xsd:attribute name="resolution">
+                <xsd:annotation>
+                  <xsd:documentation>
+                    The resolution of the video at this price (SD or HD).
+                  </xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                  <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="sd"/>
+                    <xsd:enumeration value="SD"/>
+                    <xsd:enumeration value="hd"/>
+                    <xsd:enumeration value="HD"/>
+                  </xsd:restriction>
+                </xsd:simpleType>
+              </xsd:attribute>
+            </xsd:extension>
+          </xsd:simpleContent>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="requires_subscription" minOccurs="0" type="tYesNo">
+        <xsd:annotation>
+          <xsd:documentation>
+            Indicates whether a subscription (either paid or free) is required
+            to view the video.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="uploader" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            A name or handle of the video’s uploader.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+              <xsd:attribute name="info" type="xsd:anyURI">
+                <xsd:annotation>
+                  <xsd:documentation>
+                    The URL of a webpage with additional information about this
+                    uploader. This URL must be on the same domain as the
+                    &lt;loc&gt; tag.
+                  </xsd:documentation>
+                </xsd:annotation>
+              </xsd:attribute>
+            </xsd:extension>
+          </xsd:simpleContent>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="tvshow" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            Encloses all information about a single TV video.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="show_title" type="xsd:string">
+              <xsd:annotation>
+                <xsd:documentation>
+                  The title of the TV show. This should be the same for all
+                  episodes from the same series.
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="video_type">
+              <xsd:annotation>
+                <xsd:documentation>
+                  Describes the relationship of the video to the specified
+                  TV show/episode.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                  <!-- Complete episode -->
+                  <xsd:enumeration value="full"/>
+                  <!-- Episode promo -->
+                  <xsd:enumeration value="preview"/>
+                  <!-- Episode clip -->
+                  <xsd:enumeration value="clip"/>
+                  <!-- Interview -->
+                  <xsd:enumeration value="interview"/>
+                  <!-- News related to the content -->
+                  <xsd:enumeration value="news"/>
+                  <!-- If none of the above options accurately describe
+                       the relationship -->
+                  <xsd:enumeration value="other"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="episode_title" type="xsd:string" minOccurs="0">
+              <xsd:annotation>
+                <xsd:documentation>
+                  The title of the episode—for example, "Flesh and Bone" is the
+                  title of the Season 1, Episode 8 episode of Battlestar
+                  Galactica. This tag is not necessary if the video is not
+                  related to a specific episode (for example, if it's a trailer
+                  for an entire series or season).
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="season_number" minOccurs="0">
+              <xsd:annotation>
+                <xsd:documentation>
+                  Only for shows with a per-season schedule.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                  <xsd:minInclusive value="1"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="episode_number" minOccurs="0">
+              <xsd:annotation>
+                <xsd:documentation>
+                  The episode number in number format. For TV shoes with a
+                  per-season schedule, the first episode of each series should
+                  be numbered 1.
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                  <xsd:minInclusive value="1"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="premier_date" minOccurs="0">
+              <xsd:annotation>
+                <xsd:documentation>
+                  The date the content of the video was first broadcast, in
+                  W3C format (for example, 2010-11-05.)
+                </xsd:documentation>
+              </xsd:annotation>
+              <xsd:simpleType>
+                <xsd:union>
+                  <xsd:simpleType>
+                    <xsd:restriction base="xsd:date"/>
+                  </xsd:simpleType>
+                  <xsd:simpleType>
+                    <xsd:restriction base="xsd:dateTime"/>
+                  </xsd:simpleType>
+                </xsd:union>
+              </xsd:simpleType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="platform" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation>
+            A list of platforms where the video may or may not be played.
+            If there is no &lt;video:platform&gt; tag, it is assumed that
+            the video can be played on all platforms.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:simpleContent>
+            <xsd:extension base="tPlatformList">
+              <xsd:attribute name="relationship" use="required">
+                <xsd:annotation>
+                  <xsd:documentation>
+                    Attribute "relationship" specifies whether the video is
+                    restricted or permitted for the specified platforms.
+                  </xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                  <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="allow"/>
+                    <xsd:enumeration value="deny"/>
+                  </xsd:restriction>
+                </xsd:simpleType>
+              </xsd:attribute>
+            </xsd:extension>
+          </xsd:simpleContent>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="live" minOccurs="0" type="tYesNo">
+        <xsd:annotation>
+          <xsd:documentation>
+            Whether the video is a live internet broadcast.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+
+      <xsd:element name="id" minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation>
+          <xsd:documentation>
+            An unambiguous identifier for the video within a given
+            identification context.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+          <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+              <xsd:attribute name="type" use="required">
+                <xsd:annotation>
+                  <xsd:documentation>
+                    The identification context.
+                  </xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                  <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="tms:series"/>
+                    <xsd:enumeration value="tms:program"/>
+                    <xsd:enumeration value="rovi:series"/>
+                    <xsd:enumeration value="rovi:program"/>
+                    <xsd:enumeration value="freebase"/>
+                    <xsd:enumeration value="url"/>
+                  </xsd:restriction>
+                </xsd:simpleType>
+              </xsd:attribute>
+            </xsd:extension>
+          </xsd:simpleContent>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:element>
+
+</xsd:schema>
