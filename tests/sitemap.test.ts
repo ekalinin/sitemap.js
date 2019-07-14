@@ -167,7 +167,7 @@ describe('sitemap', () => {
             'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
             'duration': 174,
             'publication_date': '2008-07-29T14:58:04.000Z',
-            'requires_subscription': EnumYesNo.YES
+            'requires_subscription': EnumYesNo.yes
           }]
         }
       ]
@@ -730,7 +730,7 @@ describe('sitemap', () => {
             'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg?a&b',
             'duration': 174,
             'publication_date': '2008-07-29T14:58:04.000Z',
-            'requires_subscription': EnumYesNo.NO
+            'requires_subscription': EnumYesNo.no
           }]
         }
       ]

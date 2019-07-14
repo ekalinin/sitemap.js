@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.google.com/schemas/sitemap-mobile/1.0"
+    xmlns="http://www.google.com/schemas/sitemap-mobile/1.0"
+    elementFormDefault="qualified">
+
+<xsd:annotation>
+  <xsd:documentation>
+    XML Schema for the Mobile Sitemap extension. This schema defines the
+    Mobile-specific elements only; the core Sitemap elements are defined
+    separately.
+
+    Help Center documentation for the Mobile Sitemap extension:
+
+      http://www.google.com/support/webmasters/bin/topic.py?topic=8493
+
+    Copyright 2010 Google Inc. All Rights Reserved.
+  </xsd:documentation>
+</xsd:annotation>
+
+<xsd:element name="mobile">
+  <xsd:annotation>
+    <xsd:documentation>
+      Mobile sitemaps just contain an empty "mobile" tag to identify a
+      URL as having mobile content.
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:complexType/>
+</xsd:element>
+
+</xsd:schema>

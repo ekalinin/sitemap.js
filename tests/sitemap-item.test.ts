@@ -300,7 +300,7 @@ describe('sitemapItem', () => {
           'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
           'duration': -1,
           'publication_date': '2008-07-29T14:58:04.000Z',
-          'requires_subscription': EnumYesNo.YES
+          'requires_subscription': EnumYesNo.yes
         }]
       })
       smap.toString()
@@ -390,6 +390,34 @@ describe('sitemapItem', () => {
       price = '<video:price resolution="HD" currency="EUR" type="rent">1.99</video:price>'
       requiresSubscription = '<video:requires_subscription>yes</video:requires_subscription>'
       platform = '<video:platform relationship="allow">WEB</video:platform>'
+    })
+
+    it('transforms booleans into yes/no', () => {
+      testvideo.video.requires_subscription = false
+      testvideo.video.live = false
+      testvideo.video.family_friendly = false
+      var smap = new SitemapItem(testvideo)
+
+      var result = smap.toString()
+      var expectedResult = '<url>' +
+        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
+        '<video:video>' +
+          thumbnailLoc +
+          title +
+          description +
+          playerLoc +
+          duration +
+          publicationDate +
+          '<video:family_friendly>no</video:family_friendly>' +
+          restriction +
+          galleryLoc +
+          price +
+          '<video:requires_subscription>no</video:requires_subscription>' +
+          platform +
+          '<video:live>no</video:live>' +
+        '</video:video>' +
+      '</url>'
+      expect(result).toBe(expectedResult)
     })
 
     it('accepts an object', () => {

@@ -14,7 +14,12 @@ import {
   NoConfigError,
   PriorityInvalidError,
 } from './errors'
-import { CHANGEFREQ, IVideoItem, SitemapItemOptions } from './types';
+import {
+  CHANGEFREQ,
+  IVideoItem,
+  SitemapItemOptions,
+  EnumYesNo
+} from './types';
 
 function safeDuration (duration: number): number {
   if (duration < 0 || duration > 28800) {
@@ -57,6 +62,16 @@ function attrBuilder (conf: IStringObj, keys: string | string[]): object {
 
     return attrs
   }, iv)
+}
+
+function boolToYESNO (bool: boolean | EnumYesNo): EnumYesNo {
+  if (bool === undefined) {
+    return bool
+  }
+  if (typeof bool === 'boolean') {
+    return bool ? EnumYesNo.yes : EnumYesNo.no
+  }
+  return bool
 }
 
 /**
@@ -195,9 +210,6 @@ export class SitemapItem {
     if (video.publication_date) {
       videoxml.element('video:publication_date', video.publication_date)
     }
-    if (video.family_friendly) {
-      videoxml.element('video:family_friendly', video.family_friendly)
-    }
     if (video.tag) {
       if (!Array.isArray(video.tag)) {
         videoxml.element('video:tag', video.tag)
@@ -209,6 +221,9 @@ export class SitemapItem {
     }
     if (video.category) {
       videoxml.element('video:category', video.category)
+    }
+    if (video.family_friendly !== undefined) {
+      videoxml.element('video:family_friendly', boolToYESNO(video.family_friendly))
     }
     if (video.restriction) {
       videoxml.element(
@@ -231,8 +246,8 @@ export class SitemapItem {
         video.price
       )
     }
-    if (video.requires_subscription) {
-      videoxml.element('video:requires_subscription', video.requires_subscription)
+    if (video.requires_subscription !== undefined) {
+      videoxml.element('video:requires_subscription', boolToYESNO(video.requires_subscription))
     }
     if (video.uploader) {
       videoxml.element('video:uploader', video.uploader)
@@ -244,8 +259,8 @@ export class SitemapItem {
         video.platform
       )
     }
-    if (video.live) {
-      videoxml.element('video:live', video.live)
+    if (video.live !== undefined) {
+      videoxml.element('video:live', boolToYESNO(video.live))
     }
   }
 

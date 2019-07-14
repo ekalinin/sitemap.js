@@ -3,8 +3,8 @@ import { create } from 'xmlbuilder';
 import { Sitemap, createSitemap } from './sitemap'
 import { ICallback, SitemapIndexItemOptions, SitemapItemOptions } from './types';
 import { UndefinedTargetFolder } from './errors';
-/* eslint-disable @typescript-eslint/no-var-requires */
-const chunk = require('lodash.chunk');
+import { chunk }  from './utils';
+
 /**
  * Shortcut for `new SitemapIndex (...)`.
  *

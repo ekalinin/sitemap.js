@@ -22,8 +22,12 @@ export const CHANGEFREQ = [
 ];
 
 export enum EnumYesNo {
-  YES = 'yes',
-  NO = 'no'
+  YES = 'YES',
+  NO = 'NO',
+  Yes = 'Yes',
+  No = 'No',
+  yes = 'yes',
+  no = 'no'
 }
 
 export enum EnumAllowDeny {
