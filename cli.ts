@@ -12,7 +12,7 @@ const parseJSON = (line: string): number => (
 )
 const parseLine = (line: string): number => sm.add(line)
 
-async function processStreams (streams: Readable[], isJSON: boolean): Promise<string> {
+async function processStreams (streams: Readable[], isJSON = false): Promise<string> {
   for (let stream of streams) {
     await new Promise((resolve): void => {
       const rl = createInterface({
@@ -39,10 +39,13 @@ if (argv['--version']){
 } else if (argv['--help']) {
   console.log('TODO')
 } else {
-  processStreams(
-    argv._.map(
+  let streams: Readable[]
+  if (!argv._.length) {
+    streams = [process.stdin]
+  } else {
+    streams = argv._.map(
       (file: string): Readable => createReadStream(file, { encoding: 'utf8' }))
-      .concat(process.stdin),
-    argv['--json']
-  )
+  }
+  processStreams( streams, argv['--json'])
+    .then((xml): void => {process.stdout.write(xml)})
 }
