@@ -78,7 +78,7 @@ describe('Sitemap', () => {
   })
 
   describe('del', () => {
-    it('sitemap: del by string', () => {
+    it('removes items with the provided url', () => {
       const smap = new Sitemap({
         hostname: 'http://test.com',
         urls: [
@@ -99,7 +99,7 @@ describe('Sitemap', () => {
       expect(smap.toString()).toBe(xml)
     })
 
-    it('sitemap: del by object', () => {
+    it('removes items provided by object', () => {
       const smap = new Sitemap({
         hostname: 'http://test.com',
         urls: [
@@ -199,7 +199,6 @@ describe('Sitemap', () => {
     })
   })
 
-
   it('video attributes', () => {
     var smap = new Sitemap({
       urls: [
@@ -252,7 +251,7 @@ describe('Sitemap', () => {
     expect(result).toBe(expectedResult)
   })
 
-  it('sitemap: hostname', () => {
+  it('combines paths with hostnames', () => {
     var smap = new Sitemap({
       hostname: 'http://test.com',
       urls: [
@@ -329,6 +328,7 @@ describe('Sitemap', () => {
       }
     ).toThrowError(/changefreq is invalid/)
   })
+
   it('sitemap: invalid priority error', () => {
     expect(
       function () {
@@ -339,7 +339,8 @@ describe('Sitemap', () => {
       }
     ).toThrowError(/priority is invalid/)
   })
-  it('sitemap: test cache', () => {
+
+  it('caches xml for the duration', async () => {
     const smap = new Sitemap({
       hostname: 'http://test.com',
       cacheTime: 500, // 0.5 sec
@@ -365,23 +366,27 @@ describe('Sitemap', () => {
 
     // check new cache
     // after cacheTime expired
-    setTimeout(function () {
-      // check new sitemap
-      expect(smap.toString()).toBe(
-        xmlDef +
-                urlset +
-                  '<url>' +
-                      '<loc>http://test.com/page-1/</loc>' +
-                      '<changefreq>weekly</changefreq>' +
-                      '<priority>0.3</priority>' +
-                  '</url>' +
-                  '<url>' +
-                      '<loc>http://test.com/new-page/</loc>' +
-                  '</url>' +
-                '</urlset>')
-    }, 1000)
+    await new Promise(resolve => {
+      setTimeout(function () {
+        resolve()
+      }, 1000)
+    })
+    // check new sitemap
+    expect(smap.toString()).toBe(
+      xmlDef +
+            urlset +
+              '<url>' +
+                  '<loc>http://test.com/page-1/</loc>' +
+                  '<changefreq>weekly</changefreq>' +
+                  '<priority>0.3</priority>' +
+              '</url>' +
+              '<url>' +
+                  '<loc>http://test.com/new-page/</loc>' +
+              '</url>' +
+            '</urlset>')
   })
-  it('sitemap: test cache off', () => {
+
+  it('immediately updates with cache off', () => {
     const smap = new Sitemap({
       hostname: 'http://test.com',
       // cacheTime: 0,  // cache disabled
@@ -415,6 +420,7 @@ describe('Sitemap', () => {
                 '</url>' +
               '</urlset>')
   })
+
   it('sitemap: handle urls with "http" in the path', () => {
     var smap = new Sitemap({
       hostname: 'http://test.com',
@@ -433,6 +439,7 @@ describe('Sitemap', () => {
 
     expect(smap.toString()).toBe(xml)
   })
+
   it('sitemap: handle urls with "&" in the path', () => {
     var smap = new Sitemap({
       hostname: 'http://test.com',
@@ -451,6 +458,7 @@ describe('Sitemap', () => {
 
     expect(smap.toString()).toBe(xml)
   })
+
   it('sitemap: keep urls that start with http:// or https://', () => {
     const smap = new Sitemap({
       hostname: 'http://test.com',
@@ -475,6 +483,7 @@ describe('Sitemap', () => {
 
     expect(smap.toString()).toBe(xml)
   })
+
   it('test for #27', () => {
     var staticUrls = ['/', '/terms', '/login']
     var sitemap = new Sitemap({ urls: staticUrls, hostname: 'http://example.com' })
@@ -491,30 +500,60 @@ describe('Sitemap', () => {
     expect(sitemap2.contains({url: 'http://example.com/login'})).toBeTruthy()
     expect(sitemap2.contains({url: 'http://example.com/details/url1'})).toBeFalsy()
   })
-  it('sitemap: langs', () => {
-    var smap = new Sitemap({
-      urls: [
-        { url: 'http://test.com/page-1/',
-          changefreq: EnumChangefreq.WEEKLY,
-          priority: 0.3,
-          links: [
-            { lang: 'en', url: 'http://test.com/page-1/' },
-            { lang: 'ja', url: 'http://test.com/page-1/ja/' }
-          ] }
-      ]
+
+  describe('links', () => {
+    it('generate xhtml namespaced refs to alternate language versions', () => {
+      var smap = new Sitemap({
+        urls: [
+          { url: 'http://test.com/page-1/',
+            changefreq: EnumChangefreq.WEEKLY,
+            priority: 0.3,
+            links: [
+              { lang: 'en', url: 'http://test.com/page-1/' },
+              { lang: 'ja', url: 'http://test.com/page-1/ja/' }
+            ] }
+        ]
+      })
+      expect(smap.toString()).toBe(
+        xmlDef +
+                urlset +
+                  '<url>' +
+                      '<loc>http://test.com/page-1/</loc>' +
+                      '<changefreq>weekly</changefreq>' +
+                      '<priority>0.3</priority>' +
+                      '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/"/>' +
+                      '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/"/>' +
+                  '</url>' +
+                '</urlset>')
     })
-    expect(smap.toString()).toBe(
-      xmlDef +
-              urlset +
-                '<url>' +
-                    '<loc>http://test.com/page-1/</loc>' +
-                    '<changefreq>weekly</changefreq>' +
-                    '<priority>0.3</priority>' +
-                    '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/"/>' +
-                    '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/"/>' +
-                '</url>' +
-              '</urlset>')
+
+    it('generates xhtml namespaced refs to alternate language versions using the base hostname', () => {
+      var smap = new Sitemap({
+        hostname: 'http://test.com',
+        urls: [
+          { url: '/page-1/',
+            changefreq: EnumChangefreq.WEEKLY,
+            priority: 0.3,
+            links: [
+              { lang: 'en', url: '/page-1/' },
+              { lang: 'ja', url: '/page-1/ja/' }
+            ] }
+        ]
+      })
+      expect(smap.toString()).toBe(
+        xmlDef +
+                urlset +
+                  '<url>' +
+                      '<loc>http://test.com/page-1/</loc>' +
+                      '<changefreq>weekly</changefreq>' +
+                      '<priority>0.3</priority>' +
+                      '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/"/>' +
+                      '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/"/>' +
+                  '</url>' +
+                '</urlset>')
+    })
   })
+
   it('sitemap: normalize urls, see #39', async () => {
     const [xml1, xml2] = ['http://ya.ru', 'http://ya.ru/'].map(function (hostname) {
       var ssp = new Sitemap({hostname})
@@ -535,32 +574,8 @@ describe('Sitemap', () => {
         '</url>' +
       '</urlset>')
   })
-  it('sitemap: langs with hostname', () => {
-    var smap = new Sitemap({
-      hostname: 'http://test.com',
-      urls: [
-        { url: '/page-1/',
-          changefreq: EnumChangefreq.WEEKLY,
-          priority: 0.3,
-          links: [
-            { lang: 'en', url: '/page-1/' },
-            { lang: 'ja', url: '/page-1/ja/' }
-          ] }
-      ]
-    })
-    expect(smap.toString()).toBe(
-      xmlDef +
-              urlset +
-                '<url>' +
-                    '<loc>http://test.com/page-1/</loc>' +
-                    '<changefreq>weekly</changefreq>' +
-                    '<priority>0.3</priority>' +
-                    '<xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/"/>' +
-                    '<xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/"/>' +
-                '</url>' +
-              '</urlset>')
-  })
-  it('sitemap: android app linking', () => {
+
+  it('supports android app linking', () => {
     var smap = new Sitemap({
       urls: [
         { url: 'http://test.com/page-1/',
@@ -580,7 +595,8 @@ describe('Sitemap', () => {
                 '</url>' +
               '</urlset>')
   })
-  it('sitemap: AMP', () => {
+
+  it('generates xhtml namespaced refs to AMP pages', () => {
     var smap = new Sitemap({
       urls: [
         { url: 'http://test.com/page-1/',
@@ -599,7 +615,9 @@ describe('Sitemap', () => {
         '</url>' +
       '</urlset>')
   })
-  it('sitemap: expires', () => {
+
+  // expires is not a part of the official spec
+  it('supports expires', () => {
     var smap = new Sitemap({
       urls: [
         { url: 'http://test.com/page-1/',
@@ -618,155 +636,126 @@ describe('Sitemap', () => {
         '</url>' +
       '</urlset>')
   })
-  it('sitemap: image with caption', () => {
-    var smap = new Sitemap({
-      hostname: 'http://test.com',
-      urls: [
-        { url: '/a', img: { url: '/image.jpg?param&otherparam', caption: 'Test Caption' } }
-      ]
+
+  describe('image', () => {
+    it('supports caption', () => {
+      var smap = new Sitemap({
+        hostname: 'http://test.com',
+        urls: [
+          { url: '/a', img: { url: '/image.jpg?param&otherparam', caption: 'Test Caption' } }
+        ]
+      })
+
+      expect(smap.toString()).toBe(
+        xmlDef +
+        urlset +
+          '<url>' +
+              '<loc>http://test.com/a</loc>' +
+              '<image:image>' +
+                  '<image:loc>http://test.com/image.jpg?param&amp;otherparam</image:loc>' +
+                  '<image:caption><![CDATA[Test Caption]]></image:caption>' +
+              '</image:image>' +
+          '</url>' +
+        '</urlset>')
     })
 
-    expect(smap.toString()).toBe(
-      xmlDef +
-      urlset +
-        '<url>' +
-            '<loc>http://test.com/a</loc>' +
-            '<image:image>' +
-                '<image:loc>http://test.com/image.jpg?param&amp;otherparam</image:loc>' +
-                '<image:caption><![CDATA[Test Caption]]></image:caption>' +
-            '</image:image>' +
-        '</url>' +
-      '</urlset>')
-  })
-  it('sitemap: image with caption, title, geo_location, license', () => {
-    var smap = new Sitemap({
-      urls: [
-        { url: 'http://test.com',
-          img: {
-            url: 'http://test.com/image.jpg',
-            caption: 'Test Caption',
-            title: 'Test title',
-            geoLocation: 'Test Geo Location',
-            license: 'http://test.com/license.txt'
+    it('image with caption, title, geo_location, license', () => {
+      var smap = new Sitemap({
+        urls: [
+          { url: 'http://test.com',
+            img: {
+              url: 'http://test.com/image.jpg',
+              caption: 'Test Caption',
+              title: 'Test title',
+              geoLocation: 'Test Geo Location',
+              license: 'http://test.com/license.txt'
+            }
           }
-        }
-      ]
+        ]
+      })
+
+      expect(smap.toString()).toBe(
+        xmlDef +
+        urlset +
+          '<url>' +
+              '<loc>http://test.com/</loc>' +
+              '<image:image>' +
+                  '<image:loc>http://test.com/image.jpg</image:loc>' +
+                  '<image:caption><![CDATA[Test Caption]]></image:caption>' +
+                  '<image:geo_location>Test Geo Location</image:geo_location>' +
+                  '<image:title><![CDATA[Test title]]></image:title>' +
+                  '<image:license>http://test.com/license.txt</image:license>' +
+              '</image:image>' +
+          '</url>' +
+        '</urlset>')
     })
 
-    expect(smap.toString()).toBe(
-      xmlDef +
-      urlset +
-        '<url>' +
-            '<loc>http://test.com/</loc>' +
-            '<image:image>' +
-                '<image:loc>http://test.com/image.jpg</image:loc>' +
-                '<image:caption><![CDATA[Test Caption]]></image:caption>' +
-                '<image:geo_location>Test Geo Location</image:geo_location>' +
-                '<image:title><![CDATA[Test title]]></image:title>' +
-                '<image:license>http://test.com/license.txt</image:license>' +
-            '</image:image>' +
-        '</url>' +
-      '</urlset>')
-  })
-  it('sitemap: images with captions', () => {
-    var smap = new Sitemap({
-      urls: [
-        { url: 'http://test.com', img: { url: 'http://test.com/image.jpg', caption: 'Test Caption' } },
-        { url: 'http://test.com/page2/', img: { url: 'http://test.com/image2.jpg', caption: 'Test Caption 2' } }
-      ]
+    it('supports multiple captions', () => {
+      var smap = new Sitemap({
+        urls: [
+          { url: 'http://test.com', img: { url: 'http://test.com/image.jpg', caption: 'Test Caption' } },
+          { url: 'http://test.com/page2/', img: { url: 'http://test.com/image2.jpg', caption: 'Test Caption 2' } }
+        ]
+      })
+
+      expect(smap.toString()).toBe(
+        xmlDef +
+        urlset +
+          '<url>' +
+              '<loc>http://test.com/</loc>' +
+              '<image:image>' +
+                  '<image:loc>http://test.com/image.jpg</image:loc>' +
+                  '<image:caption><![CDATA[Test Caption]]></image:caption>' +
+              '</image:image>' +
+          '</url>' +
+          '<url>' +
+              '<loc>http://test.com/page2/</loc>' +
+              '<image:image>' +
+                  '<image:loc>http://test.com/image2.jpg</image:loc>' +
+                  '<image:caption><![CDATA[Test Caption 2]]></image:caption>' +
+              '</image:image>' +
+          '</url>' +
+        '</urlset>')
     })
 
-    expect(smap.toString()).toBe(
-      xmlDef +
-      urlset +
-        '<url>' +
-            '<loc>http://test.com/</loc>' +
-            '<image:image>' +
-                '<image:loc>http://test.com/image.jpg</image:loc>' +
-                '<image:caption><![CDATA[Test Caption]]></image:caption>' +
-            '</image:image>' +
-        '</url>' +
-        '<url>' +
-            '<loc>http://test.com/page2/</loc>' +
-            '<image:image>' +
-                '<image:loc>http://test.com/image2.jpg</image:loc>' +
-                '<image:caption><![CDATA[Test Caption 2]]></image:caption>' +
-            '</image:image>' +
-        '</url>' +
-      '</urlset>')
-  })
-  it('sitemap: images with captions add', () => {
-    var smap = new Sitemap({
-      hostname: 'http://test.com',
-      urls: [
-        {
-          url: '/index.html',
-          img: [
-            { url: 'http://test.com/image.jpg', caption: 'Test Caption' },
-            { url: 'http://test.com/image2.jpg', caption: 'Test Caption 2' }
-          ]
-        }
-      ]
+    it('supports images added after', () => {
+      var smap = new Sitemap({
+        hostname: 'http://test.com',
+        urls: [
+          {
+            url: '/index.html',
+            img: [
+              { url: 'http://test.com/image.jpg', caption: 'Test Caption' },
+              { url: 'http://test.com/image2.jpg', caption: 'Test Caption 2' }
+            ]
+          }
+        ]
+      })
+
+      smap.add({ url: '/index2.html', img: [{ url: '/image3.jpg', caption: 'Test Caption 3' }] })
+
+      expect(smap.toString()).toBe(
+        xmlDef +
+        urlset +
+          '<url>' +
+              '<loc>http://test.com/index.html</loc>' +
+              '<image:image>' +
+                  '<image:loc>http://test.com/image.jpg</image:loc>' +
+                  '<image:caption><![CDATA[Test Caption]]></image:caption>' +
+              '</image:image>' +
+              '<image:image>' +
+                  '<image:loc>http://test.com/image2.jpg</image:loc>' +
+                  '<image:caption><![CDATA[Test Caption 2]]></image:caption>' +
+              '</image:image>' +
+          '</url>' +
+          '<url>' +
+              '<loc>http://test.com/index2.html</loc>' +
+              '<image:image>' +
+                  '<image:loc>http://test.com/image3.jpg</image:loc>' +
+                  '<image:caption><![CDATA[Test Caption 3]]></image:caption>' +
+              '</image:image>' +
+          '</url>' +
+        '</urlset>')
     })
-
-    smap.add({ url: '/index2.html', img: [{ url: '/image3.jpg', caption: 'Test Caption 3' }] })
-
-    expect(smap.toString()).toBe(
-      xmlDef +
-      urlset +
-        '<url>' +
-            '<loc>http://test.com/index.html</loc>' +
-            '<image:image>' +
-                '<image:loc>http://test.com/image.jpg</image:loc>' +
-                '<image:caption><![CDATA[Test Caption]]></image:caption>' +
-            '</image:image>' +
-            '<image:image>' +
-                '<image:loc>http://test.com/image2.jpg</image:loc>' +
-                '<image:caption><![CDATA[Test Caption 2]]></image:caption>' +
-            '</image:image>' +
-        '</url>' +
-        '<url>' +
-            '<loc>http://test.com/index2.html</loc>' +
-            '<image:image>' +
-                '<image:loc>http://test.com/image3.jpg</image:loc>' +
-                '<image:caption><![CDATA[Test Caption 3]]></image:caption>' +
-            '</image:image>' +
-        '</url>' +
-      '</urlset>')
-  })
-  it('sitemap: video', () => {
-    var smap = new Sitemap({
-      urls: [
-        {
-          'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-          'video': [{
-            'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
-            'description': "Jack gives us a walkthrough on getting the Millionaire's Club Achievement in Burnout Paradise.",
-            'player_loc': 'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club?a&b',
-            'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg?a&b',
-            'duration': 174,
-            'publication_date': '2008-07-29T14:58:04.000Z',
-            'requires_subscription': EnumYesNo.no
-          }]
-        }
-      ]
-    })
-
-    expect(smap.toString()).toBe(
-      xmlDef +
-      urlset +
-        '<url>' +
-            '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
-            '<video:video>' +
-                '<video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg?a&amp;b</video:thumbnail_loc>' +
-                '<video:title><![CDATA[2008:E2 - Burnout Paradise: Millionaire\'s Club]]></video:title>' +
-                '<video:description><![CDATA[Jack gives us a walkthrough on getting the Millionaire\'s Club Achievement in Burnout Paradise.]]></video:description>' +
-                '<video:player_loc>https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club?a&amp;b</video:player_loc>' +
-                '<video:duration>174</video:duration>' +
-                '<video:publication_date>2008-07-29T14:58:04.000Z</video:publication_date>' +
-                '<video:requires_subscription>no</video:requires_subscription>' +
-            '</video:video>' +
-        '</url>' +
-      '</urlset>')
   })
 })
