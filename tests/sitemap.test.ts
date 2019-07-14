@@ -21,7 +21,13 @@ const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>'
 const xmlPriority = '<priority>0.9</priority>'
 const xmlLoc = '<loc>http://ya.ru/</loc>'
 
-describe('sitemap', () => {
+describe('createSitemap', () => {
+  it('returns an instance of a Sitemap', () => {
+    expect(createSitemap()).toBeInstanceOf(Sitemap)
+  })
+})
+
+describe('Sitemap', () => {
   it('can be instantiated without options', () => {
     expect(() => (new Sitemap())).not.toThrow()
   })
@@ -39,6 +45,7 @@ describe('sitemap', () => {
                 '</url>' +
               '</urlset>')
   })
+
   describe('add', () => {
     it('accepts url strings', () => {
       var url = '/some_page'
@@ -70,6 +77,50 @@ describe('sitemap', () => {
     })
   })
 
+  describe('del', () => {
+    it('sitemap: del by string', () => {
+      const smap = new Sitemap({
+        hostname: 'http://test.com',
+        urls: [
+          { url: '/page-1/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 },
+          { url: 'https://ya.ru/page-2/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 }
+        ]
+      })
+      const xml = xmlDef +
+                urlset +
+                  '<url>' +
+                      '<loc>https://ya.ru/page-2/</loc>' +
+                      '<changefreq>weekly</changefreq>' +
+                      '<priority>0.3</priority>' +
+                  '</url>' +
+                '</urlset>'
+      smap.del('/page-1/')
+
+      expect(smap.toString()).toBe(xml)
+    })
+
+    it('sitemap: del by object', () => {
+      const smap = new Sitemap({
+        hostname: 'http://test.com',
+        urls: [
+          { url: 'http://ya.ru/page-1/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 },
+          { url: 'https://ya.ru/page-2/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 }
+        ]
+      })
+      const xml = xmlDef +
+                urlset +
+                  '<url>' +
+                      '<loc>https://ya.ru/page-2/</loc>' +
+                      '<changefreq>weekly</changefreq>' +
+                      '<priority>0.3</priority>' +
+                  '</url>' +
+                '</urlset>'
+      smap.del({ url: 'http://ya.ru/page-1/' })
+
+      expect(smap.toString()).toBe(xml)
+    })
+  })
+
   it('encodes URLs', () => {
     var url = 'http://ya.ru/?foo=bar baz'
     var ssp = new Sitemap()
@@ -84,9 +135,9 @@ describe('sitemap', () => {
               '</urlset>')
   })
 
-  it('simple sitemap with dynamic xmlNs', () => {
+  it('accepts custom xmlNs', () => {
     var url = 'http://ya.ru'
-    var ssp = createSitemap({
+    var ssp = new Sitemap({
       xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
     })
     ssp.add(url)
@@ -99,53 +150,58 @@ describe('sitemap', () => {
     '</urlset>')
   })
 
-  it('simple sitemap toXML sync', () => {
-    var url = 'http://ya.ru'
-    var ssp = new Sitemap()
-    ssp.add(url)
+  describe('toXML', () => {
+    it('spits out a string', () => {
+      var url = 'http://ya.ru'
+      var ssp = new Sitemap()
+      ssp.add(url)
 
-    expect(ssp.toXML()).toBe(
-      xmlDef +
-              urlset +
-                '<url>' +
-                    xmlLoc +
-                '</url>' +
-              '</urlset>')
-  })
-
-  it('simple sitemap toGzip sync', () => {
-    var ssp = new Sitemap()
-    ssp.add('http://ya.ru')
-
-    expect(ssp.toGzip()).toEqual(gzipSync(
-      xmlDef +
-              urlset +
-                '<url>' +
-                    xmlLoc +
-                '</url>' +
-              '</urlset>'
-    ))
-  })
-
-  it('simple sitemap toGzip async', () => {
-    var ssp = new Sitemap()
-    ssp.add('http://ya.ru')
-
-    ssp.toGzip(function (error, result) {
-      expect(error).toBe(null)
-      expect(gunzipSync(result).toString()).toBe(
+      expect(ssp.toXML()).toBe(
         xmlDef +
-            urlset +
-            '<url>' +
-            xmlLoc +
-            '</url>' +
-            '</urlset>'
-      )
+                urlset +
+                  '<url>' +
+                      xmlLoc +
+                  '</url>' +
+                '</urlset>')
     })
   })
 
+  describe('toGzip', () => {
+    it('spits out a gzipped string sync', () => {
+      var ssp = new Sitemap()
+      ssp.add('http://ya.ru')
+
+      expect(ssp.toGzip()).toEqual(gzipSync(
+        xmlDef +
+                urlset +
+                  '<url>' +
+                      xmlLoc +
+                  '</url>' +
+                '</urlset>'
+      ))
+    })
+
+    it('spits out a gzipped string async', () => {
+      var ssp = new Sitemap()
+      ssp.add('http://ya.ru')
+
+      ssp.toGzip(function (error, result) {
+        expect(error).toBe(null)
+        expect(gunzipSync(result).toString()).toBe(
+          xmlDef +
+              urlset +
+              '<url>' +
+              xmlLoc +
+              '</url>' +
+              '</urlset>'
+        )
+      })
+    })
+  })
+
+
   it('video attributes', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       urls: [
         {
           'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
@@ -196,8 +252,8 @@ describe('sitemap', () => {
     expect(result).toBe(expectedResult)
   })
 
-  it('sitemap: hostname, createSitemap', () => {
-    var smap = createSitemap({
+  it('sitemap: hostname', () => {
+    var smap = new Sitemap({
       hostname: 'http://test.com',
       urls: [
         { url: '/', changefreq: EnumChangefreq.ALWAYS, priority: 1 },
@@ -243,7 +299,7 @@ describe('sitemap', () => {
   })
 
   it('custom xslUrl', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       urls: [
         { url: 'http://test.com/', changefreq: EnumChangefreq.ALWAYS, priority: 1 }
       ],
@@ -265,7 +321,7 @@ describe('sitemap', () => {
   it('sitemap: invalid changefreq error', () => {
     expect(
       function () {
-        createSitemap({
+        new Sitemap({
           hostname: 'http://test.com',
           // @ts-ignore
           urls: [{ url: '/', changefreq: 'allllways' }]
@@ -276,7 +332,7 @@ describe('sitemap', () => {
   it('sitemap: invalid priority error', () => {
     expect(
       function () {
-        createSitemap({
+        new Sitemap({
           hostname: 'http://test.com',
           urls: [{ url: '/', priority: 1.1 }]
         }).toString()
@@ -284,7 +340,7 @@ describe('sitemap', () => {
     ).toThrowError(/priority is invalid/)
   })
   it('sitemap: test cache', () => {
-    const smap = createSitemap({
+    const smap = new Sitemap({
       hostname: 'http://test.com',
       cacheTime: 500, // 0.5 sec
       urls: [
@@ -326,7 +382,7 @@ describe('sitemap', () => {
     }, 1000)
   })
   it('sitemap: test cache off', () => {
-    const smap = createSitemap({
+    const smap = new Sitemap({
       hostname: 'http://test.com',
       // cacheTime: 0,  // cache disabled
       urls: [
@@ -360,7 +416,7 @@ describe('sitemap', () => {
               '</urlset>')
   })
   it('sitemap: handle urls with "http" in the path', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       hostname: 'http://test.com',
       urls: [
         { url: '/page-that-mentions-http:-in-the-url/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 }
@@ -378,7 +434,7 @@ describe('sitemap', () => {
     expect(smap.toString()).toBe(xml)
   })
   it('sitemap: handle urls with "&" in the path', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       hostname: 'http://test.com',
       urls: [
         { url: '/page-that-mentions-&-in-the-url/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 }
@@ -396,7 +452,7 @@ describe('sitemap', () => {
     expect(smap.toString()).toBe(xml)
   })
   it('sitemap: keep urls that start with http:// or https://', () => {
-    const smap = createSitemap({
+    const smap = new Sitemap({
       hostname: 'http://test.com',
       urls: [
         { url: 'http://ya.ru/page-1/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 },
@@ -419,52 +475,12 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(xml)
   })
-  it('sitemap: del by string', () => {
-    const smap = createSitemap({
-      hostname: 'http://test.com',
-      urls: [
-        { url: '/page-1/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 },
-        { url: 'https://ya.ru/page-2/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 }
-      ]
-    })
-    const xml = xmlDef +
-              urlset +
-                '<url>' +
-                    '<loc>https://ya.ru/page-2/</loc>' +
-                    '<changefreq>weekly</changefreq>' +
-                    '<priority>0.3</priority>' +
-                '</url>' +
-              '</urlset>'
-    smap.del('/page-1/')
-
-    expect(smap.toString()).toBe(xml)
-  })
-  it('sitemap: del by object', () => {
-    const smap = createSitemap({
-      hostname: 'http://test.com',
-      urls: [
-        { url: 'http://ya.ru/page-1/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 },
-        { url: 'https://ya.ru/page-2/', changefreq: EnumChangefreq.WEEKLY, priority: 0.3 }
-      ]
-    })
-    const xml = xmlDef +
-              urlset +
-                '<url>' +
-                    '<loc>https://ya.ru/page-2/</loc>' +
-                    '<changefreq>weekly</changefreq>' +
-                    '<priority>0.3</priority>' +
-                '</url>' +
-              '</urlset>'
-    smap.del({ url: 'http://ya.ru/page-1/' })
-
-    expect(smap.toString()).toBe(xml)
-  })
   it('test for #27', () => {
     var staticUrls = ['/', '/terms', '/login']
-    var sitemap = createSitemap({ urls: staticUrls, hostname: 'http://example.com' })
+    var sitemap = new Sitemap({ urls: staticUrls, hostname: 'http://example.com' })
     sitemap.add({ url: '/details/' + 'url1' })
 
-    var sitemap2 = createSitemap({ urls: staticUrls, hostname: 'http://example.com'})
+    var sitemap2 = new Sitemap({ urls: staticUrls, hostname: 'http://example.com'})
 
     expect(sitemap.contains({url: 'http://example.com/'})).toBeTruthy()
     expect(sitemap.contains({url: 'http://example.com/terms'})).toBeTruthy()
@@ -476,7 +492,7 @@ describe('sitemap', () => {
     expect(sitemap2.contains({url: 'http://example.com/details/url1'})).toBeFalsy()
   })
   it('sitemap: langs', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       urls: [
         { url: 'http://test.com/page-1/',
           changefreq: EnumChangefreq.WEEKLY,
@@ -520,7 +536,7 @@ describe('sitemap', () => {
       '</urlset>')
   })
   it('sitemap: langs with hostname', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       hostname: 'http://test.com',
       urls: [
         { url: '/page-1/',
@@ -545,7 +561,7 @@ describe('sitemap', () => {
               '</urlset>')
   })
   it('sitemap: android app linking', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       urls: [
         { url: 'http://test.com/page-1/',
           changefreq: EnumChangefreq.WEEKLY,
@@ -565,7 +581,7 @@ describe('sitemap', () => {
               '</urlset>')
   })
   it('sitemap: AMP', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       urls: [
         { url: 'http://test.com/page-1/',
           changefreq: EnumChangefreq.WEEKLY,
@@ -584,7 +600,7 @@ describe('sitemap', () => {
       '</urlset>')
   })
   it('sitemap: expires', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       urls: [
         { url: 'http://test.com/page-1/',
           changefreq: EnumChangefreq.WEEKLY,
@@ -603,7 +619,7 @@ describe('sitemap', () => {
       '</urlset>')
   })
   it('sitemap: image with caption', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       hostname: 'http://test.com',
       urls: [
         { url: '/a', img: { url: '/image.jpg?param&otherparam', caption: 'Test Caption' } }
@@ -623,7 +639,7 @@ describe('sitemap', () => {
       '</urlset>')
   })
   it('sitemap: image with caption, title, geo_location, license', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       urls: [
         { url: 'http://test.com',
           img: {
@@ -653,7 +669,7 @@ describe('sitemap', () => {
       '</urlset>')
   })
   it('sitemap: images with captions', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       urls: [
         { url: 'http://test.com', img: { url: 'http://test.com/image.jpg', caption: 'Test Caption' } },
         { url: 'http://test.com/page2/', img: { url: 'http://test.com/image2.jpg', caption: 'Test Caption 2' } }
@@ -680,7 +696,7 @@ describe('sitemap', () => {
       '</urlset>')
   })
   it('sitemap: images with captions add', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       hostname: 'http://test.com',
       urls: [
         {
@@ -719,7 +735,7 @@ describe('sitemap', () => {
       '</urlset>')
   })
   it('sitemap: video', () => {
-    var smap = createSitemap({
+    var smap = new Sitemap({
       urls: [
         {
           'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',

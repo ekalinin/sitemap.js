@@ -61,19 +61,3 @@ for (let i = 0; i < runs; i++) {
   syncToString.push(performance.now() - start)
 }
 printPerf('sync', syncToString)
-
-var i = 0
-let start
-let asyncDurations = []
-function toXMLCB (xml) {
-  asyncDurations.push(performance.now() - start)
-  if (i < runs) {
-    i++
-    start = performance.now()
-    sitemap.toXML(toXMLCB)
-  } else {
-    printPerf('async', asyncDurations)
-  }
-}
-start = performance.now()
-sitemap.toXML(toXMLCB)
