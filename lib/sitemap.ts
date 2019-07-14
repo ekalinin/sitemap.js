@@ -4,16 +4,11 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-import * as errors from './errors';
 import { create, XMLElement } from 'xmlbuilder';
-import SitemapItem from './sitemap-item';
-import { ICallback, SitemapItemOptions } from './types';
+import { SitemapItem } from './sitemap-item';
+import { SitemapItemOptions, ISitemapImg, ILinkItem } from './types';
 import { gzip, gzipSync, CompressCallback } from 'zlib';
 import { URL } from 'url'
-
-export { errors };
-export * from './sitemap-index'
-export const version = '2.2.0'
 
 /**
  * Shortcut for `new Sitemap (...)`.
@@ -26,8 +21,14 @@ export const version = '2.2.0'
  * @param   {String}        conf.xmlNs
  * @return  {Sitemap}
  */
-export function createSitemap(conf: {
-  urls?: string | Sitemap["urls"];
+export function createSitemap({
+  urls,
+  hostname,
+  cacheTime,
+  xslUrl,
+  xmlNs
+}: {
+  urls?: (SitemapItemOptions|string)[];
   hostname?: string;
   cacheTime?: number;
   xslUrl?: string;
@@ -35,7 +36,13 @@ export function createSitemap(conf: {
 }): Sitemap {
   // cleaner diff
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  return new Sitemap(conf.urls, conf.hostname, conf.cacheTime, conf.xslUrl, conf.xmlNs);
+  return new Sitemap({
+    urls,
+    hostname,
+    cacheTime,
+    xslUrl,
+    xmlNs
+  });
 }
 
 export class Sitemap {
@@ -44,13 +51,13 @@ export class Sitemap {
   limit = 5000
   xmlNs = ''
   cacheSetTimestamp = 0;
-  hostname?: string;
-  urls: (string | SitemapItemOptions)[]
+  private urls: Map<string, SitemapItemOptions>
 
-  cacheResetPeriod: number;
+  cacheTime: number;
   cache: string;
-  xslUrl?: string;
   root: XMLElement;
+  hostname?: string;
+  xslUrl?: string;
 
   /**
    * Sitemap constructor
@@ -60,31 +67,30 @@ export class Sitemap {
    * @param {String}        xslUrl            optional
    * @param {String}        xmlNs            optional
    */
-  constructor (
-    urls?: string | Sitemap["urls"],
-    hostname?: string,
-    cacheTime?: number,
-    xslUrl?: string,
-    xmlNs?: string
-  ) {
+  constructor ({
+    urls = [],
+    hostname,
+    cacheTime = 0,
+    xslUrl,
+    xmlNs
+  }: {
+    urls?: (SitemapItemOptions|string)[];
+    hostname?: string;
+    cacheTime?: number;
+    xslUrl?: string;
+    xmlNs?: string;
+  }
+  = {}) {
 
     // Base domain
     this.hostname = hostname;
 
-
-    // Make copy of object
-    if (urls) {
-      this.urls = Array.isArray(urls) ? Array.from(urls) : [urls];
-    } else {
-      // URL list for sitemap
-      this.urls = [];
-    }
-
     // sitemap cache
-    this.cacheResetPeriod = cacheTime || 0;
+    this.cacheTime = cacheTime;
     this.cache = '';
 
     this.xslUrl = xslUrl;
+
     this.root = create('urlset', {encoding: 'UTF-8'})
     if (xmlNs) {
       this.xmlNs = xmlNs;
@@ -94,6 +100,8 @@ export class Sitemap {
         this.root.attribute(k, v.replace(/^['"]|['"]$/g, ''))
       }
     }
+
+    this.urls = Sitemap.normalizeURLs(Array.from(urls), this.root, this.hostname)
   }
 
   /**
@@ -108,8 +116,8 @@ export class Sitemap {
    */
   isCacheValid (): boolean {
     let currTimestamp = Date.now();
-    return !!(this.cacheResetPeriod && this.cache &&
-      (this.cacheSetTimestamp + this.cacheResetPeriod) >= currTimestamp);
+    return !!(this.cacheTime && this.cache &&
+      (this.cacheSetTimestamp + this.cacheTime) >= currTimestamp);
   }
 
   /**
@@ -121,64 +129,79 @@ export class Sitemap {
     return this.cache;
   }
 
+  private _normalizeURL(url: string | SitemapItemOptions): SitemapItemOptions {
+    return Sitemap.normalizeURL(url, this.root, this.hostname)
+  }
+
   /**
    *  Add url to sitemap
    *  @param {String} url
    */
   add (url: string | SitemapItemOptions): number {
-    return this.urls.push(url);
+    const smi = this._normalizeURL(url)
+    return this.urls.set(smi.url, smi).size;
+  }
+
+  contains (url: string | SitemapItemOptions): boolean {
+    return this.urls.has(this._normalizeURL(url).url)
   }
 
   /**
    *  Delete url from sitemap
-   *  @param {String} url
+   *  @param {String | SitemapItemOptions} url
+   *  @returns boolean whether the item was removed
    */
-  del (url: string | SitemapItemOptions): number {
-    const indexToRemove: number[] = []
-    let key = ''
+  del (url: string | SitemapItemOptions): boolean {
 
-    if (typeof url === 'string') {
-      key = url;
-    } else {
-      // @ts-ignore
-      key = url.url;
-    }
-
-    // find
-    this.urls.forEach((elem, index): void => {
-      if (typeof elem === 'string') {
-        if (elem === key) {
-          indexToRemove.push(index);
-        }
-      } else {
-        if (elem.url === key) {
-          indexToRemove.push(index);
-        }
-      }
-    });
-
-    // delete
-    indexToRemove.forEach((elem): void => {this.urls.splice(elem, 1)});
-
-    return indexToRemove.length;
+    return this.urls.delete(this._normalizeURL(url).url)
   }
 
   /**
-   *  Create sitemap xml
-   *  @param {Function}     callback  Callback function with one argument — xml
+   *  Alias for toString
    */
-  toXML (callback?: ICallback<Error, string>): string|void {
-    if (typeof callback === 'undefined') {
-      return this.toString();
-    }
+  toXML (): string {
+    return this.toString();
+  }
 
-    process.nextTick((): void => {
-      try {
-        callback(undefined, this.toString());
-      } catch (err) {
-        callback(err);
+  static normalizeURL (elem: string | SitemapItemOptions, root: XMLElement, hostname?: string): SitemapItemOptions {
+    // SitemapItem
+    // create object with url property
+    const smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root} : {root, ...elem}
+    let img: ISitemapImg[] = []
+    if (smi.img) {
+      if (typeof smi.img === 'string') {
+        // string -> array of objects
+        smi.img = [{ url: smi.img }];
+      } else if (!Array.isArray(smi.img)) {
+        // object -> array of objects
+        smi.img = [smi.img];
       }
+
+      img = smi.img.map((el): ISitemapImg => typeof el === 'string' ? {url: el} : el);
+    }
+    smi.url = (new URL(smi.url, hostname)).toString();
+    // prepend hostname to all image urls
+    smi.img = img.map((el: ISitemapImg): ISitemapImg => (
+      {...el, url: (new URL(el.url, hostname)).toString()}
+    ));
+
+    let links: ILinkItem[] = []
+    if (smi.links) {
+      links = smi.links
+    }
+    smi.links = links.map((link): ILinkItem => {
+      return {...link, url: (new URL(link.url, hostname)).toString()};
     });
+    return smi
+  }
+
+  static normalizeURLs (urls: (string | SitemapItemOptions)[], root: XMLElement, hostname?: string): Map<string, SitemapItemOptions> {
+    const urlMap = new Map<string, SitemapItemOptions>()
+    urls.forEach((elem): void => {
+      const smio = Sitemap.normalizeURL(elem, root, hostname)
+      urlMap.set(smio.url, smio)
+    })
+    return urlMap
   }
 
   /**
@@ -208,41 +231,9 @@ export class Sitemap {
 
     // TODO: if size > limit: create sitemapindex
 
-    this.urls.forEach((elem, index): void => {
-      // SitemapItem
-      // create object with url property
-      let smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root: this.root} : Object.assign({root: this.root}, elem)
-
-      // insert domain name
-      if (this.hostname) {
-        smi.url = (new URL(smi.url, this.hostname)).toString();
-        if (smi.img) {
-          if (typeof smi.img === 'string') {
-            // string -> array of objects
-            smi.img = [{ url: smi.img }];
-          } else if (!Array.isArray(smi.img)) {
-            // object -> array of objects
-            smi.img = [smi.img];
-          }
-          // prepend hostname to all image urls
-          smi.img.forEach((img): void => {
-            if (typeof img === 'string') {
-              img = {url: img}
-            }
-            img.url = (new URL(img.url, this.hostname)).toString();
-          });
-        }
-        if (smi.links) {
-          smi.links.forEach((link): void => {
-            link.url = (new URL(link.url, this.hostname)).toString();
-          });
-        }
-      } else {
-        smi.url = (new URL(smi.url)).toString();
-      }
-      const sitemapItem = new SitemapItem(smi)
-      sitemapItem.buildXML()
-    });
+    for (let [, smi] of this.urls) {
+      (new SitemapItem(smi)).buildXML()
+    }
 
     return this.setCache(this.root.end())
   }
@@ -257,5 +248,3 @@ export class Sitemap {
     }
   }
 }
-
-export { SitemapItem }

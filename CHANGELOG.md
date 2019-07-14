@@ -1,3 +1,12 @@
+# next
+  - modernize docs
+## breaking changes
+  - limit exports the default object of sitemap is very minimal now
+  - Sitemap constructor now uses a object for its constructor
+  - Sitemap no longer accepts a single string for its url
+  - drop support for node 6
+  - remove callback on toXML
+  - no longer support direct modification of urls property
 # 3.2.2
   - revert https everywhere added in 3.2.0. xmlns is not url.
   - adds alias for lastmod in the form of lastmodiso

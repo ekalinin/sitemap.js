@@ -77,8 +77,7 @@ function boolToYESNO (bool: boolean | EnumYesNo): EnumYesNo {
 /**
  * Item in sitemap
  */
-class SitemapItem {
-  conf: SitemapItemOptions;
+export class SitemapItem {
   loc: SitemapItemOptions["url"];
   lastmod: SitemapItemOptions["lastmod"];
   changefreq: SitemapItemOptions["changefreq"];
@@ -94,52 +93,54 @@ class SitemapItem {
   root: XMLElement;
   url: XMLElement;
 
-  constructor (conf: SitemapItemOptions) {
-    this.conf = conf
-
+  constructor (public conf: SitemapItemOptions) {
     if (!conf) {
       throw new NoConfigError()
     }
+    const {
+      url:loc,
+      safe: isSafeUrl,
+      lastmodfile,
+      lastmod,
+      lastmodrealtime,
+      lastmodISO,
+      changefreq,
+      priority
+    } = conf
 
-    if (!conf.url) {
+    if (!loc) {
       throw new NoURLError()
     }
-    const isSafeUrl = conf.safe
 
     // URL of the page
-    this.loc = conf.url
+    this.loc = loc
 
-    let dt
     // If given a file to use for last modified date
-    if (conf.lastmodfile) {
-      // console.log('should read stat from file: ' + conf.lastmodfile);
-      let file = conf.lastmodfile
+    if (lastmodfile) {
+      const { mtime } = statSync(lastmodfile)
 
-      let stat = statSync(file)
-
-      let mtime = stat.mtime
-
-      dt = new Date(mtime)
-      this.lastmod = getTimestampFromDate(dt, conf.lastmodrealtime)
+      this.lastmod = getTimestampFromDate(new Date(mtime), lastmodrealtime)
 
       // The date of last modification (YYYY-MM-DD)
-    } else if (conf.lastmod) {
+    } else if (lastmod) {
       // append the timezone offset so that dates are treated as local time.
       // Otherwise the Unit tests fail sometimes.
       let timezoneOffset = 'UTC-' + (new Date().getTimezoneOffset() / 60) + '00'
       timezoneOffset = timezoneOffset.replace('--', '-')
-      dt = new Date(conf.lastmod + ' ' + timezoneOffset)
-      this.lastmod = getTimestampFromDate(dt, conf.lastmodrealtime)
-    } else if (conf.lastmodISO) {
-      this.lastmod = conf.lastmodISO
+      this.lastmod = getTimestampFromDate(
+        new Date(lastmod + ' ' + timezoneOffset),
+        lastmodrealtime
+      )
+    } else if (lastmodISO) {
+      this.lastmod = lastmodISO
     }
 
     // How frequently the page is likely to change
     // due to this field is optional no default value is set
     // please see: https://www.sitemaps.org/protocol.html
-    this.changefreq = conf.changefreq
-    if (!isSafeUrl && this.changefreq) {
-      if (CHANGEFREQ.indexOf(this.changefreq) === -1) {
+    this.changefreq = changefreq
+    if (!isSafeUrl && changefreq) {
+      if (CHANGEFREQ.indexOf(changefreq) === -1) {
         throw new ChangeFreqInvalidError()
       }
     }
@@ -147,9 +148,9 @@ class SitemapItem {
     // The priority of this URL relative to other URLs
     // due to this field is optional no default value is set
     // please see: https://www.sitemaps.org/protocol.html
-    this.priority = conf.priority
-    if (!isSafeUrl && this.priority) {
-      if (!(this.priority >= 0.0 && this.priority <= 1.0) || typeof this.priority !== 'number') {
+    this.priority = priority
+    if (!isSafeUrl && priority) {
+      if (!(priority >= 0.0 && priority <= 1.0) || typeof priority !== 'number') {
         throw new PriorityInvalidError()
       }
     }
@@ -413,5 +414,3 @@ class SitemapItem {
     return this.buildXML().toString()
   }
 }
-
-export default SitemapItem

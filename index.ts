@@ -5,6 +5,8 @@
  */
 import * as sm from './lib/sitemap'
 export * from './lib/sitemap'
+export * from './lib/sitemap-item'
+export * from './lib/sitemap-index'
 export * from './lib/errors'
 export * from './lib/types'
 

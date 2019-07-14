@@ -36,6 +36,7 @@ export function getTimestampFromDate (dt: Date, bRealtime?: boolean): string {
  * individuals. For exact contribution history, see the revision history
  * available at https://github.com/lodash/lodash
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function chunk (array: any[], size = 1): any[] {
   size = Math.max(Math.trunc(size), 0);
 

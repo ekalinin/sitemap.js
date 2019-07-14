@@ -1,7 +1,7 @@
 import { statSync, createWriteStream } from 'fs';
 import { create } from 'xmlbuilder';
 import { Sitemap, createSitemap } from './sitemap'
-import { ICallback } from './types';
+import { ICallback, SitemapIndexItemOptions, SitemapItemOptions } from './types';
 import { UndefinedTargetFolder } from './errors';
 import { chunk }  from './utils';
 
@@ -52,7 +52,7 @@ export function createSitemapIndex (conf: {
  * @return  {String}    XML String of SitemapIndex
  */
 export function buildSitemapIndex (conf: {
-  urls: Sitemap["urls"];
+  urls: (SitemapIndexItemOptions|string)[];
   xslUrl?: string;
   xmlNs?: string;
 
@@ -111,22 +111,12 @@ export function buildSitemapIndex (conf: {
  * Sitemap index (for several sitemaps)
  */
 class SitemapIndex {
-
-  hostname?: string;
   sitemapName: string;
-  sitemapSize?: number
-  xslUrl?: string
   sitemapId: number
   sitemaps: string[]
-  targetFolder: string;
-  urls: Sitemap["urls"]
 
-  chunks: Sitemap["urls"][]
-  callback?: ICallback<Error, boolean>
+  chunks: (string|SitemapItemOptions)[][]
   cacheTime?: number
-
-  xmlNs?: string
-
 
   /**
    * @param {String|Array}  urls
@@ -134,78 +124,55 @@ class SitemapIndex {
    * @param {String}        hostname      optional
    * @param {Number}        cacheTime     optional in milliseconds
    * @param {String}        sitemapName   optional
-   * @param {Number}        sitemapSize   optional
+   * @param {Number}        sitemapSize   optional This limit is defined by Google. See: https://sitemaps.org/protocol.php#index
    * @param {Number}        xslUrl                optional
    * @param {Boolean}       gzip          optional
    * @param {Function}      callback      optional
    */
   constructor (
-    urls: Sitemap["urls"],
-    targetFolder: string,
-    hostname?: string,
+    public urls: (string|SitemapItemOptions)[] = [],
+    public targetFolder = '.',
+    public hostname?: string,
     cacheTime?: number,
     sitemapName?: string,
-    sitemapSize?: number,
-    xslUrl?: string,
-    gzip?: boolean,
-    callback?: ICallback<Error, boolean>
+    public sitemapSize?: number,
+    public xslUrl?: string,
+    gzip = false,
+    public callback?: ICallback<Error, boolean>
   ) {
-    // Base domain
-    this.hostname = hostname;
-
     if (sitemapName === undefined) {
       this.sitemapName = 'sitemap';
     } else {
       this.sitemapName = sitemapName;
     }
 
-    // This limit is defined by Google. See:
-    // https://sitemaps.org/protocol.php#index
-    this.sitemapSize = sitemapSize;
-
-    this.xslUrl = xslUrl;
-
     this.sitemapId = 0;
 
     this.sitemaps = [];
-
-    this.targetFolder = '.';
 
     try {
       if (!statSync(targetFolder).isDirectory()) {
         throw new UndefinedTargetFolder();
       }
-    } catch (err) {
+    } catch (e) {
       throw new UndefinedTargetFolder();
     }
 
-    this.targetFolder = targetFolder;
-
-    // URL list for sitemap
-    // @ts-ignore
-    this.urls = urls || [];
-    if (!Array.isArray(this.urls)) {
-      // @ts-ignore
-      this.urls = [this.urls]
-    }
-
-    this.chunks = chunk(this.urls, this.sitemapSize);
-
-    this.callback = callback;
+    this.chunks = chunk(urls, this.sitemapSize);
 
     let processesCount = this.chunks.length + 1;
 
-    this.chunks.forEach((chunk: Sitemap["urls"], index: number): void => {
+    this.chunks.forEach((chunk: (string|SitemapItemOptions)[], index: number): void => {
       const extension = '.xml' + (gzip ? '.gz' : '');
       const filename = this.sitemapName + '-' + this.sitemapId++ + extension;
 
       this.sitemaps.push(filename);
 
       let sitemap = createSitemap({
-        hostname: this.hostname,
-        cacheTime: this.cacheTime, // 600 sec - cache purge period
+        hostname,
+        cacheTime, // 600 sec - cache purge period
         urls: chunk,
-        xslUrl: this.xslUrl
+        xslUrl
       });
 
       let stream = createWriteStream(targetFolder + '/' + filename);
@@ -220,14 +187,13 @@ class SitemapIndex {
 
     });
 
-    let sitemapUrls = this.sitemaps.map((sitemap): string  => hostname + '/' + sitemap);
-    let smConf = {urls: sitemapUrls, xslUrl: this.xslUrl, xmlNs: this.xmlNs};
-    let xmlString = buildSitemapIndex(smConf);
-
-    let stream = createWriteStream(targetFolder + '/' +
+    const stream = createWriteStream(targetFolder + '/' +
       this.sitemapName + '-index.xml');
     stream.once('open', (fd): void => {
-      stream.write(xmlString);
+      stream.write(buildSitemapIndex({
+        urls: this.sitemaps.map((sitemap): string  => hostname + '/' + sitemap),
+        xslUrl
+      }));
       stream.end();
       processesCount--;
       if (processesCount === 0 && typeof this.callback === 'function') {
