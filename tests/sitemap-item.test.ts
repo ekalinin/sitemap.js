@@ -1,17 +1,19 @@
 /* eslint-env jest, jasmine */
 import { getTimestampFromDate } from '../lib/utils'
 import * as testUtil from './util'
-import { SitemapItem, EnumChangefreq, EnumYesNo } from '../index'
+import { SitemapItem, EnumChangefreq, EnumYesNo, EnumAllowDeny, SitemapItemOptions } from '../index'
 describe('sitemapItem', () => {
   let xmlLoc
   let xmlPriority
+  let itemTemplate
   beforeEach(() => {
+    itemTemplate = { 'url': '', video: [], img: [], links: [] }
     xmlLoc = '<loc>http://ya.ru/</loc>'
     xmlPriority = '<priority>0.9</priority>'
   })
   it('default values && escape', () => {
     const url = 'http://ya.ru/view?widget=3&count>2'
-    const smi = new SitemapItem({ 'url': url })
+    const smi = new SitemapItem({ ...itemTemplate, 'url': url })
 
     expect(smi.toString()).toBe(
       '<url>' +
@@ -20,7 +22,7 @@ describe('sitemapItem', () => {
   })
   it('properly handles url fragments', () => {
     const url = 'http://ya.ru/#!/home'
-    const smi = new SitemapItem({ 'url': url })
+    const smi = new SitemapItem({ ...itemTemplate, 'url': url })
 
     expect(smi.toString()).toBe(
       '<url>' +
@@ -44,6 +46,7 @@ describe('sitemapItem', () => {
   it('allows for full precision priority', () => {
     const url = 'http://ya.ru/'
     const smi = new SitemapItem({
+       ...itemTemplate,
       'url': url,
       'changefreq': EnumChangefreq.ALWAYS,
       'priority': 0.99934,
@@ -61,8 +64,9 @@ describe('sitemapItem', () => {
   it('full options', () => {
     const url = 'http://ya.ru/'
     const smi = new SitemapItem({
+      ...itemTemplate,
       'url': url,
-      'img': 'http://urlTest.com',
+      'img': [{url: 'http://urlTest.com'}],
       'lastmod': '2011-06-27',
       'changefreq': EnumChangefreq.ALWAYS,
       'priority': 0.9,
@@ -87,6 +91,7 @@ describe('sitemapItem', () => {
   it('mobile with type', () => {
     const url = 'http://ya.ru/'
     const smi = new SitemapItem({
+      ...itemTemplate,
       'url': url,
       'mobile': 'pc,mobile'
     })
@@ -101,6 +106,7 @@ describe('sitemapItem', () => {
   it('lastmodISO', () => {
     const url = 'http://ya.ru/'
     const smi = new SitemapItem({
+      ...itemTemplate,
       'url': url,
       'lastmodISO': '2011-06-27T00:00:00.000Z',
       'changefreq': EnumChangefreq.ALWAYS,
@@ -124,8 +130,9 @@ describe('sitemapItem', () => {
 
     const url = 'http://ya.ru/'
     const smi = new SitemapItem({
+      ...itemTemplate,
       'url': url,
-      'img': 'http://urlTest.com',
+      'img': [{url: 'http://urlTest.com'}],
       'lastmodfile': cacheFile,
       'changefreq': EnumChangefreq.ALWAYS,
       'priority': 0.9
@@ -155,8 +162,9 @@ describe('sitemapItem', () => {
 
     const url = 'http://ya.ru/'
     const smi = new SitemapItem({
+      ...itemTemplate,
       'url': url,
-      'img': 'http://urlTest.com',
+      'img': [{url: 'http://urlTest.com'}],
       'lastmodfile': cacheFile,
       'lastmodrealtime': true,
       'changefreq': EnumChangefreq.ALWAYS,
@@ -182,8 +190,9 @@ describe('sitemapItem', () => {
   it('toXML', () => {
     const url = 'http://ya.ru/'
     const smi = new SitemapItem({
+      ...itemTemplate,
       'url': url,
-      'img': 'http://urlTest.com',
+      'img': [{url: 'http://urlTest.com'}],
       'lastmod': '2011-06-27',
       'changefreq': EnumChangefreq.ALWAYS,
       'priority': 0.9
@@ -206,6 +215,7 @@ describe('sitemapItem', () => {
   it('video price type', () => {
     expect(function () {
       var smap = new SitemapItem({
+        ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -213,7 +223,8 @@ describe('sitemapItem', () => {
           'player_loc': 'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
           'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
           'price': '1.99',
-          'price:type': 'subscription'
+          'price:type': 'subscription',
+          tag: []
         }]
       })
       smap.toString()
@@ -223,6 +234,7 @@ describe('sitemapItem', () => {
   it('video price currency', () => {
     expect(function () {
       var smap = new SitemapItem({
+        ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -230,7 +242,9 @@ describe('sitemapItem', () => {
           'player_loc': 'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
           'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
           'price': '1.99',
-          'price:currency': 'dollar'
+          // @ts-ignore
+          'price:currency': 'dollar',
+          tag: []
         }]
       })
       smap.toString()
@@ -240,6 +254,7 @@ describe('sitemapItem', () => {
   it('video price resolution', () => {
     expect(function () {
       var smap = new SitemapItem({
+        ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -247,7 +262,9 @@ describe('sitemapItem', () => {
           'player_loc': 'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
           'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
           'price': '1.99',
-          'price:resolution': '1920x1080'
+          // @ts-ignore
+          'price:resolution': '1920x1080',
+          tag: []
         }]
       })
       smap.toString()
@@ -257,6 +274,7 @@ describe('sitemapItem', () => {
   it('video platform relationship', () => {
     expect(function () {
       var smap = new SitemapItem({
+        ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         // @ts-ignore
         'video': [{
@@ -265,7 +283,9 @@ describe('sitemapItem', () => {
           'player_loc': 'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
           'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
           'platform': 'tv',
-          'platform:relationship': 'mother'
+          // @ts-ignore
+          'platform:relationship': 'mother',
+          tag: []
         }]
       })
       smap.toString()
@@ -275,6 +295,7 @@ describe('sitemapItem', () => {
   it('video restriction', () => {
     expect(function () {
       var smap = new SitemapItem({
+        ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -282,7 +303,8 @@ describe('sitemapItem', () => {
           'player_loc': 'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
           'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
           'restriction': 'IE GB US CA',
-          'restriction:relationship': 'father'
+          'restriction:relationship': 'father',
+          tag: []
         }]
       })
       smap.toString()
@@ -313,6 +335,7 @@ describe('sitemapItem', () => {
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
+          // @ts-ignore
           'description': 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc, quis gravida magna mi a libero. Fusce vulputate eleifend sapien. Vestibulum purus quam, scelerisque ut, mollis sed, nonummy id, metus. Nullam accumsan lorem in dui. Cras ultricies mi eu turpis hendrerit fringilla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; In ac dui quis mi consectetuer lacinia. Nam pretium turpis et arcu. Duis arcu tortor, suscipit eget, imperdiet nec, imperdiet iaculis, ipsum. Sed aliquam ultrices mauris. Integer ante arcu, accumsan a, consectetuer eget, posuere ut, mauris. Praesent adipiscing. Phasellus ullamcorper ipsum rutrum nunc. Nunc nonummy metus. Vestibulum volutpat pretium libero. Cras id dui. Aenean ut eros et nisl sagittis vestibulum. Nullam nulla.',
           'player_loc': 'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
           'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
@@ -328,6 +351,7 @@ describe('sitemapItem', () => {
   it('accepts a url without escaping it if a cdata flag is passed', () => {
     const mockUri = 'https://a.b/?a&b'
     const smi = new SitemapItem({
+      ...itemTemplate,
       cdata: true,
       url: mockUri
     })
@@ -337,13 +361,13 @@ describe('sitemapItem', () => {
 
   describe('toXML', () => {
     it('is equivilant to toString', () => {
-      const smi = new SitemapItem({ url: 'https://a.b/?a&b' })
+      const smi = new SitemapItem({ ...itemTemplate, url: 'https://a.b/?a&b' })
       expect(smi.toString()).toBe(smi.toXML())
     })
   })
 
   describe('video', () => {
-    let testvideo
+    let testvideo: SitemapItemOptions
     let thumbnailLoc
     let title
     let description
@@ -357,8 +381,9 @@ describe('sitemapItem', () => {
     let platform
     beforeEach(() => {
       testvideo = {
+        ...itemTemplate,
         url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-        video: {
+        video: [{
           title: "2008:E2 - Burnout Paradise: Millionaire's Club",
           description: "Jack gives us a walkthrough on getting the Millionaire's Club Achievement in Burnout Paradise.",
           player_loc: 'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
@@ -372,12 +397,13 @@ describe('sitemapItem', () => {
           'price:type': 'rent',
           'price:resolution': 'HD',
           platform: 'WEB',
-          'platform:relationship': 'allow',
+          'platform:relationship': EnumAllowDeny.ALLOW,
           thumbnail_loc: 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
           duration: 174,
           publication_date: '2008-07-29T14:58:04.000Z',
-          requires_subscription: 'yes'
-        }
+          requires_subscription: EnumYesNo.yes,
+          tag: []
+        }]
       }
       thumbnailLoc = '<video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg</video:thumbnail_loc>'
       title = '<video:title><![CDATA[2008:E2 - Burnout Paradise: Millionaire\'s Club]]></video:title>'
@@ -390,34 +416,6 @@ describe('sitemapItem', () => {
       price = '<video:price resolution="HD" currency="EUR" type="rent">1.99</video:price>'
       requiresSubscription = '<video:requires_subscription>yes</video:requires_subscription>'
       platform = '<video:platform relationship="allow">WEB</video:platform>'
-    })
-
-    it('transforms booleans into yes/no', () => {
-      testvideo.video.requires_subscription = false
-      testvideo.video.live = false
-      testvideo.video.family_friendly = false
-      var smap = new SitemapItem(testvideo)
-
-      var result = smap.toString()
-      var expectedResult = '<url>' +
-        '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
-        '<video:video>' +
-          thumbnailLoc +
-          title +
-          description +
-          playerLoc +
-          duration +
-          publicationDate +
-          '<video:family_friendly>no</video:family_friendly>' +
-          restriction +
-          galleryLoc +
-          price +
-          '<video:requires_subscription>no</video:requires_subscription>' +
-          platform +
-          '<video:live>no</video:live>' +
-        '</video:video>' +
-      '</url>'
-      expect(result).toBe(expectedResult)
     })
 
     it('accepts an object', () => {
@@ -446,7 +444,7 @@ describe('sitemapItem', () => {
     it('throws if a required attr is not provided', () => {
       expect(() => {
         let test = Object.assign({}, testvideo)
-        delete test.video.title
+        delete test.video[0].title
         var smap = new SitemapItem(test)
 
         smap.toString()
@@ -454,7 +452,7 @@ describe('sitemapItem', () => {
 
       expect(() => {
         let test = Object.assign({}, testvideo)
-        test.video = 'a'
+        test.video[0] = 'a'
         var smap = new SitemapItem(test)
 
         smap.toString()
@@ -462,7 +460,7 @@ describe('sitemapItem', () => {
 
       expect(() => {
         let test = Object.assign({}, testvideo)
-        delete test.video.thumbnail_loc
+        delete test.video[0].thumbnail_loc
         var smap = new SitemapItem(test)
 
         smap.toString()
@@ -470,7 +468,7 @@ describe('sitemapItem', () => {
 
       expect(() => {
         let test = Object.assign({}, testvideo)
-        delete test.video.description
+        delete test.video[0].description
         var smap = new SitemapItem(test)
 
         smap.toString()
@@ -478,8 +476,8 @@ describe('sitemapItem', () => {
     })
 
     it('supports content_loc', () => {
-      testvideo.video.content_loc = 'https://a.b.c'
-      delete testvideo.video.player_loc
+      testvideo.video[0].content_loc = 'https://a.b.c'
+      delete testvideo.video[0].player_loc
       var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
@@ -489,7 +487,7 @@ describe('sitemapItem', () => {
           thumbnailLoc +
           title +
           description +
-          `<video:content_loc>${testvideo.video.content_loc}</video:content_loc>` +
+          `<video:content_loc>${testvideo.video[0].content_loc}</video:content_loc>` +
           duration +
           publicationDate +
           restriction +
@@ -503,7 +501,7 @@ describe('sitemapItem', () => {
     })
 
     it('supports expiration_date', () => {
-      testvideo.video.expiration_date = '2012-07-16T19:20:30+08:00'
+      testvideo.video[0].expiration_date = '2012-07-16T19:20:30+08:00'
       var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
@@ -528,7 +526,7 @@ describe('sitemapItem', () => {
     })
 
     it('supports rating', () => {
-      testvideo.video.rating = 2.5
+      testvideo.video[0].rating = 2.5
       var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
@@ -553,7 +551,7 @@ describe('sitemapItem', () => {
     })
 
     it('supports view_count', () => {
-      testvideo.video.view_count = 1234
+      testvideo.video[0].view_count = 1234
       var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
@@ -578,7 +576,7 @@ describe('sitemapItem', () => {
     })
 
     it('supports family_friendly', () => {
-      testvideo.video.family_friendly = 'yes'
+      testvideo.video[0].family_friendly = EnumYesNo.yes
       var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
@@ -603,7 +601,7 @@ describe('sitemapItem', () => {
     })
 
     it('supports tag', () => {
-      testvideo.video.tag = 'steak'
+      testvideo.video[0].tag = ['steak']
       var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
@@ -628,7 +626,7 @@ describe('sitemapItem', () => {
     })
 
     it('supports array of tags', () => {
-      testvideo.video.tag = ['steak', 'fries']
+      testvideo.video[0].tag = ['steak', 'fries']
       var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
@@ -653,7 +651,7 @@ describe('sitemapItem', () => {
     })
 
     it('supports category', () => {
-      testvideo.video.category = 'Baking'
+      testvideo.video[0].category = 'Baking'
       var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
@@ -678,7 +676,7 @@ describe('sitemapItem', () => {
     })
 
     it('supports uploader', () => {
-      testvideo.video.uploader = 'GrillyMcGrillerson'
+      testvideo.video[0].uploader = 'GrillyMcGrillerson'
       var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()
@@ -703,7 +701,7 @@ describe('sitemapItem', () => {
     })
 
     it('supports live', () => {
-      testvideo.video.live = 'yes'
+      testvideo.video[0].live = EnumYesNo.yes
       var smap = new SitemapItem(testvideo)
 
       var result = smap.toString()

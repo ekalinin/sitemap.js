@@ -20,6 +20,7 @@ const dynamicUrlSet = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.
 const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>'
 const xmlPriority = '<priority>0.9</priority>'
 const xmlLoc = '<loc>http://ya.ru/</loc>'
+const itemTemplate = { 'url': '', video: [], img: [], links: [] }
 
 describe('sitemap', () => {
   it('can be instantiated without options', () => {
@@ -38,6 +39,10 @@ describe('sitemap', () => {
                     xmlLoc +
                 '</url>' +
               '</urlset>')
+  })
+  xdescribe('normalizeURL', () => {
+    it('transforms booleans into yes/no', () => {
+    })
   })
   describe('add', () => {
     it('accepts url strings', () => {
