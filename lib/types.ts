@@ -58,7 +58,7 @@ export interface ISitemapImg {
   license?: string;
 }
 
-export interface IVideoItem {
+interface IVideoItemBase {
   thumbnail_loc: string;
   title: string;
   description: string;
@@ -67,11 +67,8 @@ export interface IVideoItem {
   'player_loc:autoplay'?: string;
   duration?: number;
   expiration_date?: string;
-  rating?: string | number;
   view_count?: string | number;
   publication_date?: string;
-  family_friendly?: EnumYesNo;
-  tag?: string | string[];
   category?: string;
   restriction?: string;
   'restriction:relationship'?: string;
@@ -81,11 +78,26 @@ export interface IVideoItem {
   'price:resolution'?: string;
   'price:currency'?: string;
   'price:type'?: string;
-  requires_subscription?: EnumYesNo;
   uploader?: string;
   platform?: string;
+  id?: string;
   'platform:relationship'?: EnumAllowDeny;
+}
+
+export interface IVideoItem extends IVideoItemBase {
+  tag: string[];
+  rating?: number;
+  family_friendly?: EnumYesNo;
+  requires_subscription?: EnumYesNo;
   live?: EnumYesNo;
+}
+
+export interface IVideoItemLoose extends IVideoItemBase {
+  tag?: string | string[];
+  rating?: string | number;
+  family_friendly?: EnumYesNo | boolean;
+  requires_subscription?: EnumYesNo | boolean;
+  live?: EnumYesNo | boolean;
 }
 
 export interface ILinkItem {
@@ -99,7 +111,7 @@ export interface SitemapIndexItemOptions {
   lastmodISO?: string;
 }
 
-export interface SitemapItemOptions {
+interface SitemapItemOptionsBase {
   safe?: boolean;
   lastmodfile?: any;
   lastmodrealtime?: boolean;
@@ -109,14 +121,23 @@ export interface SitemapItemOptions {
   fullPrecisionPriority?: boolean;
   priority?: number;
   news?: INewsItem;
-  img?: string | ISitemapImg | (string | ISitemapImg)[];
-  links?: ILinkItem[];
   expires?: string;
   androidLink?: string;
   mobile?: boolean | string;
-  video?: IVideoItem | IVideoItem[];
   ampLink?: string;
   root?: XMLElement;
   url: string;
   cdata?: boolean;
+}
+
+export interface SitemapItemOptions extends SitemapItemOptionsBase {
+  img: ISitemapImg[];
+  video: IVideoItem[];
+  links: ILinkItem[];
+}
+
+export interface SitemapItemOptionsLoose extends SitemapItemOptionsBase {
+  video?: IVideoItemLoose | IVideoItemLoose[];
+  img?: string | ISitemapImg | (string | ISitemapImg)[];
+  links?: ILinkItem[];
 }
