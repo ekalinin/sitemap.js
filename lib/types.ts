@@ -69,7 +69,6 @@ interface IVideoItemBase {
   expiration_date?: string;
   view_count?: string | number;
   publication_date?: string;
-  family_friendly?: EnumYesNo;
   category?: string;
   restriction?: string;
   'restriction:relationship'?: string;
@@ -79,22 +78,26 @@ interface IVideoItemBase {
   'price:resolution'?: string;
   'price:currency'?: string;
   'price:type'?: string;
-  requires_subscription?: EnumYesNo;
   uploader?: string;
   platform?: string;
-  'platform:relationship'?: EnumAllowDeny;
-  live?: EnumYesNo;
   id?: string;
+  'platform:relationship'?: EnumAllowDeny;
 }
 
 export interface IVideoItem extends IVideoItemBase {
   tag: string[];
   rating?: number;
+  family_friendly?: EnumYesNo;
+  requires_subscription?: EnumYesNo;
+  live?: EnumYesNo;
 }
 
 export interface IVideoItemLoose extends IVideoItemBase {
   tag?: string | string[];
   rating?: string | number;
+  family_friendly?: EnumYesNo | boolean;
+  requires_subscription?: EnumYesNo | boolean;
+  live?: EnumYesNo | boolean;
 }
 
 export interface ILinkItem {

@@ -379,11 +379,13 @@ describe('sitemapItem', () => {
     let price
     let requiresSubscription
     let platform
+    let id
     beforeEach(() => {
       testvideo = {
         ...itemTemplate,
         url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         video: [{
+          id: "http://example.com/url",
           title: "2008:E2 - Burnout Paradise: Millionaire's Club",
           description: "Jack gives us a walkthrough on getting the Millionaire's Club Achievement in Burnout Paradise.",
           player_loc: 'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
@@ -416,6 +418,7 @@ describe('sitemapItem', () => {
       price = '<video:price resolution="HD" currency="EUR" type="rent">1.99</video:price>'
       requiresSubscription = '<video:requires_subscription>yes</video:requires_subscription>'
       platform = '<video:platform relationship="allow">WEB</video:platform>'
+      id = '<video:id type="url">http://example.com/url</video:id>'
     })
 
     it('accepts an object', () => {
@@ -436,6 +439,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
+          id +
         '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
@@ -495,6 +499,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
+          id +
         '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
@@ -520,6 +525,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
+          id +
         '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
@@ -545,6 +551,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
+          id +
         '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
@@ -570,6 +577,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
+          id +
         '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
@@ -595,6 +603,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
+          id +
         '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
@@ -620,6 +629,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
+          id +
         '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
@@ -645,6 +655,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
+          id +
         '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
@@ -670,6 +681,7 @@ describe('sitemapItem', () => {
           price +
           requiresSubscription +
           platform +
+          id +
         '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
@@ -695,6 +707,7 @@ describe('sitemapItem', () => {
           requiresSubscription +
           '<video:uploader>GrillyMcGrillerson</video:uploader>' +
           platform +
+          id +
         '</video:video>' +
       '</url>'
       expect(result).toBe(expectedResult)
@@ -720,6 +733,7 @@ describe('sitemapItem', () => {
           requiresSubscription +
           platform +
           '<video:live>yes</video:live>' +
+          id +
         '</video:video>' +
       '</url>'
       expect(result.slice(1000)).toBe(expectedResult.slice(1000))

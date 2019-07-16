@@ -149,8 +149,6 @@ export class Sitemap {
    */
   add (url: string | SitemapItemOptionsLoose): number {
     const smi = this._normalizeURL(url)
-    // @ts-ignore
-    console.log(url && url.changefreq, smi.changefreq)
     return this.urls.set(smi.url, smi).size;
   }
 

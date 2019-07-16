@@ -246,7 +246,7 @@ export class SitemapItem {
       videoxml.element('video:live', video.live)
     }
     if (video.id) {
-      videoxml.element('video:id', video.id)
+      videoxml.element('video:id', {type: 'url'}, video.id)
     }
   }
 
@@ -267,18 +267,8 @@ export class SitemapItem {
 
       if (this.img && p === 'img') {
         // Image handling
-        if (!Array.isArray(this.img)) {
-          // make it an array
-          this.img = [this.img]
-        }
         this.img.forEach((image): void => {
           const xmlObj: {[index: string]: string|{'#cdata': string}} = {}
-          if (typeof (image) !== 'object') {
-            // it’s a string
-            // make it an object
-            image = {url: image}
-          }
-
           xmlObj['image:loc'] = image.url
 
           if (image.caption) {
