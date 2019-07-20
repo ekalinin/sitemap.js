@@ -46,7 +46,13 @@ if (argv['--version']){
   const packagejson = require('../package.json')
   console.log(packagejson.version)
 } else if (argv['--help']) {
-  console.log('TODO')
+  console.log(`
+Turn a list of urls into a sitemap xml.
+Options:
+  --help Print this text
+  --version Print the version
+  --json Parse each line as json and feed to Sitemap
+`)
 } else if (argv['--validate']) {
   let args = ['--schema', './schema/all.xsd', '--noout', '-']
   if (argv._ && argv._.length) {

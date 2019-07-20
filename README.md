@@ -57,6 +57,10 @@ Also supports line separated JSON for full configuration
 
     npx sitemap --json < listofurls.txt
 
+Or verify an existing sitemap
+
+    npx sitemap --verify sitemap.xml
+
 ## As a library
 
 The main functions you want to use in the sitemap module are
