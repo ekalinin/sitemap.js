@@ -17,7 +17,7 @@ describe('cli', () => {
   })
   it('prints a help doc when asked', async () => {
     const { stdout } = await exec('node ./dist/cli.js --help', {encoding: 'utf8'})
-    expect(stdout).toBe('TODO\n')
+    expect(stdout.length).toBeGreaterThan(1)
   })
   it('accepts line separated urls', async () => {
     const { stdout } = await exec('node ./dist/cli.js < ./tests/cli-urls.txt', {encoding: 'utf8'})
