@@ -349,6 +349,20 @@ const smi = createSitemap({
 |mobile|boolean or string|||
 |cdata|boolean|true|wrap url in cdata xml escape|
 
+## ISitemapImage
+
+Sitemap image
+https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190
+
+|Option|Type|eg|Description|
+|------|----|--|-----------|
+|url|string|'http://example.com/image.jpg'|The URL of the image.|
+|caption|string - optional|'Here we did the stuff'|The caption of the image.|
+|title|string - optional|'Star Wars EP IV'|The title of the image.|
+|geoLocation|string - optional|'Limerick, Ireland'|The geographic location of the image.|
+|license|string - optional|'http://example.com/license.txt'|A URL to the license of the image.|
+
+
 License
 -------
 
