@@ -345,7 +345,7 @@ const smi = createSitemap({
 |video|object[]|see [#IVideoItem](#IVideoItem)|https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190|
 |links|object[]|see [#ILinkItem](#ILinkItem)|Tell search engines about localized versions https://support.google.com/webmasters/answer/189077|
 |news|object|see [#INewsItem](#INewsItem)|https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190|
-|ampLink|string|||
+|ampLink|string|'http://ampproject.org/article.amp.html'||
 |mobile|boolean or string|||
 |cdata|boolean|true|wrap url in cdata xml escape|
 
@@ -368,34 +368,34 @@ Sitemap video. https://support.google.com/webmasters/answer/80471?hl=en&ref_topi
 
 |Option|Type|eg|Description|
 |------|----|--|-----------|
-|thumbnail_loc|string|||
-|title|string|||
-|description|string|||
-|content_loc|string - optional|||
-|player_loc|string - optional|||
+|thumbnail_loc|string|"https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg"||
+|title|string|'2018:E6 - GoldenEye: Source'||
+|description|string|'We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.'||
+|content_loc|string - optional|"http://streamserver.example.com/video123.mp4"||
+|player_loc|string - optional|"https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source"||
 |'player_loc:autoplay'|string - optional|'ap=1'|a string the search engine can append as a query param to enable automatic playback|
 |duration|number - optional| 600| duration of video in seconds|
-|expiration_date| string - optional|||
+|expiration_date| string - optional|"2012-07-16T19:20:30+08:00"||
 |view_count|string - optional|'21000000000'||
-|publication_date| string- optional|||
-|category|string - optional|||
-|restriction|string - optional|||
-|restriction:relationship| string - optional|||
-|gallery_loc| string - optional|||
-|gallery_loc:title|string - optional|||
-|price|string - optional|||
-|price:resolution|string - optional|||
-|price:currency| string - optional|||
-|price:type|string - optional|||
-|uploader|string - optional|||
-|platform|string - optional|||
-|platform:relationship|string {'Allow', 'Deny'} - optional|||
+|publication_date| string - optional|"2018-04-27T17:00:00.000Z"||
+|category|string - optional|"Baking"||
+|restriction|string - optional|"IE GB US CA"||
+|restriction:relationship| string - optional|"deny"||
+|gallery_loc| string - optional|"https://roosterteeth.com/series/awhu"||
+|gallery_loc:title|string - optional|"awhu series page"||
+|price|string - optional|"1.99"||
+|price:resolution|string - optional|"HD"||
+|price:currency| string - optional|"USD"||
+|price:type|string - optional|"rent"||
+|uploader|string - optional|"GrillyMcGrillerson"||
+|platform|string - optional|"tv"||
+|platform:relationship|string 'Allow'\|'Deny' - optional|'Allow'||
 |id|string - optional|||
 |tag|string[] - optional|['Baking']||
-|rating|number - optional|||
-|family_friendly|string {'YES','NO'} - optional|'YES'||
-|requires_subscription|string {'YES', 'NO'} - optional|'YES'||
-|live|string {'YES', 'NO'} - optional|'NO'||
+|rating|number - optional|2.5||
+|family_friendly|string 'YES'\|'NO' - optional|'YES'||
+|requires_subscription|string 'YES'\|'NO' - optional|'YES'||
+|live|string 'YES'\|'NO' - optional|'NO'||
 
 ## ILinkItem
 
@@ -403,6 +403,8 @@ https://support.google.com/webmasters/answer/189077
 
 |Option|Type|eg|Description|
 |------|----|--|-----------|
+|lang|string|'en'||
+|url|string|'http://example.com/en/'||
 
 ## INewsItem
 
