@@ -18,6 +18,7 @@
   "author": "Eugene Kalinin <e.v.kalinin@gmail.com>",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": "./dist/cli.js",
   "directories": {
     "lib": "lib",
     "test": "tests"
@@ -26,7 +27,7 @@
     "prepublishOnly": "sort-package-json && npm run test",
     "test": "tsc && jest && npm run test:schema",
     "test-perf": "node ./tests/perf.js",
-    "test:schema": "node tests/alltags.js | xmllint --schema tests/all.xsd --noout -",
+    "test:schema": "node tests/alltags.js | xmllint --schema schema/all.xsd --noout -",
     "test:typecheck": "tsc"
   },
   "husky": {
@@ -90,6 +91,7 @@
     }
   },
   "dependencies": {
+    "arg": "^4.1.0",
     "xmlbuilder": "^13.0.0"
   },
   "devDependencies": {

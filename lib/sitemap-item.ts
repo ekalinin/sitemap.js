@@ -156,6 +156,11 @@ export class SitemapItem {
     this.url = this.root.element('url')
   }
 
+  static justItem (conf: SitemapItemOptions): string {
+    const smi = new SitemapItem(conf)
+    return smi.toString()
+  }
+
   /**
    *  Create sitemap xml
    *  @return {String}

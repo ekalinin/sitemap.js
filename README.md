@@ -19,6 +19,7 @@ Table of Contents
   * [Table of Contents](#table-of-contents)
     * [Installation](#installation)
     * [Usage](#usage)
+      * [CLI](#CLI)
       * [Example of using sitemap.js with <a href="https://github.com/visionmedia/express">express</a>:](#example-of-using-sitemapjs-with-express)
       * [Example of synchronous sitemap.js usage:](#example-of-synchronous-sitemapjs-usage)
       * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
@@ -41,12 +42,27 @@ TOC created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 Installation
 ------------
 
-It's recommended to install via [npm](https://github.com/isaacs/npm/):
-
     npm install --save sitemap
 
 Usage
 -----
+
+## CLI
+
+Just feed the list of urls into sitemap
+
+    npx sitemap < listofurls.txt
+
+Also supports line separated JSON for full configuration
+
+    npx sitemap --json < listofurls.txt
+
+Or verify an existing sitemap
+
+    npx sitemap --verify sitemap.xml
+
+## As a library
+
 The main functions you want to use in the sitemap module are
 
 ```javascript

@@ -173,7 +173,7 @@ export class Sitemap {
     return this.toString();
   }
 
-  static normalizeURL (elem: string | SitemapItemOptionsLoose, root: XMLElement, hostname?: string): SitemapItemOptions {
+  static normalizeURL (elem: string | SitemapItemOptionsLoose, root?: XMLElement, hostname?: string): SitemapItemOptions {
     // SitemapItem
     // create object with url property
     let smi: SitemapItemOptions = {
@@ -256,7 +256,7 @@ export class Sitemap {
     return smi
   }
 
-  static normalizeURLs (urls: (string | SitemapItemOptionsLoose)[], root: XMLElement, hostname?: string): Map<string, SitemapItemOptions> {
+  static normalizeURLs (urls: (string | SitemapItemOptionsLoose)[], root?: XMLElement, hostname?: string): Map<string, SitemapItemOptions> {
     const urlMap = new Map<string, SitemapItemOptions>()
     urls.forEach((elem): void => {
       const smio = Sitemap.normalizeURL(elem, root, hostname)
