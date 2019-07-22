@@ -341,10 +341,10 @@ const smi = createSitemap({
 |lastmod|string|'2019-07-29' or '2019-07-22T05:58:37.037Z'|When the page we as last modified use the W3C Datetime ISO8601 subset  https://www.sitemaps.org/protocol.html#xmlTagDefinitions|
 |changefreq|string|'weekly'|How frequently the page is likely to change. This value provides general information to search engines and may not correlate exactly to how often they crawl the page. Please note that the value of this tag is considered a hint and not a command. See https://www.sitemaps.org/protocol.html#xmlTagDefinitions for the acceptable values|
 |priority|number|0.6|The priority of this URL relative to other URLs on your site. Valid values range from 0.0 to 1.0. This value does not affect how your pages are compared to pages on other sites—it only lets the search engines know which pages you deem most important for the crawlers. The default priority of a page is 0.5. https://www.sitemaps.org/protocol.html#xmlTagDefinitions|
-|img|object[]|see #ISitemapImage|https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190|
-|video|object[]|see #IVideoItem|https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190|
-|links|object[]|see #ILinkItem|Tell search engines about localized versions https://support.google.com/webmasters/answer/189077|
-|news|object|see #INewsItem|https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190|
+|img|object[]|see [#ISitemapImage](#ISitemapImage)|https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190|
+|video|object[]|see [#IVideoItem](#IVideoItem)|https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190|
+|links|object[]|see [#ILinkItem](#ILinkItem)|Tell search engines about localized versions https://support.google.com/webmasters/answer/189077|
+|news|object|see [#INewsItem](#INewsItem)|https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190|
 |ampLink|string|||
 |mobile|boolean or string|||
 |cdata|boolean|true|wrap url in cdata xml escape|
@@ -362,6 +362,54 @@ https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190
 |geoLocation|string - optional|'Limerick, Ireland'|The geographic location of the image.|
 |license|string - optional|'http://example.com/license.txt'|A URL to the license of the image.|
 
+## IVideoItem
+
+Sitemap video. https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190
+
+|Option|Type|eg|Description|
+|------|----|--|-----------|
+|thumbnail_loc|string|||
+|title|string|||
+|description|string|||
+|content_loc|string - optional|||
+|player_loc|string - optional|||
+|'player_loc:autoplay'|string - optional|'ap=1'|a string the search engine can append as a query param to enable automatic playback|
+|duration|number - optional| 600| duration of video in seconds|
+|expiration_date| string - optional|||
+|view_count|string - optional|'21000000000'||
+|publication_date| string- optional|||
+|category|string - optional|||
+|restriction|string - optional|||
+|restriction:relationship| string - optional|||
+|gallery_loc| string - optional|||
+|gallery_loc:title|string - optional|||
+|price|string - optional|||
+|price:resolution|string - optional|||
+|price:currency| string - optional|||
+|price:type|string - optional|||
+|uploader|string - optional|||
+|platform|string - optional|||
+|platform:relationship|string {'Allow', 'Deny'} - optional|||
+|id|string - optional|||
+|tag|string[] - optional|['Baking']||
+|rating|number - optional|||
+|family_friendly|string {'YES','NO'} - optional|'YES'||
+|requires_subscription|string {'YES', 'NO'} - optional|'YES'||
+|live|string {'YES', 'NO'} - optional|'NO'||
+
+## ILinkItem
+
+https://support.google.com/webmasters/answer/189077
+
+|Option|Type|eg|Description|
+|------|----|--|-----------|
+
+## INewsItem
+
+https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190
+
+|Option|Type|eg|Description|
+|------|----|--|-----------|
 
 License
 -------
