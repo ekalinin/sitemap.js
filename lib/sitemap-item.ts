@@ -17,8 +17,7 @@ import {
 import {
   CHANGEFREQ,
   IVideoItem,
-  SitemapItemOptions,
-  EnumYesNo
+  SitemapItemOptions
 } from './types';
 
 function safeDuration (duration: number): number {
@@ -62,16 +61,6 @@ function attrBuilder (conf: IStringObj, keys: string | string[]): object {
 
     return attrs
   }, iv)
-}
-
-function boolToYESNO (bool: boolean | EnumYesNo): EnumYesNo {
-  if (bool === undefined) {
-    return bool
-  }
-  if (typeof bool === 'boolean') {
-    return bool ? EnumYesNo.yes : EnumYesNo.no
-  }
-  return bool
 }
 
 /**
@@ -206,29 +195,23 @@ export class SitemapItem {
     if (video.expiration_date) {
       videoxml.element('video:expiration_date', video.expiration_date)
     }
-    if (video.rating) {
+    if (video.rating !== undefined) {
       videoxml.element('video:rating', video.rating)
     }
-    if (video.view_count) {
+    if (video.view_count !== undefined) {
       videoxml.element('video:view_count', video.view_count)
     }
     if (video.publication_date) {
       videoxml.element('video:publication_date', video.publication_date)
     }
-    if (video.tag) {
-      if (!Array.isArray(video.tag)) {
-        videoxml.element('video:tag', video.tag)
-      } else {
-        for (const tag of video.tag) {
-          videoxml.element('video:tag', tag)
-        }
-      }
+    for (const tag of video.tag) {
+      videoxml.element('video:tag', tag)
     }
     if (video.category) {
       videoxml.element('video:category', video.category)
     }
-    if (video.family_friendly !== undefined) {
-      videoxml.element('video:family_friendly', boolToYESNO(video.family_friendly))
+    if (video.family_friendly) {
+      videoxml.element('video:family_friendly', video.family_friendly)
     }
     if (video.restriction) {
       videoxml.element(
@@ -251,8 +234,8 @@ export class SitemapItem {
         video.price
       )
     }
-    if (video.requires_subscription !== undefined) {
-      videoxml.element('video:requires_subscription', boolToYESNO(video.requires_subscription))
+    if (video.requires_subscription) {
+      videoxml.element('video:requires_subscription', video.requires_subscription)
     }
     if (video.uploader) {
       videoxml.element('video:uploader', video.uploader)
@@ -264,8 +247,11 @@ export class SitemapItem {
         video.platform
       )
     }
-    if (video.live !== undefined) {
-      videoxml.element('video:live', boolToYESNO(video.live))
+    if (video.live) {
+      videoxml.element('video:live', video.live)
+    }
+    if (video.id) {
+      videoxml.element('video:id', {type: 'url'}, video.id)
     }
   }
 
@@ -286,18 +272,8 @@ export class SitemapItem {
 
       if (this.img && p === 'img') {
         // Image handling
-        if (!Array.isArray(this.img)) {
-          // make it an array
-          this.img = [this.img]
-        }
         this.img.forEach((image): void => {
           const xmlObj: {[index: string]: string|{'#cdata': string}} = {}
-          if (typeof (image) !== 'object') {
-            // it’s a string
-            // make it an object
-            image = {url: image}
-          }
-
           xmlObj['image:loc'] = image.url
 
           if (image.caption) {
@@ -316,11 +292,6 @@ export class SitemapItem {
           this.url.element({'image:image': xmlObj})
         })
       } else if (this.video && p === 'video') {
-        // Image handling
-        if (!Array.isArray(this.video)) {
-          // make it an array
-          this.video = [this.video]
-        }
         this.video.forEach(this.buildVideoElement, this)
       } else if (this.links && p === 'links') {
         this.links.forEach((link): void => {

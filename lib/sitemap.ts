@@ -6,9 +6,19 @@
  */
 import { create, XMLElement } from 'xmlbuilder';
 import { SitemapItem } from './sitemap-item';
-import { SitemapItemOptions, ISitemapImg, ILinkItem } from './types';
+import { SitemapItemOptionsLoose, SitemapItemOptions, ISitemapImg, ILinkItem, EnumYesNo, IVideoItem } from './types';
 import { gzip, gzipSync, CompressCallback } from 'zlib';
 import { URL } from 'url'
+
+function boolToYESNO (bool?: boolean | EnumYesNo): EnumYesNo|undefined {
+  if (bool === undefined) {
+    return bool
+  }
+  if (typeof bool === 'boolean') {
+    return bool ? EnumYesNo.yes : EnumYesNo.no
+  }
+  return bool
+}
 
 /**
  * Shortcut for `new Sitemap (...)`.
@@ -28,7 +38,7 @@ export function createSitemap({
   xslUrl,
   xmlNs
 }: {
-  urls?: (SitemapItemOptions|string)[];
+  urls?: (SitemapItemOptionsLoose|string)[];
   hostname?: string;
   cacheTime?: number;
   xslUrl?: string;
@@ -74,7 +84,7 @@ export class Sitemap {
     xslUrl,
     xmlNs
   }: {
-    urls?: (SitemapItemOptions|string)[];
+    urls?: (SitemapItemOptionsLoose|string)[];
     hostname?: string;
     cacheTime?: number;
     xslUrl?: string;
@@ -129,7 +139,7 @@ export class Sitemap {
     return this.cache;
   }
 
-  private _normalizeURL(url: string | SitemapItemOptions): SitemapItemOptions {
+  private _normalizeURL(url: string | SitemapItemOptionsLoose): SitemapItemOptions {
     return Sitemap.normalizeURL(url, this.root, this.hostname)
   }
 
@@ -137,12 +147,12 @@ export class Sitemap {
    *  Add url to sitemap
    *  @param {String} url
    */
-  add (url: string | SitemapItemOptions): number {
+  add (url: string | SitemapItemOptionsLoose): number {
     const smi = this._normalizeURL(url)
     return this.urls.set(smi.url, smi).size;
   }
 
-  contains (url: string | SitemapItemOptions): boolean {
+  contains (url: string | SitemapItemOptionsLoose): boolean {
     return this.urls.has(this._normalizeURL(url).url)
   }
 
@@ -151,7 +161,7 @@ export class Sitemap {
    *  @param {String | SitemapItemOptions} url
    *  @returns boolean whether the item was removed
    */
-  del (url: string | SitemapItemOptions): boolean {
+  del (url: string | SitemapItemOptionsLoose): boolean {
 
     return this.urls.delete(this._normalizeURL(url).url)
   }
@@ -163,39 +173,90 @@ export class Sitemap {
     return this.toString();
   }
 
-  static normalizeURL (elem: string | SitemapItemOptions, root?: XMLElement, hostname?: string): SitemapItemOptions {
+  static normalizeURL (elem: string | SitemapItemOptionsLoose, root?: XMLElement, hostname?: string): SitemapItemOptions {
     // SitemapItem
     // create object with url property
-    const smi: SitemapItemOptions = (typeof elem === 'string') ? {'url': elem, root} : {root, ...elem}
+    let smi: SitemapItemOptions = {
+      img: [],
+      video: [],
+      links: [],
+      url: '',
+      root
+    }
+    let smiLoose: SitemapItemOptionsLoose
+    if (typeof elem === 'string') {
+      smi.url = elem
+      smiLoose = {url: elem, root}
+    } else {
+      smiLoose = elem
+    }
+
+    smi.url = (new URL(smiLoose.url, hostname)).toString();
+
     let img: ISitemapImg[] = []
-    if (smi.img) {
-      if (typeof smi.img === 'string') {
+    if (smiLoose.img) {
+      if (typeof smiLoose.img === 'string') {
         // string -> array of objects
-        smi.img = [{ url: smi.img }];
-      } else if (!Array.isArray(smi.img)) {
+        smiLoose.img = [{ url: smiLoose.img }];
+      } else if (!Array.isArray(smiLoose.img)) {
         // object -> array of objects
-        smi.img = [smi.img];
+        smiLoose.img = [smiLoose.img];
       }
 
-      img = smi.img.map((el): ISitemapImg => typeof el === 'string' ? {url: el} : el);
+      img = smiLoose.img.map((el): ISitemapImg => typeof el === 'string' ? {url: el} : el);
     }
-    smi.url = (new URL(smi.url, hostname)).toString();
     // prepend hostname to all image urls
     smi.img = img.map((el: ISitemapImg): ISitemapImg => (
       {...el, url: (new URL(el.url, hostname)).toString()}
     ));
 
     let links: ILinkItem[] = []
-    if (smi.links) {
-      links = smi.links
+    if (smiLoose.links) {
+      links = smiLoose.links
     }
     smi.links = links.map((link): ILinkItem => {
       return {...link, url: (new URL(link.url, hostname)).toString()};
     });
+
+    if (smiLoose.video) {
+      if (!Array.isArray(smiLoose.video)) {
+        // make it an array
+        smiLoose.video = [smiLoose.video]
+      }
+      smi.video = smiLoose.video.map((video): IVideoItem => {
+        const nv: IVideoItem = {
+          ...video,
+          /* eslint-disable-next-line @typescript-eslint/camelcase */
+          family_friendly: boolToYESNO(video.family_friendly),
+          live: boolToYESNO(video.live),
+          /* eslint-disable-next-line @typescript-eslint/camelcase */
+          requires_subscription: boolToYESNO(video.requires_subscription),
+          tag: [],
+          rating: undefined
+        }
+
+        if (video.tag !== undefined) {
+          nv.tag = !Array.isArray(video.tag) ? [video.tag] : video.tag
+        }
+
+        if (video.rating !== undefined) {
+          if (typeof video.rating === 'string') {
+            nv.rating = parseFloat(video.rating)
+          } else {
+            nv.rating = video.rating
+          }
+        }
+        if (nv.rating !== undefined && (nv.rating < 0 || nv.rating > 5)) {
+          console.warn(smi.url, nv.title, `rating ${nv.rating} must be between 0 and 5 inclusive`)
+        }
+        return nv
+      })
+    }
+    smi = {...smiLoose, ...smi}
     return smi
   }
 
-  static normalizeURLs (urls: (string | SitemapItemOptions)[], root?: XMLElement, hostname?: string): Map<string, SitemapItemOptions> {
+  static normalizeURLs (urls: (string | SitemapItemOptionsLoose)[], root?: XMLElement, hostname?: string): Map<string, SitemapItemOptions> {
     const urlMap = new Map<string, SitemapItemOptions>()
     urls.forEach((elem): void => {
       const smio = Sitemap.normalizeURL(elem, root, hostname)
