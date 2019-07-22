@@ -34,7 +34,6 @@ Table of Contents
       * [Example of Sitemap Index](#example-of-sitemap-index)
       * [Example of overriding default xmlns* attributes in urlset element](#example-of-overriding-default-xmlns-attributes-in-urlset-element)
       * [Example of news usage](#example-of-news)
-    * [Testing](#testing)
     * [License](#license)
 
 TOC created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
@@ -332,21 +331,6 @@ const smi = createSitemap({
     }
   }]
 })
-```
-
-Testing
--------
-
-```bash
-➥ git clone https://github.com/ekalinin/sitemap.js.git
-➥ cd sitemap.js
-➥ make env
-➥ . env/bin/activate
-(env) ➥ make test
-./node_modules/expresso/bin/expresso ./tests/sitemap.test.js
-
-   100% 33 tests
-
 ```
 
 License
