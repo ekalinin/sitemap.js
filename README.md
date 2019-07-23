@@ -412,6 +412,15 @@ https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190
 
 |Option|Type|eg|Description|
 |------|----|--|-----------|
+|access|string - 'Registration' \| 'Subscription'| 'Registration'  - optional||
+|publication| object|see following options||
+|publication['name']| string|'The Example Times'|The <name> is the name of the news publication. It must exactly match the name as it appears on your articles on news.google.com, except for anything in parentheses.|
+|publication['language']|string|'en'|he <language> is the language of your publication. Use an ISO 639 language code (2 or 3 letters).|
+|genres|string - optional|'PressRelease, Blog'||
+|publication_date|string|'2008-12-23'|Article publication date in W3C format, using either the "complete date" (YYYY-MM-DD) format or the "complete date plus hours, minutes, and seconds"|
+|title|string|'Companies A, B in Merger Talks'|The title of the news article.|
+|keywords|string - optional|"business, merger, acquisition, A, B"||
+|stock_tickers|string - optional|"NASDAQ:A, NASDAQ:B"||
 
 License
 -------
