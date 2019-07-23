@@ -368,34 +368,34 @@ Sitemap video. https://support.google.com/webmasters/answer/80471?hl=en&ref_topi
 
 |Option|Type|eg|Description|
 |------|----|--|-----------|
-|thumbnail_loc|string|"https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg"||
-|title|string|'2018:E6 - GoldenEye: Source'||
-|description|string|'We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.'||
-|content_loc|string - optional|"http://streamserver.example.com/video123.mp4"||
-|player_loc|string - optional|"https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source"||
+|thumbnail_loc|string|"https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg"|A URL pointing to the video thumbnail image file|
+|title|string|'2018:E6 - GoldenEye: Source'|The title of the video. |
+|description|string|'We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.'|A description of the video. Maximum 2048 characters. |
+|content_loc|string - optional|"http://streamserver.example.com/video123.mp4"|A URL pointing to the actual video media file. Should be one of the supported formats.HTML is not a supported format. Flash is allowed, but no longer supported on most mobile platforms, and so may be indexed less well. Must not be the same as the <loc> URL.|
+|player_loc|string - optional|"https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source"|A URL pointing to a player for a specific video. Usually this is the information in the src element of an <embed> tag. Must not be the same as the <loc> URL|
 |'player_loc:autoplay'|string - optional|'ap=1'|a string the search engine can append as a query param to enable automatic playback|
 |duration|number - optional| 600| duration of video in seconds|
-|expiration_date| string - optional|"2012-07-16T19:20:30+08:00"||
-|view_count|string - optional|'21000000000'||
-|publication_date| string - optional|"2018-04-27T17:00:00.000Z"||
-|category|string - optional|"Baking"||
-|restriction|string - optional|"IE GB US CA"||
+|expiration_date| string - optional|"2012-07-16T19:20:30+08:00"|The date after which the video will no longer be available|
+|view_count|string - optional|'21000000000'|The number of times the video has been viewed.|
+|publication_date| string - optional|"2018-04-27T17:00:00.000Z"|The date the video was first published, in W3C format.|
+|category|string - optional|"Baking"|A short description of the broad category that the video belongs to. This is a string no longer than 256 characters.|
+|restriction|string - optional|"IE GB US CA"|Whether to show or hide your video in search results from specific countries.|
 |restriction:relationship| string - optional|"deny"||
-|gallery_loc| string - optional|"https://roosterteeth.com/series/awhu"||
-|gallery_loc:title|string - optional|"awhu series page"||
-|price|string - optional|"1.99"||
-|price:resolution|string - optional|"HD"||
-|price:currency| string - optional|"USD"||
-|price:type|string - optional|"rent"||
-|uploader|string - optional|"GrillyMcGrillerson"||
-|platform|string - optional|"tv"||
+|gallery_loc| string - optional|"https://roosterteeth.com/series/awhu"|Currently not used.|
+|gallery_loc:title|string - optional|"awhu series page"|Currently not used.|
+|price|string - optional|"1.99"|The price to download or view the video. Omit this tag for free videos.|
+|price:resolution|string - optional|"HD"|Specifies the resolution of the purchased version. Supported values are hd and sd.|
+|price:currency| string - optional|"USD"|currency [Required] Specifies the currency in ISO 4217 format.|
+|price:type|string - optional|"rent"|type [Optional] Specifies the purchase option. Supported values are rent and own. |
+|uploader|string - optional|"GrillyMcGrillerson"|The video uploader's name. Only one <video:uploader> is allowed per video. String value, max 255 charactersc.|
+|platform|string - optional|"tv"|Whether to show or hide your video in search results on  specified platform types. This is a list of space-delimited platform types. See https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190 for more detail|
 |platform:relationship|string 'Allow'\|'Deny' - optional|'Allow'||
 |id|string - optional|||
-|tag|string[] - optional|['Baking']||
-|rating|number - optional|2.5||
+|tag|string[] - optional|['Baking']|An arbitrary string tag describing the video. Tags are generally very short descriptions of key concepts associated with a video or piece of content.|
+|rating|number - optional|2.5|The rating of the video. Supported values are float numbers i|
 |family_friendly|string 'YES'\|'NO' - optional|'YES'||
-|requires_subscription|string 'YES'\|'NO' - optional|'YES'||
-|live|string 'YES'\|'NO' - optional|'NO'||
+|requires_subscription|string 'YES'\|'NO' - optional|'YES'|Indicates whether a subscription (either paid or free) is required to view the video. Allowed values are yes or no.|
+|live|string 'YES'\|'NO' - optional|'NO'|Indicates whether the video is a live stream. Supported values are yes or no.|
 
 ## ILinkItem
 
