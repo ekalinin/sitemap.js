@@ -62,11 +62,11 @@ var xml = sitemap.toString();
 ### Example of using sitemap.js with [express](https://github.com/visionmedia/express):
 
 ```javascript
-var express = require('express')
-  , sm = require('sitemap');
+var express = require('express');
+var sm = require('sitemap');
 
-var app = express()
-  , sitemap = sm.createSitemap ({
+var app = express();
+var sitemap = sm.createSitemap ({
       hostname: 'http://example.com',
       cacheTime: 600000,        // 600 sec - cache purge period
       urls: [
@@ -93,11 +93,11 @@ app.listen(3000);
 ### Example of synchronous sitemap.js usage:
 
 ```javascript
-var express = require('express')
-  , sm = require('sitemap');
+var express = require('express');
+var sm = require('sitemap');
 
 var app = express()
-  , sitemap = sm.createSitemap ({
+var sitemap = sm.createSitemap ({
       hostname: 'http://example.com',
       cacheTime: 600000,  // 600 sec cache period
       urls: [
@@ -133,8 +133,8 @@ sitemap.del('/page-1/');
 ### Example of pre-generating sitemap based on existing static files:
 
 ```javascript
-var sm = require('sitemap')
-    , fs = require('fs');
+var sm = require('sitemap');
+var fs = require('fs');
 
 var sitemap = sm.createSitemap({
     hostname: 'http://www.mywebsite.com',
@@ -271,8 +271,8 @@ var sitemap = sm.createSitemap({
 ### Example of using HH:MM:SS in lastmod
 
 ```javascript
-var sm = require('sitemap')
-  , sitemap = sm.createSitemap({
+var sm = require('sitemap');
+var sitemap = sm.createSitemap({
       hostname: 'http://www.mywebsite.com',
       urls: [{
         url: 'http://mobile.test.com/page-1/',
@@ -286,8 +286,8 @@ var sm = require('sitemap')
 ### Example of Sitemap Index as String
 
 ```javascript
-var sm = require('sitemap')
-  , smi = sm.buildSitemapIndex({
+var sm = require('sitemap');
+var smi = sm.buildSitemapIndex({
       urls: ['https://example.com/sitemap1.xml', 'https://example.com/sitemap2.xml'],
       xslUrl: 'https://example.com/style.xsl' // optional
     });
@@ -296,8 +296,8 @@ var sm = require('sitemap')
 ### Example of Sitemap Index
 
 ```javascript
-var sm = require('sitemap')
-  , smi = sm.createSitemapIndex({
+var sm = require('sitemap');
+var smi = sm.createSitemapIndex({
       cacheTime: 600000,
       hostname: 'http://www.sitemap.org',
       sitemapName: 'sm-test',
@@ -322,8 +322,8 @@ var sitemap = sm.createSitemapIndex({
 ### Example of news
 
 ```javascript
-const sm = require('sitemap')
-const smi = new sm.SitemapItem({
+var sm = require('sitemap');
+var smi = new sm.SitemapItem({
     url: 'http://www.example.org/business/article55.html',
     news: {
       publication: {
