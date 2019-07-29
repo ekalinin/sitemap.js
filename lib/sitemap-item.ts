@@ -1,5 +1,3 @@
-import { getTimestampFromDate } from './utils';
-import { statSync } from 'fs';
 import { create, XMLElement } from 'xmlbuilder';
 import {
   ChangeFreqInvalidError,
@@ -89,10 +87,7 @@ export class SitemapItem {
     const {
       url:loc,
       safe: isSafeUrl,
-      lastmodfile,
       lastmod,
-      lastmodrealtime,
-      lastmodISO,
       changefreq,
       priority
     } = conf
@@ -103,26 +98,6 @@ export class SitemapItem {
 
     // URL of the page
     this.loc = loc
-
-    // If given a file to use for last modified date
-    if (lastmodfile) {
-      const { mtime } = statSync(lastmodfile)
-
-      this.lastmod = getTimestampFromDate(new Date(mtime), lastmodrealtime)
-
-      // The date of last modification (YYYY-MM-DD)
-    } else if (lastmod) {
-      // append the timezone offset so that dates are treated as local time.
-      // Otherwise the Unit tests fail sometimes.
-      let timezoneOffset = 'UTC-' + (new Date().getTimezoneOffset() / 60) + '00'
-      timezoneOffset = timezoneOffset.replace('--', '-')
-      this.lastmod = getTimestampFromDate(
-        new Date(lastmod + ' ' + timezoneOffset),
-        lastmodrealtime
-      )
-    } else if (lastmodISO) {
-      this.lastmod = lastmodISO
-    }
 
     // How frequently the page is likely to change
     // due to this field is optional no default value is set
@@ -154,6 +129,7 @@ export class SitemapItem {
     this.ampLink = conf.ampLink
     this.root = conf.root || create('root')
     this.url = this.root.element('url')
+    this.lastmod = lastmod
   }
 
   static justItem (conf: SitemapItemOptions): string {

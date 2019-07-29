@@ -16,6 +16,7 @@ import {
 } from '../index'
 import { gzipSync, gunzipSync } from 'zlib'
 import { create } from 'xmlbuilder'
+import * as testUtil from './util'
 
 const urlset = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
              'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" ' +
@@ -223,6 +224,35 @@ describe('sitemap', () => {
             rating: '6'
         }}, create('urlset'))
         expect(console.warn).toHaveBeenCalledWith('http://example.com/', 'a title','rating 6 must be between 0 and 5 inclusive')
+      })
+    })
+    describe('lastmod', () => {
+      it('treats legacy ISO option like lastmod', () => {
+        expect(Sitemap.normalizeURL({'url': 'http://example.com', lastmodISO: '2019-01-01'})).toHaveProperty('lastmod', '2019-01-01T00:00:00.000Z')
+      })
+
+      it('turns all last mod strings into ISO timestamps', () => {
+        expect(Sitemap.normalizeURL({'url': 'http://example.com', lastmod: '2019-01-01'})).toHaveProperty('lastmod', '2019-01-01T00:00:00.000Z')
+        expect(Sitemap.normalizeURL({'url': 'http://example.com', lastmod: '2019-01-01T00:00:00.000Z'})).toHaveProperty('lastmod', '2019-01-01T00:00:00.000Z')
+      })
+
+      it('supports reading off file mtime', () => {
+        const { cacheFile, stat } = testUtil.createCache()
+
+        var dt = new Date(stat.mtime)
+        var lastmod = dt.toISOString()
+
+        const url = 'http://ya.ru/'
+        let smcfg = Sitemap.normalizeURL({
+          url: 'http://example.com',
+          'lastmodfile': cacheFile,
+          'changefreq': EnumChangefreq.ALWAYS,
+          'priority': 0.9
+        })
+
+        testUtil.unlinkCache()
+
+        expect(smcfg).toHaveProperty('lastmod', lastmod)
       })
     })
   })

@@ -5,6 +5,10 @@
     - validate your generated sitemap
   - Sitemap video item now supports id element
 ## breaking changes
+  - lastmod parses all ISO8601 date-only strings as being in UTC rather than local time
+    - lastmodISO is deprecated as it is equivalent to lastmod
+    - lastmodfile now includes the file's time as well
+    - lastmodrealtime is no longer necessary
   - Limit exports the default object of sitemap is very minimal now
   - Sitemap constructor now uses a object for its constructor
   - Sitemap no longer accepts a single string for its url

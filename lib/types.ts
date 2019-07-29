@@ -1,4 +1,5 @@
 import { XMLElement, XMLCData } from 'xmlbuilder';
+import { URL } from 'url'
 // can't be const enum if we use babel to compile
 // https://github.com/babel/babel/issues/8741
 export enum EnumChangefreq {
@@ -113,10 +114,7 @@ export interface SitemapIndexItemOptions {
 
 interface SitemapItemOptionsBase {
   safe?: boolean;
-  lastmodfile?: any;
-  lastmodrealtime?: boolean;
   lastmod?: string;
-  lastmodISO?: string;
   changefreq?: EnumChangefreq;
   fullPrecisionPriority?: boolean;
   priority?: number;
@@ -140,4 +138,7 @@ export interface SitemapItemOptionsLoose extends SitemapItemOptionsBase {
   video?: IVideoItemLoose | IVideoItemLoose[];
   img?: string | ISitemapImg | (string | ISitemapImg)[];
   links?: ILinkItem[];
+  lastmodfile?: string | Buffer | URL;
+  lastmodISO?: string;
+  lastmodrealtime?: boolean;
 }

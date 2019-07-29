@@ -9,6 +9,7 @@ import { SitemapItem } from './sitemap-item';
 import { SitemapItemOptionsLoose, SitemapItemOptions, ISitemapImg, ILinkItem, EnumYesNo, IVideoItem } from './types';
 import { gzip, gzipSync, CompressCallback } from 'zlib';
 import { URL } from 'url'
+import { statSync } from 'fs';
 
 function boolToYESNO (bool?: boolean | EnumYesNo): EnumYesNo|undefined {
   if (bool === undefined) {
@@ -252,6 +253,20 @@ export class Sitemap {
         return nv
       })
     }
+
+    // If given a file to use for last modified date
+    if (smiLoose.lastmodfile) {
+      const { mtime } = statSync(smiLoose.lastmodfile)
+
+      smi.lastmod = (new Date(mtime)).toISOString()
+
+      // The date of last modification (YYYY-MM-DD)
+    } else if (smiLoose.lastmodISO) {
+      smi.lastmod = (new Date(smiLoose.lastmodISO)).toISOString()
+    } else if (smiLoose.lastmod) {
+      smi.lastmod = (new Date(smiLoose.lastmod)).toISOString()
+    }
+
     smi = {...smiLoose, ...smi}
     return smi
   }
