@@ -1,6 +1,6 @@
 import { statSync, createWriteStream } from 'fs';
 import { create } from 'xmlbuilder';
-import { Sitemap, createSitemap } from './sitemap'
+import { createSitemap } from './sitemap'
 import { ICallback, SitemapIndexItemOptions, SitemapItemOptions } from './types';
 import { UndefinedTargetFolder } from './errors';
 import { chunk }  from './utils';
@@ -49,6 +49,7 @@ export function createSitemapIndex (conf: {
  * @param   {Array}     conf.urls
  * @param   {String}    conf.xslUrl
  * @param   {String}    conf.xmlNs
+ * @param   {String}    conf.lastmod When the referenced sitemap was last modified
  * @return  {String}    XML String of SitemapIndex
  */
 export function buildSitemapIndex (conf: {
@@ -56,8 +57,6 @@ export function buildSitemapIndex (conf: {
   xslUrl?: string;
   xmlNs?: string;
 
-  lastmodISO?: string;
-  lastmodrealtime?: boolean;
   lastmod?: number | string;
 }): string {
   const root = create('sitemapindex', {encoding: 'UTF-8'});
@@ -77,11 +76,7 @@ export function buildSitemapIndex (conf: {
     root.attribute(k, v.replace(/^['"]|['"]$/g, ''))
   }
 
-  if (conf.lastmodISO) {
-    lastmod = conf.lastmodISO;
-  } else if (conf.lastmodrealtime) {
-    lastmod = new Date().toISOString();
-  } else if (conf.lastmod) {
+  if (conf.lastmod) {
     lastmod = new Date(conf.lastmod).toISOString();
   }
 
@@ -90,9 +85,7 @@ export function buildSitemapIndex (conf: {
     let lm = lastmod
     if (url instanceof Object && url.url) {
       if (url.lastmod) {
-        lm = url.lastmod
-      } else if (url.lastmodISO) {
-        lm = url.lastmodISO
+        lm = new Date(url.lastmod).toISOString()
       }
 
       url = url.url;

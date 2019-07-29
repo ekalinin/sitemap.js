@@ -63,15 +63,15 @@ describe('sitemapIndex', () => {
     '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
         '<sitemap>' +
             '<loc>https://test.com/s1.xml</loc>' +
-            '<lastmod>2018-11-26</lastmod>' +
+            '<lastmod>2018-11-26T00:00:00.000Z</lastmod>' +
         '</sitemap>' +
         '<sitemap>' +
             '<loc>https://test.com/s2.xml</loc>' +
-            '<lastmod>2018-11-27</lastmod>' +
+            '<lastmod>2018-11-27T00:00:00.000Z</lastmod>' +
         '</sitemap>' +
         '<sitemap>' +
             '<loc>https://test.com/s3.xml</loc>' +
-            '<lastmod>2019-7-1</lastmod>' +
+            '<lastmod>2019-07-01T00:00:00.000Z</lastmod>' +
         '</sitemap>' +
     '</sitemapindex>'
 
@@ -83,52 +83,17 @@ describe('sitemapIndex', () => {
         },
         {
           url: 'https://test.com/s2.xml',
-          lastmodISO: '2018-11-27'
+          lastmod: '2018-11-27'
         },
         {
           url: 'https://test.com/s3.xml'
         }
       ],
       xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
-      lastmodISO: '2019-7-1'
+      lastmod: '2019-07-01'
     })
 
     expect(result).toBe(expectedResult)
-  })
-  it('build sitemap index with lastmod realtime', () => {
-    const currentDate = new Date('2019-05-14T11:01:58.135Z');
-    const realDate = Date;
-    // @ts-ignore
-    global.Date = class extends Date {
-      constructor(date) {
-        if (date) {
-    // @ts-ignore
-          return super(date);
-        }
-
-        return currentDate;
-      }
-    };
-    var expectedResult = xmlDef +
-    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
-        '<sitemap>' +
-            '<loc>https://test.com/s1.xml</loc>' +
-            `<lastmod>2019-05-14T11:01:58.135Z</lastmod>` +
-        '</sitemap>' +
-    '</sitemapindex>'
-
-    var result = buildSitemapIndex({
-      urls: [
-        {
-          url: 'https://test.com/s1.xml'
-        }
-      ],
-      xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
-      lastmodrealtime: true
-    })
-
-    expect(result).toBe(expectedResult)
-    global.Date = realDate;
   })
   it('build sitemap index with lastmod', () => {
     var expectedResult = xmlDef +

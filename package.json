@@ -25,6 +25,7 @@
   },
   "scripts": {
     "prepublishOnly": "sort-package-json && npm run test",
+    "test-fast": "jest ./tests/sitemap-item.test.ts ./tests/sitemap-index.test.ts ./tests/sitemap.test.ts ./tests/sitemap-shape.test.ts",
     "test": "tsc && jest && npm run test:schema",
     "test-perf": "node ./tests/perf.js",
     "test:schema": "node tests/alltags.js | xmllint --schema schema/all.xsd --noout -",
