@@ -1,5 +1,4 @@
 /* eslint-env jest, jasmine */
-import { getTimestampFromDate } from '../lib/utils'
 import * as testUtil from './util'
 import { SitemapItem, EnumChangefreq, EnumYesNo, EnumAllowDeny, SitemapItemOptions } from '../index'
 describe('sitemapItem', () => {
@@ -67,7 +66,7 @@ describe('sitemapItem', () => {
       ...itemTemplate,
       'url': url,
       'img': [{url: 'http://urlTest.com'}],
-      'lastmod': '2011-06-27',
+      'lastmod': '2011-06-27T00:00:00.000Z',
       'changefreq': EnumChangefreq.ALWAYS,
       'priority': 0.9,
       'mobile': true
@@ -76,7 +75,7 @@ describe('sitemapItem', () => {
     expect(smi.toString()).toBe(
       '<url>' +
         xmlLoc +
-        '<lastmod>2011-06-27</lastmod>' +
+        '<lastmod>2011-06-27T00:00:00.000Z</lastmod>' +
         '<changefreq>always</changefreq>' +
         xmlPriority +
         '<image:image>' +
@@ -108,7 +107,7 @@ describe('sitemapItem', () => {
     const smi = new SitemapItem({
       ...itemTemplate,
       'url': url,
-      'lastmodISO': '2011-06-27T00:00:00.000Z',
+      'lastmod': '2011-06-27T00:00:00.000Z',
       'changefreq': EnumChangefreq.ALWAYS,
       'priority': 0.9
     })
@@ -122,78 +121,13 @@ describe('sitemapItem', () => {
       '</url>')
   })
 
-  it('lastmod from file', () => {
-    const { cacheFile, stat } = testUtil.createCache()
-
-    var dt = new Date(stat.mtime)
-    var lastmod = getTimestampFromDate(dt)
-
-    const url = 'http://ya.ru/'
-    const smi = new SitemapItem({
-      ...itemTemplate,
-      'url': url,
-      'img': [{url: 'http://urlTest.com'}],
-      'lastmodfile': cacheFile,
-      'changefreq': EnumChangefreq.ALWAYS,
-      'priority': 0.9
-    })
-
-    testUtil.unlinkCache()
-
-    expect(smi.toString()).toBe(
-      '<url>' +
-        xmlLoc +
-        '<lastmod>' + lastmod + '</lastmod>' +
-        '<changefreq>always</changefreq>' +
-        xmlPriority +
-        '<image:image>' +
-        '<image:loc>' +
-        'http://urlTest.com' +
-        '</image:loc>' +
-        '</image:image>' +
-      '</url>')
-  })
-
-  it('lastmod from file with lastmodrealtime', () => {
-    const { cacheFile, stat } = testUtil.createCache()
-
-    var dt = new Date(stat.mtime)
-    var lastmod = getTimestampFromDate(dt, true)
-
-    const url = 'http://ya.ru/'
-    const smi = new SitemapItem({
-      ...itemTemplate,
-      'url': url,
-      'img': [{url: 'http://urlTest.com'}],
-      'lastmodfile': cacheFile,
-      'lastmodrealtime': true,
-      'changefreq': EnumChangefreq.ALWAYS,
-      'priority': 0.9
-    })
-
-    testUtil.unlinkCache()
-
-    expect(smi.toString()).toBe(
-      '<url>' +
-        xmlLoc +
-        '<lastmod>' + lastmod + '</lastmod>' +
-        '<changefreq>always</changefreq>' +
-        xmlPriority +
-        '<image:image>' +
-        '<image:loc>' +
-        'http://urlTest.com' +
-        '</image:loc>' +
-        '</image:image>' +
-      '</url>')
-  })
-
   it('toXML', () => {
     const url = 'http://ya.ru/'
     const smi = new SitemapItem({
       ...itemTemplate,
       'url': url,
       'img': [{url: 'http://urlTest.com'}],
-      'lastmod': '2011-06-27',
+      'lastmod': '2011-06-27T00:00:00.000Z',
       'changefreq': EnumChangefreq.ALWAYS,
       'priority': 0.9
     })
@@ -201,7 +135,7 @@ describe('sitemapItem', () => {
     expect(smi.toString()).toBe(
       '<url>' +
         xmlLoc +
-        '<lastmod>2011-06-27</lastmod>' +
+        '<lastmod>2011-06-27T00:00:00.000Z</lastmod>' +
         '<changefreq>always</changefreq>' +
         xmlPriority +
         '<image:image>' +
