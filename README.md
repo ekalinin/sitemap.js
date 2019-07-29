@@ -20,20 +20,22 @@ Table of Contents
     * [Installation](#installation)
     * [Usage](#usage)
       * [CLI](#CLI)
-      * [Example of using sitemap.js with <a href="https://github.com/visionmedia/express">express</a>:](#example-of-using-sitemapjs-with-express)
+      * [Example of using sitemap.js with <a href="https://expressjs.com/">express</a>:](#example-of-using-sitemapjs-with-express)
       * [Example of synchronous sitemap.js usage:](#example-of-synchronous-sitemapjs-usage)
       * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
-      * [Example of pre-generating sitemap based on existing static files:](#example-of-pre-generating-sitemap-based-on-existing-static-files)
-      * [Example of images with captions:](#example-of-images-with-captions)
-      * [Example of indicating alternate language pages:](#example-of-indicating-alternate-language-pages)
-      * [Example of indicating Android app deep linking:](#example-of-indicating-android-app-deep-linking)
-      * [Example of Sitemap Styling](#example-of-sitemap-styling)
-      * [Example of mobile URL](#example-of-mobile-url)
-      * [Example of using HH:MM:SS in lastmod](#example-of-using-hhmmss-in-lastmod)
+      * [Example of most of the options you can use for sitemap](#example-of-most-of-the-options-you-can-use-for-sitemap)
       * [Example of Sitemap Index as String](#example-of-sitemap-index-as-string)
       * [Example of Sitemap Index](#example-of-sitemap-index)
-      * [Example of overriding default xmlns* attributes in urlset element](#example-of-overriding-default-xmlns-attributes-in-urlset-element)
-      * [Example of news usage](#example-of-news)
+    * [API](#API)
+      * [Create Sitemap](#create-sitemap)
+      * [Sitemap](#sitemap)
+      * [buildSitemapIndex](#buildsitemapindex)
+      * [createSitemapIndex](#createsitemapindex)
+      * [Sitemap Item Options](#sitemap-item-options)
+      * [ISitemapImage](#ISitemapImage)
+      * [IVideoItem](#IVideoItem)
+      * [ILinkItem](#ILinkItem)
+      * [INewsItem](#INewsItem)
     * [License](#license)
 
 TOC created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
@@ -68,8 +70,6 @@ The main functions you want to use in the sitemap module are
 const { createSitemap } = require('sitemap')
 // Creates a sitemap object given the input configuration with URLs
 const sitemap = createSitemap({ options });
-// Generates XML with a callback function
-sitemap.toXML( function(err, xml){ if (!err){ console.log(xml) } });
 // Gives you a string containing the XML data
 const xml = sitemap.toString();
 ```
@@ -122,7 +122,7 @@ sitemap.del('/page-1/');
 
 
 
-### Example of pre-generating sitemap based on existing static files:
+### Example of most of the options you can use for sitemap
 
 ```javascript
 const { createSitemap } = require('sitemap');
@@ -132,146 +132,71 @@ const sitemap = sm.createSitemap({
   hostname: 'http://www.mywebsite.com',
   cacheTime: 600000,  //600 sec (10 min) cache purge period
   urls: [
-      { url: '/' , changefreq: 'weekly', priority: 0.8, lastmodrealtime: true, lastmodfile: 'app/assets/index.html' },
-      { url: '/page1', changefreq: 'weekly', priority: 0.8, lastmodrealtime: true, lastmodfile: 'app/assets/page1.html' },
-      { url: '/page2'    , changefreq: 'weekly', priority: 0.8, lastmodrealtime: true, lastmodfile: 'app/templates/page2.hbs' } /* useful to monitor template content files instead of generated static files */
+    {
+      url: '/page1',
+      changefreq: 'weekly',
+      priority: 0.8,
+      lastmodfile: 'app/assets/page1.html'
+    },
+    {
+      url: '/page2',
+      changefreq: 'weekly',
+      priority: 0.8,
+      /* useful to monitor template content files instead of generated static files */
+      lastmodfile: 'app/templates/page2.hbs'
+    },
+    // each sitemap entry supports many options
+    // See [Sitemap Item Options](#sitemap-item-options) below for details
+    {
+      url: 'http://test.com/page-1/',
+      img: [
+        {
+          url: 'http://test.com/img1.jpg',
+          caption: 'An image',
+          title: 'The Title of Image One',
+          geoLocation: 'London, United Kingdom',
+          license: 'https://creativecommons.org/licenses/by/4.0/'
+        },
+        {
+          url: 'http://test.com/img2.jpg',
+          caption: 'Another image',
+          title: 'The Title of Image Two',
+          geoLocation: 'London, United Kingdom',
+          license: 'https://creativecommons.org/licenses/by/4.0/'
+        }
+      ],
+      video: [
+        {
+          thumbnail_loc: 'http://test.com/tmbn1.jpg',
+          title: 'A video title',
+          description: 'This is a video'
+        },
+        {
+          thumbnail_loc: 'http://test.com/tmbn2.jpg',
+          title: 'A video with an attribute',
+          description: 'This is another video',
+          'player_loc': 'http://www.example.com/videoplayer.mp4?video=123',
+          'player_loc:autoplay': 'ap=1'
+        }
+      ],
+      links: [
+        { lang: 'en', url: 'http://test.com/page-1/' },
+        { lang: 'ja', url: 'http://test.com/page-1/ja/' }
+      ],
+      androidLink: 'android-app://com.company.test/page-1/',
+      news: {
+        publication: {
+          name: 'The Example Times',
+          language: 'en'
+        },
+        genres: 'PressRelease, Blog',
+        publication_date: '2008-12-23',
+        title: 'Companies A, B in Merger Talks',
+        keywords: 'business, merger, acquisition, A, B',
+        stock_tickers: 'NASDAQ:A, NASDAQ:B'
+      }
+    }
   ]
-});
-
-fs.writeFileSync("app/assets/sitemap.xml", sitemap.toString());
-```
-
-### Example of images with captions:
-
-```javascript
-const sitemap = createSitemap({
-  urls: [{
-    url: 'http://test.com/page-1/',
-    img: [
-      {
-        url: 'http://test.com/img1.jpg',
-        caption: 'An image',
-        title: 'The Title of Image One',
-        geoLocation: 'London, United Kingdom',
-        license: 'https://creativecommons.org/licenses/by/4.0/'
-      },
-      {
-        url: 'http://test.com/img2.jpg',
-        caption: 'Another image',
-        title: 'The Title of Image Two',
-        geoLocation: 'London, United Kingdom',
-        license: 'https://creativecommons.org/licenses/by/4.0/'
-      }
-    ]
-  }]
-});
-```
-
-### Example of videos:
-
-[Description](https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190) specifications. Required fields are thumbnail_loc, title, and description.
-
-```javascript
-const sitemap = createSitemap({
-  urls: [{
-    url: 'http://test.com/page-1/',
-    video: [
-      { thumbnail_loc: 'http://test.com/tmbn1.jpg', title: 'A video title', description: 'This is a video' },
-      {
-        thumbnail_loc: 'http://test.com/tmbn2.jpg',
-        title: 'A video with an attribute',
-        description: 'This is another video',
-        'player_loc': 'http://www.example.com/videoplayer.mp4?video=123',
-        'player_loc:autoplay': 'ap=1'
-      }
-    ]
-  }]
-});
-```
-
-
-### Example of indicating alternate language pages:
-
-[Description](https://support.google.com/webmasters/answer/2620865?hl=en) in
-the google's Search Console Help.
-
-```javascript
-const sitemap = createSitemap({
-  urls: [{
-    url: 'http://test.com/page-1/',
-    changefreq: 'weekly',
-    priority: 0.3,
-    links: [
-      { lang: 'en', url: 'http://test.com/page-1/', },
-      { lang: 'ja', url: 'http://test.com/page-1/ja/', },
-    ]
-  }]
-});
-```
-
-
-### Example of indicating Android app deep linking:
-
-[Description](https://developer.android.com/training/app-indexing/enabling-app-indexing.html#sitemap) in
-the google's Search Console Help.
-
-```javascript
-const sitemap = createSitemap({
-  urls: [{
-    url: 'http://test.com/page-1/',
-    changefreq: 'weekly',
-    priority: 0.3,
-    androidLink: 'android-app://com.company.test/page-1/'
-  }]
-});
-```
-
-### Example of Sitemap Styling
-
-```javascript
-const sitemap = createSitemap({
-  urls: [{
-    url: 'http://test.com/page-1/',
-    changefreq: 'weekly',
-    priority: 0.3,
-    links: [
-      { lang: 'en', url: 'http://test.com/page-1/', },
-      { lang: 'ja', url: 'http://test.com/page-1/ja/', },
-    ]
-  },],
-  xslUrl: 'sitemap.xsl'
-});
-```
-
-### Example of mobile URL
-
-[Description](https://support.google.com/webmasters/answer/34648?hl=en) in
-the google's Search Console Help.
-
-```javascript
-const sitemap = createSitemap({
-  urls: [{
-    url: 'http://mobile.test.com/page-1/',
-    changefreq: 'weekly',
-    priority: 0.3,
-    mobile: true
-  },],
-  xslUrl: 'sitemap.xsl'
-});
-```
-
-### Example of using HH:MM:SS in lastmod
-
-```javascript
-const { createSitemap } = require('sitemap')
-const sitemap = createSitemap({
-  hostname: 'http://www.mywebsite.com',
-  urls: [{
-    url: 'http://mobile.test.com/page-1/',
-    lastmodISO: '2015-06-27T15:30:00.000Z',
-    changefreq: 'weekly',
-    priority: 0.3
-  }]
 });
 ```
 
@@ -299,38 +224,6 @@ const smi = createSitemapIndex({
   // optional:
   // callback: function(err, result) {}
 });
-```
-
-### Example of overriding default xmlns* attributes in urlset element
-
-Also see 'simple sitemap with dynamic xmlNs' test in [tests/sitemap.js](https://github.com/ekalinin/sitemap.js/blob/master/tests/sitemap.test.js)
-
-```javascript
-const sitemap = createSitemapIndex({
-  xmlns: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'
-});
-```
-
-### Example of news
-
-```javascript
-const { createSitemap } = require('sitemap')
-const smi = createSitemap({
-  urls: [{
-    url: 'http://www.example.org/business/article55.html',
-    news: {
-      publication: {
-        name: 'The Example Times',
-        language: 'en'
-      },
-      genres: 'PressRelease, Blog',
-      publication_date: '2008-12-23',
-      title: 'Companies A, B in Merger Talks',
-      keywords: 'business, merger, acquisition, A, B',
-      stock_tickers: 'NASDAQ:A, NASDAQ:B'
-    }
-  }]
-})
 ```
 
 ## Sitemap Item Options
