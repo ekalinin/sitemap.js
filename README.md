@@ -34,7 +34,6 @@ Table of Contents
       * [Example of Sitemap Index](#example-of-sitemap-index)
       * [Example of overriding default xmlns* attributes in urlset element](#example-of-overriding-default-xmlns-attributes-in-urlset-element)
       * [Example of news usage](#example-of-news)
-    * [Testing](#testing)
     * [License](#license)
 
 TOC created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
@@ -334,20 +333,94 @@ const smi = createSitemap({
 })
 ```
 
-Testing
--------
+## Sitemap Item Options
 
-```bash
-➥ git clone https://github.com/ekalinin/sitemap.js.git
-➥ cd sitemap.js
-➥ make env
-➥ . env/bin/activate
-(env) ➥ make test
-./node_modules/expresso/bin/expresso ./tests/sitemap.test.js
+|Option|Type|eg|Description|
+|------|----|--|-----------|
+|url|string|http://example.com/some/path|The only required property for every sitemap entry|
+|lastmod|string|'2019-07-29' or '2019-07-22T05:58:37.037Z'|When the page we as last modified use the W3C Datetime ISO8601 subset  https://www.sitemaps.org/protocol.html#xmlTagDefinitions|
+|changefreq|string|'weekly'|How frequently the page is likely to change. This value provides general information to search engines and may not correlate exactly to how often they crawl the page. Please note that the value of this tag is considered a hint and not a command. See https://www.sitemaps.org/protocol.html#xmlTagDefinitions for the acceptable values|
+|priority|number|0.6|The priority of this URL relative to other URLs on your site. Valid values range from 0.0 to 1.0. This value does not affect how your pages are compared to pages on other sites—it only lets the search engines know which pages you deem most important for the crawlers. The default priority of a page is 0.5. https://www.sitemaps.org/protocol.html#xmlTagDefinitions|
+|img|object[]|see [#ISitemapImage](#ISitemapImage)|https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190|
+|video|object[]|see [#IVideoItem](#IVideoItem)|https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190|
+|links|object[]|see [#ILinkItem](#ILinkItem)|Tell search engines about localized versions https://support.google.com/webmasters/answer/189077|
+|news|object|see [#INewsItem](#INewsItem)|https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190|
+|ampLink|string|'http://ampproject.org/article.amp.html'||
+|mobile|boolean or string|||
+|cdata|boolean|true|wrap url in cdata xml escape|
 
-   100% 33 tests
+## ISitemapImage
 
-```
+Sitemap image
+https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190
+
+|Option|Type|eg|Description|
+|------|----|--|-----------|
+|url|string|'http://example.com/image.jpg'|The URL of the image.|
+|caption|string - optional|'Here we did the stuff'|The caption of the image.|
+|title|string - optional|'Star Wars EP IV'|The title of the image.|
+|geoLocation|string - optional|'Limerick, Ireland'|The geographic location of the image.|
+|license|string - optional|'http://example.com/license.txt'|A URL to the license of the image.|
+
+## IVideoItem
+
+Sitemap video. https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190
+
+|Option|Type|eg|Description|
+|------|----|--|-----------|
+|thumbnail_loc|string|"https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg"|A URL pointing to the video thumbnail image file|
+|title|string|'2018:E6 - GoldenEye: Source'|The title of the video. |
+|description|string|'We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.'|A description of the video. Maximum 2048 characters. |
+|content_loc|string - optional|"http://streamserver.example.com/video123.mp4"|A URL pointing to the actual video media file. Should be one of the supported formats.HTML is not a supported format. Flash is allowed, but no longer supported on most mobile platforms, and so may be indexed less well. Must not be the same as the <loc> URL.|
+|player_loc|string - optional|"https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source"|A URL pointing to a player for a specific video. Usually this is the information in the src element of an <embed> tag. Must not be the same as the <loc> URL|
+|'player_loc:autoplay'|string - optional|'ap=1'|a string the search engine can append as a query param to enable automatic playback|
+|duration|number - optional| 600| duration of video in seconds|
+|expiration_date| string - optional|"2012-07-16T19:20:30+08:00"|The date after which the video will no longer be available|
+|view_count|string - optional|'21000000000'|The number of times the video has been viewed.|
+|publication_date| string - optional|"2018-04-27T17:00:00.000Z"|The date the video was first published, in W3C format.|
+|category|string - optional|"Baking"|A short description of the broad category that the video belongs to. This is a string no longer than 256 characters.|
+|restriction|string - optional|"IE GB US CA"|Whether to show or hide your video in search results from specific countries.|
+|restriction:relationship| string - optional|"deny"||
+|gallery_loc| string - optional|"https://roosterteeth.com/series/awhu"|Currently not used.|
+|gallery_loc:title|string - optional|"awhu series page"|Currently not used.|
+|price|string - optional|"1.99"|The price to download or view the video. Omit this tag for free videos.|
+|price:resolution|string - optional|"HD"|Specifies the resolution of the purchased version. Supported values are hd and sd.|
+|price:currency| string - optional|"USD"|currency [Required] Specifies the currency in ISO 4217 format.|
+|price:type|string - optional|"rent"|type [Optional] Specifies the purchase option. Supported values are rent and own. |
+|uploader|string - optional|"GrillyMcGrillerson"|The video uploader's name. Only one <video:uploader> is allowed per video. String value, max 255 charactersc.|
+|platform|string - optional|"tv"|Whether to show or hide your video in search results on  specified platform types. This is a list of space-delimited platform types. See https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190 for more detail|
+|platform:relationship|string 'Allow'\|'Deny' - optional|'Allow'||
+|id|string - optional|||
+|tag|string[] - optional|['Baking']|An arbitrary string tag describing the video. Tags are generally very short descriptions of key concepts associated with a video or piece of content.|
+|rating|number - optional|2.5|The rating of the video. Supported values are float numbers i|
+|family_friendly|string 'YES'\|'NO' - optional|'YES'||
+|requires_subscription|string 'YES'\|'NO' - optional|'YES'|Indicates whether a subscription (either paid or free) is required to view the video. Allowed values are yes or no.|
+|live|string 'YES'\|'NO' - optional|'NO'|Indicates whether the video is a live stream. Supported values are yes or no.|
+
+## ILinkItem
+
+https://support.google.com/webmasters/answer/189077
+
+|Option|Type|eg|Description|
+|------|----|--|-----------|
+|lang|string|'en'||
+|url|string|'http://example.com/en/'||
+
+## INewsItem
+
+https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190
+
+|Option|Type|eg|Description|
+|------|----|--|-----------|
+|access|string - 'Registration' \| 'Subscription'| 'Registration'  - optional||
+|publication| object|see following options||
+|publication['name']| string|'The Example Times'|The <name> is the name of the news publication. It must exactly match the name as it appears on your articles on news.google.com, except for anything in parentheses.|
+|publication['language']|string|'en'|he <language> is the language of your publication. Use an ISO 639 language code (2 or 3 letters).|
+|genres|string - optional|'PressRelease, Blog'||
+|publication_date|string|'2008-12-23'|Article publication date in W3C format, using either the "complete date" (YYYY-MM-DD) format or the "complete date plus hours, minutes, and seconds"|
+|title|string|'Companies A, B in Merger Talks'|The title of the news article.|
+|keywords|string - optional|"business, merger, acquisition, A, B"||
+|stock_tickers|string - optional|"NASDAQ:A, NASDAQ:B"||
 
 License
 -------
