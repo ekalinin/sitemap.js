@@ -21,7 +21,6 @@ Table of Contents
     * [Usage](#usage)
       * [CLI](#CLI)
       * [Example of using sitemap.js with <a href="https://expressjs.com/">express</a>:](#example-of-using-sitemapjs-with-express)
-      * [Example of synchronous sitemap.js usage:](#example-of-synchronous-sitemapjs-usage)
       * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
       * [Example of most of the options you can use for sitemap](#example-of-most-of-the-options-you-can-use-for-sitemap)
       * [Example of Sitemap Index as String](#example-of-sitemap-index-as-string)
@@ -224,6 +223,47 @@ const smi = createSitemapIndex({
   // optional:
   // callback: function(err, result) {}
 });
+```
+## API 
+
+
+## Sitemap
+
+```
+const { Sitemap } = require('sitemap')
+const sm = new Sitemap({
+    urls: [{url: '/path'}],
+    hostname: 'http://example.com',
+    cacheTime: 0 // default
+})
+sm.toString() // returns the xml as a string
+```
+
+## buildSitemapIndex
+Build a sitemap index file
+```
+const { buildSitemapIndex } = require('sitemap')
+const index =   buildSitemapIndex({
+  urls: [{url: 'http://example.com/sitemap-1.xml', lastmod: '2019-07-01'}, 'http://example.com/sitemap-2.xml'],
+  lastmod: '2019-07-29'
+})
+```
+
+## createSitemapIndex
+Create several sitemaps and an index automatically from a list of urls
+```
+const { createSitemapIndex } = require('sitemap')
+createSitemapIndex({
+  urls: [/* list of urls */],
+  targetFolder: 'absolute path to target folder',
+  hostname: 'http://example.com',
+  cacheTime: 600,
+  sitemapName: 'sitemap',
+  sitemapSize: 50000, // number of urls to allow in each sitemap
+  xslUrl: '',// custom xsl url
+  gzip: false, // whether to gzip the files
+  callback: // called when complete;
+})
 ```
 
 ## Sitemap Item Options
