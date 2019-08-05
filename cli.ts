@@ -1,8 +1,8 @@
-import { SitemapItem, Sitemap } from './index'
+import { SitemapItem, Sitemap, SitemapItemOptionsLoose } from './index'
 import { createInterface } from 'readline';
 import { Readable } from 'stream'
 import { createReadStream } from 'fs'
-import { execFile } from 'child_process'
+import { xmlLint } from './lib/xmllint'
 console.warn('CLI is in new and likely to change quite a bit. Please send feature/bug requests to https://github.com/ekalinin/sitemap.js/issues')
 /* eslint-disable-next-line @typescript-eslint/no-var-requires */
 const arg = require('arg')
@@ -10,13 +10,12 @@ const arg = require('arg')
 const preamble = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">'
 const closetag = '</urlset>'
 let first = true
-const println = (line: string): void => {
-  let prepend = ''
+const println = (line: string|SitemapItemOptionsLoose): void => {
   if (first) {
     first = false
-    prepend = preamble
+    process.stdout.write(preamble)
   }
-  process.stdout.write(prepend + SitemapItem.justItem(Sitemap.normalizeURL(line)))
+  process.stdout.write(SitemapItem.justItem(Sitemap.normalizeURL(line)))
 }
 
 async function processStreams (streams: Readable[], isJSON = false): Promise<boolean> {
@@ -54,22 +53,18 @@ Options:
   --json Parse each line as json and feed to Sitemap
 `)
 } else if (argv['--validate']) {
-  let args = ['--schema', './schema/all.xsd', '--noout', '-']
+  let xml = process.stdin
   if (argv._ && argv._.length) {
-    args[args.length - 1] = argv._[0]
+    xml = argv._[0]
   }
-  let xmllint = execFile('xmllint', args, (error, stdout, stderr): void => {
-    // @ts-ignore
-    if (error && error.code) {
-      console.log(stderr)
-      return
-    }
-    console.log('valid')
-  })
-  if ((!argv._ || !argv._.length) && process.stdin && xmllint.stdin && xmllint.stdout && xmllint.stderr) {
-    process.stdin.pipe(xmllint.stdin)
-    xmllint.stderr.pipe(process.stderr)
-  }
+  xmlLint(xml, process.stderr)
+    .then((): void => console.log('valid'))
+    .catch(([error, stderr]: [Error|null, Buffer]): void => {
+      // @ts-ignore
+      if (error && error.code) {
+        console.log(stderr)
+      }
+    })
 } else {
   let streams: Readable[]
   if (!argv._.length) {

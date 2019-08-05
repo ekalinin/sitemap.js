@@ -18,7 +18,7 @@
  *    * test sitemap: 217ms
  *
  */
-'use strict';
+'use strict'
 
 var sm = require('../dist/index')
 
@@ -29,22 +29,23 @@ var [ runs = 20 ] = process.argv.slice(2)
 console.log('runs:', runs)
 
 function printPerf (label, data) {
-  console.log('========= ', label, ' =============')
-  console.log('mean: %s', stats.mean(data).toFixed(1))
-  console.log('median: %s', stats.median(data).toFixed(1))
-  console.log('variance: %s', stats.variance(data).toFixed(1))
-  console.log('standard deviation: %s', stats.stdev(data).toFixed(1))
-  console.log('90th percentile: %s', stats.percentile(data, 0.9).toFixed(1))
-  console.log('99th percentile: %s', stats.percentile(data, 0.99).toFixed(1))
+  console.error('========= ', label, ' =============')
+  console.error('mean: %s', stats.mean(data).toFixed(1))
+  console.error('median: %s', stats.median(data).toFixed(1))
+  console.error('variance: %s', stats.variance(data).toFixed(1))
+  console.error('standard deviation: %s', stats.stdev(data).toFixed(1))
+  console.error('90th percentile: %s', stats.percentile(data, 0.9).toFixed(1))
+  console.error('99th percentile: %s', stats.percentile(data, 0.99).toFixed(1))
 }
 
-function createSitemap () {
+function createSitemap (stream) {
   return sm.createSitemap({
     hostname: 'https://roosterteeth.com',
-    urls
+    urls,
+    stream
   })
 }
-
+console.error('testing sitemap creation w/o printing')
 let durations = []
 for (let i = 0; i < runs; i++) {
   let start = performance.now()
@@ -52,6 +53,7 @@ for (let i = 0; i < runs; i++) {
   durations.push(performance.now() - start)
 }
 printPerf('sitemap creation', durations)
+console.error('testing toString')
 let sitemap = createSitemap()
 
 let syncToString = []
@@ -62,18 +64,12 @@ for (let i = 0; i < runs; i++) {
 }
 printPerf('sync', syncToString)
 
-var i = 0
-let start
-let asyncDurations = []
-function toXMLCB (xml) {
-  asyncDurations.push(performance.now() - start)
-  if (i < runs) {
-    i++
-    start = performance.now()
-    sitemap.toXML(toXMLCB)
-  } else {
-    printPerf('async', asyncDurations)
-  }
-}
-start = performance.now()
-sitemap.toXML(toXMLCB)
+// console.error('testing streaming')
+// sitemap = createSitemap(process.stdout)
+// let streamToString = []
+// for (let i = 0; i < runs; i++) {
+// let start = performance.now()
+// sitemap.toString()
+// streamToString.push(performance.now() - start)
+// }
+// printPerf('stream', streamToString)
