@@ -72,7 +72,10 @@
         }
       ],
       "@typescript-eslint/explicit-member-accessibility": "off",
-      "@typescript-eslint/interface-name-prefix": [2, "always"]
+      "@typescript-eslint/interface-name-prefix": [
+        2,
+        "always"
+      ]
     }
   },
   "jest": {
