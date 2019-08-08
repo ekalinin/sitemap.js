@@ -1,7 +1,7 @@
 import { statSync, createWriteStream } from 'fs';
 import { create } from 'xmlbuilder';
 import { createSitemap } from './sitemap'
-import { ICallback, SitemapIndexItemOptions, SitemapItemOptions } from './types';
+import { ICallback, ISitemapIndexItemOptions, SitemapItemOptions } from './types';
 import { UndefinedTargetFolder } from './errors';
 import { chunk }  from './utils';
 
@@ -53,7 +53,7 @@ export function createSitemapIndex (conf: {
  * @return  {String}    XML String of SitemapIndex
  */
 export function buildSitemapIndex (conf: {
-  urls: (SitemapIndexItemOptions|string)[];
+  urls: (ISitemapIndexItemOptions|string)[];
   xslUrl?: string;
   xmlNs?: string;
 

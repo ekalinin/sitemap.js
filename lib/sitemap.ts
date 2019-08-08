@@ -6,7 +6,7 @@
  */
 import { create, XMLElement } from 'xmlbuilder';
 import { SitemapItem } from './sitemap-item';
-import { SitemapItemOptionsLoose, SitemapItemOptions, ISitemapImg, ILinkItem, EnumYesNo, IVideoItem } from './types';
+import { ISitemapItemOptionsLoose, SitemapItemOptions, ISitemapImg, ILinkItem, EnumYesNo, IVideoItem } from './types';
 import { gzip, gzipSync, CompressCallback } from 'zlib';
 import { URL } from 'url'
 import { statSync } from 'fs';
@@ -39,7 +39,7 @@ export function createSitemap({
   xslUrl,
   xmlNs
 }: {
-  urls?: (SitemapItemOptionsLoose|string)[];
+  urls?: (ISitemapItemOptionsLoose|string)[];
   hostname?: string;
   cacheTime?: number;
   xslUrl?: string;
@@ -85,7 +85,7 @@ export class Sitemap {
     xslUrl,
     xmlNs
   }: {
-    urls?: (SitemapItemOptionsLoose|string)[];
+    urls?: (ISitemapItemOptionsLoose|string)[];
     hostname?: string;
     cacheTime?: number;
     xslUrl?: string;
@@ -140,7 +140,7 @@ export class Sitemap {
     return this.cache;
   }
 
-  private _normalizeURL(url: string | SitemapItemOptionsLoose): SitemapItemOptions {
+  private _normalizeURL(url: string | ISitemapItemOptionsLoose): SitemapItemOptions {
     return Sitemap.normalizeURL(url, this.root, this.hostname)
   }
 
@@ -148,12 +148,12 @@ export class Sitemap {
    *  Add url to sitemap
    *  @param {String} url
    */
-  add (url: string | SitemapItemOptionsLoose): number {
+  add (url: string | ISitemapItemOptionsLoose): number {
     const smi = this._normalizeURL(url)
     return this.urls.set(smi.url, smi).size;
   }
 
-  contains (url: string | SitemapItemOptionsLoose): boolean {
+  contains (url: string | ISitemapItemOptionsLoose): boolean {
     return this.urls.has(this._normalizeURL(url).url)
   }
 
@@ -162,7 +162,7 @@ export class Sitemap {
    *  @param {String | SitemapItemOptions} url
    *  @returns boolean whether the item was removed
    */
-  del (url: string | SitemapItemOptionsLoose): boolean {
+  del (url: string | ISitemapItemOptionsLoose): boolean {
 
     return this.urls.delete(this._normalizeURL(url).url)
   }
@@ -174,7 +174,7 @@ export class Sitemap {
     return this.toString();
   }
 
-  static normalizeURL (elem: string | SitemapItemOptionsLoose, root?: XMLElement, hostname?: string): SitemapItemOptions {
+  static normalizeURL (elem: string | ISitemapItemOptionsLoose, root?: XMLElement, hostname?: string): SitemapItemOptions {
     // SitemapItem
     // create object with url property
     let smi: SitemapItemOptions = {
@@ -184,7 +184,7 @@ export class Sitemap {
       url: '',
       root
     }
-    let smiLoose: SitemapItemOptionsLoose
+    let smiLoose: ISitemapItemOptionsLoose
     if (typeof elem === 'string') {
       smi.url = elem
       smiLoose = {url: elem, root}
@@ -271,7 +271,7 @@ export class Sitemap {
     return smi
   }
 
-  static normalizeURLs (urls: (string | SitemapItemOptionsLoose)[], root?: XMLElement, hostname?: string): Map<string, SitemapItemOptions> {
+  static normalizeURLs (urls: (string | ISitemapItemOptionsLoose)[], root?: XMLElement, hostname?: string): Map<string, SitemapItemOptions> {
     const urlMap = new Map<string, SitemapItemOptions>()
     urls.forEach((elem): void => {
       const smio = Sitemap.normalizeURL(elem, root, hostname)

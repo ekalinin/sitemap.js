@@ -25,7 +25,7 @@
   },
   "scripts": {
     "prepublishOnly": "sort-package-json && npm run test",
-    "test": "tsc && jest && npm run test:schema",
+    "test": "eslint lib/* ./cli.ts && tsc && jest && npm run test:schema",
     "test-fast": "jest ./tests/sitemap-item.test.ts ./tests/sitemap-index.test.ts ./tests/sitemap.test.ts ./tests/sitemap-shape.test.ts",
     "test-perf": "node ./tests/perf.js > /dev/null",
     "test:schema": "node tests/alltags.js | xmllint --schema schema/all.xsd --noout -",
@@ -50,7 +50,7 @@
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
-      "ecmaVersion": 6,
+      "ecmaVersion": 2018,
       "sourceType": "module"
     },
     "rules": {
@@ -72,7 +72,7 @@
         }
       ],
       "@typescript-eslint/explicit-member-accessibility": "off",
-      "@typescript-eslint/interface-name-prefix": "always"
+      "@typescript-eslint/interface-name-prefix": [2, "always"]
     }
   },
   "jest": {
@@ -92,29 +92,29 @@
     }
   },
   "dependencies": {
-    "arg": "^4.1.0",
+    "arg": "^4.1.1",
     "xmlbuilder": "^13.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.4",
-    "@babel/plugin-proposal-class-properties": "^7.4.4",
-    "@babel/plugin-transform-typescript": "^7.4.5",
-    "@babel/preset-env": "^7.4.4",
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-transform-typescript": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
     "@babel/preset-typescript": "^7.3.3",
-    "@types/jest": "^24.0.12",
-    "@types/node": "^12.0.2",
-    "@typescript-eslint/eslint-plugin": "^1.9.0",
-    "@typescript-eslint/parser": "^1.9.0",
+    "@types/jest": "^24.0.17",
+    "@types/node": "^12.7.1",
+    "@typescript-eslint/eslint-plugin": "^1.13.0",
+    "@typescript-eslint/parser": "^1.13.0",
     "babel-eslint": "^10.0.1",
     "babel-polyfill": "^6.26.0",
-    "eslint": "^5.0.0",
-    "husky": "^3.0.0",
+    "eslint": "^6.1.0",
+    "husky": "^3.0.3",
     "jasmine": "^3.4.0",
     "jest": "^24.8.0",
     "sort-package-json": "^1.22.1",
     "source-map": "~0.7.3",
     "stats-lite": "^2.2.0",
-    "typescript": "^3.4.5"
+    "typescript": "^3.5.3"
   },
   "engines": {
     "node": ">=8.9.0",

@@ -1,4 +1,4 @@
-import { XMLElement, XMLCData } from 'xmlbuilder';
+import { XMLElement } from 'xmlbuilder';
 import { URL } from 'url'
 // can't be const enum if we use babel to compile
 // https://github.com/babel/babel/issues/8741
@@ -106,13 +106,13 @@ export interface ILinkItem {
   url: string;
 }
 
-export interface SitemapIndexItemOptions {
+export interface ISitemapIndexItemOptions {
   url: string;
   lastmod?: string;
   lastmodISO?: string;
 }
 
-interface SitemapItemOptionsBase {
+interface ISitemapItemOptionsBase {
   safe?: boolean;
   lastmod?: string;
   changefreq?: EnumChangefreq;
@@ -128,13 +128,14 @@ interface SitemapItemOptionsBase {
   cdata?: boolean;
 }
 
-export interface SitemapItemOptions extends SitemapItemOptionsBase {
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+export interface SitemapItemOptions extends ISitemapItemOptionsBase {
   img: ISitemapImg[];
   video: IVideoItem[];
   links: ILinkItem[];
 }
 
-export interface SitemapItemOptionsLoose extends SitemapItemOptionsBase {
+export interface ISitemapItemOptionsLoose extends ISitemapItemOptionsBase {
   video?: IVideoItemLoose | IVideoItemLoose[];
   img?: string | ISitemapImg | (string | ISitemapImg)[];
   links?: ILinkItem[];

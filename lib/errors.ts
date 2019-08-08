@@ -92,6 +92,7 @@ export class InvalidVideoDescription extends Error {
 }
 
 export class InvalidAttrValue extends Error {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(key: string, val: any, validator: RegExp) {
     super('"' + val + '" tested against: ' + validator + ' is not a valid value for attr: "' + key + '"');
     this.name = 'InvalidAttrValue';
