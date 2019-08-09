@@ -1,4 +1,4 @@
-sitemap.js
+sitemap.js [![Build Status](https://travis-ci.org/ekalinin/sitemap.js.svg?branch=master)](https://travis-ci.org/ekalinin/sitemap.js)
 ==========
 
 **sitemap.js** is a high-level sitemap-generating framework that
@@ -10,34 +10,29 @@ Maintainers
 - [@ekalinin](https://github.com/ekalinin)
 - [@derduher](https://github.com/derduher)
 
-[![Build Status](https://travis-ci.org/ekalinin/sitemap.js.svg?branch=master)](https://travis-ci.org/ekalinin/sitemap.js)
 
 Table of Contents
 =================
 
-  * [sitemap.js](#sitemapjs)
-  * [Table of Contents](#table-of-contents)
-    * [Installation](#installation)
-    * [Usage](#usage)
-      * [CLI](#CLI)
-      * [Example of using sitemap.js with <a href="https://expressjs.com/">express</a>:](#example-of-using-sitemapjs-with-express)
-      * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
-      * [Example of most of the options you can use for sitemap](#example-of-most-of-the-options-you-can-use-for-sitemap)
-      * [Example of Sitemap Index as String](#example-of-sitemap-index-as-string)
-      * [Example of Sitemap Index](#example-of-sitemap-index)
-    * [API](#API)
-      * [Create Sitemap](#create-sitemap)
-      * [Sitemap](#sitemap)
-      * [buildSitemapIndex](#buildsitemapindex)
-      * [createSitemapIndex](#createsitemapindex)
-      * [Sitemap Item Options](#sitemap-item-options)
-      * [ISitemapImage](#ISitemapImage)
-      * [IVideoItem](#IVideoItem)
-      * [ILinkItem](#ILinkItem)
-      * [INewsItem](#INewsItem)
-    * [License](#license)
-
-TOC created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+  * [Installation](#installation)
+  * [Usage](#usage)
+    * [CLI](#CLI)
+    * [Example of using sitemap.js with <a href="https://expressjs.com/">express</a>:](#example-of-using-sitemapjs-with-express)
+    * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
+    * [Example of most of the options you can use for sitemap](#example-of-most-of-the-options-you-can-use-for-sitemap)
+    * [Building just the sitemap index file](#example-of-building-just-the-sitemap-index-file)
+    * [Auto creating sitemap and index files from one large list](#auto-creating-sitemap-and-index-files-from-one-large-list)
+  * [API](#API)
+    * [Create Sitemap](#create-sitemap)
+    * [Sitemap](#sitemap)
+    * [buildSitemapIndex](#buildsitemapindex)
+    * [createSitemapIndex](#createsitemapindex)
+    * [Sitemap Item Options](#sitemap-item-options)
+    * [ISitemapImage](#ISitemapImage)
+    * [IVideoItem](#IVideoItem)
+    * [ILinkItem](#ILinkItem)
+    * [INewsItem](#INewsItem)
+  * [License](#license)
 
 Installation
 ------------
@@ -199,7 +194,8 @@ const sitemap = sm.createSitemap({
 });
 ```
 
-### Example of Sitemap Index as String
+### Building just the sitemap index file
+The sitemap index file merely points to other sitemaps
 
 ```javascript
 const { buildSitemapIndex } = require('sitemap')
@@ -209,7 +205,7 @@ const smi = sm.buildSitemapIndex({
 });
 ```
 
-### Example of Sitemap Index
+### Auto creating sitemap and index files from one large list
 
 ```javascript
 const { createSitemapIndex } = require('sitemap')
