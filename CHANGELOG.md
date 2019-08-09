@@ -1,15 +1,22 @@
-# next
-  - modernize docs
+# 4.0.0
+
+This release is geared around overhauling the public api for this library. Many 
+options have been introduced over the years and this has lead to some inconsistencies
+that make the library hard to use. Most have been cleaned up but a couple notable
+items remain, including the confusing names of buildSitemapIndex and createSitemapIndex
+
   - A new experimental CLI
     - stream in a list of urls stream out xml
     - validate your generated sitemap
   - Sitemap video item now supports id element
+  - Several schema errors have been cleaned up.
+  - Docs have been updated and streamlined.
 ## breaking changes
   - lastmod option parses all ISO8601 date-only strings as being in UTC rather than local time
     - lastmodISO is deprecated as it is equivalent to lastmod
     - lastmodfile now includes the file's time as well
     - lastmodrealtime is no longer necessary
-  - Limit exports the default object of sitemap is very minimal now
+  - The default export of sitemap lib is now just createSitemap
   - Sitemap constructor now uses a object for its constructor
   ```
     const { Sitemap } = require('sitemap');
