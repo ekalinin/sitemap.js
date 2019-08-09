@@ -6,10 +6,19 @@
  */
 import { create, XMLElement } from 'xmlbuilder';
 import { SitemapItem } from './sitemap-item';
-import { ISitemapItemOptionsLoose, SitemapItemOptions, ISitemapImg, ILinkItem, EnumYesNo, IVideoItem } from './types';
+import {
+  ISitemapItemOptionsLoose,
+  SitemapItemOptions,
+  ISitemapImg,
+  ILinkItem,
+  EnumYesNo,
+  IVideoItem,
+  ErrorLevel
+} from './types';
 import { gzip, gzipSync, CompressCallback } from 'zlib';
 import { URL } from 'url'
 import { statSync } from 'fs';
+import { validateSMIOptions } from './utils';
 
 function boolToYESNO (bool?: boolean | EnumYesNo): EnumYesNo|undefined {
   if (bool === undefined) {
@@ -37,13 +46,15 @@ export function createSitemap({
   hostname,
   cacheTime,
   xslUrl,
-  xmlNs
+  xmlNs,
+  level
 }: {
   urls?: (ISitemapItemOptionsLoose|string)[];
   hostname?: string;
   cacheTime?: number;
   xslUrl?: string;
   xmlNs?: string;
+  level?: ErrorLevel;
 }): Sitemap {
   // cleaner diff
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -52,7 +63,8 @@ export function createSitemap({
     hostname,
     cacheTime,
     xslUrl,
-    xmlNs
+    xmlNs,
+    level
   });
 }
 
@@ -83,13 +95,15 @@ export class Sitemap {
     hostname,
     cacheTime = 0,
     xslUrl,
-    xmlNs
+    xmlNs,
+    level = ErrorLevel.WARN
   }: {
     urls?: (ISitemapItemOptionsLoose|string)[];
     hostname?: string;
     cacheTime?: number;
     xslUrl?: string;
     xmlNs?: string;
+    level?: ErrorLevel;
   }
   = {}) {
 
@@ -112,7 +126,11 @@ export class Sitemap {
       }
     }
 
-    this.urls = Sitemap.normalizeURLs(Array.from(urls), this.root, this.hostname)
+    urls = Array.from(urls)
+    this.urls = Sitemap.normalizeURLs(urls, this.root, this.hostname)
+    for (let [, url] of this.urls) {
+      validateSMIOptions(url, level)
+    }
   }
 
   /**
@@ -148,8 +166,9 @@ export class Sitemap {
    *  Add url to sitemap
    *  @param {String} url
    */
-  add (url: string | ISitemapItemOptionsLoose): number {
+  add (url: string | ISitemapItemOptionsLoose, level?: ErrorLevel): number {
     const smi = this._normalizeURL(url)
+    validateSMIOptions(smi, level)
     return this.urls.set(smi.url, smi).size;
   }
 
@@ -181,13 +200,12 @@ export class Sitemap {
       img: [],
       video: [],
       links: [],
-      url: '',
-      root
+      url: ''
     }
     let smiLoose: ISitemapItemOptionsLoose
     if (typeof elem === 'string') {
       smi.url = elem
-      smiLoose = {url: elem, root}
+      smiLoose = {url: elem}
     } else {
       smiLoose = elem
     }
@@ -247,9 +265,6 @@ export class Sitemap {
             nv.rating = video.rating
           }
         }
-        if (nv.rating !== undefined && (nv.rating < 0 || nv.rating > 5)) {
-          console.warn(smi.url, nv.title, `rating ${nv.rating} must be between 0 and 5 inclusive`)
-        }
         return nv
       })
     }
@@ -308,7 +323,7 @@ export class Sitemap {
     // TODO: if size > limit: create sitemapindex
 
     for (let [, smi] of this.urls) {
-      (new SitemapItem(smi)).buildXML()
+      (new SitemapItem(smi, this.root)).buildXML()
     }
 
     return this.setCache(this.root.end())

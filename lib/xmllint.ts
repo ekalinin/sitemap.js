@@ -1,6 +1,6 @@
-import { Readable, Writable } from 'stream'
+import { Readable } from 'stream'
 import { execFile } from 'child_process'
-export function xmlLint (xml: string|Readable, errorStream: Writable): Promise<null> {
+export function xmlLint (xml: string|Readable): Promise<null> {
   let args = ['--schema', './schema/all.xsd', '--noout', '-']
   if (typeof xml === 'string') {
     args[args.length - 1] = xml
@@ -13,9 +13,11 @@ export function xmlLint (xml: string|Readable, errorStream: Writable): Promise<n
       }
       resolve()
     })
-    if ((typeof xml !== 'string') && xml && xmllint.stdin && xmllint.stdout && xmllint.stderr) {
-      xml.pipe(xmllint.stdin)
+    if (xmllint.stdout) {
       xmllint.stdout.unpipe()
+      if ((typeof xml !== 'string') && xml && xmllint.stdin) {
+        xml.pipe(xmllint.stdin)
+      }
     }
   })
 }

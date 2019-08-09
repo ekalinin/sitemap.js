@@ -12,7 +12,8 @@ import {
   EnumChangefreq,
   EnumYesNo,
   EnumAllowDeny,
-  SitemapItemOptionsLoose
+  SitemapItemOptionsLoose,
+  ErrorLevel
 } from '../index'
 import { gzipSync, gunzipSync } from 'zlib'
 import { create } from 'xmlbuilder'
@@ -214,17 +215,6 @@ describe('sitemap', () => {
         expect(Sitemap.normalizeURL(url, create('urlset')).video[0]).toHaveProperty('rating', 5)
         expect(Sitemap.normalizeURL(url, create('urlset')).video[1]).toHaveProperty('rating', 4)
       })
-
-      it('warns if the rating is out of bounds', () => {
-        spyOn(console, 'warn').and.callThrough()
-        Sitemap.normalizeURL({url: 'http://example.com', video: {
-            thumbnail_loc: 'foo',
-            title: 'a title',
-            description: '',
-            rating: '6'
-        }}, create('urlset'))
-        expect(console.warn).toHaveBeenCalledWith('http://example.com/', 'a title','rating 6 must be between 0 and 5 inclusive')
-      })
     })
     describe('lastmod', () => {
       it('treats legacy ISO option like lastmod', () => {
@@ -345,20 +335,21 @@ describe('sitemap', () => {
     ))
   })
 
-  it('simple sitemap toGzip async', () => {
+  it('simple sitemap toGzip async', (complete) => {
     var ssp = new Sitemap()
     ssp.add('http://ya.ru')
 
-    ssp.toGzip(function (error, result) {
-      expect(error).toBe(null)
-      expect(gunzipSync(result).toString()).toBe(
-        xmlDef +
-            urlset +
-            '<url>' +
-            xmlLoc +
-            '</url>' +
-            '</urlset>'
-      )
+      ssp.toGzip(function (error, result) {
+        expect(error).toBe(null)
+        expect(gunzipSync(result).toString()).toBe(
+          xmlDef +
+              urlset +
+              '<url>' +
+              xmlLoc +
+              '</url>' +
+              '</urlset>'
+        )
+        complete()
     })
   })
 
@@ -486,7 +477,8 @@ describe('sitemap', () => {
         createSitemap({
           hostname: 'http://test.com',
           // @ts-ignore
-          urls: [{ url: '/', changefreq: 'allllways' }]
+          urls: [{ url: '/', changefreq: 'allllways' }],
+          level: ErrorLevel.THROW
         }).toString()
       }
     ).toThrowError(/changefreq is invalid/)
@@ -496,7 +488,8 @@ describe('sitemap', () => {
       function () {
         createSitemap({
           hostname: 'http://test.com',
-          urls: [{ url: '/', priority: 1.1 }]
+          urls: [{ url: '/', priority: 1.1 }],
+          level: ErrorLevel.THROW
         }).toString()
       }
     ).toThrowError(/priority is invalid/)

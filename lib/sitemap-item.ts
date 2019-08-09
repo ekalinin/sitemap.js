@@ -1,39 +1,18 @@
 import { create, XMLElement } from 'xmlbuilder';
 import {
-  ChangeFreqInvalidError,
   InvalidAttr,
-  InvalidAttrValue,
-  InvalidNewsAccessValue,
-  InvalidNewsFormat,
-  InvalidVideoDescription,
-  InvalidVideoDuration,
-  InvalidVideoFormat,
-  NoURLError,
-  NoConfigError,
-  PriorityInvalidError,
 } from './errors'
 import {
-  CHANGEFREQ,
   IVideoItem,
-  SitemapItemOptions
+  SitemapItemOptions,
+  ErrorLevel
 } from './types';
 
-function safeDuration (duration: number): number {
-  if (duration < 0 || duration > 28800) {
-    throw new InvalidVideoDuration()
-  }
+import {
+  validateSMIOptions
+} from './utils'
 
-  return duration
-}
 
-const allowDeny = /^allow|deny$/
-const validators: {[index: string]: RegExp} = {
-  'price:currency': /^[A-Z]{3}$/,
-  'price:type': /^rent|purchase|RENT|PURCHASE$/,
-  'price:resolution': /^HD|hd|sd|SD$/,
-  'platform:relationship': allowDeny,
-  'restriction:relationship': allowDeny
-}
 // eslint-disable-next-line
 interface IStringObj { [index: string]: any }
 function attrBuilder (conf: IStringObj, keys: string | string[]): object {
@@ -48,11 +27,6 @@ function attrBuilder (conf: IStringObj, keys: string | string[]): object {
       let keyAr = key.split(':')
       if (keyAr.length !== 2) {
         throw new InvalidAttr(key)
-      }
-
-      // eslint-disable-next-line
-      if (validators[key] && !validators[key].test(conf[key])) {
-        throw new InvalidAttrValue(key, conf[key], validators[key])
       }
       attrs[keyAr[1]] = conf[key]
     }
@@ -77,24 +51,16 @@ export class SitemapItem {
   mobile?: SitemapItemOptions["mobile"];
   video?: SitemapItemOptions["video"];
   ampLink?: SitemapItemOptions["ampLink"];
-  root: XMLElement;
   url: XMLElement;
 
-  constructor (public conf: SitemapItemOptions) {
-    if (!conf) {
-      throw new NoConfigError()
-    }
+  constructor (public conf: SitemapItemOptions, public root = create('root'), level = ErrorLevel.WARN) {
+    validateSMIOptions(conf, level)
     const {
       url:loc,
-      safe: isSafeUrl,
       lastmod,
       changefreq,
       priority
     } = conf
-
-    if (!loc) {
-      throw new NoURLError()
-    }
 
     // URL of the page
     this.loc = loc
@@ -103,21 +69,11 @@ export class SitemapItem {
     // due to this field is optional no default value is set
     // please see: https://www.sitemaps.org/protocol.html
     this.changefreq = changefreq
-    if (!isSafeUrl && changefreq) {
-      if (CHANGEFREQ.indexOf(changefreq) === -1) {
-        throw new ChangeFreqInvalidError()
-      }
-    }
 
     // The priority of this URL relative to other URLs
     // due to this field is optional no default value is set
     // please see: https://www.sitemaps.org/protocol.html
     this.priority = priority
-    if (!isSafeUrl && priority) {
-      if (!(priority >= 0.0 && priority <= 1.0) || typeof priority !== 'number') {
-        throw new PriorityInvalidError()
-      }
-    }
 
     this.news = conf.news
     this.img = conf.img
@@ -127,13 +83,12 @@ export class SitemapItem {
     this.mobile = conf.mobile
     this.video = conf.video
     this.ampLink = conf.ampLink
-    this.root = conf.root || create('root')
     this.url = this.root.element('url')
     this.lastmod = lastmod
   }
 
-  static justItem (conf: SitemapItemOptions): string {
-    const smi = new SitemapItem(conf)
+  static justItem (conf: SitemapItemOptions, level?: ErrorLevel): string {
+    const smi = new SitemapItem(conf, undefined, level)
     return smi.toString()
   }
 
@@ -147,14 +102,6 @@ export class SitemapItem {
 
   buildVideoElement (video: IVideoItem): void {
     const videoxml = this.url.element('video:video')
-    if (typeof (video) !== 'object' || !video.thumbnail_loc || !video.title || !video.description) {
-      // has to be an object and include required categories https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190
-      throw new InvalidVideoFormat()
-    }
-
-    if (video.description.length > 2048) {
-      throw new InvalidVideoDescription()
-    }
 
     videoxml.element('video:thumbnail_loc', video.thumbnail_loc)
     videoxml.element('video:title').cdata(video.title)
@@ -166,7 +113,7 @@ export class SitemapItem {
       videoxml.element('video:player_loc', attrBuilder(video, 'player_loc:autoplay'), video.player_loc)
     }
     if (video.duration) {
-      videoxml.element('video:duration', safeDuration(video.duration))
+      videoxml.element('video:duration', video.duration)
     }
     if (video.expiration_date) {
       videoxml.element('video:expiration_date', video.expiration_date)
@@ -297,15 +244,6 @@ export class SitemapItem {
       } else if (this.news && p === 'news') {
         let newsitem = this.url.element('news:news')
 
-        if (!this.news.publication ||
-            !this.news.publication.name ||
-            !this.news.publication.language ||
-            !this.news.publication_date ||
-            !this.news.title
-        ) {
-          throw new InvalidNewsFormat()
-        }
-
         if (this.news.publication) {
           let publication = newsitem.element('news:publication')
           if (this.news.publication.name) {
@@ -317,12 +255,6 @@ export class SitemapItem {
         }
 
         if (this.news.access) {
-          if (
-            this.news.access !== 'Registration' &&
-            this.news.access !== 'Subscription'
-          ) {
-            throw new InvalidNewsAccessValue()
-          }
           newsitem.element('news:access', this.news.access)
         }
 

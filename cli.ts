@@ -57,7 +57,7 @@ Options:
   if (argv._ && argv._.length) {
     xml = argv._[0]
   }
-  xmlLint(xml, process.stderr)
+  xmlLint(xml)
     .then((): void => console.log('valid'))
     .catch(([error, stderr]: [Error|null, Buffer]): void => {
       // @ts-ignore

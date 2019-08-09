@@ -1,6 +1,13 @@
 /* eslint-env jest, jasmine */
 import * as testUtil from './util'
-import { SitemapItem, EnumChangefreq, EnumYesNo, EnumAllowDeny, SitemapItemOptions } from '../index'
+import {
+  SitemapItem,
+  EnumChangefreq,
+  EnumYesNo,
+  EnumAllowDeny,
+  SitemapItemOptions,
+  ErrorLevel
+} from '../index'
 describe('sitemapItem', () => {
   let xmlLoc
   let xmlPriority
@@ -32,14 +39,13 @@ describe('sitemapItem', () => {
   it('throws when no config is passed', () => {
     /* eslint-disable no-new */
     expect(
-      function () { new SitemapItem() }
+      function () { new SitemapItem(undefined, undefined, ErrorLevel.THROW) }
     ).toThrowError(/SitemapItem requires a configuration/)
   })
   it('throws an error for url absence', () => {
     /* eslint-disable no-new */
-    expect(
-      function () { new SitemapItem({}) }
-    ).toThrowError(/URL is required/)
+    expect(() => new SitemapItem({}, undefined, ErrorLevel.THROW))
+      .toThrowError(/URL is required/)
   })
 
   it('allows for full precision priority', () => {
@@ -160,7 +166,7 @@ describe('sitemapItem', () => {
           'price:type': 'subscription',
           tag: []
         }]
-      })
+      }, undefined, ErrorLevel.THROW)
       smap.toString()
     }).toThrowError(/is not a valid value for attr: "price:type"/)
   })
@@ -180,7 +186,7 @@ describe('sitemapItem', () => {
           'price:currency': 'dollar',
           tag: []
         }]
-      })
+      }, undefined, ErrorLevel.THROW)
       smap.toString()
     }).toThrowError(/is not a valid value for attr: "price:currency"/)
   })
@@ -200,7 +206,7 @@ describe('sitemapItem', () => {
           'price:resolution': '1920x1080',
           tag: []
         }]
-      })
+      }, undefined, ErrorLevel.THROW)
       smap.toString()
     }).toThrowError(/is not a valid value for attr: "price:resolution"/)
   })
@@ -221,7 +227,7 @@ describe('sitemapItem', () => {
           'platform:relationship': 'mother',
           tag: []
         }]
-      })
+      }, undefined, ErrorLevel.THROW)
       smap.toString()
     }).toThrowError(/is not a valid value for attr: "platform:relationship"/)
   })
@@ -240,7 +246,7 @@ describe('sitemapItem', () => {
           'restriction:relationship': 'father',
           tag: []
         }]
-      })
+      }, undefined, ErrorLevel.THROW)
       smap.toString()
     }).toThrowError(/is not a valid value for attr: "restriction:relationship"/)
   })
@@ -258,7 +264,7 @@ describe('sitemapItem', () => {
           'publication_date': '2008-07-29T14:58:04.000Z',
           'requires_subscription': EnumYesNo.yes
         }]
-      })
+      }, undefined, ErrorLevel.THROW)
       smap.toString()
     }).toThrowError(/duration must be an integer/)
   })
@@ -277,9 +283,9 @@ describe('sitemapItem', () => {
           'publication_date': '2008-07-29T14:58:04.000Z',
           'requires_subscription': EnumYesNo.NO
         }]
-      })
+      }, undefined, ErrorLevel.THROW)
       smap.toString()
-    }).toThrowError(/2048 characters/)
+    }).toThrowError(/duration must be an integer of seconds between 0 and 28800/)
   })
 
   it('accepts a url without escaping it if a cdata flag is passed', () => {
@@ -383,7 +389,7 @@ describe('sitemapItem', () => {
       expect(() => {
         let test = Object.assign({}, testvideo)
         delete test.video[0].title
-        var smap = new SitemapItem(test)
+        var smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
 
         smap.toString()
       }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
@@ -391,7 +397,7 @@ describe('sitemapItem', () => {
       expect(() => {
         let test = Object.assign({}, testvideo)
         test.video[0] = 'a'
-        var smap = new SitemapItem(test)
+        var smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
 
         smap.toString()
       }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
@@ -399,7 +405,7 @@ describe('sitemapItem', () => {
       expect(() => {
         let test = Object.assign({}, testvideo)
         delete test.video[0].thumbnail_loc
-        var smap = new SitemapItem(test)
+        var smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
 
         smap.toString()
       }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
@@ -407,7 +413,7 @@ describe('sitemapItem', () => {
       expect(() => {
         let test = Object.assign({}, testvideo)
         delete test.video[0].description
-        var smap = new SitemapItem(test)
+        var smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
 
         smap.toString()
       }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
@@ -710,54 +716,54 @@ describe('sitemapItem', () => {
 
     it('will throw if you dont provide required attr publication', () => {
       delete news.news.publication
-      var smi = new SitemapItem(news)
 
       expect(() => {
+        var smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
         smi.toString()
       }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
     })
 
     it('will throw if you dont provide required attr publication name', () => {
       delete news.news.publication.name
-      var smi = new SitemapItem(news)
 
       expect(() => {
+        var smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
         smi.toString()
       }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
     })
 
     it('will throw if you dont provide required attr publication language', () => {
       delete news.news.publication.language
-      var smi = new SitemapItem(news)
 
       expect(() => {
+        var smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
         smi.toString()
       }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
     })
 
     it('will throw if you dont provide required attr title', () => {
       delete news.news.title
-      var smi = new SitemapItem(news)
 
       expect(() => {
+        var smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
         smi.toString()
       }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
     })
 
     it('will throw if you dont provide required attr publication_date', () => {
       delete news.news.publication_date
-      var smi = new SitemapItem(news)
 
       expect(() => {
+        var smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
         smi.toString()
       }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
     })
 
     it('will throw if you provide an invalid value for access', () => {
       news.news.access = 'a'
-      var smi = new SitemapItem(news)
 
       expect(() => {
+        var smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
         smi.toString()
       }).toThrowError(/News access must be either Registration, Subscription or not be present/)
     })

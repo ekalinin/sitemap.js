@@ -1,4 +1,3 @@
-import { XMLElement } from 'xmlbuilder';
 import { URL } from 'url'
 // can't be const enum if we use babel to compile
 // https://github.com/babel/babel/issues/8741
@@ -113,7 +112,6 @@ export interface ISitemapIndexItemOptions {
 }
 
 interface ISitemapItemOptionsBase {
-  safe?: boolean;
   lastmod?: string;
   changefreq?: EnumChangefreq;
   fullPrecisionPriority?: boolean;
@@ -123,7 +121,6 @@ interface ISitemapItemOptionsBase {
   androidLink?: string;
   mobile?: boolean | string;
   ampLink?: string;
-  root?: XMLElement;
   url: string;
   cdata?: boolean;
 }
@@ -143,3 +140,10 @@ export interface ISitemapItemOptionsLoose extends ISitemapItemOptionsBase {
   lastmodISO?: string;
   lastmodrealtime?: boolean;
 }
+
+export enum ErrorLevel {
+  SILENT,
+  WARN,
+  THROW,
+}
+
