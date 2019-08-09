@@ -1,4 +1,4 @@
-import { XMLElement, XMLCData } from 'xmlbuilder';
+import { URL } from 'url'
 // can't be const enum if we use babel to compile
 // https://github.com/babel/babel/issues/8741
 export enum EnumChangefreq {
@@ -58,7 +58,7 @@ export interface ISitemapImg {
   license?: string;
 }
 
-export interface IVideoItem {
+interface IVideoItemBase {
   thumbnail_loc: string;
   title: string;
   description: string;
@@ -67,11 +67,8 @@ export interface IVideoItem {
   'player_loc:autoplay'?: string;
   duration?: number;
   expiration_date?: string;
-  rating?: string | number;
   view_count?: string | number;
   publication_date?: string;
-  family_friendly?: EnumYesNo;
-  tag?: string | string[];
   category?: string;
   restriction?: string;
   'restriction:relationship'?: string;
@@ -81,11 +78,26 @@ export interface IVideoItem {
   'price:resolution'?: string;
   'price:currency'?: string;
   'price:type'?: string;
-  requires_subscription?: EnumYesNo;
   uploader?: string;
   platform?: string;
+  id?: string;
   'platform:relationship'?: EnumAllowDeny;
+}
+
+export interface IVideoItem extends IVideoItemBase {
+  tag: string[];
+  rating?: number;
+  family_friendly?: EnumYesNo;
+  requires_subscription?: EnumYesNo;
   live?: EnumYesNo;
+}
+
+export interface IVideoItemLoose extends IVideoItemBase {
+  tag?: string | string[];
+  rating?: string | number;
+  family_friendly?: EnumYesNo | boolean;
+  requires_subscription?: EnumYesNo | boolean;
+  live?: EnumYesNo | boolean;
 }
 
 export interface ILinkItem {
@@ -93,24 +105,45 @@ export interface ILinkItem {
   url: string;
 }
 
-export interface SitemapItemOptions {
-  safe?: boolean;
-  lastmodfile?: any;
-  lastmodrealtime?: boolean;
+export interface ISitemapIndexItemOptions {
+  url: string;
   lastmod?: string;
   lastmodISO?: string;
+}
+
+interface ISitemapItemOptionsBase {
+  lastmod?: string;
   changefreq?: EnumChangefreq;
   fullPrecisionPriority?: boolean;
   priority?: number;
   news?: INewsItem;
-  img?: string | ISitemapImg | (string | ISitemapImg)[];
-  links?: ILinkItem[];
   expires?: string;
   androidLink?: string;
   mobile?: boolean | string;
-  video?: IVideoItem | IVideoItem[];
   ampLink?: string;
-  root?: XMLElement;
   url: string;
   cdata?: boolean;
 }
+
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+export interface SitemapItemOptions extends ISitemapItemOptionsBase {
+  img: ISitemapImg[];
+  video: IVideoItem[];
+  links: ILinkItem[];
+}
+
+export interface ISitemapItemOptionsLoose extends ISitemapItemOptionsBase {
+  video?: IVideoItemLoose | IVideoItemLoose[];
+  img?: string | ISitemapImg | (string | ISitemapImg)[];
+  links?: ILinkItem[];
+  lastmodfile?: string | Buffer | URL;
+  lastmodISO?: string;
+  lastmodrealtime?: boolean;
+}
+
+export enum ErrorLevel {
+  SILENT = 'silent',
+  WARN = 'warn',
+  THROW = 'throw',
+}
+

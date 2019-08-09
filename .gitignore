@@ -19,3 +19,6 @@ coverage/*
 /.browserslistrc
 /.nvmrc
 /tests/~tempFile.tmp
+urls.txt
+stream-write.js
+toflat.js

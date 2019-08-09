@@ -1,42 +1,18 @@
-import { getTimestampFromDate } from './utils';
-import { statSync } from 'fs';
 import { create, XMLElement } from 'xmlbuilder';
 import {
-  ChangeFreqInvalidError,
   InvalidAttr,
-  InvalidAttrValue,
-  InvalidNewsAccessValue,
-  InvalidNewsFormat,
-  InvalidVideoDescription,
-  InvalidVideoDuration,
-  InvalidVideoFormat,
-  NoURLError,
-  NoConfigError,
-  PriorityInvalidError,
 } from './errors'
 import {
-  CHANGEFREQ,
   IVideoItem,
   SitemapItemOptions,
-  EnumYesNo
+  ErrorLevel
 } from './types';
 
-function safeDuration (duration: number): number {
-  if (duration < 0 || duration > 28800) {
-    throw new InvalidVideoDuration()
-  }
+import {
+  validateSMIOptions
+} from './utils'
 
-  return duration
-}
 
-const allowDeny = /^allow|deny$/
-const validators: {[index: string]: RegExp} = {
-  'price:currency': /^[A-Z]{3}$/,
-  'price:type': /^rent|purchase|RENT|PURCHASE$/,
-  'price:resolution': /^HD|hd|sd|SD$/,
-  'platform:relationship': allowDeny,
-  'restriction:relationship': allowDeny
-}
 // eslint-disable-next-line
 interface IStringObj { [index: string]: any }
 function attrBuilder (conf: IStringObj, keys: string | string[]): object {
@@ -52,11 +28,6 @@ function attrBuilder (conf: IStringObj, keys: string | string[]): object {
       if (keyAr.length !== 2) {
         throw new InvalidAttr(key)
       }
-
-      // eslint-disable-next-line
-      if (validators[key] && !validators[key].test(conf[key])) {
-        throw new InvalidAttrValue(key, conf[key], validators[key])
-      }
       attrs[keyAr[1]] = conf[key]
     }
 
@@ -64,21 +35,10 @@ function attrBuilder (conf: IStringObj, keys: string | string[]): object {
   }, iv)
 }
 
-function boolToYESNO (bool: boolean | EnumYesNo): EnumYesNo {
-  if (bool === undefined) {
-    return bool
-  }
-  if (typeof bool === 'boolean') {
-    return bool ? EnumYesNo.yes : EnumYesNo.no
-  }
-  return bool
-}
-
 /**
  * Item in sitemap
  */
-class SitemapItem {
-  conf: SitemapItemOptions;
+export class SitemapItem {
   loc: SitemapItemOptions["url"];
   lastmod: SitemapItemOptions["lastmod"];
   changefreq: SitemapItemOptions["changefreq"];
@@ -91,68 +51,29 @@ class SitemapItem {
   mobile?: SitemapItemOptions["mobile"];
   video?: SitemapItemOptions["video"];
   ampLink?: SitemapItemOptions["ampLink"];
-  root: XMLElement;
   url: XMLElement;
 
-  constructor (conf: SitemapItemOptions) {
-    this.conf = conf
-
-    if (!conf) {
-      throw new NoConfigError()
-    }
-
-    if (!conf.url) {
-      throw new NoURLError()
-    }
-    const isSafeUrl = conf.safe
+  constructor (public conf: SitemapItemOptions, public root = create('root'), level = ErrorLevel.WARN) {
+    validateSMIOptions(conf, level)
+    const {
+      url:loc,
+      lastmod,
+      changefreq,
+      priority
+    } = conf
 
     // URL of the page
-    this.loc = conf.url
-
-    let dt
-    // If given a file to use for last modified date
-    if (conf.lastmodfile) {
-      // console.log('should read stat from file: ' + conf.lastmodfile);
-      let file = conf.lastmodfile
-
-      let stat = statSync(file)
-
-      let mtime = stat.mtime
-
-      dt = new Date(mtime)
-      this.lastmod = getTimestampFromDate(dt, conf.lastmodrealtime)
-
-      // The date of last modification (YYYY-MM-DD)
-    } else if (conf.lastmod) {
-      // append the timezone offset so that dates are treated as local time.
-      // Otherwise the Unit tests fail sometimes.
-      let timezoneOffset = 'UTC-' + (new Date().getTimezoneOffset() / 60) + '00'
-      timezoneOffset = timezoneOffset.replace('--', '-')
-      dt = new Date(conf.lastmod + ' ' + timezoneOffset)
-      this.lastmod = getTimestampFromDate(dt, conf.lastmodrealtime)
-    } else if (conf.lastmodISO) {
-      this.lastmod = conf.lastmodISO
-    }
+    this.loc = loc
 
     // How frequently the page is likely to change
     // due to this field is optional no default value is set
     // please see: https://www.sitemaps.org/protocol.html
-    this.changefreq = conf.changefreq
-    if (!isSafeUrl && this.changefreq) {
-      if (CHANGEFREQ.indexOf(this.changefreq) === -1) {
-        throw new ChangeFreqInvalidError()
-      }
-    }
+    this.changefreq = changefreq
 
     // The priority of this URL relative to other URLs
     // due to this field is optional no default value is set
     // please see: https://www.sitemaps.org/protocol.html
-    this.priority = conf.priority
-    if (!isSafeUrl && this.priority) {
-      if (!(this.priority >= 0.0 && this.priority <= 1.0) || typeof this.priority !== 'number') {
-        throw new PriorityInvalidError()
-      }
-    }
+    this.priority = priority
 
     this.news = conf.news
     this.img = conf.img
@@ -162,8 +83,13 @@ class SitemapItem {
     this.mobile = conf.mobile
     this.video = conf.video
     this.ampLink = conf.ampLink
-    this.root = conf.root || create('root')
     this.url = this.root.element('url')
+    this.lastmod = lastmod
+  }
+
+  static justItem (conf: SitemapItemOptions, level?: ErrorLevel): string {
+    const smi = new SitemapItem(conf, undefined, level)
+    return smi.toString()
   }
 
   /**
@@ -176,14 +102,6 @@ class SitemapItem {
 
   buildVideoElement (video: IVideoItem): void {
     const videoxml = this.url.element('video:video')
-    if (typeof (video) !== 'object' || !video.thumbnail_loc || !video.title || !video.description) {
-      // has to be an object and include required categories https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190
-      throw new InvalidVideoFormat()
-    }
-
-    if (video.description.length > 2048) {
-      throw new InvalidVideoDescription()
-    }
 
     videoxml.element('video:thumbnail_loc', video.thumbnail_loc)
     videoxml.element('video:title').cdata(video.title)
@@ -195,34 +113,28 @@ class SitemapItem {
       videoxml.element('video:player_loc', attrBuilder(video, 'player_loc:autoplay'), video.player_loc)
     }
     if (video.duration) {
-      videoxml.element('video:duration', safeDuration(video.duration))
+      videoxml.element('video:duration', video.duration)
     }
     if (video.expiration_date) {
       videoxml.element('video:expiration_date', video.expiration_date)
     }
-    if (video.rating) {
+    if (video.rating !== undefined) {
       videoxml.element('video:rating', video.rating)
     }
-    if (video.view_count) {
+    if (video.view_count !== undefined) {
       videoxml.element('video:view_count', video.view_count)
     }
     if (video.publication_date) {
       videoxml.element('video:publication_date', video.publication_date)
     }
-    if (video.tag) {
-      if (!Array.isArray(video.tag)) {
-        videoxml.element('video:tag', video.tag)
-      } else {
-        for (const tag of video.tag) {
-          videoxml.element('video:tag', tag)
-        }
-      }
+    for (const tag of video.tag) {
+      videoxml.element('video:tag', tag)
     }
     if (video.category) {
       videoxml.element('video:category', video.category)
     }
-    if (video.family_friendly !== undefined) {
-      videoxml.element('video:family_friendly', boolToYESNO(video.family_friendly))
+    if (video.family_friendly) {
+      videoxml.element('video:family_friendly', video.family_friendly)
     }
     if (video.restriction) {
       videoxml.element(
@@ -245,8 +157,8 @@ class SitemapItem {
         video.price
       )
     }
-    if (video.requires_subscription !== undefined) {
-      videoxml.element('video:requires_subscription', boolToYESNO(video.requires_subscription))
+    if (video.requires_subscription) {
+      videoxml.element('video:requires_subscription', video.requires_subscription)
     }
     if (video.uploader) {
       videoxml.element('video:uploader', video.uploader)
@@ -258,8 +170,11 @@ class SitemapItem {
         video.platform
       )
     }
-    if (video.live !== undefined) {
-      videoxml.element('video:live', boolToYESNO(video.live))
+    if (video.live) {
+      videoxml.element('video:live', video.live)
+    }
+    if (video.id) {
+      videoxml.element('video:id', {type: 'url'}, video.id)
     }
   }
 
@@ -280,18 +195,8 @@ class SitemapItem {
 
       if (this.img && p === 'img') {
         // Image handling
-        if (!Array.isArray(this.img)) {
-          // make it an array
-          this.img = [this.img]
-        }
         this.img.forEach((image): void => {
           const xmlObj: {[index: string]: string|{'#cdata': string}} = {}
-          if (typeof (image) !== 'object') {
-            // it’s a string
-            // make it an object
-            image = {url: image}
-          }
-
           xmlObj['image:loc'] = image.url
 
           if (image.caption) {
@@ -310,11 +215,6 @@ class SitemapItem {
           this.url.element({'image:image': xmlObj})
         })
       } else if (this.video && p === 'video') {
-        // Image handling
-        if (!Array.isArray(this.video)) {
-          // make it an array
-          this.video = [this.video]
-        }
         this.video.forEach(this.buildVideoElement, this)
       } else if (this.links && p === 'links') {
         this.links.forEach((link): void => {
@@ -344,15 +244,6 @@ class SitemapItem {
       } else if (this.news && p === 'news') {
         let newsitem = this.url.element('news:news')
 
-        if (!this.news.publication ||
-            !this.news.publication.name ||
-            !this.news.publication.language ||
-            !this.news.publication_date ||
-            !this.news.title
-        ) {
-          throw new InvalidNewsFormat()
-        }
-
         if (this.news.publication) {
           let publication = newsitem.element('news:publication')
           if (this.news.publication.name) {
@@ -364,12 +255,6 @@ class SitemapItem {
         }
 
         if (this.news.access) {
-          if (
-            this.news.access !== 'Registration' &&
-            this.news.access !== 'Subscription'
-          ) {
-            throw new InvalidNewsAccessValue()
-          }
           newsitem.element('news:access', this.news.access)
         }
 
@@ -413,5 +298,3 @@ class SitemapItem {
     return this.buildXML().toString()
   }
 }
-
-export default SitemapItem

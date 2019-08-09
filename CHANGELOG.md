@@ -1,3 +1,43 @@
+# 4.0.0
+
+This release is geared around overhauling the public api for this library. Many 
+options have been introduced over the years and this has lead to some inconsistencies
+that make the library hard to use. Most have been cleaned up but a couple notable
+items remain, including the confusing names of buildSitemapIndex and createSitemapIndex
+
+  - A new experimental CLI
+    - stream in a list of urls stream out xml
+    - validate your generated sitemap
+  - Sitemap video item now supports id element
+  - Several schema errors have been cleaned up.
+  - Docs have been updated and streamlined.
+## breaking changes
+  - lastmod option parses all ISO8601 date-only strings as being in UTC rather than local time
+    - lastmodISO is deprecated as it is equivalent to lastmod
+    - lastmodfile now includes the file's time as well
+    - lastmodrealtime is no longer necessary
+  - The default export of sitemap lib is now just createSitemap
+  - Sitemap constructor now uses a object for its constructor
+  ```
+    const { Sitemap } = require('sitemap');
+    const siteMap = new Sitemap({
+      urls = [],
+      hostname: 'https://example.com', // optional
+      cacheTime = 0,
+      xslUrl,
+      xmlNs,
+      level = 'warn'
+    })
+  ```
+  - Sitemap no longer accepts a single string for its url
+  - Drop support for node 6
+  - Remove callback on toXML - This had no performance benefit
+  - Direct modification of urls property on Sitemap has been dropped. Use add/remove/contains
+  - When a Sitemap item is generated with invalid options it no longer throws by default
+    - instead it console warns.
+    - if you'd like to pre-verify your data the `validateSMIOptions` function is
+    now available
+    - To get the previous behavior pass level `createSitemap({...otheropts, level: 'throw' }) // ErrorLevel.THROW for TS users`
 # 3.2.2
   - revert https everywhere added in 3.2.0. xmlns is not url.
   - adds alias for lastmod in the form of lastmodiso
