@@ -12,7 +12,7 @@ import {
   EnumChangefreq,
   EnumYesNo,
   EnumAllowDeny,
-  SitemapItemOptionsLoose,
+  ISitemapItemOptionsLoose,
   ErrorLevel
 } from '../index'
 import { gzipSync, gunzipSync } from 'zlib'

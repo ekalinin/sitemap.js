@@ -142,8 +142,8 @@ export interface ISitemapItemOptionsLoose extends ISitemapItemOptionsBase {
 }
 
 export enum ErrorLevel {
-  SILENT,
-  WARN,
-  THROW,
+  SILENT = 'silent',
+  WARN = 'warn',
+  THROW = 'throw',
 }
 

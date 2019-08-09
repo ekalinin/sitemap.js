@@ -35,7 +35,7 @@ export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel
     throw new NoConfigError()
   }
 
-  if (ErrorLevel.SILENT) {
+  if (level === ErrorLevel.SILENT) {
     return conf
   }
 

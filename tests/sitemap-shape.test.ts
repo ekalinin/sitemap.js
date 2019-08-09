@@ -1,5 +1,5 @@
 import 'babel-polyfill'
-import sm, {
+import defaultexport, {
   createSitemap,
   Sitemap,
   SitemapItem,
@@ -20,9 +20,7 @@ import sm, {
 
 describe('sitemap shape', () => {
   it('exports a default with sitemap hanging off it', () => {
-    expect(sm).toBeDefined()
-    expect(sm.Sitemap).toBeDefined()
-    expect(sm.createSitemap).toBeDefined()
+    expect(typeof defaultexport).toBe('function')
   })
 
   it('exports individually as well', () => {

@@ -5,16 +5,32 @@
     - validate your generated sitemap
   - Sitemap video item now supports id element
 ## breaking changes
-  - lastmod parses all ISO8601 date-only strings as being in UTC rather than local time
+  - lastmod option parses all ISO8601 date-only strings as being in UTC rather than local time
     - lastmodISO is deprecated as it is equivalent to lastmod
     - lastmodfile now includes the file's time as well
     - lastmodrealtime is no longer necessary
   - Limit exports the default object of sitemap is very minimal now
   - Sitemap constructor now uses a object for its constructor
+  ```
+    const { Sitemap } = require('sitemap');
+    const siteMap = new Sitemap({
+      urls = [],
+      hostname: 'https://example.com', // optional
+      cacheTime = 0,
+      xslUrl,
+      xmlNs,
+      level = 'warn'
+    })
+  ```
   - Sitemap no longer accepts a single string for its url
   - Drop support for node 6
   - Remove callback on toXML - This had no performance benefit
-  - No longer support direct modification of urls property
+  - Direct modification of urls property on Sitemap has been dropped. Use add/remove/contains
+  - When a Sitemap item is generated with invalid options it no longer throws by default
+    - instead it console warns.
+    - if you'd like to pre-verify your data the `validateSMIOptions` function is
+    now available
+    - To get the previous behavior pass level `createSitemap({...otheropts, level: 'throw' }) // ErrorLevel.THROW for TS users`
 # 3.2.2
   - revert https everywhere added in 3.2.0. xmlns is not url.
   - adds alias for lastmod in the form of lastmodiso

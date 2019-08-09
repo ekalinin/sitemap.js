@@ -80,7 +80,7 @@ const express = require('express')
 const { createSitemap } = require('sitemap');
 
 const app = express()
-const sitemap = createSitemap ({
+const sitemap = createSitemap({
   hostname: 'http://example.com',
   cacheTime: 600000,        // 600 sec - cache purge period
   urls: [
@@ -129,7 +129,7 @@ const fs = require('fs');
 
 const sitemap = sm.createSitemap({
   hostname: 'http://www.mywebsite.com',
-  cacheTime: 600000,  //600 sec (10 min) cache purge period
+  level: 'warn', // default WARN about bad data
   urls: [
     {
       url: '/page1',
@@ -234,7 +234,8 @@ const { Sitemap } = require('sitemap')
 const sm = new Sitemap({
     urls: [{url: '/path'}],
     hostname: 'http://example.com',
-    cacheTime: 0 // default
+    cacheTime: 0, // default
+    level: 'warn' // default warns if it encounters bad data 
 })
 sm.toString() // returns the xml as a string
 ```
