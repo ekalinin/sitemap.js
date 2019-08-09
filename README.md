@@ -20,7 +20,7 @@ Table of Contents
     * [Example of using sitemap.js with <a href="https://expressjs.com/">express</a>:](#example-of-using-sitemapjs-with-express)
     * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
     * [Example of most of the options you can use for sitemap](#example-of-most-of-the-options-you-can-use-for-sitemap)
-    * [Building just the sitemap index file](#example-of-building-just-the-sitemap-index-file)
+    * [Building just the sitemap index file](#building-just-the-sitemap-index-file)
     * [Auto creating sitemap and index files from one large list](#auto-creating-sitemap-and-index-files-from-one-large-list)
   * [API](#API)
     * [Create Sitemap](#create-sitemap)
@@ -120,9 +120,8 @@ sitemap.del('/page-1/');
 
 ```javascript
 const { createSitemap } = require('sitemap');
-const fs = require('fs');
 
-const sitemap = sm.createSitemap({
+const sitemap = createSitemap({
   hostname: 'http://www.mywebsite.com',
   level: 'warn', // default WARN about bad data
   urls: [
@@ -199,7 +198,7 @@ The sitemap index file merely points to other sitemaps
 
 ```javascript
 const { buildSitemapIndex } = require('sitemap')
-const smi = sm.buildSitemapIndex({
+const smi = buildSitemapIndex({
   urls: ['https://example.com/sitemap1.xml', 'https://example.com/sitemap2.xml'],
   xslUrl: 'https://example.com/style.xsl' // optional
 });
