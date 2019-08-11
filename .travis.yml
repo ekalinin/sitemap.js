@@ -7,8 +7,8 @@ install:
   - npm install
 script:
   - npm test
-addons:
-  apt:
-    packages:
-      # Needed for `xmllint`.
-      - libxml2-utils
+# addons:
+  # apt:
+    # packages:
+      # # Needed for `xmllint`.
+      # - libxml2-utils

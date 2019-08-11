@@ -3,6 +3,7 @@ import { createInterface } from 'readline';
 import { Readable } from 'stream'
 import { createReadStream } from 'fs'
 import { xmlLint } from './lib/xmllint'
+import { XMLLintUnavailable } from './lib/errors'
 console.warn('CLI is in new and likely to change quite a bit. Please send feature/bug requests to https://github.com/ekalinin/sitemap.js/issues')
 /* eslint-disable-next-line @typescript-eslint/no-var-requires */
 const arg = require('arg')
@@ -60,8 +61,10 @@ Options:
   xmlLint(xml)
     .then((): void => console.log('valid'))
     .catch(([error, stderr]: [Error|null, Buffer]): void => {
-      // @ts-ignore
-      if (error && error.code) {
+      if (error instanceof XMLLintUnavailable) {
+        console.error(error.message)
+        return
+      } else {
         console.log(stderr)
       }
     })

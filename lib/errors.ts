@@ -129,3 +129,12 @@ export class InvalidNewsAccessValue extends Error {
     Error.captureStackTrace(this, InvalidNewsAccessValue);
   }
 }
+
+export class XMLLintUnavailable extends Error {
+  constructor(message?: string) {
+    super(message || 'xmlLint is not installed. XMLLint is required to validate');
+    this.name = 'XMLLintUnavailable';
+    // @ts-ignore
+    Error.captureStackTrace(this, XMLLintUnavailable);
+  }
+}
