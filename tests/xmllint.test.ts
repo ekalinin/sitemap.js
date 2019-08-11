@@ -2,7 +2,7 @@ import 'babel-polyfill';
 import { xmlLint } from '../index'
 import { XMLLintUnavailable } from '../lib/errors'
 const lintCheck = xmlLint('').catch(([e]: [Error]) => {
-  return e instanceof XMLLintUnavailable
+  return !(e instanceof XMLLintUnavailable)
 })
 describe('xmllint', () => {
   it('returns a promise', async () => {
