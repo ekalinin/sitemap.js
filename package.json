@@ -84,6 +84,7 @@
     "collectCoverageFrom": [
       "lib/**/*.ts",
       "!lib/**/*.d.ts",
+      "!lib/xmllint.ts",
       "!node_modules/"
     ],
     "coverageThreshold": {
