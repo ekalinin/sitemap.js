@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { SitemapItem, Sitemap, ISitemapItemOptionsLoose } from './index'
 import { createInterface } from 'readline';
 import { Readable } from 'stream'
