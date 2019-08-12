@@ -7,7 +7,7 @@ export function xmlLint (xml: string|Readable): Promise<null> {
     args[args.length - 1] = xml
   }
   return new Promise((resolve, reject): void => {
-    execFile('which xmllint', (error, stdout, stderr): void => {
+    execFile('which', ['xmllint'], (error, stdout, stderr): void => {
       if (error) {
         reject([new XMLLintUnavailable()])
         return
