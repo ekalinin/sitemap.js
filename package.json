@@ -25,11 +25,12 @@
   },
   "scripts": {
     "prepublishOnly": "sort-package-json && npm run test",
-    "test": "eslint lib/* ./cli.ts && tsc && jest && npm run test:schema",
+    "test": "eslint lib/* ./cli.ts && tsc && jest && npm run test:xmllint",
     "test-fast": "jest ./tests/sitemap-item.test.ts ./tests/sitemap-index.test.ts ./tests/sitemap.test.ts ./tests/sitemap-shape.test.ts",
     "test-perf": "node ./tests/perf.js > /dev/null",
     "test:schema": "node tests/alltags.js | xmllint --schema schema/all.xsd --noout -",
-    "test:typecheck": "tsc"
+    "test:typecheck": "tsc",
+    "test:xmllint": "if which xmllint; then npm run test:schema; else echo 'skipping xml tests. xmllint not installed'; fi"
   },
   "husky": {
     "hooks": {
@@ -83,6 +84,7 @@
     "collectCoverageFrom": [
       "lib/**/*.ts",
       "!lib/**/*.d.ts",
+      "!lib/xmllint.ts",
       "!node_modules/"
     ],
     "coverageThreshold": {
