@@ -1,3 +1,6 @@
+# 4.0.1
+Validation functions which depend on xmllint will now warn if you do not have xmllint installed.
+
 # 4.0.0
 
 This release is geared around overhauling the public api for this library. Many 
