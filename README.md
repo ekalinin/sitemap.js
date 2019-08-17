@@ -224,7 +224,7 @@ const smi = createSitemapIndex({
 
 ```
 const { Sitemap } = require('sitemap')
-const sm = new Sitemap({
+const smi = new Sitemap({
     urls: [{url: '/path'}],
     hostname: 'http://example.com',
     cacheTime: 0, // default
@@ -244,8 +244,8 @@ alias for toString
 
 __toGzip__
   ```
-  toGzip ((xmlGzippedBuffer) => console.log(xmlGzippedBuffer));
-  toGzip();
+  smi.toGzip ((xmlGzippedBuffer) => console.log(xmlGzippedBuffer));
+  smi.toGzip();
   ```
   like toString, it builds the xmlDocument, then it runs gzip on the resulting string and returns it as a Buffer via callback or direct invokation
   
