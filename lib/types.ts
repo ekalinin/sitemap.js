@@ -125,6 +125,9 @@ interface ISitemapItemOptionsBase {
   cdata?: boolean;
 }
 
+/**
+ * Strict options for individual sitemap entries
+ */
 // eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface SitemapItemOptions extends ISitemapItemOptionsBase {
   img: ISitemapImg[];
@@ -132,6 +135,9 @@ export interface SitemapItemOptions extends ISitemapItemOptionsBase {
   links: ILinkItem[];
 }
 
+/**
+ * Options for individual sitemap entries prior to normalization
+ */
 export interface ISitemapItemOptionsLoose extends ISitemapItemOptionsBase {
   video?: IVideoItemLoose | IVideoItemLoose[];
   img?: string | ISitemapImg | (string | ISitemapImg)[];
@@ -141,6 +147,9 @@ export interface ISitemapItemOptionsLoose extends ISitemapItemOptionsBase {
   lastmodrealtime?: boolean;
 }
 
+/**
+ * How to handle errors in passed in urls
+ */
 export enum ErrorLevel {
   SILENT = 'silent',
   WARN = 'warn',

@@ -7,6 +7,7 @@ import { chunk }  from './utils';
 
 /**
  * Shortcut for `new SitemapIndex (...)`.
+ * Create several sitemaps and an index automatically from a list of urls
  *
  * @param   {Object}        conf
  * @param   {String|Array}  conf.urls

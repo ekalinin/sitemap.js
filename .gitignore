@@ -6,6 +6,7 @@ dist
 
 # WebStorm
 .idea/
+.vscode/
 
 # Emacs
 *~
