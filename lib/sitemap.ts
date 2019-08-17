@@ -299,7 +299,7 @@ export class Sitemap {
    *  Synchronous alias for toXML()
    *  @return {String}
    */
-  toString (): string {
+  toString (pretty = false): string {
     if (this.root.children.length) {
       this.root.children = []
     }
@@ -325,8 +325,11 @@ export class Sitemap {
     for (let [, smi] of this.urls) {
       (new SitemapItem(smi, this.root)).buildXML()
     }
-
-    return this.setCache(this.root.end())
+    let opts
+    if (pretty) {
+      opts = {pretty}
+    }
+    return this.setCache(this.root.end(opts))
   }
 
   toGzip (callback: CompressCallback): void;

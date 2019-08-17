@@ -51,6 +51,17 @@ describe('sitemap', () => {
               '</urlset>')
   })
 
+  it('pretty prints', () => {
+    var ssp = new Sitemap({urls: ['http://ya.ru']})
+    expect(ssp.toString(true)).toBe(
+      xmlDef + '\n' +
+                urlset + '\n' +
+                '  <url>\n    ' +
+                    xmlLoc + '\n' +
+                '  </url>\n' +
+              '</urlset>')
+  })
+
   describe('normalizeURL', () => {
     it('turns strings into full urls', () => {
       expect(Sitemap.normalizeURL('http://example.com', create('urlset'))).toHaveProperty('url', 'http://example.com/')

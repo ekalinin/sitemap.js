@@ -16,22 +16,22 @@ Table of Contents
 
   * [Installation](#installation)
   * [Usage](#usage)
-    * [CLI](#CLI)
+    * [CLI](#cli)
     * [Example of using sitemap.js with <a href="https://expressjs.com/">express</a>:](#example-of-using-sitemapjs-with-express)
     * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
     * [Example of most of the options you can use for sitemap](#example-of-most-of-the-options-you-can-use-for-sitemap)
     * [Building just the sitemap index file](#building-just-the-sitemap-index-file)
     * [Auto creating sitemap and index files from one large list](#auto-creating-sitemap-and-index-files-from-one-large-list)
-  * [API](#API)
+  * [API](#api)
     * [Create Sitemap](#create-sitemap)
     * [Sitemap](#sitemap)
     * [buildSitemapIndex](#buildsitemapindex)
     * [createSitemapIndex](#createsitemapindex)
     * [Sitemap Item Options](#sitemap-item-options)
-    * [ISitemapImage](#ISitemapImage)
-    * [IVideoItem](#IVideoItem)
-    * [ILinkItem](#ILinkItem)
-    * [INewsItem](#INewsItem)
+    * [ISitemapImage](#isitemapimage)
+    * [IVideoItem](#ivideoitem)
+    * [ILinkItem](#ilinkitem)
+    * [INewsItem](#inewsitem)
   * [License](#license)
 
 Installation
@@ -57,8 +57,6 @@ Or verify an existing sitemap
     npx sitemap --verify sitemap.xml
 
 ## As a library
-
-The main functions you want to use in the sitemap module are
 
 ```javascript
 const { createSitemap } = require('sitemap')
@@ -222,11 +220,11 @@ const smi = createSitemapIndex({
 ## API 
 
 
-## Sitemap
+### Sitemap
 
 ```
 const { Sitemap } = require('sitemap')
-const sm = new Sitemap({
+const smi = new Sitemap({
     urls: [{url: '/path'}],
     hostname: 'http://example.com',
     cacheTime: 0, // default
@@ -234,8 +232,75 @@ const sm = new Sitemap({
 })
 sm.toString() // returns the xml as a string
 ```
+  
+__toString__
+  ```
+  smi.toString(true)
+  ```
+  Converts the urls stored in an instance of Sitemap to a valid sitemap xml document as a string. Accepts a boolean as its first argument to designate on whether to pretty print. Defaults to false.
+  
+__toXML__
+alias for toString
 
-## buildSitemapIndex
+__toGzip__
+  ```
+  smi.toGzip ((xmlGzippedBuffer) => console.log(xmlGzippedBuffer));
+  smi.toGzip();
+  ```
+  like toString, it builds the xmlDocument, then it runs gzip on the resulting string and returns it as a Buffer via callback or direct invokation
+  
+__clearCache__
+  ```
+  smi.clearCache()
+  ```
+  cache will be emptied and will be bipassed until set again
+  
+__isCacheValid__
+  ```
+  smi.isCacheValid()
+  ```
+  returns true if it has been less than cacheTimeout ms since cache was set
+  
+__setCache__
+  ```
+  smi.setCache('...xmlDoc')
+  ```
+  stores the passed in string on the instance to be used when toString is called within the configured cacheTimeout
+  returns the passed in string unaltered
+  
+__add__
+  ```
+  smi.add('/path', 'warn')
+  ```
+  adds the provided url to the sitemap instance
+  takes an optional parameter level for whether to print a console warning in the event of bad data 'warn' (default), throw an exception 'throw', or quietly ignore bad data 'silent'
+  returns the number of locations currently in the sitemap instance
+  
+__contains__
+  ```
+  smi.contains('/path')
+  ```
+  Returns true if path is already a part of the sitemap instance, false otherwise. 
+  
+__del__
+  ```
+  smi.del('/path')
+  ```
+  removes the provided url or url option from the sitemap instance
+
+__normalizeURL__
+  ```
+  Sitemap.normalizeURL('/', undefined, 'http://example.com')
+  ```
+  static function that returns the stricter form of a options passed to SitemapItem
+  
+__normalizeURLs__
+  ```
+  Sitemap.normalizeURLs(['http://example.com', {url: 'http://example.com'}])
+  ```
+  static function that takes an array of urls and returns a Map of their resolved url to the strict form of SitemapItemOptions
+
+### buildSitemapIndex
 Build a sitemap index file
 ```
 const { buildSitemapIndex } = require('sitemap')
@@ -245,7 +310,7 @@ const index =   buildSitemapIndex({
 })
 ```
 
-## createSitemapIndex
+### createSitemapIndex
 Create several sitemaps and an index automatically from a list of urls
 ```
 const { createSitemapIndex } = require('sitemap')
@@ -262,7 +327,7 @@ createSitemapIndex({
 })
 ```
 
-## Sitemap Item Options
+### Sitemap Item Options
 
 |Option|Type|eg|Description|
 |------|----|--|-----------|
@@ -278,7 +343,7 @@ createSitemapIndex({
 |mobile|boolean or string|||
 |cdata|boolean|true|wrap url in cdata xml escape|
 
-## ISitemapImage
+### ISitemapImage
 
 Sitemap image
 https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190
@@ -291,7 +356,7 @@ https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190
 |geoLocation|string - optional|'Limerick, Ireland'|The geographic location of the image.|
 |license|string - optional|'http://example.com/license.txt'|A URL to the license of the image.|
 
-## IVideoItem
+### IVideoItem
 
 Sitemap video. https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190
 
@@ -326,7 +391,7 @@ Sitemap video. https://support.google.com/webmasters/answer/80471?hl=en&ref_topi
 |requires_subscription|string 'YES'\|'NO' - optional|'YES'|Indicates whether a subscription (either paid or free) is required to view the video. Allowed values are yes or no.|
 |live|string 'YES'\|'NO' - optional|'NO'|Indicates whether the video is a live stream. Supported values are yes or no.|
 
-## ILinkItem
+### ILinkItem
 
 https://support.google.com/webmasters/answer/189077
 
@@ -335,7 +400,7 @@ https://support.google.com/webmasters/answer/189077
 |lang|string|'en'||
 |url|string|'http://example.com/en/'||
 
-## INewsItem
+### INewsItem
 
 https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190
 
