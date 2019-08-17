@@ -235,6 +235,62 @@ const sm = new Sitemap({
 sm.toString() // returns the xml as a string
 ```
 
+*toGzip*
+  ```
+  toGzip ((xmlGzippedBuffer) => console.log(xmlGzippedBuffer));
+  toGzip();
+  ```
+  like toString, it builds the xmlDocument, then it runs gzip on the resulting string and returns it as a Buffer via callback or direct invokation
+*toString*
+  ```
+  smi.toString(true)
+  ```
+  Converts the urls stored in an instance of Sitemap to a valid sitemap xml document as a string. Accepts a boolean as its first argument to designate on whether to pretty print. Defaults to false.
+*clearCache*
+  ```
+  smi.clearCache()
+  ```
+*isCacheValid*
+  ```
+  smi.isCacheValid()
+  ```
+  returns true if it has been less than cacheTimeout ms since cache was set
+*setCache*
+  ```
+  smi.setCache('...xmlDoc')
+  ```
+  stores the passed in string on the instance to be used when toString is called within the configured cacheTimeout
+  returns the passed in string unaltered
+*add*
+  ```
+  smi.add('/path', 'warn')
+  ```
+  adds the provided url to the sitemap instance
+  takes an optional parameter level for whether to print a console warning in the event of bad data 'warn' (default), throw an exception 'throw', or quietly ignore bad data 'silent'
+  returns the number of locations currently in the sitemap instance
+*contains*
+  ```
+  smi.contains('/path')
+  ```
+  Returns true if path is already a part of the sitemap instance, false otherwise. 
+*del*
+  ```
+  smi.del('/path')
+  ```
+  removes the provided url or url option from the sitemap instance
+*toXML*
+alias for toString
+*normalizeURL*
+  ```
+  Sitemap.normalizeURL('/', undefined, 'http://example.com')
+  ```
+  static function that returns the stricter form of a options passed to SitemapItem
+*normalizeURLs*
+  ```
+  Sitemap.normalizeURLs(['http://example.com', {url: 'http://example.com'}])
+  ```
+  static function that takes an array of urls and returns a Map of their resolved url to the strict form of SitemapItemOptions
+
 ## buildSitemapIndex
 Build a sitemap index file
 ```
