@@ -235,57 +235,67 @@ const sm = new Sitemap({
 sm.toString() // returns the xml as a string
 ```
 
-*toGzip*
+__toGzip__
   ```
   toGzip ((xmlGzippedBuffer) => console.log(xmlGzippedBuffer));
   toGzip();
   ```
   like toString, it builds the xmlDocument, then it runs gzip on the resulting string and returns it as a Buffer via callback or direct invokation
-*toString*
+  
+__toString__
   ```
   smi.toString(true)
   ```
   Converts the urls stored in an instance of Sitemap to a valid sitemap xml document as a string. Accepts a boolean as its first argument to designate on whether to pretty print. Defaults to false.
-*clearCache*
+  
+__clearCache__
   ```
   smi.clearCache()
   ```
-*isCacheValid*
+  
+__isCacheValid__
   ```
   smi.isCacheValid()
   ```
   returns true if it has been less than cacheTimeout ms since cache was set
-*setCache*
+  
+__setCache__
   ```
   smi.setCache('...xmlDoc')
   ```
   stores the passed in string on the instance to be used when toString is called within the configured cacheTimeout
   returns the passed in string unaltered
-*add*
+  
+__add__
   ```
   smi.add('/path', 'warn')
   ```
   adds the provided url to the sitemap instance
   takes an optional parameter level for whether to print a console warning in the event of bad data 'warn' (default), throw an exception 'throw', or quietly ignore bad data 'silent'
   returns the number of locations currently in the sitemap instance
-*contains*
+  
+__contains__
   ```
   smi.contains('/path')
   ```
   Returns true if path is already a part of the sitemap instance, false otherwise. 
-*del*
+  
+__del__
   ```
   smi.del('/path')
   ```
   removes the provided url or url option from the sitemap instance
-*toXML*
+  
+__toXML__
 alias for toString
-*normalizeURL*
+
+__normalizeURL__
   ```
   Sitemap.normalizeURL('/', undefined, 'http://example.com')
   ```
   static function that returns the stricter form of a options passed to SitemapItem
-*normalizeURLs*
+  
+__normalizeURLs__
   ```
   Sitemap.normalizeURLs(['http://example.com', {url: 'http://example.com'}])
   ```
