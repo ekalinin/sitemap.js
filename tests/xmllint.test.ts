@@ -1,3 +1,4 @@
+/* eslint-env jest, jasmine */
 import 'babel-polyfill';
 import { xmlLint } from '../index'
 import { XMLLintUnavailable } from '../lib/errors'

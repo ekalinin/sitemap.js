@@ -87,6 +87,12 @@ export class SitemapItem {
     this.lastmod = lastmod
   }
 
+  /**
+   * For creating standalone sitemap entries
+   * @param {SitemapItemOptions} conf sitemap entry options
+   * @param {ErrorLevel} [level=ErrorLevel.WARN] How to handle errors in data passed in
+   * @return {string} the entry
+   */
   static justItem (conf: SitemapItemOptions, level?: ErrorLevel): string {
     const smi = new SitemapItem(conf, undefined, level)
     return smi.toString()
@@ -100,6 +106,10 @@ export class SitemapItem {
     return this.toString()
   }
 
+  /**
+   * Builds just video element
+   * @param {IVideoItem} video sitemap video configuration
+   */
   buildVideoElement (video: IVideoItem): void {
     const videoxml = this.url.element('video:video')
 
@@ -178,6 +188,10 @@ export class SitemapItem {
     }
   }
 
+  /**
+   * given the passed in sitemap item options builds an internal xml structure
+   * @returns the XMLElement built
+   */
   buildXML (): XMLElement {
     this.url.children = []
     // @ts-ignore
@@ -291,8 +305,8 @@ export class SitemapItem {
   }
 
   /**
-   *  Alias for toXML()
-   *  @return {String}
+   *  Builds and stringifies the xml as configured by constructor
+   *  @return {String} the item converted to a string of xml
    */
   toString (): string {
     return this.buildXML().toString()

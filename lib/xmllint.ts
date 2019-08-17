@@ -1,6 +1,11 @@
 import { Readable } from 'stream'
 import { execFile } from 'child_process'
 import { XMLLintUnavailable } from './errors'
+/**
+ * Verify the passed in xml is valid
+ * @param xml what you want validated
+ * @return {Promise<null>} resolves on valid rejects [error stderr]
+ */
 export function xmlLint (xml: string|Readable): Promise<null> {
   let args = ['--schema', './schema/all.xsd', '--noout', '-']
   if (typeof xml === 'string') {

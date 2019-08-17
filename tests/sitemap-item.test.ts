@@ -1,5 +1,4 @@
 /* eslint-env jest, jasmine */
-import * as testUtil from './util'
 import {
   SitemapItem,
   EnumChangefreq,
@@ -9,9 +8,9 @@ import {
   ErrorLevel
 } from '../index'
 describe('sitemapItem', () => {
-  let xmlLoc
-  let xmlPriority
-  let itemTemplate
+  let xmlLoc:string
+  let xmlPriority:string
+  let itemTemplate:SitemapItemOptions
   beforeEach(() => {
     itemTemplate = { 'url': '', video: [], img: [], links: [] }
     xmlLoc = '<loc>http://ya.ru/</loc>'
@@ -254,6 +253,7 @@ describe('sitemapItem', () => {
   it('video duration', () => {
     expect(function () {
       var smap = new SitemapItem({
+        ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -262,7 +262,8 @@ describe('sitemapItem', () => {
           'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
           'duration': -1,
           'publication_date': '2008-07-29T14:58:04.000Z',
-          'requires_subscription': EnumYesNo.yes
+          'requires_subscription': EnumYesNo.yes,
+          'tag': []
         }]
       }, undefined, ErrorLevel.THROW)
       smap.toString()
@@ -272,6 +273,7 @@ describe('sitemapItem', () => {
   it('video description limit', () => {
     expect(function () {
       var smap = new SitemapItem({
+        ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
           'title': "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -281,7 +283,8 @@ describe('sitemapItem', () => {
           'thumbnail_loc': 'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
           'duration': -1,
           'publication_date': '2008-07-29T14:58:04.000Z',
-          'requires_subscription': EnumYesNo.NO
+          'requires_subscription': EnumYesNo.NO,
+          'tag': []
         }]
       }, undefined, ErrorLevel.THROW)
       smap.toString()
@@ -396,6 +399,7 @@ describe('sitemapItem', () => {
 
       expect(() => {
         let test = Object.assign({}, testvideo)
+        // @ts-ignore
         test.video[0] = 'a'
         var smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
 

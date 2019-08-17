@@ -36,5 +36,8 @@ describe('sitemap shape', () => {
     expect(InvalidVideoDuration).toBeDefined()
     expect(InvalidVideoDescription).toBeDefined()
     expect(InvalidAttrValue).toBeDefined()
+    expect(SitemapItem).toBeDefined()
+    expect(buildSitemapIndex).toBeDefined()
+    expect(createSitemapIndex).toBeDefined()
   })
 })

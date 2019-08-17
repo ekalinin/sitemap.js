@@ -39,6 +39,7 @@ function boolToYESNO (bool?: boolean | EnumYesNo): EnumYesNo|undefined {
  * @param   {Number}        conf.cacheTime
  * @param   {String}        conf.xslUrl
  * @param   {String}        conf.xmlNs
+ * @param   {ErrorLevel} [level=ErrorLevel.WARN]    level            optional
  * @return  {Sitemap}
  */
 export function createSitemap({
@@ -86,9 +87,10 @@ export class Sitemap {
    * Sitemap constructor
    * @param {String|Array}  urls
    * @param {String}        hostname    optional
-   * @param {Number}        cacheTime   optional in milliseconds; 0 - cache disabled
-   * @param {String}        xslUrl            optional
-   * @param {String}        xmlNs            optional
+   * @param {Number} [cacheTime=0]       cacheTime   optional in milliseconds; 0 - cache disabled
+   * @param {String=}        xslUrl            optional
+   * @param {String=}        xmlNs            optional
+   * @param {ErrorLevel} [level=ErrorLevel.WARN]    level            optional
    */
   constructor ({
     urls = [],
@@ -134,14 +136,15 @@ export class Sitemap {
   }
 
   /**
-   *  Clear sitemap cache
+   *  Empty cache and bipass it until set again
    */
   clearCache (): void {
     this.cache = '';
   }
 
   /**
-   *  Can cache be used
+   * has it been less than cacheTime since cache was set
+   *  @returns true if it has been less than cacheTime ms since cache was set
    */
   isCacheValid (): boolean {
     let currTimestamp = Date.now();
@@ -150,7 +153,10 @@ export class Sitemap {
   }
 
   /**
-   *  Fill cache
+   *  stores the passed in string on the instance to be used when toString is
+   *  called within the configured cacheTime
+   *  @param {string} newCache what you want cached
+   *  @returns the passed in string unaltered
    */
   setCache (newCache: string): string {
     this.cache = newCache;
@@ -164,7 +170,8 @@ export class Sitemap {
 
   /**
    *  Add url to sitemap
-   *  @param {String} url
+   *  @param {String | ISitemapItemOptionsLoose} url
+   *  @param {ErrorLevel} [level=ErrorLevel.WARN] level
    */
   add (url: string | ISitemapItemOptionsLoose, level?: ErrorLevel): number {
     const smi = this._normalizeURL(url)
@@ -172,6 +179,11 @@ export class Sitemap {
     return this.urls.set(smi.url, smi).size;
   }
 
+  /**
+   * For checking whether the url has been added or not
+   * @param {string | ISitemapItemOptionsLoose} url The url you wish to check
+   * @returns true if the sitemap has the passed in url
+   */
   contains (url: string | ISitemapItemOptionsLoose): boolean {
     return this.urls.has(this._normalizeURL(url).url)
   }
@@ -188,11 +200,19 @@ export class Sitemap {
 
   /**
    *  Alias for toString
+   * @param {boolean} [pretty=false] whether xml should include whitespace
    */
-  toXML (): string {
-    return this.toString();
+  toXML (pretty?: boolean): string {
+    return this.toString(pretty);
   }
 
+  /**
+   * Converts the passed in sitemap entry into one capable of being consumed by SitemapItem
+   * @param {string | ISitemapItemOptionsLoose} elem the string or object to be converted
+   * @param {XMLElement=} root xmlbuilder root object. Pass undefined here
+   * @param {string} hostname
+   * @returns SitemapItemOptions a strict sitemap item option
+   */
   static normalizeURL (elem: string | ISitemapItemOptionsLoose, root?: XMLElement, hostname?: string): SitemapItemOptions {
     // SitemapItem
     // create object with url property
@@ -286,6 +306,13 @@ export class Sitemap {
     return smi
   }
 
+  /**
+   * Normalize multiple urls
+   * @param {(string | ISitemapItemOptionsLoose)[]} urls array of urls to be normalized
+   * @param {XMLElement=} root xmlbuilder root object. Pass undefined here
+   * @param {string=} hostname
+   * @returns a Map of url to SitemapItemOption
+   */
   static normalizeURLs (urls: (string | ISitemapItemOptionsLoose)[], root?: XMLElement, hostname?: string): Map<string, SitemapItemOptions> {
     const urlMap = new Map<string, SitemapItemOptions>()
     urls.forEach((elem): void => {
@@ -296,7 +323,9 @@ export class Sitemap {
   }
 
   /**
-   *  Synchronous alias for toXML()
+   *  Converts the urls stored in an instance of Sitemap to a valid sitemap xml document
+   *  as a string. Accepts a boolean as its first argument to designate on whether to
+   *  pretty print. Defaults to false.
    *  @return {String}
    */
   toString (pretty = false): string {
@@ -332,6 +361,13 @@ export class Sitemap {
     return this.setCache(this.root.end(opts))
   }
 
+  /**
+   * like toString, it builds the xmlDocument, then it runs gzip on the
+   * resulting string and returns it as a Buffer via callback or direct
+   * invokation
+   * @param {CompressCallback=} callback executes callback on completion with a buffer parameter
+   * @returns a Buffer if no callback is provided
+   */
   toGzip (callback: CompressCallback): void;
   toGzip (): Buffer;
   toGzip (callback?: CompressCallback): Buffer|void {
