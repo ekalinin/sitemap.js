@@ -1,5 +1,10 @@
+# 4.1.0
+Add a pretty print option to `toString(false)`
+pass true pretty print
+
 # 4.0.2
 Fix npx script error - needs the shebang
+
 # 4.0.1
 Validation functions which depend on xmllint will now warn if you do not have xmllint installed.
 
