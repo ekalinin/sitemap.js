@@ -30,6 +30,15 @@ function boolToYESNO (bool?: boolean | EnumYesNo): EnumYesNo|undefined {
   return bool
 }
 
+export interface ISitemapOptions {
+  urls?: (ISitemapItemOptionsLoose | string)[];
+  hostname?: string;
+  cacheTime?: number;
+  xslUrl?: string;
+  xmlNs?: string;
+  level?: ErrorLevel;
+}
+
 /**
  * Shortcut for `new Sitemap (...)`.
  *
@@ -49,14 +58,7 @@ export function createSitemap({
   xslUrl,
   xmlNs,
   level
-}: {
-  urls?: (ISitemapItemOptionsLoose|string)[];
-  hostname?: string;
-  cacheTime?: number;
-  xslUrl?: string;
-  xmlNs?: string;
-  level?: ErrorLevel;
-}): Sitemap {
+}: ISitemapOptions): Sitemap {
   // cleaner diff
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
   return new Sitemap({
@@ -99,14 +101,7 @@ export class Sitemap {
     xslUrl,
     xmlNs,
     level = ErrorLevel.WARN
-  }: {
-    urls?: (ISitemapItemOptionsLoose|string)[];
-    hostname?: string;
-    cacheTime?: number;
-    xslUrl?: string;
-    xmlNs?: string;
-    level?: ErrorLevel;
-  }
+  }: ISitemapOptions
   = {}) {
 
     // Base domain
@@ -284,6 +279,11 @@ export class Sitemap {
           } else {
             nv.rating = video.rating
           }
+        }
+
+        if (video.view_count !== undefined) {
+          /* eslint-disable-next-line @typescript-eslint/camelcase */
+          nv.view_count = '' + video.view_count
         }
         return nv
       })

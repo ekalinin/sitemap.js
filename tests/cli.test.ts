@@ -1,12 +1,11 @@
 import 'babel-polyfill';
-import { xmlLint } from '../lib/xmllint'
-import { XMLLintUnavailable } from '../lib/errors'
 const util = require('util');
 const fs = require('fs');
 const path = require('path');
 const exec = util.promisify(require('child_process').exec)
 const execFileSync = require('child_process').execFileSync
 const pkg = require('../package.json')
+const nomralizedSample = require('./sampleconfig.normalized.json')
 let hasXMLLint = true
 try {
 const lintCheck = execFileSync('which', ['xmlLint'])
@@ -45,6 +44,20 @@ describe('cli', () => {
     expect(stdout + '\n').toBe(jsonxml)
   })
 
+  it('parses xml piped in', (done) => {
+    exec('node ./dist/cli.js --parse < ./tests/alltags.xml', {encoding: 'utf8'}).then(({stdout, stderr}) => {
+      expect(JSON.parse(stdout).urls).toEqual(nomralizedSample.urls)
+      done()
+    })
+  })
+
+  it('parses xml specified as a file', (done) => {
+    exec('node ./dist/cli.js --parse ./tests/alltags.xml', {encoding: 'utf8'}).then(({stdout, stderr}) => {
+      expect(JSON.parse(stdout).urls).toEqual(nomralizedSample.urls)
+      done()
+    })
+  })
+
   it('validates xml piped in', (done) => {
     if (hasXMLLint) {
       exec('node ./dist/cli.js --validate < ./tests/cli-urls.json.xml', {encoding: 'utf8'}).then(({stdout, stderr}) => {
@@ -62,7 +75,7 @@ describe('cli', () => {
       exec('node ./dist/cli.js --validate ./tests/cli-urls.json.xml', {encoding: 'utf8'}).then(({stdout, stderr}) => {
         expect(stdout).toBe('valid\n')
         done()
-      }, (error) => {console.log(error); done()}).catch(e => console.log(e))
+      }, (error: Error): void => {console.log(error); done()}).catch((e: Error): void => console.log(e))
     } else {
       console.warn('xmlLint not installed. Skipping test')
       done()

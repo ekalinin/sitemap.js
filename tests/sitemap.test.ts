@@ -82,9 +82,10 @@ describe('sitemap', () => {
     it('turns img prop provided as object into array of object', () => {
       const url = {
         url: 'http://example.com',
-        img: {url: 'http://example.com/img'}
+        img: {url: 'http://example.com/img', title: 'some thing'}
       }
       expect(Sitemap.normalizeURL(url, create('urlset')).img[0]).toHaveProperty('url', 'http://example.com/img')
+      expect(Sitemap.normalizeURL(url, create('urlset')).img[0]).toHaveProperty('title', 'some thing')
     })
 
     it('turns img prop provided as array of strings into array of object', () => {
@@ -94,6 +95,27 @@ describe('sitemap', () => {
       }
       expect(Sitemap.normalizeURL(url, create('urlset'), 'http://example.com/').img[0]).toHaveProperty('url', 'http://example.com/img')
       expect(Sitemap.normalizeURL(url, create('urlset'), 'http://example.com/').img[1]).toHaveProperty('url', 'http://example.com/img2')
+    })
+
+    it('handles a valid img prop without transformation', () => {
+      const url = {
+        url: "http://example.com",
+        img: [
+          {
+            url: "http://test.com/img2.jpg",
+            caption: "Another image",
+            title: "The Title of Image Two",
+            geoLocation: "London, United Kingdom",
+            license: "https://creativecommons.org/licenses/by/4.0/"
+          }
+        ]
+      };
+      const normal = Sitemap.normalizeURL(url, create('urlset'), 'http://example.com/').img[0]
+      expect(normal).toHaveProperty('url', 'http://test.com/img2.jpg')
+      expect(normal).toHaveProperty('caption', "Another image")
+      expect(normal).toHaveProperty('title', "The Title of Image Two")
+      expect(normal).toHaveProperty('geoLocation', "London, United Kingdom")
+      expect(normal).toHaveProperty('license', "https://creativecommons.org/licenses/by/4.0/")
     })
 
     it('ensures img is always an array', () => {
