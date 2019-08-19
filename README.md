@@ -27,6 +27,8 @@ Table of Contents
     * [Sitemap](#sitemap)
     * [buildSitemapIndex](#buildsitemapindex)
     * [createSitemapIndex](#createsitemapindex)
+    * [xmlLint](#xmllint)
+    * [parseSitemap](#parsesitemap)
     * [Sitemap Item Options](#sitemap-item-options)
     * [ISitemapImage](#isitemapimage)
     * [IVideoItem](#ivideoitem)
@@ -325,6 +327,33 @@ createSitemapIndex({
   gzip: false, // whether to gzip the files
   callback: // called when complete;
 })
+```
+
+### xmlLint
+Resolve or reject depending on whether the passed in xml is a valid sitemap.
+This is just a wrapper around the xmllint command line tool and thus requires
+xmllint.
+```
+const { createReadStream } = require('fs')
+const { xmlLint } = require('sitemap')
+xmlLint(createReadStream('./example.xml')).then(
+  () => console.log('xml is valid'),
+  ([err, stderr]) => console.error('xml is invalid', stderr)
+)
+```
+
+### parseSitemap
+Read xml and resolve with the configuration that would produce it or reject with
+an error
+```
+const { createReadStream } = require('fs')
+const { parseSitemap, createSitemap } = require('sitemap')
+parseSitemap(createReadStream('./example.xml')).then(
+  // produces the same xml
+  // you can, of course, more practically modify it or store it
+  (xmlConfig) => console.log(createSitemap(xmlConfig).toString()),
+  (err) => console.log(err)
+)
 ```
 
 ### Sitemap Item Options
