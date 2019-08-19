@@ -34,6 +34,16 @@ const linkTemplate: ILinkItem = {
   lang: '',
   url: ''
 }
+
+function newsTemplate (): INewsItem {
+  return {
+    publication: { name: "", language: "" },
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    publication_date: "",
+    title: ""
+  };
+}
+
 /**
   Read xml and resolve with the configuration that would produce it or reject with
   an error
@@ -52,6 +62,7 @@ const linkTemplate: ILinkItem = {
   passed to createSitemap. Rejects with an Error object.
  */
 export async function parseSitemap (xml: Readable): Promise<ISitemapOptions> {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
   const saxStream = sax.createStream(true, {xmlns: true, strictEntities: true, trim: true})
   const smi: SitemapItemOptions[] = []
@@ -64,12 +75,7 @@ export async function parseSitemap (xml: Readable): Promise<ISitemapOptions> {
   saxStream.on('opentagstart', (tag): void => {
     currentTag = tag.name
     if (currentTag.startsWith('news:') && !currentItem.news) {
-      currentItem.news = {
-        publication: { name: "", language: "" },
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        publication_date: "",
-        title: ""
-      };
+      currentItem.news = newsTemplate();
     }
   })
   saxStream.on('opentag', (tag): void => {
@@ -122,22 +128,23 @@ export async function parseSitemap (xml: Readable): Promise<ISitemapOptions> {
         currentItem.mobile = true
         break;
       case 'xhtml:link':
-        // @ts-ignore
+        if (
+          typeof tag.attributes.rel === "string" ||
+          typeof tag.attributes.href === "string"
+        ) {
+          break;
+        }
         if (tag.attributes.rel.value === 'alternate' && tag.attributes.hreflang) {
-          // @ts-ignore
-          currentLink.url = tag.attributes.href.value as string
-          // @ts-ignore
+          currentLink.url = tag.attributes.href.value
+          if (typeof tag.attributes.hreflang === 'string')
+            break;
           currentLink.lang = tag.attributes.hreflang.value as string
-          // @ts-ignore
         } else if (tag.attributes.rel.value === 'alternate') {
           dontpushCurrentLink = true
-          // @ts-ignore
-          currentItem.androidLink = tag.attributes.href.value as string
-          // @ts-ignore
+          currentItem.androidLink = tag.attributes.href.value
         } else if (tag.attributes.rel.value === 'amphtml') {
           dontpushCurrentLink = true
-          // @ts-ignore
-          currentItem.ampLink = tag.attributes.href.value as string
+          currentItem.ampLink = tag.attributes.href.value
         } else {
           console.log('unhandled attr for xhtml:link', tag.attributes)
         }
@@ -236,29 +243,41 @@ export async function parseSitemap (xml: Readable): Promise<ISitemapOptions> {
         currentImage.license = text
         break;
       case "news:access":
-        // @ts-ignore
+        if (!currentItem.news) {
+          currentItem.news = newsTemplate();
+        }
         currentItem.news.access = text as INewsItem["access"]
         break;
       case "news:genres":
-        // @ts-ignore
+        if (!currentItem.news) {
+          currentItem.news = newsTemplate();
+        }
         currentItem.news.genres = text
         break;
       case "news:publication_date":
-        // @ts-ignore
+        if (!currentItem.news) {
+          currentItem.news = newsTemplate();
+        }
         // eslint-disable-next-line @typescript-eslint/camelcase
         currentItem.news.publication_date = text
         break;
       case "news:keywords":
-        // @ts-ignore
+        if (!currentItem.news) {
+          currentItem.news = newsTemplate();
+        }
         currentItem.news.keywords = text
         break;
       case "news:stock_tickers":
-        // @ts-ignore
+        if (!currentItem.news) {
+          currentItem.news = newsTemplate();
+        }
         // eslint-disable-next-line @typescript-eslint/camelcase
         currentItem.news.stock_tickers = text
         break;
       case "news:language":
-        // @ts-ignore
+        if (!currentItem.news) {
+          currentItem.news = newsTemplate();
+        }
         currentItem.news.publication.language = text
         break;
 
@@ -277,11 +296,15 @@ export async function parseSitemap (xml: Readable): Promise<ISitemapOptions> {
         currentVideo.description += text
         break;
       case "news:name":
-        // @ts-ignore
+        if (!currentItem.news) {
+          currentItem.news = newsTemplate();
+        }
         currentItem.news.publication.name += text
         break;
       case "news:title":
-        // @ts-ignore
+        if (!currentItem.news) {
+          currentItem.news = newsTemplate();
+        }
         currentItem.news.title += text
         break;
       case "image:caption":

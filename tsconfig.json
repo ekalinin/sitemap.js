@@ -11,7 +11,7 @@
     "target": "ES2015",
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "lib": ["ES2018"]
+    "lib": ["es2018"]
   },
   "include": ["index.ts", "cli.ts"],
   "exclude": ["node_modules"]

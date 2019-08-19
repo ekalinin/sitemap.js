@@ -1,10 +1,7 @@
 import 'babel-polyfill';
 import {
   buildSitemapIndex,
-  createSitemapIndex,
-  EnumChangefreq,
-  EnumYesNo,
-  EnumAllowDeny
+  createSitemapIndex
 } from '../index'
 import { tmpdir } from 'os'
 import { existsSync, unlinkSync } from 'fs'

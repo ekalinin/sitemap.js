@@ -201,7 +201,7 @@ describe('sitemap', () => {
       })
 
       it('ensures tag is always an array', () => {
-        let url: SitemapItemOptionsLoose = {
+        let url: ISitemapItemOptionsLoose = {
           url: 'http://example.com',
           video: {thumbnail_loc: 'foo', title: '', description: ''}
         }

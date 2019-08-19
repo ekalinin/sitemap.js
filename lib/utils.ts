@@ -136,14 +136,14 @@ export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel
       }
 
       Object.keys(vid).forEach((key): void => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
-        if (validators[key] && !validators[key].test(vid[key])) {
+        const val = vid[key]
+        if (validators[key] && !validators[key].test(val)) {
           if (level === ErrorLevel.THROW) {
-            // @ts-ignore
-            throw new InvalidAttrValue(key, vid[key], validators[key])
+            throw new InvalidAttrValue(key, val, validators[key])
           } else {
-            // @ts-ignore
-            console.warn(`${url}: video key ${key} has invalid value: ${vid[key]}`)
+            console.warn(`${url}: video key ${key} has invalid value: ${val}`)
           }
         }
       })
