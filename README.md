@@ -1,7 +1,7 @@
 sitemap.js [![Build Status](https://travis-ci.org/ekalinin/sitemap.js.svg?branch=master)](https://travis-ci.org/ekalinin/sitemap.js)
 ==========
 
-**sitemap.js** is a high-level sitemap-generating framework that
+**sitemap.js** is a high-level sitemap-generating library/cli that
 makes creating [sitemap XML](http://www.sitemaps.org/) files easy.
 
 Maintainers
