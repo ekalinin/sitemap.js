@@ -10,5 +10,6 @@ export * from './lib/sitemap-index'
 export * from './lib/errors'
 export * from './lib/types'
 export { xmlLint } from './lib/xmllint'
+export { parseSitemap } from './lib/sitemap-parser'
 
 export default createSitemap
