@@ -1,4 +1,6 @@
 # master
+
+# 4.1.0
 Add a pretty print option to `toString(false)`
 pass true pretty print
 
