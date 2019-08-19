@@ -1,14 +1,17 @@
 # master
+Nothing yet
 
 # 4.1.0
 Add a pretty print option to `toString(false)`
 pass true pretty print
 
 Add an xmlparser that will output a config that would generate that same file
-cli:
-  use --parser to output the complete config --line-separated to print out line
-  separated config compatible with the --json input option for cli
-lib: import parseSitemap and pass it a stream
+
+  cli:
+    use --parser to output the complete config --line-separated to print out line
+    separated config compatible with the --json input option for cli
+  
+  lib: import parseSitemap and pass it a stream
 
 # 4.0.2
 Fix npx script error - needs the shebang
