@@ -1,7 +1,7 @@
 # master
 Nothing yet
 
-# 4.1.0
+# 4.1.1
 Add a pretty print option to `toString(false)`
 pass true pretty print
 

@@ -1,7 +1,7 @@
 {
   "name": "sitemap",
-  "version": "4.1.0",
-  "description": "Sitemap-generating framework",
+  "version": "4.1.1",
+  "description": "Sitemap-generating lib/cli",
   "keywords": [
     "sitemap",
     "sitemap.xml"
@@ -24,6 +24,7 @@
     "test": "tests"
   },
   "scripts": {
+    "build": "tsc",
     "prepublishOnly": "sort-package-json && npm run test",
     "test": "eslint lib/* ./cli.ts && tsc && jest && npm run test:xmllint",
     "test-fast": "jest ./tests/sitemap-item.test.ts ./tests/sitemap-index.test.ts ./tests/sitemap.test.ts ./tests/sitemap-shape.test.ts",
@@ -100,6 +101,7 @@
     "@types/node": "^12.0.2",
     "@types/sax": "^1.2.0",
     "arg": "^4.1.1",
+    "sax": "^1.2.4",
     "xmlbuilder": "^13.0.0"
   },
   "devDependencies": {
