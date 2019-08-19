@@ -117,7 +117,7 @@ export class Sitemap {
     if (xmlNs) {
       this.xmlNs = xmlNs;
       const ns = this.xmlNs.split(' ')
-      for (let attr of ns) {
+      for (const attr of ns) {
         const [k, v] = attr.split('=')
         this.root.attribute(k, v.replace(/^['"]|['"]$/g, ''))
       }
@@ -125,7 +125,7 @@ export class Sitemap {
 
     urls = Array.from(urls)
     this.urls = Sitemap.normalizeURLs(urls, this.root, this.hostname)
-    for (let [, url] of this.urls) {
+    for (const [, url] of this.urls) {
       validateSMIOptions(url, level)
     }
   }
@@ -142,7 +142,7 @@ export class Sitemap {
    *  @returns true if it has been less than cacheTime ms since cache was set
    */
   isCacheValid (): boolean {
-    let currTimestamp = Date.now();
+    const currTimestamp = Date.now();
     return !!(this.cacheTime && this.cache &&
       (this.cacheSetTimestamp + this.cacheTime) >= currTimestamp);
   }
@@ -351,7 +351,7 @@ export class Sitemap {
 
     // TODO: if size > limit: create sitemapindex
 
-    for (let [, smi] of this.urls) {
+    for (const [, smi] of this.urls) {
       (new SitemapItem(smi, this.root)).buildXML()
     }
     let opts

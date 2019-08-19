@@ -22,7 +22,7 @@ const println = (line: string|ISitemapItemOptionsLoose): void => {
 }
 
 async function processStreams (streams: Readable[], isJSON = false): Promise<boolean> {
-  for (let stream of streams) {
+  for (const stream of streams) {
     await new Promise((resolve): void => {
       const rl = createInterface({
         input: stream

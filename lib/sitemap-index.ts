@@ -72,7 +72,7 @@ export function buildSitemapIndex (conf: {
   }
 
   const ns = conf.xmlNs.split(' ')
-  for (let attr of ns) {
+  for (const attr of ns) {
     const [k, v] = attr.split('=')
     root.attribute(k, v.replace(/^['"]|['"]$/g, ''))
   }
@@ -162,14 +162,14 @@ class SitemapIndex {
 
       this.sitemaps.push(filename);
 
-      let sitemap = createSitemap({
+      const sitemap = createSitemap({
         hostname,
         cacheTime, // 600 sec - cache purge period
         urls: chunk,
         xslUrl
       });
 
-      let stream = createWriteStream(targetFolder + '/' + filename);
+      const stream = createWriteStream(targetFolder + '/' + filename);
       stream.once('open', (fd): void => {
         stream.write(gzip ? sitemap.toGzip() : sitemap.toString());
         stream.end();

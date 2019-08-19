@@ -7,7 +7,7 @@ import { XMLLintUnavailable } from './errors'
  * @return {Promise<null>} resolves on valid rejects [error stderr]
  */
 export function xmlLint (xml: string|Readable): Promise<null> {
-  let args = ['--schema', './schema/all.xsd', '--noout', '-']
+  const args = ['--schema', './schema/all.xsd', '--noout', '-']
   if (typeof xml === 'string') {
     args[args.length - 1] = xml
   }
@@ -17,9 +17,8 @@ export function xmlLint (xml: string|Readable): Promise<null> {
         reject([new XMLLintUnavailable()])
         return
       }
-      let xmllint = execFile('xmllint', args, (error, stdout, stderr): void => {
-        // @ts-ignore
-        if (error && error.code) {
+      const xmllint = execFile('xmllint', args, (error, stdout, stderr): void => {
+        if (error) {
           reject([error, stderr])
         }
         resolve()

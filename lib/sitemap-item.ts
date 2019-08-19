@@ -24,7 +24,7 @@ function attrBuilder (conf: IStringObj, keys: string | string[]): object {
   return keys.reduce((attrs, key): IStringObj => {
     // eslint-disable-next-line
     if (conf[key] !== undefined) {
-      let keyAr = key.split(':')
+      const keyAr = key.split(':')
       if (keyAr.length !== 2) {
         throw new InvalidAttr(key)
       }
@@ -194,6 +194,7 @@ export class SitemapItem {
    */
   buildXML (): XMLElement {
     this.url.children = []
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     this.url.attribs = {}
     // xml property
@@ -256,10 +257,10 @@ export class SitemapItem {
       } else if (this.ampLink && p === 'ampLink') {
         this.url.element('xhtml:link', { rel: 'amphtml', href: this.ampLink })
       } else if (this.news && p === 'news') {
-        let newsitem = this.url.element('news:news')
+        const newsitem = this.url.element('news:news')
 
         if (this.news.publication) {
-          let publication = newsitem.element('news:publication')
+          const publication = newsitem.element('news:publication')
           if (this.news.publication.name) {
             publication.element('news:name').cdata(this.news.publication.name)
           }
