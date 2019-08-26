@@ -1,14 +1,7 @@
 /* eslint-env jest, jasmine */
 import 'babel-polyfill';
 import { xmlLint } from '../index'
-import { XMLLintUnavailable } from '../lib/errors'
-const execFileSync = require('child_process').execFileSync
-let hasXMLLint = true
-try {
-const lintCheck = execFileSync('which', ['xmlLint'])
-} catch {
-  hasXMLLint = false
-}
+const hasXMLLint = true
 describe('xmllint', () => {
   it('returns a promise', async () => {
     if (hasXMLLint) {
