@@ -95,7 +95,6 @@ app.get('/sitemap.xml', function(req, res) {
     console.error(e)
     res.status(500).end()
   }
-  });
 });
 
 app.listen(3000);
