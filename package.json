@@ -56,6 +56,10 @@
       "ecmaVersion": 2018,
       "sourceType": "module"
     },
+    "plugins": [
+      "jest",
+      "@typescript-eslint"
+    ],
     "rules": {
       "no-case-declarations": 0,
       "no-console": 0,
@@ -116,6 +120,7 @@
     "babel-eslint": "^10.0.3",
     "babel-polyfill": "^6.26.0",
     "eslint": "^6.2.2",
+    "eslint-plugin-jest": "^22.15.2",
     "husky": "^3.0.4",
     "jasmine": "^3.4.0",
     "jest": "^24.9.0",

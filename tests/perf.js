@@ -20,12 +20,12 @@
  */
 'use strict'
 
-var sm = require('../dist/index')
+const sm = require('../dist/index')
 
-var urls = require('./perf-data')
+const urls = require('./perf-data')
 const { performance } = require('perf_hooks')
-var stats = require('stats-lite')
-var [ runs = 20 ] = process.argv.slice(2)
+const stats = require('stats-lite')
+const [ runs = 20 ] = process.argv.slice(2)
 console.log('runs:', runs)
 
 function printPerf (label, data) {
@@ -46,19 +46,19 @@ function createSitemap (stream) {
   })
 }
 console.error('testing sitemap creation w/o printing')
-let durations = []
+const durations = []
 for (let i = 0; i < runs; i++) {
-  let start = performance.now()
+  const start = performance.now()
   createSitemap()
   durations.push(performance.now() - start)
 }
 printPerf('sitemap creation', durations)
 console.error('testing toString')
-let sitemap = createSitemap()
+const sitemap = createSitemap()
 
-let syncToString = []
+const syncToString = []
 for (let i = 0; i < runs; i++) {
-  let start = performance.now()
+  const start = performance.now()
   sitemap.toString()
   syncToString.push(performance.now() - start)
 }

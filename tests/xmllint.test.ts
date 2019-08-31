@@ -1,14 +1,14 @@
 /* eslint-env jest, jasmine */
 import 'babel-polyfill';
 import { xmlLint } from '../index'
-import { XMLLintUnavailable } from '../lib/errors'
 const execFileSync = require('child_process').execFileSync
 let hasXMLLint = true
 try {
-const lintCheck = execFileSync('which', ['xmlLint'])
+  execFileSync("which", ["xmlLint"]);
 } catch {
   hasXMLLint = false
 }
+
 describe('xmllint', () => {
   it('returns a promise', async () => {
     if (hasXMLLint) {
@@ -33,7 +33,7 @@ describe('xmllint', () => {
       console.warn('skipping xmlLint test, not installed')
       expect(true).toBe(true)
     }
-  }, 30000)
+  }, 60000)
 
   it('rejects when invalid', async () => {
     expect.assertions(1)
@@ -43,5 +43,5 @@ describe('xmllint', () => {
       console.warn('skipping xmlLint test, not installed')
       expect(true).toBe(true)
     }
-  }, 30000)
+  }, 60000)
 })

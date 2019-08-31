@@ -8,9 +8,9 @@ import {
   ErrorLevel
 } from '../index'
 describe('sitemapItem', () => {
-  let xmlLoc:string
-  let xmlPriority:string
-  let itemTemplate:SitemapItemOptions
+  let xmlLoc: string
+  let xmlPriority: string
+  let itemTemplate: SitemapItemOptions
   beforeEach(() => {
     itemTemplate = { 'url': '', video: [], img: [], links: [] }
     xmlLoc = '<loc>http://ya.ru/</loc>'
@@ -42,15 +42,15 @@ describe('sitemapItem', () => {
     ).toThrowError(/SitemapItem requires a configuration/)
   })
   it('throws an error for url absence', () => {
-    /* eslint-disable no-new */
-    expect(() => new SitemapItem({}, undefined, ErrorLevel.THROW))
+    /*  eslint-disable no-new */
+    expect(() => new SitemapItem({} as SitemapItemOptions, undefined, ErrorLevel.THROW))
       .toThrowError(/URL is required/)
   })
 
   it('allows for full precision priority', () => {
     const url = 'http://ya.ru/'
     const smi = new SitemapItem({
-       ...itemTemplate,
+      ...itemTemplate,
       'url': url,
       'changefreq': EnumChangefreq.ALWAYS,
       'priority': 0.99934,
@@ -153,7 +153,7 @@ describe('sitemapItem', () => {
 
   it('video price type', () => {
     expect(function () {
-      var smap = new SitemapItem({
+      const smap = new SitemapItem({
         ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
@@ -172,7 +172,7 @@ describe('sitemapItem', () => {
 
   it('video price currency', () => {
     expect(function () {
-      var smap = new SitemapItem({
+      const smap = new SitemapItem({
         ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
@@ -192,7 +192,7 @@ describe('sitemapItem', () => {
 
   it('video price resolution', () => {
     expect(function () {
-      var smap = new SitemapItem({
+      const smap = new SitemapItem({
         ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
@@ -212,7 +212,7 @@ describe('sitemapItem', () => {
 
   it('video platform relationship', () => {
     expect(function () {
-      var smap = new SitemapItem({
+      const smap = new SitemapItem({
         ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         // @ts-ignore
@@ -233,7 +233,7 @@ describe('sitemapItem', () => {
 
   it('video restriction', () => {
     expect(function () {
-      var smap = new SitemapItem({
+      const smap = new SitemapItem({
         ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
@@ -252,7 +252,7 @@ describe('sitemapItem', () => {
 
   it('video duration', () => {
     expect(function () {
-      var smap = new SitemapItem({
+      const smap = new SitemapItem({
         ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
@@ -272,7 +272,7 @@ describe('sitemapItem', () => {
 
   it('video description limit', () => {
     expect(function () {
-      var smap = new SitemapItem({
+      const smap = new SitemapItem({
         ...itemTemplate,
         'url': 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
         'video': [{
@@ -365,10 +365,10 @@ describe('sitemapItem', () => {
     })
 
     it('accepts an object', () => {
-      var smap = new SitemapItem(testvideo)
+      const smap = new SitemapItem(testvideo)
 
-      var result = smap.toString()
-      var expectedResult = '<url>' +
+      const result = smap.toString()
+      const expectedResult = '<url>' +
         '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
@@ -390,34 +390,34 @@ describe('sitemapItem', () => {
 
     it('throws if a required attr is not provided', () => {
       expect(() => {
-        let test = Object.assign({}, testvideo)
+        const test = Object.assign({}, testvideo)
         delete test.video[0].title
-        var smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
+        const smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
 
         smap.toString()
       }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
 
       expect(() => {
-        let test = Object.assign({}, testvideo)
+        const test = Object.assign({}, testvideo)
         // @ts-ignore
         test.video[0] = 'a'
-        var smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
+        const smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
 
         smap.toString()
       }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
 
       expect(() => {
-        let test = Object.assign({}, testvideo)
+        const test = Object.assign({}, testvideo)
         delete test.video[0].thumbnail_loc
-        var smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
+        const smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
 
         smap.toString()
       }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
 
       expect(() => {
-        let test = Object.assign({}, testvideo)
+        const test = Object.assign({}, testvideo)
         delete test.video[0].description
-        var smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
+        const smap = new SitemapItem(test, undefined, ErrorLevel.THROW)
 
         smap.toString()
       }).toThrowError(/must include thumbnail_loc, title and description fields for videos/)
@@ -426,10 +426,10 @@ describe('sitemapItem', () => {
     it('supports content_loc', () => {
       testvideo.video[0].content_loc = 'https://a.b.c'
       delete testvideo.video[0].player_loc
-      var smap = new SitemapItem(testvideo)
+      const smap = new SitemapItem(testvideo)
 
-      var result = smap.toString()
-      var expectedResult = '<url>' +
+      const result = smap.toString()
+      const expectedResult = '<url>' +
         '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
@@ -451,10 +451,10 @@ describe('sitemapItem', () => {
 
     it('supports expiration_date', () => {
       testvideo.video[0].expiration_date = '2012-07-16T19:20:30+08:00'
-      var smap = new SitemapItem(testvideo)
+      const smap = new SitemapItem(testvideo)
 
-      var result = smap.toString()
-      var expectedResult = '<url>' +
+      const result = smap.toString()
+      const expectedResult = '<url>' +
         '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
@@ -477,10 +477,10 @@ describe('sitemapItem', () => {
 
     it('supports rating', () => {
       testvideo.video[0].rating = 2.5
-      var smap = new SitemapItem(testvideo)
+      const smap = new SitemapItem(testvideo)
 
-      var result = smap.toString()
-      var expectedResult = '<url>' +
+      const result = smap.toString()
+      const expectedResult = '<url>' +
         '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
@@ -503,10 +503,10 @@ describe('sitemapItem', () => {
 
     it('supports view_count', () => {
       testvideo.video[0].view_count = 1234
-      var smap = new SitemapItem(testvideo)
+      const smap = new SitemapItem(testvideo)
 
-      var result = smap.toString()
-      var expectedResult = '<url>' +
+      const result = smap.toString()
+      const expectedResult = '<url>' +
         '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
@@ -529,10 +529,10 @@ describe('sitemapItem', () => {
 
     it('supports family_friendly', () => {
       testvideo.video[0].family_friendly = EnumYesNo.yes
-      var smap = new SitemapItem(testvideo)
+      const smap = new SitemapItem(testvideo)
 
-      var result = smap.toString()
-      var expectedResult = '<url>' +
+      const result = smap.toString()
+      const expectedResult = '<url>' +
         '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
@@ -555,10 +555,10 @@ describe('sitemapItem', () => {
 
     it('supports tag', () => {
       testvideo.video[0].tag = ['steak']
-      var smap = new SitemapItem(testvideo)
+      const smap = new SitemapItem(testvideo)
 
-      var result = smap.toString()
-      var expectedResult = '<url>' +
+      const result = smap.toString()
+      const expectedResult = '<url>' +
         '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
@@ -581,10 +581,10 @@ describe('sitemapItem', () => {
 
     it('supports array of tags', () => {
       testvideo.video[0].tag = ['steak', 'fries']
-      var smap = new SitemapItem(testvideo)
+      const smap = new SitemapItem(testvideo)
 
-      var result = smap.toString()
-      var expectedResult = '<url>' +
+      const result = smap.toString()
+      const expectedResult = '<url>' +
         '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
@@ -607,10 +607,10 @@ describe('sitemapItem', () => {
 
     it('supports category', () => {
       testvideo.video[0].category = 'Baking'
-      var smap = new SitemapItem(testvideo)
+      const smap = new SitemapItem(testvideo)
 
-      var result = smap.toString()
-      var expectedResult = '<url>' +
+      const result = smap.toString()
+      const expectedResult = '<url>' +
         '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
@@ -633,10 +633,10 @@ describe('sitemapItem', () => {
 
     it('supports uploader', () => {
       testvideo.video[0].uploader = 'GrillyMcGrillerson'
-      var smap = new SitemapItem(testvideo)
+      const smap = new SitemapItem(testvideo)
 
-      var result = smap.toString()
-      var expectedResult = '<url>' +
+      const result = smap.toString()
+      const expectedResult = '<url>' +
         '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
@@ -659,10 +659,10 @@ describe('sitemapItem', () => {
 
     it('supports live', () => {
       testvideo.video[0].live = EnumYesNo.yes
-      var smap = new SitemapItem(testvideo)
+      const smap = new SitemapItem(testvideo)
 
-      var result = smap.toString()
-      var expectedResult = '<url>' +
+      const result = smap.toString()
+      const expectedResult = '<url>' +
         '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
         '<video:video>' +
           thumbnailLoc +
@@ -704,7 +704,7 @@ describe('sitemapItem', () => {
     })
 
     it('matches the example from google', () => {
-      var smi = new SitemapItem(news)
+      const smi = new SitemapItem(news)
 
       expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name><![CDATA[${news.news.publication.name}]]></news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title><![CDATA[${news.news.title}]]></news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news></url>`)
     })
@@ -713,7 +713,7 @@ describe('sitemapItem', () => {
       delete news.news.genres
       delete news.news.keywords
       delete news.news.stock_tickers
-      var smi = new SitemapItem(news)
+      const smi = new SitemapItem(news)
 
       expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name><![CDATA[${news.news.publication.name}]]></news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:publication_date>${news.news.publication_date}</news:publication_date><news:title><![CDATA[${news.news.title}]]></news:title></news:news></url>`)
     })
@@ -722,7 +722,7 @@ describe('sitemapItem', () => {
       delete news.news.publication
 
       expect(() => {
-        var smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
+        const smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
         smi.toString()
       }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
     })
@@ -731,7 +731,7 @@ describe('sitemapItem', () => {
       delete news.news.publication.name
 
       expect(() => {
-        var smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
+        const smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
         smi.toString()
       }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
     })
@@ -740,7 +740,7 @@ describe('sitemapItem', () => {
       delete news.news.publication.language
 
       expect(() => {
-        var smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
+        const smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
         smi.toString()
       }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
     })
@@ -749,7 +749,7 @@ describe('sitemapItem', () => {
       delete news.news.title
 
       expect(() => {
-        var smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
+        const smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
         smi.toString()
       }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
     })
@@ -758,7 +758,7 @@ describe('sitemapItem', () => {
       delete news.news.publication_date
 
       expect(() => {
-        var smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
+        const smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
         smi.toString()
       }).toThrowError(/must include publication, publication name, publication language, title, and publication_date for news/)
     })
@@ -767,14 +767,14 @@ describe('sitemapItem', () => {
       news.news.access = 'a'
 
       expect(() => {
-        var smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
+        const smi = new SitemapItem(news, undefined, ErrorLevel.THROW)
         smi.toString()
       }).toThrowError(/News access must be either Registration, Subscription or not be present/)
     })
 
     it('supports access', () => {
       news.news.access = 'Registration'
-      var smi = new SitemapItem(news)
+      let smi = new SitemapItem(news)
 
       expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name><![CDATA[${news.news.publication.name}]]></news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:access>${news.news.access}</news:access><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title><![CDATA[${news.news.title}]]></news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news></url>`)
       news.news.access = 'Subscription'

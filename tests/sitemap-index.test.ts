@@ -19,7 +19,7 @@ function removeFilesArray  (files) {
 const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>'
 describe('sitemapIndex', () => {
   it('build sitemap index', () => {
-    var expectedResult = xmlDef +
+    const expectedResult = xmlDef +
     '<?xml-stylesheet type="text/xsl" href="https://test.com/style.xsl"?>' +
     '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
     '<sitemap>' +
@@ -30,7 +30,7 @@ describe('sitemapIndex', () => {
     '</sitemap>' +
     '</sitemapindex>'
 
-    var result = buildSitemapIndex({
+    const result = buildSitemapIndex({
       urls: ['https://test.com/s1.xml', 'https://test.com/s2.xml'],
       xslUrl: 'https://test.com/style.xsl'
     })
@@ -38,7 +38,7 @@ describe('sitemapIndex', () => {
     expect(result).toBe(expectedResult)
   })
   it('build sitemap index with custom xmlNS', () => {
-    var expectedResult = xmlDef +
+    const expectedResult = xmlDef +
     '<sitemapindex xmlns="http://www.example.org/schemas/sitemap/0.9">' +
         '<sitemap>' +
             '<loc>https://test.com/s1.xml</loc>' +
@@ -48,7 +48,7 @@ describe('sitemapIndex', () => {
         '</sitemap>' +
     '</sitemapindex>'
 
-    var result = buildSitemapIndex({
+    const result = buildSitemapIndex({
       urls: ['https://test.com/s1.xml', 'https://test.com/s2.xml'],
       xmlNs: 'xmlns="http://www.example.org/schemas/sitemap/0.9"'
     })
@@ -56,7 +56,7 @@ describe('sitemapIndex', () => {
     expect(result).toBe(expectedResult)
   })
   it('build sitemap index with lastmodISO', () => {
-    var expectedResult = xmlDef +
+    const expectedResult = xmlDef +
     '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
         '<sitemap>' +
             '<loc>https://test.com/s1.xml</loc>' +
@@ -72,7 +72,7 @@ describe('sitemapIndex', () => {
         '</sitemap>' +
     '</sitemapindex>'
 
-    var result = buildSitemapIndex({
+    const result = buildSitemapIndex({
       urls: [
         {
           url: 'https://test.com/s1.xml',
@@ -93,7 +93,7 @@ describe('sitemapIndex', () => {
     expect(result).toBe(expectedResult)
   })
   it('build sitemap index with lastmod', () => {
-    var expectedResult = xmlDef +
+    const expectedResult = xmlDef +
     '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
         '<sitemap>' +
             '<loc>https://test.com/s1.xml</loc>' +
@@ -101,7 +101,7 @@ describe('sitemapIndex', () => {
         '</sitemap>' +
     '</sitemapindex>'
 
-    var result = buildSitemapIndex({
+    const result = buildSitemapIndex({
       urls: [
         {
           url: 'https://test.com/s1.xml'
@@ -147,7 +147,7 @@ describe('sitemapIndex', () => {
         sitemapSize: 1,
         targetFolder: tmp,
         urls: [url1, url2],
-        callback: (...args) => { resolve(args) }
+        callback: (error, result) => { resolve([error, result]) }
       })
     })
 
@@ -189,7 +189,7 @@ describe('sitemapIndex', () => {
         targetFolder: tmp,
         gzip: true,
         urls: [url1, url2],
-        callback: (...args) => { resolve(args) }
+        callback: (error, result) => { resolve([error, result]) }
       })
     })
     expect(err).toBeFalsy()
