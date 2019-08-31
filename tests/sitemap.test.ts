@@ -249,6 +249,7 @@ describe('sitemap', () => {
         expect(Sitemap.normalizeURL(url, create('urlset')).video[1]).toHaveProperty('rating', 4)
       })
     })
+
     describe('lastmod', () => {
       it('treats legacy ISO option like lastmod', () => {
         expect(Sitemap.normalizeURL({'url': 'http://example.com', lastmodISO: '2019-01-01'})).toHaveProperty('lastmod', '2019-01-01T00:00:00.000Z')
@@ -294,6 +295,7 @@ describe('sitemap', () => {
                   '</url>' +
                 '</urlset>')
     })
+
     it('accepts config url objects', () => {
       const url = 'http://ya.ru'
       const ssp = new Sitemap()
@@ -515,6 +517,7 @@ describe('sitemap', () => {
       }
     ).toThrowError(/changefreq is invalid/)
   })
+
   it('sitemap: invalid priority error', () => {
     expect(
       function () {
@@ -526,6 +529,7 @@ describe('sitemap', () => {
       }
     ).toThrowError(/priority is invalid/)
   })
+
   it('sitemap: test cache', () => {
     const smap = createSitemap({
       hostname: 'http://test.com',
@@ -568,6 +572,7 @@ describe('sitemap', () => {
                 '</urlset>')
     }, 1000)
   })
+
   it('sitemap: test cache off', () => {
     const smap = createSitemap({
       hostname: 'http://test.com',
@@ -602,6 +607,7 @@ describe('sitemap', () => {
                 '</url>' +
               '</urlset>')
   })
+
   it('sitemap: handle urls with "http" in the path', () => {
     const smap = createSitemap({
       hostname: 'http://test.com',
@@ -620,6 +626,7 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(xml)
   })
+
   it('sitemap: handle urls with "&" in the path', () => {
     const smap = createSitemap({
       hostname: 'http://test.com',
@@ -638,6 +645,7 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(xml)
   })
+
   it('sitemap: keep urls that start with http:// or https://', () => {
     const smap = createSitemap({
       hostname: 'http://test.com',
@@ -662,6 +670,7 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(xml)
   })
+
   it('sitemap: del by string', () => {
     const smap = createSitemap({
       hostname: 'http://test.com',
@@ -682,6 +691,7 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(xml)
   })
+
   it('sitemap: del by object', () => {
     const smap = createSitemap({
       hostname: 'http://test.com',
@@ -702,6 +712,7 @@ describe('sitemap', () => {
 
     expect(smap.toString()).toBe(xml)
   })
+
   it('test for #27', () => {
     const staticUrls = ['/', '/terms', '/login']
     const sitemap = createSitemap({ urls: staticUrls, hostname: 'http://example.com' })
@@ -718,6 +729,7 @@ describe('sitemap', () => {
     expect(sitemap2.contains({url: 'http://example.com/login'})).toBeTruthy()
     expect(sitemap2.contains({url: 'http://example.com/details/url1'})).toBeFalsy()
   })
+
   it('sitemap: langs', () => {
     const smap = createSitemap({
       urls: [
@@ -742,6 +754,7 @@ describe('sitemap', () => {
                 '</url>' +
               '</urlset>')
   })
+
   it('sitemap: normalize urls, see #39', async () => {
     const [xml1, xml2] = ['http://ya.ru', 'http://ya.ru/'].map(function (hostname) {
       const ssp = new Sitemap({hostname})
@@ -762,6 +775,7 @@ describe('sitemap', () => {
         '</url>' +
       '</urlset>')
   })
+
   it('sitemap: langs with hostname', () => {
     const smap = createSitemap({
       hostname: 'http://test.com',
@@ -787,6 +801,7 @@ describe('sitemap', () => {
                 '</url>' +
               '</urlset>')
   })
+
   it('sitemap: android app linking', () => {
     const smap = createSitemap({
       urls: [
@@ -807,6 +822,7 @@ describe('sitemap', () => {
                 '</url>' +
               '</urlset>')
   })
+
   it('sitemap: AMP', () => {
     const smap = createSitemap({
       urls: [
@@ -826,6 +842,7 @@ describe('sitemap', () => {
         '</url>' +
       '</urlset>')
   })
+
   it('sitemap: expires', () => {
     const smap = createSitemap({
       urls: [
@@ -845,6 +862,7 @@ describe('sitemap', () => {
         '</url>' +
       '</urlset>')
   })
+
   it('sitemap: image with caption', () => {
     const smap = createSitemap({
       hostname: 'http://test.com',
@@ -865,6 +883,7 @@ describe('sitemap', () => {
         '</url>' +
       '</urlset>')
   })
+
   it('sitemap: image with caption, title, geo_location, license', () => {
     const smap = createSitemap({
       urls: [
@@ -895,6 +914,7 @@ describe('sitemap', () => {
         '</url>' +
       '</urlset>')
   })
+
   it('sitemap: images with captions', () => {
     const smap = createSitemap({
       urls: [
@@ -922,6 +942,7 @@ describe('sitemap', () => {
         '</url>' +
       '</urlset>')
   })
+
   it('sitemap: images with captions add', () => {
     const smap = createSitemap({
       hostname: 'http://test.com',
@@ -961,6 +982,7 @@ describe('sitemap', () => {
         '</url>' +
       '</urlset>')
   })
+
   it('sitemap: video', () => {
     const smap = createSitemap({
       urls: [

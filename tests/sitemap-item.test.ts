@@ -16,6 +16,7 @@ describe('sitemapItem', () => {
     xmlLoc = '<loc>http://ya.ru/</loc>'
     xmlPriority = '<priority>0.9</priority>'
   })
+
   it('default values && escape', () => {
     const url = 'http://ya.ru/view?widget=3&count>2'
     const smi = new SitemapItem({ ...itemTemplate, 'url': url })
@@ -25,6 +26,7 @@ describe('sitemapItem', () => {
         '<loc>http://ya.ru/view?widget=3&amp;count&gt;2</loc>' +
       '</url>')
   })
+
   it('properly handles url fragments', () => {
     const url = 'http://ya.ru/#!/home'
     const smi = new SitemapItem({ ...itemTemplate, 'url': url })
@@ -41,6 +43,7 @@ describe('sitemapItem', () => {
       function () { new SitemapItem(undefined, undefined, ErrorLevel.THROW) }
     ).toThrowError(/SitemapItem requires a configuration/)
   })
+
   it('throws an error for url absence', () => {
     /*  eslint-disable no-new */
     expect(() => new SitemapItem({} as SitemapItemOptions, undefined, ErrorLevel.THROW))
