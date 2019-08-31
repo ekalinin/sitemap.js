@@ -6,7 +6,7 @@ node_js:
 install:
   - npm install
 script:
-  - npm test
+  - travis_retry npm test
 addons:
   apt:
     packages:
