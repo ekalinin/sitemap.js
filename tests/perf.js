@@ -22,7 +22,7 @@
 
 const sm = require('../dist/index')
 
-const urls = require('./perf-data')
+const urls = require('./mocks/perf-data')
 const { performance } = require('perf_hooks')
 const stats = require('stats-lite')
 const [ runs = 20 ] = process.argv.slice(2)
