@@ -1,4 +1,4 @@
-/* eslint-env jest, jasmine */
+/* eslint-env jest */
 import 'babel-polyfill';
 import { xmlLint } from '../index'
 const execFileSync = require('child_process').execFileSync
@@ -12,7 +12,7 @@ try {
 describe('xmllint', () => {
   it('returns a promise', async () => {
     if (hasXMLLint) {
-      expect(xmlLint('./tests/cli-urls.json.xml').catch()).toBeInstanceOf(Promise)
+      expect(xmlLint('./tests/mocks/cli-urls.json.xml').catch()).toBeInstanceOf(Promise)
     } else {
       console.warn('skipping xmlLint test, not installed')
       expect(true).toBe(true)
@@ -23,7 +23,7 @@ describe('xmllint', () => {
     expect.assertions(1)
     if (hasXMLLint) {
       try {
-        const result = await xmlLint('./tests/cli-urls.json.xml')
+        const result = await xmlLint('./tests/mocks/cli-urls.json.xml')
         await expect(result).toBeFalsy()
       } catch (e) {
         console.log(e)
@@ -38,7 +38,7 @@ describe('xmllint', () => {
   it('rejects when invalid', async () => {
     expect.assertions(1)
     if (hasXMLLint) {
-      await expect(xmlLint('./tests/cli-urls.json.bad.xml')).rejects.toBeTruthy()
+      await expect(xmlLint('./tests/mocks/cli-urls.json.bad.xml')).rejects.toBeTruthy()
     } else {
       console.warn('skipping xmlLint test, not installed')
       expect(true).toBe(true)

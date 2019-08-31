@@ -1,6 +1,6 @@
 const { createSitemap }= require('../dist/index')
 
-const config = require('./sampleconfig.json')
+const config = require('./mocks/sampleconfig.json')
 console.log(createSitemap(config).toString(true))
 /*
 let urls = []
