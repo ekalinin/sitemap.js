@@ -4,7 +4,7 @@ import { xmlLint } from '../index'
 const execFileSync = require('child_process').execFileSync
 let hasXMLLint = true
 try {
-  execFileSync("which", ["xmlLint"]);
+  execFileSync("which", ["xmllint"]);
 } catch {
   hasXMLLint = false
 }

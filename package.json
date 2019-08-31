@@ -27,7 +27,7 @@
     "build": "tsc",
     "prepublishOnly": "sort-package-json && npm run test",
     "test": "eslint lib/* ./cli.ts && tsc && jest && npm run test:xmllint",
-    "test-fast": "jest ./tests/sitemap-item.test.ts ./tests/sitemap-index.test.ts ./tests/sitemap.test.ts ./tests/sitemap-shape.test.ts",
+    "test-fast": "eslint lib/* ./cli.ts && tsc && jest ./tests/sitemap*",
     "test-perf": "node ./tests/perf.js > /dev/null",
     "test:schema": "node tests/alltags.js | xmllint --schema schema/all.xsd --noout -",
     "test:typecheck": "tsc",
@@ -36,7 +36,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "sort-package-json",
-      "pre-push": "npm test"
+      "pre-push": "npm run test-fast"
     }
   },
   "eslintConfig": {
@@ -102,7 +102,7 @@
     }
   },
   "dependencies": {
-    "@types/node": "^12.7.2",
+    "@types/node": "^12.7.3",
     "@types/sax": "^1.2.0",
     "arg": "^4.1.1",
     "sax": "^1.2.4",
@@ -119,15 +119,14 @@
     "@typescript-eslint/parser": "^2.0.0",
     "babel-eslint": "^10.0.3",
     "babel-polyfill": "^6.26.0",
-    "eslint": "^6.2.2",
-    "eslint-plugin-jest": "^22.15.2",
+    "eslint": "^6.3.0",
+    "eslint-plugin-jest": "^22.16.0",
     "husky": "^3.0.4",
-    "jasmine": "^3.4.0",
     "jest": "^24.9.0",
     "sort-package-json": "^1.22.1",
     "source-map": "~0.7.3",
     "stats-lite": "^2.2.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.6.2"
   },
   "engines": {
     "node": ">=8.9.0",
