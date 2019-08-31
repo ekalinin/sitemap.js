@@ -68,7 +68,7 @@ describe('cli', () => {
       console.warn('xmlLint not installed. Skipping test')
       done()
     }
-  }, 30000)
+  }, 60000)
 
   it('validates xml specified as file', (done) => {
     if (hasXMLLint) {
@@ -80,5 +80,5 @@ describe('cli', () => {
       console.warn('xmlLint not installed. Skipping test')
       done()
     }
-  }, 30000)
+  }, 60000)
 })
