@@ -27,7 +27,7 @@
     "build": "tsc",
     "prepublishOnly": "sort-package-json && npm run test",
     "test": "eslint lib/* ./cli.ts && tsc && jest && npm run test:xmllint",
-    "test-fast": "jest ./tests/sitemap-item.test.ts ./tests/sitemap-index.test.ts ./tests/sitemap.test.ts ./tests/sitemap-shape.test.ts",
+    "test-fast": "eslint lib/* ./cli.ts && tsc && jest ./tests/sitemap*",
     "test-perf": "node ./tests/perf.js > /dev/null",
     "test:schema": "node tests/alltags.js | xmllint --schema schema/all.xsd --noout -",
     "test:typecheck": "tsc",
@@ -36,7 +36,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "sort-package-json",
-      "pre-push": "npm test"
+      "pre-push": "npm run test-fast"
     }
   },
   "eslintConfig": {

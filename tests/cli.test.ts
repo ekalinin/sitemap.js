@@ -8,7 +8,7 @@ const pkg = require('../package.json')
 const nomralizedSample = require('./mocks/sampleconfig.normalized.json')
 let hasXMLLint = true
 try {
-  const lintCheck = execFileSync('which', ['xmlLint'])
+  execFileSync('which', ['xmllint'])
 } catch {
   hasXMLLint = false
 }
