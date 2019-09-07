@@ -17,6 +17,7 @@ import {
   InvalidVideoDescription,
   InvalidVideoDuration,
   InvalidVideoFormat,
+  InvalidVideoRating,
   NoURLError,
   NoConfigError,
   PriorityInvalidError
@@ -66,7 +67,7 @@ export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel
   }
 
   if (priority) {
-    if (!(priority >= 0.0 && priority <= 1.0) || typeof priority !== 'number') {
+    if (!(priority >= 0.0 && priority <= 1.0)) {
       if (level === ErrorLevel.THROW) {
         throw new PriorityInvalidError()
       } else {
@@ -115,7 +116,11 @@ export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel
         }
       }
       if (vid.rating !== undefined && (vid.rating < 0 || vid.rating > 5)) {
-        console.warn(`${url}: video ${vid.title} rating ${vid.rating} must be between 0 and 5 inclusive`)
+        if (level === ErrorLevel.THROW) {
+          throw new InvalidVideoRating()
+        } else {
+          console.warn(`${url}: video ${vid.title} rating ${vid.rating} must be between 0 and 5 inclusive`)
+        }
       }
 
       if (typeof (vid) !== 'object' || !vid.thumbnail_loc || !vid.title || !vid.description) {

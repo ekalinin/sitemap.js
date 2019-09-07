@@ -78,6 +78,7 @@ export async function parseSitemap (xml: Readable): Promise<ISitemapOptions> {
       currentItem.news = newsTemplate();
     }
   })
+
   saxStream.on('opentag', (tag): void => {
     switch (tag.name) {
       case "url":
@@ -155,6 +156,7 @@ export async function parseSitemap (xml: Readable): Promise<ISitemapOptions> {
         break;
     }
   })
+
   saxStream.on('text', (text): void => {
     switch (currentTag) {
       case "mobile:mobile":
@@ -327,6 +329,7 @@ export async function parseSitemap (xml: Readable): Promise<ISitemapOptions> {
         break;
     }
   })
+
   saxStream.on('attribute', (attr): void => {
     switch (currentTag) {
       case "urlset":
