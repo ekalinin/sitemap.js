@@ -1,12 +1,16 @@
+import 'babel-polyfill'
 import {
   EnumYesNo,
   EnumAllowDeny,
   SitemapItemOptions,
   ErrorLevel,
+  preamble,
+  closetag,
 } from '../index'
 import {
-  validateSMIOptions
+  validateSMIOptions, lineSeparatedURLsToSitemapOptions
 } from '../lib/utils'
+import { Readable, Writable } from 'stream';
 
 describe("utils", () => {
   let itemTemplate: SitemapItemOptions;
@@ -414,4 +418,56 @@ describe("utils", () => {
       );
     });
   });
+
+  describe('lineSeparatedURLsToSitemap', () => {
+    let rs: Readable
+    let ws: Writable
+    let drain: string[]
+    let sampleURLs = ['http://example.com', 'http://example.com/path']
+    let content: string
+    beforeEach(() => {
+      drain = []
+      content = sampleURLs.join('\n')
+      rs = new Readable({
+        read(size) {
+          if (!content) this.push(null);
+          else {
+            this.push(content.slice(0, size));
+            content = content.slice(size);
+          }
+        }
+      });
+      ws = new Writable({
+        objectMode: true,
+        write(smi, enc, next) {
+          if (smi) {drain.push(smi);}
+          next();
+        }
+      });
+    })
+    it('turns a line-separated stream into a sitemap', async () => {
+      await new Promise(resolve => {
+        lineSeparatedURLsToSitemapOptions(rs).pipe(ws)
+        ws.on('finish', () => resolve())
+      })
+      expect(drain.length).toBe(2);
+      expect(drain[0]).toBe(sampleURLs[0]);
+      expect(drain[1]).toBe(sampleURLs[1]);
+    })
+
+    it('turns a line-separated JSON stream into a sitemap', async () => {
+      let osampleURLs: { url: string }[]
+      await new Promise(resolve => {
+        osampleURLs = sampleURLs.map(url => ({ url }))
+        content = osampleURLs.map(url => JSON.stringify(url)).join("\n");
+        lineSeparatedURLsToSitemapOptions(rs, {isJSON: true}).pipe(ws)
+        ws.on('finish', () => resolve())
+      })
+      console.log(drain)
+      expect(drain.length).toBe(2);
+      expect(drain[0]).toEqual(osampleURLs[0]);
+      expect(drain[1]).toEqual(osampleURLs[1]);
+    })
+  })
+
 });

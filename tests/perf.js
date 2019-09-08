@@ -24,7 +24,7 @@ const { createReadStream, readFileSync } = require('fs')
 const {clearLine, cursorTo} = require('readline')
 const { finished } = require('stream')
 const { promisify } = require('util')
-const { createSitemap, lineSeparatedURLsToSitemap } = require('../dist/index')
+const { createSitemap, lineSeparatedURLsToSitemapOptions } = require('../dist/index')
 const finishedP = promisify(finished)
 
 
@@ -131,7 +131,7 @@ async function testPerf (runs, batches, testName) {
         "stream",
         await run([], 0, () => {
           const rs = createReadStream(resolve(__dirname, 'mocks', 'perf-data.json.txt'))
-          lineSeparatedURLsToSitemap(rs)
+          lineSeparatedURLsToSitemapOptions(rs)
             .pipe(process.stdout);
           return finishedP(rs)
         })

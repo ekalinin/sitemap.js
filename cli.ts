@@ -5,7 +5,8 @@ import { createReadStream } from 'fs'
 import { xmlLint } from './lib/xmllint'
 import { XMLLintUnavailable } from './lib/errors'
 import { parseSitemap } from './lib/sitemap-parser'
-import { lineSeparatedURLsToSitemap, mergeStreams } from './lib/utils';
+import { lineSeparatedURLsToSitemapOptions, mergeStreams } from './lib/utils';
+import { SitemapStream } from './lib/sitemap-stream'
 console.warn('CLI is new and likely to change quite a bit. Please send feature/bug requests to https://github.com/ekalinin/sitemap.js/issues')
 /* eslint-disable-next-line @typescript-eslint/no-var-requires */
 const arg = require('arg')
@@ -88,5 +89,7 @@ Options:
     streams = argv._.map(
       (file: string): Readable => createReadStream(file, { encoding: 'utf8' }))
   }
-  lineSeparatedURLsToSitemap(mergeStreams(streams), { isJSON: argv["--json"] }).pipe(process.stdout);
+  lineSeparatedURLsToSitemapOptions(mergeStreams(streams), { isJSON: argv["--json"] })
+    .pipe(new SitemapStream())
+    .pipe(process.stdout);
 }

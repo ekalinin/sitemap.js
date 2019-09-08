@@ -17,8 +17,9 @@ Table of Contents
   * [Installation](#installation)
   * [Usage](#usage)
     * [CLI](#cli)
-    * [Example of using sitemap.js with <a href="https://expressjs.com/">express</a>:](#example-of-using-sitemapjs-with-express)
-    * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
+    * [Example of using sitemap.js with <a href="https://expressjs.com/">express</a>](#example-of-using-sitemapjs-with-express)
+    * [Stream writing a sitemap](#stream-writing-a-sitemap)
+    * [Example of dynamic page manipulations into sitemap](#example-of-dynamic-page-manipulations-into-sitemap)
     * [Example of most of the options you can use for sitemap](#example-of-most-of-the-options-you-can-use-for-sitemap)
     * [Building just the sitemap index file](#building-just-the-sitemap-index-file)
     * [Auto creating sitemap and index files from one large list](#auto-creating-sitemap-and-index-files-from-one-large-list)
@@ -29,6 +30,8 @@ Table of Contents
     * [createSitemapIndex](#createsitemapindex)
     * [xmlLint](#xmllint)
     * [parseSitemap](#parsesitemap)
+    * [SitemapStream](#sitemapstream)
+    * [lineSeparatedURLsToSitemapOptions](#lineseparatedurlstositemapoptions)
     * [Sitemap Item Options](#sitemap-item-options)
     * [ISitemapImage](#isitemapimage)
     * [IVideoItem](#ivideoitem)
@@ -100,6 +103,22 @@ app.get('/sitemap.xml', function(req, res) {
 app.listen(3000);
 ```
 
+### Stream writing a sitemap
+The sitemap stream is around 20% faster and only uses ~10% the memory of the traditional interface
+
+```javascript
+const { resolve } = require('path')
+const { createReadStream } = require('fs')
+const { SitemapStream, lineSeparatedURLsToSitemapOptions } = require('sitemap')
+
+lineSeparatedURLsToSitemapOptions(
+  createReadStream(resolve(__dirname, 'listofurls.json.txt'))
+)
+  // SitemapStream does the heavy lifting
+  // You must provide it with an object stream
+  .pipe(new SitemapStream({ hostname: 'https://example.com/' }))
+  .pipe(process.stdout)
+```
 ### Example of dynamic page manipulations into sitemap:
 
 ```javascript
@@ -354,6 +373,20 @@ parseSitemap(createReadStream('./example.xml')).then(
   (err) => console.log(err)
 )
 ```
+
+### SitemapStream
+A [Transform](https://nodejs.org/api/stream.html#stream_implementing_a_transform_stream) for turning a [Readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) of either [SitemapItemOptions](#sitemap-item-options) or url strings into a Sitemap. The readable stream it transforms **must** be in object mode.
+```javascript
+  const { SitemapStream } = require('sitemap')
+  const sms = new SitemapStream({
+    hostname: 'https://example.com' // optional only necessary if your paths are relative 
+  })
+  const readable = // a readable stream of objects
+  readable.pipe(sms).pipe(process.stdout)
+```
+
+### lineSeparatedURLsToSitemapOptions
+Takes a stream of urls or sitemapoptions likely from fs.createReadStream('./path') and returns an object stream of sitemap items.
 
 ### Sitemap Item Options
 
