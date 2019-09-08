@@ -19,6 +19,7 @@ import { gzip, gzipSync, CompressCallback } from 'zlib';
 import { URL } from 'url'
 import { statSync } from 'fs';
 import { validateSMIOptions } from './utils';
+import { preamble, closetag } from './sitemap-stream';
 
 function boolToYESNO (bool?: boolean | EnumYesNo): EnumYesNo|undefined {
   if (bool === undefined) {
@@ -37,38 +38,6 @@ export interface ISitemapOptions {
   xslUrl?: string;
   xmlNs?: string;
   level?: ErrorLevel;
-}
-
-/**
- * Shortcut for `new Sitemap (...)`.
- *
- * @param   {Object}        conf
- * @param   {String}        conf.hostname
- * @param   {String|Array}  conf.urls
- * @param   {Number}        conf.cacheTime
- * @param   {String}        conf.xslUrl
- * @param   {String}        conf.xmlNs
- * @param   {ErrorLevel} [level=ErrorLevel.WARN]    level            optional
- * @return  {Sitemap}
- */
-export function createSitemap({
-  urls,
-  hostname,
-  cacheTime,
-  xslUrl,
-  xmlNs,
-  level
-}: ISitemapOptions): Sitemap {
-  // cleaner diff
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  return new Sitemap({
-    urls,
-    hostname,
-    cacheTime,
-    xslUrl,
-    xmlNs,
-    level
-  });
 }
 
 export class Sitemap {
@@ -329,6 +298,19 @@ export class Sitemap {
    *  @return {String}
    */
   toString (pretty = false): string {
+    if (this.isCacheValid()) {
+      return this.cache;
+    }
+
+    if (this.urls && !this.xslUrl && !this.xmlNs && !pretty) {
+      let xml = preamble
+      this.urls.forEach((url): void => {
+        xml += SitemapItem.justItem(url)
+      });
+      xml += closetag
+      return this.setCache(xml)
+    }
+
     if (this.root.children.length) {
       this.root.children = []
     }
@@ -345,12 +327,7 @@ export class Sitemap {
       this.root.instructionBefore('xml-stylesheet', `type="text/xsl" href="${this.xslUrl}"`)
     }
 
-    if (this.isCacheValid()) {
-      return this.cache;
-    }
-
     // TODO: if size > limit: create sitemapindex
-
     for (const [, smi] of this.urls) {
       (new SitemapItem(smi, this.root)).buildXML()
     }
@@ -377,4 +354,34 @@ export class Sitemap {
       return gzipSync(this.toString());
     }
   }
+}
+
+/**
+ * Shortcut for `new Sitemap (...)`.
+ *
+ * @param   {Object}        conf
+ * @param   {String}        conf.hostname
+ * @param   {String|Array}  conf.urls
+ * @param   {Number}        conf.cacheTime
+ * @param   {String}        conf.xslUrl
+ * @param   {String}        conf.xmlNs
+ * @param   {ErrorLevel} [level=ErrorLevel.WARN]    level            optional
+ * @return  {Sitemap}
+ */
+export function createSitemap({
+  urls,
+  hostname,
+  cacheTime,
+  xslUrl,
+  xmlNs,
+  level
+}: ISitemapOptions): Sitemap {
+  return new Sitemap({
+    urls,
+    hostname,
+    cacheTime,
+    xslUrl,
+    xmlNs,
+    level
+  });
 }

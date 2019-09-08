@@ -78,7 +78,7 @@ async function run (durations, runNum, fn) {
         .median(durations.slice(batchStart, batchStart + batchSize))
         .toFixed(0)}${unit} | ${stats.median(durations).toFixed(0)}${unit} sleeping`
     );
-    await delay(1000)
+    await delay(2000)
     return run(durations, runNum, fn);
   } else {
     return durations
@@ -95,9 +95,9 @@ function printPeakUsage (peak) {
 const peakO = { rss: 0, heapTotal: 0, heapUsed: 0, external: 0 };
 let peak = peakO;
 async function testPerf (runs, batches, testName) {
+  console.error(`runs: ${runs} batches: ${batches} total: ${runs * batches}`)
   switch (testName) {
     case 'creation':
-      console.error(`runs: ${runs} batches: ${batches} total: ${runs * batches} entries: ${urls.length}`)
       console.error('testing sitemap creation w/o printing')
       printPerf(
         "sitemap creation",
