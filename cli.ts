@@ -1,17 +1,19 @@
 #!/usr/bin/env node
-import { SitemapItem, Sitemap, ISitemapItemOptionsLoose } from './index'
+// import { SitemapItem, Sitemap, ISitemapItemOptionsLoose } from './index'
 import { createInterface } from 'readline';
-import { Readable } from 'stream'
+import { Readable, Transform, PassThrough } from 'stream'
 import { createReadStream } from 'fs'
 import { xmlLint } from './lib/xmllint'
 import { XMLLintUnavailable } from './lib/errors'
 import { parseSitemap } from './lib/sitemap-parser'
+import { SitemapStream } from './lib/sitemap';
 console.warn('CLI is new and likely to change quite a bit. Please send feature/bug requests to https://github.com/ekalinin/sitemap.js/issues')
 /* eslint-disable-next-line @typescript-eslint/no-var-requires */
 const arg = require('arg')
 
+// const closetag = '</urlset>'
+/*
 const preamble = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">'
-const closetag = '</urlset>'
 let first = true
 const println = (line: string|ISitemapItemOptionsLoose): void => {
   if (first) {
@@ -20,21 +22,34 @@ const println = (line: string|ISitemapItemOptionsLoose): void => {
   }
   process.stdout.write(SitemapItem.justItem(Sitemap.normalizeURL(line)))
 }
+*/
 
-async function processStreams (streams: Readable[], isJSON = false): Promise<boolean> {
+function merge (streams: Readable[]): Readable {
+  let pass = new PassThrough()
+  let waiting = streams.length
   for (const stream of streams) {
-    await new Promise((resolve): void => {
-      const rl = createInterface({
-        input: stream
-      });
-      rl.on('line', (line): void => println(isJSON ? JSON.parse(line): line))
-      rl.on('close', (): void => {
-        resolve()
-      })
-    })
+    pass = stream.pipe(pass, {end: false})
+    stream.once('end', () => --waiting === 0 && pass.emit('end'))
   }
-  process.stdout.write(closetag)
-  return true
+  return pass
+}
+
+function processStreams (streams: Readable[], isJSON = false): void {
+  const sms = new SitemapStream()
+  const jsonTransformer = new Transform({
+    objectMode: true,
+    transform: (line, encoding, cb): void => {
+      cb(null, isJSON ? JSON.parse(line) : line);
+    }
+  });
+  const rl = createInterface({
+    input: merge(streams),
+    terminal: false
+  });
+  const rs = Readable.from(rl)
+  rs.pipe(jsonTransformer)
+    .pipe(sms)
+    .pipe(process.stdout);
 }
 const argSpec = {
   '--help':    Boolean,
