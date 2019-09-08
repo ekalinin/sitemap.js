@@ -1,9 +1,8 @@
+const { createSitemap }= require('../dist/index')
 
-var { createSitemap }= require('../dist/index')
-
-var config = require('./sampleconfig.json')
-  console.log(createSitemap(config).toString(true))
-  /*
+const config = require('./mocks/sampleconfig.json')
+console.log(createSitemap(config).toString(true))
+/*
 let urls = []
 config.urls.forEach((smi) => {
   urls.push(Sitemap.normalizeURL(smi, undefined, 'https://roosterteeth.com'))

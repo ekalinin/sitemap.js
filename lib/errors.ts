@@ -83,6 +83,14 @@ export class InvalidVideoDescription extends Error {
   }
 }
 
+export class InvalidVideoRating extends Error {
+  constructor(message?: string) {
+    super(message || 'rating must be between 0 and 5');
+    this.name = 'InvalidVideoRating';
+    Error.captureStackTrace(this, InvalidVideoRating);
+  }
+}
+
 export class InvalidAttrValue extends Error {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(key: string, val: any, validator: RegExp) {
