@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 // import { SitemapItem, Sitemap, ISitemapItemOptionsLoose } from './index'
-import { createInterface } from 'readline';
-import { Readable, Transform, PassThrough } from 'stream'
+import { Readable } from 'stream'
 import { createReadStream } from 'fs'
 import { xmlLint } from './lib/xmllint'
 import { XMLLintUnavailable } from './lib/errors'
 import { parseSitemap } from './lib/sitemap-parser'
-import { SitemapStream } from './lib/sitemap';
+import { lineSeparatedURLsToSitemap, mergeStreams } from './lib/utils';
 console.warn('CLI is new and likely to change quite a bit. Please send feature/bug requests to https://github.com/ekalinin/sitemap.js/issues')
 /* eslint-disable-next-line @typescript-eslint/no-var-requires */
 const arg = require('arg')
@@ -24,33 +23,6 @@ const println = (line: string|ISitemapItemOptionsLoose): void => {
 }
 */
 
-function merge (streams: Readable[]): Readable {
-  let pass = new PassThrough()
-  let waiting = streams.length
-  for (const stream of streams) {
-    pass = stream.pipe(pass, {end: false})
-    stream.once('end', () => --waiting === 0 && pass.emit('end'))
-  }
-  return pass
-}
-
-function processStreams (streams: Readable[], isJSON = false): void {
-  const sms = new SitemapStream()
-  const jsonTransformer = new Transform({
-    objectMode: true,
-    transform: (line, encoding, cb): void => {
-      cb(null, isJSON ? JSON.parse(line) : line);
-    }
-  });
-  const rl = createInterface({
-    input: merge(streams),
-    terminal: false
-  });
-  const rs = Readable.from(rl)
-  rs.pipe(jsonTransformer)
-    .pipe(sms)
-    .pipe(process.stdout);
-}
 const argSpec = {
   '--help':    Boolean,
   '--version': Boolean,
@@ -116,5 +88,5 @@ Options:
     streams = argv._.map(
       (file: string): Readable => createReadStream(file, { encoding: 'utf8' }))
   }
-  processStreams(streams, argv['--json'])
+  lineSeparatedURLsToSitemap(mergeStreams(streams), { isJSON: argv["--json"] }).pipe(process.stdout);
 }

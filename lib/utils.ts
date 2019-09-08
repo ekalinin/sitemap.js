@@ -22,6 +22,9 @@ import {
   NoConfigError,
   PriorityInvalidError
 } from './errors'
+import { Readable, Transform, PassThrough } from 'stream'
+import { SitemapStream } from './sitemap-stream';
+import { createInterface } from 'readline';
 
 const allowDeny = /^allow|deny$/
 const validators: {[index: string]: RegExp} = {
@@ -156,6 +159,58 @@ export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel
   }
 
   return conf
+}
+
+/**
+ * Combines multiple streams into one
+ * @param streams the streams to combine
+ */
+export function mergeStreams (streams: Readable[]): Readable {
+  let pass = new PassThrough()
+  let waiting = streams.length
+  for (const stream of streams) {
+    pass = stream.pipe(pass, {end: false})
+    stream.once('end', () => --waiting === 0 && pass.emit('end'))
+  }
+  return pass
+}
+
+/**
+ * Takes a stream likely from fs.createReadStream('./path') and returns a stream
+ * of sitemap xml
+ * @param stream a stream of line separated urls.
+ * @param opts
+ * @param opts.isJSON is the stream line separated JSON. leave undefined to guess
+ * @param opts.hostname hostname
+ * @param opts.level error level
+ */
+export function lineSeparatedURLsToSitemap(
+  stream: Readable,
+  {
+    isJSON,
+    hostname,
+    level = ErrorLevel.WARN
+  }: { isJSON?: boolean; hostname?: string; level?: ErrorLevel } = {}
+): Readable {
+  return Readable.from(
+    createInterface({
+      input: stream,
+      terminal: false
+    })
+  )
+    .pipe(
+      new Transform({
+        objectMode: true,
+        transform: (line, encoding, cb): void => {
+          if (isJSON || (isJSON === undefined && line[0] === "{")) {
+            cb(null, JSON.parse(line));
+          } else {
+            cb(null, line);
+          }
+        }
+      })
+    )
+    .pipe(new SitemapStream({ hostname, level }));
 }
 
 /**

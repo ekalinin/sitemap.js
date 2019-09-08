@@ -19,14 +19,15 @@
  *
  */
 'use strict'
+const { resolve } = require('path')
+const { createReadStream, readFileSync } = require('fs')
 const {clearLine, cursorTo} = require('readline')
-const { Readable, finished } = require('stream')
+const { finished } = require('stream')
 const { promisify } = require('util')
-const { createSitemap, SitemapStream } = require('../dist/index')
+const { createSitemap, lineSeparatedURLsToSitemap } = require('../dist/index')
 const finishedP = promisify(finished)
 
 
-const urls = require('./mocks/perf-data')
 const stats = require('stats-lite')
 let [ runs = 10, batchSize = 10, testName = 'stream', measureMemory = false ] = process.argv.slice(2)
 const unit = measureMemory ? "mb" : "ms";
@@ -103,7 +104,7 @@ async function testPerf (runs, batches, testName) {
         await run([], 0, () =>
           createSitemap({
             hostname: "https://roosterteeth.com",
-            urls
+            urls: JSON.parse(readFileSync(resolve( __dirname, 'mocks', 'perf-data.json'), { encoding: 'utf8'}))
           })
         )
       );
@@ -112,7 +113,7 @@ async function testPerf (runs, batches, testName) {
       console.error("testing toString");
       let sitemap = createSitemap({
         hostname: "https://roosterteeth.com",
-        urls
+        urls: JSON.parse(readFileSync(resolve( __dirname, 'mocks', 'perf-data.json'), { encoding: 'utf8'}))
       });
       printPerf("toString", await run([], 0, () => sitemap.toString()));
       break;
@@ -120,7 +121,7 @@ async function testPerf (runs, batches, testName) {
       console.error("testing combined");
       printPerf("combined", await run([], 0, () => createSitemap({
         hostname: "https://roosterteeth.com",
-        urls
+        urls: JSON.parse(readFileSync(resolve( __dirname, 'mocks', 'perf-data.json'), { encoding: 'utf8'}))
       }).toString()));
       break;
     case 'stream':
@@ -129,9 +130,8 @@ async function testPerf (runs, batches, testName) {
       printPerf(
         "stream",
         await run([], 0, () => {
-          const rs = Readable.from(urls);
-          const smpipe = rs
-            .pipe(new SitemapStream({ hostname: "https://roosterteeth.com" }))
+          const rs = createReadStream(resolve(__dirname, 'mocks', 'perf-data.json.txt'))
+          lineSeparatedURLsToSitemap(rs)
             .pipe(process.stdout);
           return finishedP(rs)
         })
@@ -139,14 +139,3 @@ async function testPerf (runs, batches, testName) {
   }
 }
 testPerf(runs, batchSize, testName)
-
-
-// console.error('testing streaming')
-// sitemap = createSitemap(process.stdout)
-// let streamToString = []
-// for (let i = 0; i < runs; i++) {
-// let start = performance.now()
-// sitemap.toString()
-// streamToString.push(performance.now() - start)
-// }
-// printPerf('stream', streamToString)
