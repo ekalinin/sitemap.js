@@ -22,8 +22,8 @@ import {
   NoConfigError,
   PriorityInvalidError
 } from './errors'
-import { Readable, Transform, PassThrough } from 'stream'
-import { createInterface } from 'readline';
+import { Readable, Transform, PassThrough, ReadableOptions } from 'stream'
+import { createInterface, Interface } from 'readline';
 
 const allowDeny = /^allow|deny$/
 const validators: {[index: string]: RegExp} = {
@@ -174,6 +174,45 @@ export function mergeStreams (streams: Readable[]): Readable {
   return pass
 }
 
+export interface IReadLineStreamOptions extends ReadableOptions {
+  input: Readable;
+}
+
+export class ReadLineStream extends Readable {
+  private _source: Interface
+  constructor(options: IReadLineStreamOptions) {
+    if (options.autoDestroy === undefined) {
+      options.autoDestroy = true
+    }
+    options.objectMode = true
+    super(options);
+
+    this._source = createInterface({
+      input: options.input,
+      terminal: false,
+      crlfDelay: Infinity
+    });
+
+    // Every time there's data, push it into the internal buffer.
+    this._source.on('line', (chunk) => {
+      // If push() returns false, then stop reading from source.
+      if (!this.push(chunk))
+        this._source.pause();
+    });
+
+    // When the source ends, push the EOF-signaling `null` chunk.
+    this._source.on('close', () => {
+      this.push(null);
+    });
+  }
+
+  // _read() will be called when the stream wants to pull more data in.
+  // The advisory size argument is ignored in this case.
+  _read(size: number): void {
+    this._source.resume();
+  }
+}
+
 /**
  * Takes a stream likely from fs.createReadStream('./path') and returns a stream
  * of sitemap items
@@ -185,12 +224,7 @@ export function lineSeparatedURLsToSitemapOptions(
   stream: Readable,
   { isJSON }: { isJSON?: boolean } = {}
 ): Readable {
-  return Readable.from(
-    createInterface({
-      input: stream,
-      terminal: false
-    })
-  ).pipe(
+  return new ReadLineStream({ input: stream }).pipe(
     new Transform({
       objectMode: true,
       transform: (line, encoding, cb): void => {

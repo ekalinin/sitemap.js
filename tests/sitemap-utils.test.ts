@@ -463,7 +463,6 @@ describe("utils", () => {
         lineSeparatedURLsToSitemapOptions(rs, {isJSON: true}).pipe(ws)
         ws.on('finish', () => resolve())
       })
-      console.log(drain)
       expect(drain.length).toBe(2);
       expect(drain[0]).toEqual(osampleURLs[0]);
       expect(drain[1]).toEqual(osampleURLs[1]);
