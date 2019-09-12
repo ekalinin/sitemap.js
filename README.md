@@ -73,6 +73,61 @@ const xml = sitemap.toString();
 
 ### Example of using sitemap.js with [express](https://github.com/visionmedia/express):
 
+**Fast but requires other libs**
+```javascript
+const express = require('express')
+const fs = require('fs');
+const { SitemapStream } = require('sitemap')
+// external libs provided as example only
+const { parser } = require('stream-json/Parser');
+const { streamArray } = require('stream-json/streamers/StreamArray');
+const { streamValues } = require('stream-json/streamers/StreamValues');
+const map = require('through2-map')
+const { pipeline: pipe, Writable } = require('stream')
+const pipeline = require('util').promisify(pipe)
+const { createGzip } = require('zlib')
+
+const app = express()
+let sitemap
+
+const fn = async () =>
+  pipeline(
+    // this could just as easily be a db response
+    fs.createReadStream("./tests/mocks/perf-data.json"),
+    parser(),
+    streamArray(), // replace with streamValues for JSONStream
+    map.obj(chunk => chunk.value),
+    new SitemapStream({ hostname: 'https://example.com/' }),
+    createGzip(),
+    new Writable({write (chunk, a, cb) {
+      if (!sitemap) {
+        sitemap = chunk
+      } else {
+        sitemap = Buffer.concat([sitemap, chunk]);
+      }
+      cb()
+    }})
+  )
+
+
+app.get('/sitemap.xml', function(req, res) {
+  try {
+    res.header('Content-Type', 'application/xml');
+    res.header('Content-Encoding', 'gzip');
+    res.send( sitemap );
+  } catch (e) {
+    console.error(e)
+    res.status(500).end()
+  }
+});
+
+app.listen(3000, async () => {
+   await fn().catch(console.error);
+  console.log('pipeline done')
+});
+```
+
+**slower, requires more memory - not recommended for large sitemaps**
 ```javascript
 const express = require('express')
 const { createSitemap } = require('sitemap');
@@ -107,17 +162,62 @@ app.listen(3000);
 The sitemap stream is around 20% faster and only uses ~10% the memory of the traditional interface
 
 ```javascript
-const { resolve } = require('path')
-const { createReadStream } = require('fs')
-const { SitemapStream, lineSeparatedURLsToSitemapOptions } = require('sitemap')
+const fs = require('fs');
+const { SitemapStream } = require('sitemap')
+// external libs provided as example only
+const { parser } = require('stream-json/Parser');
+const { streamArray } = require('stream-json/streamers/StreamArray');
+const { streamValues } = require('stream-json/streamers/StreamValues');
+const map = require('through2-map')
 
-lineSeparatedURLsToSitemapOptions(
-  createReadStream(resolve(__dirname, 'listofurls.json.txt'))
-)
+const { pipeline } = require('stream');
+const pipeline = require('util').promisify(require('stream').pipeline)
+
+// parsing line separated json or JSONStream
+const pipeline = fs
+  .createReadStream("./tests/mocks/perf-data.json.txt"),
+  .pipe(parser())
+  .pipe(streamValues())
+  .pipe(map.obj(chunk => chunk.value))
+  // SitemapStream does the heavy lifting
+  // You must provide it with an object stream
+  .pipe(new SitemapStream());
+
+// parsing JSON file
+const pipeline = fs
+  .createReadStream("./tests/mocks/perf-data.json")
+  .pipe(parser())
+  .pipe(streamArray())
+  .pipe(map.obj(chunk => chunk.value))
   // SitemapStream does the heavy lifting
   // You must provide it with an object stream
   .pipe(new SitemapStream({ hostname: 'https://example.com/' }))
   .pipe(process.stdout)
+
+//
+// coalesce into value for caching
+//
+async function run() {
+  let sitemap
+  // coalesce into single value
+  await pipeline(
+    fs.createReadStream("./tests/mocks/perf-data.json")
+    parser(),
+    streamArray(),
+    map.obj(chunk => chunk.value),
+    new SitemapStream({ hostname: 'https://example.com/' }),
+    new Writable({write (chunk, a, cb) {
+      if (!sitemap) {
+        sitemap = chunk
+      } else {
+        sitemap = Buffer.concat([sitemap, chunk]);
+      }
+      cb()
+    }})
+  )
+  return sitemap
+}
+run().catch(console.error)
 ```
 ### Example of dynamic page manipulations into sitemap:
 
