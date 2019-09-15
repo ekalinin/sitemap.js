@@ -468,7 +468,9 @@ export class ObjectStreamToJSON extends Transform {
   _transform(chunk: SitemapItemOptions, encoding: string, cb: TransformCallback): void {
     if (!this.firstWritten) {
       this.firstWritten = true
-      this.push('[')
+      if (!this.lineSeparated) {
+        this.push('[')
+      }
     } else if(this.lineSeparated) {
       this.push('\n');
     } else {

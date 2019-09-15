@@ -19,7 +19,6 @@ Table of Contents
     * [CLI](#cli)
     * [Example of using sitemap.js with <a href="https://expressjs.com/">express</a>](#example-of-using-sitemapjs-with-express)
     * [Stream writing a sitemap](#stream-writing-a-sitemap)
-    * [Example of dynamic page manipulations into sitemap](#example-of-dynamic-page-manipulations-into-sitemap)
     * [Example of most of the options you can use for sitemap](#example-of-most-of-the-options-you-can-use-for-sitemap)
     * [Building just the sitemap index file](#building-just-the-sitemap-index-file)
     * [Auto creating sitemap and index files from one large list](#auto-creating-sitemap-and-index-files-from-one-large-list)
@@ -64,57 +63,54 @@ Or verify an existing sitemap
 ## As a library
 
 ```javascript
-const { createSitemap } = require('sitemap')
+const { SitemapStream, streamToPromise } = require('../dist/index')
 // Creates a sitemap object given the input configuration with URLs
-const sitemap = createSitemap({ options });
-// Gives you a string containing the XML data
-const xml = sitemap.toString();
+const sitemap = new SitemapStream({ hostname: 'http://example.com' });
+sitemap.write({ url: '/page-1/', changefreq: 'daily', priority: 0.3 })
+sitemap.write('/page-2')
+sitemap.end()
+
+streamToPromise(sitemap)
+  .then(sm => console.log(sm.toString()))
+  .catch(console.error);
 ```
 
-### Example of using sitemap.js with [express](https://github.com/visionmedia/express):
+Resolves to a string containing the XML data
+```xml
+ <?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"><url><loc>http://example.com/page-1/</loc><changefreq>daily</changefreq><priority>0.3</priority></url><url><loc>http://example.com/page-2</loc></url></urlset>
+```
 
-**Fast but requires other libs**
+### Example of using sitemap.js with [express](https://expressjs.com/):
+
 ```javascript
 const express = require('express')
-const fs = require('fs');
-const { SitemapStream } = require('sitemap')
-// external libs provided as example only
-const { parser } = require('stream-json/Parser');
-const { streamArray } = require('stream-json/streamers/StreamArray');
-const { streamValues } = require('stream-json/streamers/StreamValues');
-const map = require('through2-map')
-const { pipeline: pipe, Writable } = require('stream')
-const pipeline = require('util').promisify(pipe)
+const { SitemapStream, streamToPromise } = require('sitemap')
 const { createGzip } = require('zlib')
 
 const app = express()
 let sitemap
 
-const fn = async () =>
-  pipeline(
-    // this could just as easily be a db response
-    fs.createReadStream("./tests/mocks/perf-data.json"),
-    parser(),
-    streamArray(), // replace with streamValues for JSONStream
-    map.obj(chunk => chunk.value),
-    new SitemapStream({ hostname: 'https://example.com/' }),
-    createGzip(),
-    new Writable({write (chunk, a, cb) {
-      if (!sitemap) {
-        sitemap = chunk
-      } else {
-        sitemap = Buffer.concat([sitemap, chunk]);
-      }
-      cb()
-    }})
-  )
-
-
 app.get('/sitemap.xml', function(req, res) {
+  res.header('Content-Type', 'application/xml');
+  res.header('Content-Encoding', 'gzip');
+  // if we have a cached entry send it
+  if (sitemap) {
+    res.send(sitemap)
+    return
+  }
   try {
-    res.header('Content-Type', 'application/xml');
-    res.header('Content-Encoding', 'gzip');
-    res.send( sitemap );
+    const smStream = new SitemapStream({ hostname: 'https://example.com/' })
+    .pipe(createGzip())
+
+    smStream.write({ url: '/page-1/',  changefreq: 'daily', priority: 0.3 })
+    smStream.write({ url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 })
+    smStream.write({ url: '/page-3/'})    // changefreq: 'weekly',  priority: 0.5
+    smStream.write({ url: '/page-4/',   img: "http://urlTest.com" })
+
+    // cache the response
+    streamToPromise(gzippedStream).then(sm => sitemap = sm)
+    // stream the response
+    gzippedStream.pipe(res).on('error', (e) => {throw e})
   } catch (e) {
     console.error(e)
     res.status(500).end()
@@ -122,40 +118,8 @@ app.get('/sitemap.xml', function(req, res) {
 });
 
 app.listen(3000, async () => {
-   await fn().catch(console.error);
-  console.log('pipeline done')
+  console.log('listening')
 });
-```
-
-**slower, requires more memory - not recommended for large sitemaps**
-```javascript
-const express = require('express')
-const { createSitemap } = require('sitemap');
-
-const app = express()
-const sitemap = createSitemap({
-  hostname: 'http://example.com',
-  cacheTime: 600000,        // 600 sec - cache purge period
-  urls: [
-    { url: '/page-1/',  changefreq: 'daily', priority: 0.3 },
-    { url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 },
-    { url: '/page-3/'},    // changefreq: 'weekly',  priority: 0.5
-    { url: '/page-4/',   img: "http://urlTest.com" }
-  ]
-});
-
-app.get('/sitemap.xml', function(req, res) {
-  try {
-    const xml = sitemap.toXML()
-    res.header('Content-Type', 'application/xml');
-    res.send( xml );
-  } catch (e) {
-    console.error(e)
-    res.status(500).end()
-  }
-});
-
-app.listen(3000);
 ```
 
 ### Stream writing a sitemap
@@ -169,9 +133,7 @@ const { parser } = require('stream-json/Parser');
 const { streamArray } = require('stream-json/streamers/StreamArray');
 const { streamValues } = require('stream-json/streamers/StreamValues');
 const map = require('through2-map')
-
-const { pipeline } = require('stream');
-const pipeline = require('util').promisify(require('stream').pipeline)
+const { createGzip } = require('zlib')
 
 // parsing line separated json or JSONStream
 const pipeline = fs
@@ -197,118 +159,94 @@ const pipeline = fs
 //
 // coalesce into value for caching
 //
-async function run() {
-  let sitemap
-  // coalesce into single value
-  await pipeline(
+  let cachedXML
+  streamToPromise(
     fs.createReadStream("./tests/mocks/perf-data.json")
-    parser(),
-    streamArray(),
-    map.obj(chunk => chunk.value),
-    new SitemapStream({ hostname: 'https://example.com/' }),
-    new Writable({write (chunk, a, cb) {
-      if (!sitemap) {
-        sitemap = chunk
-      } else {
-        sitemap = Buffer.concat([sitemap, chunk]);
-      }
-      cb()
-    }})
-  )
-  return sitemap
-}
-run().catch(console.error)
+    .pipe(parser())
+    .pipe(streamArray())
+    .pipe(map.obj(chunk => chunk.value)),
+    .pipe(new SitemapStream({ hostname: 'https://example.com/' }))
+    .pipe(createGzip())
+  ).then(xmlBuffer => cachedXML = xmlBuffer)
 ```
-### Example of dynamic page manipulations into sitemap:
-
-```javascript
-const sitemap = createSitemap ({
-  hostname: 'http://example.com',
-  cacheTime: 600000
-});
-sitemap.add({url: '/page-1/'});
-sitemap.add({url: '/page-2/', changefreq: 'monthly', priority: 0.7});
-sitemap.del({url: '/page-2/'});
-sitemap.del('/page-1/');
-```
-
-
 
 ### Example of most of the options you can use for sitemap
 
 ```javascript
-const { createSitemap } = require('sitemap');
+const { SitemapStream, streamToPromise } = require('sitemap');
+const smStream = new SitemapStream({ hostname: 'http://www.mywebsite.com' })
+// coalesce stream to value
+// alternatively you can pipe to another stream
+streamToSitemap(smStream).then(console.log)
 
-const sitemap = createSitemap({
-  hostname: 'http://www.mywebsite.com',
-  level: 'warn', // default WARN about bad data
-  urls: [
+smStream.write({
+  url: '/page1',
+  changefreq: 'weekly',
+  priority: 0.8,
+  lastmodfile: 'app/assets/page1.html'
+})
+
+smStream.write({
+  url: '/page2',
+  changefreq: 'weekly',
+  priority: 0.8,
+  /* useful to monitor template content files instead of generated static files */
+  lastmodfile: 'app/templates/page2.hbs'
+})
+
+// each sitemap entry supports many options
+// See [Sitemap Item Options](#sitemap-item-options) below for details
+smStream.write({
+  url: 'http://test.com/page-1/',
+  img: [
     {
-      url: '/page1',
-      changefreq: 'weekly',
-      priority: 0.8,
-      lastmodfile: 'app/assets/page1.html'
+      url: 'http://test.com/img1.jpg',
+      caption: 'An image',
+      title: 'The Title of Image One',
+      geoLocation: 'London, United Kingdom',
+      license: 'https://creativecommons.org/licenses/by/4.0/'
     },
     {
-      url: '/page2',
-      changefreq: 'weekly',
-      priority: 0.8,
-      /* useful to monitor template content files instead of generated static files */
-      lastmodfile: 'app/templates/page2.hbs'
-    },
-    // each sitemap entry supports many options
-    // See [Sitemap Item Options](#sitemap-item-options) below for details
-    {
-      url: 'http://test.com/page-1/',
-      img: [
-        {
-          url: 'http://test.com/img1.jpg',
-          caption: 'An image',
-          title: 'The Title of Image One',
-          geoLocation: 'London, United Kingdom',
-          license: 'https://creativecommons.org/licenses/by/4.0/'
-        },
-        {
-          url: 'http://test.com/img2.jpg',
-          caption: 'Another image',
-          title: 'The Title of Image Two',
-          geoLocation: 'London, United Kingdom',
-          license: 'https://creativecommons.org/licenses/by/4.0/'
-        }
-      ],
-      video: [
-        {
-          thumbnail_loc: 'http://test.com/tmbn1.jpg',
-          title: 'A video title',
-          description: 'This is a video'
-        },
-        {
-          thumbnail_loc: 'http://test.com/tmbn2.jpg',
-          title: 'A video with an attribute',
-          description: 'This is another video',
-          'player_loc': 'http://www.example.com/videoplayer.mp4?video=123',
-          'player_loc:autoplay': 'ap=1'
-        }
-      ],
-      links: [
-        { lang: 'en', url: 'http://test.com/page-1/' },
-        { lang: 'ja', url: 'http://test.com/page-1/ja/' }
-      ],
-      androidLink: 'android-app://com.company.test/page-1/',
-      news: {
-        publication: {
-          name: 'The Example Times',
-          language: 'en'
-        },
-        genres: 'PressRelease, Blog',
-        publication_date: '2008-12-23',
-        title: 'Companies A, B in Merger Talks',
-        keywords: 'business, merger, acquisition, A, B',
-        stock_tickers: 'NASDAQ:A, NASDAQ:B'
-      }
+      url: 'http://test.com/img2.jpg',
+      caption: 'Another image',
+      title: 'The Title of Image Two',
+      geoLocation: 'London, United Kingdom',
+      license: 'https://creativecommons.org/licenses/by/4.0/'
     }
-  ]
-});
+  ],
+  video: [
+    {
+      thumbnail_loc: 'http://test.com/tmbn1.jpg',
+      title: 'A video title',
+      description: 'This is a video'
+    },
+    {
+      thumbnail_loc: 'http://test.com/tmbn2.jpg',
+      title: 'A video with an attribute',
+      description: 'This is another video',
+      'player_loc': 'http://www.example.com/videoplayer.mp4?video=123',
+      'player_loc:autoplay': 'ap=1'
+    }
+  ],
+  links: [
+    { lang: 'en', url: 'http://test.com/page-1/' },
+    { lang: 'ja', url: 'http://test.com/page-1/ja/' }
+  ],
+  androidLink: 'android-app://com.company.test/page-1/',
+  news: {
+    publication: {
+      name: 'The Example Times',
+      language: 'en'
+    },
+    genres: 'PressRelease, Blog',
+    publication_date: '2008-12-23',
+    title: 'Companies A, B in Merger Talks',
+    keywords: 'business, merger, acquisition, A, B',
+    stock_tickers: 'NASDAQ:A, NASDAQ:B'
+  }
+})
+// indicate there is nothing left to write
+smStream.end()
 ```
 
 ### Building just the sitemap index file

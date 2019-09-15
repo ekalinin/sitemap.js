@@ -12,6 +12,6 @@ export * from './lib/errors'
 export * from './lib/types'
 export { lineSeparatedURLsToSitemapOptions, mergeStreams } from './lib/utils'
 export { xmlLint } from './lib/xmllint'
-export { parseSitemap } from './lib/sitemap-parser'
+export { parseSitemap, XMLToISitemapOptions, ObjectStreamToJSON } from './lib/sitemap-parser'
 
 export default createSitemap
