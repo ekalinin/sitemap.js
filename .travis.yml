@@ -1,9 +1,9 @@
 language: node_js
 node_js:
-  - "10"
+  - "10.3"
   - "12"
 install:
-  - npm install
+  - npm ci
 script:
   - travis_retry npm test
 addons:
