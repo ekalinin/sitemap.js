@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // import { SitemapItem, Sitemap, ISitemapItemOptionsLoose } from './index'
-import { Readable } from 'stream'
+import { Readable, Transform } from 'stream'
 import { createReadStream } from 'fs'
 import { xmlLint } from './lib/xmllint'
 import { XMLLintUnavailable } from './lib/errors'
-import { parseSitemap } from './lib/sitemap-parser'
+import { ObjectStreamToJSON, XMLToISitemapOptions } from './lib/sitemap-parser'
 import { lineSeparatedURLsToSitemapOptions, mergeStreams } from './lib/utils';
 import { SitemapStream } from './lib/sitemap-stream'
 console.warn('CLI is new and likely to change quite a bit. Please send feature/bug requests to https://github.com/ekalinin/sitemap.js/issues')
@@ -61,15 +61,27 @@ Options:
                    the cli
 `)
 } else if (argv['--parse']) {
-  parseSitemap(getStream()).then((items): void => {
-    if (argv['--line-separated'] && items.urls) {
-      items.urls.forEach((url): void => {
-        console.log(JSON.stringify(url))
-      })
-    } else {
-      console.log(JSON.stringify(items))
-    }
-  })
+  let firstChunkWritten = false
+  getStream()
+    .pipe(new XMLToISitemapOptions())
+    .pipe(new ObjectStreamToJSON({ lineSeparated: argv["--line-separated"] }))
+    .pipe(new Transform({
+      transform (chunk, encoding, cb): void {
+        if (!firstChunkWritten && !argv["--line-separated"]) {
+          firstChunkWritten = true
+          this.push('{"urls":')
+        }
+        cb(undefined, chunk)
+      },
+      flush (cb): void {
+        if (argv["--line-separated"]) {
+          cb()
+        } else {
+          cb(undefined, '}')
+        }
+      }
+    }))
+    .pipe(process.stdout);
 } else if (argv['--validate']) {
   xmlLint(getStream())
     .then((): void => console.log('valid'))

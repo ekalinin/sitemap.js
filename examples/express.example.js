@@ -1,6 +1,7 @@
 const express = require('express')
 const fs = require('fs');
-const { SitemapStream } = require('./dist/index')
+const { resolve } = require('path');
+const { SitemapStream } = require('../dist/index')
 // external libs provided as example only
 const { parser } = require('stream-json/Parser');
 const { streamArray } = require('stream-json/streamers/StreamArray');
@@ -16,7 +17,7 @@ let sitemap
 const fn = async () =>
   pipeline(
     // this could just as easily be a db response
-    fs.createReadStream("../tests/mocks/perf-data.json"),
+    fs.createReadStream(resolve(__dirname, '..', 'tests', 'mocks', 'perf-data.json')),
     parser(),
     streamArray(), // replace with streamValues for JSONStream
     map.obj(chunk => chunk.value),

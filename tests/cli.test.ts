@@ -5,7 +5,7 @@ const path = require('path');
 const exec = util.promisify(require('child_process').exec)
 const execFileSync = require('child_process').execFileSync
 const pkg = require('../package.json')
-const nomralizedSample = require('./mocks/sampleconfig.normalized.json')
+const normalizedSample = require('./mocks/sampleconfig.normalized.json')
 let hasXMLLint = true
 try {
   execFileSync('which', ['xmllint'])
@@ -46,14 +46,14 @@ describe('cli', () => {
 
   it('parses xml piped in', (done) => {
     exec('node ./dist/cli.js --parse < ./tests/mocks/alltags.xml', {encoding: 'utf8'}).then(({stdout, stderr}) => {
-      expect(JSON.parse(stdout).urls).toEqual(nomralizedSample.urls)
+      expect(JSON.parse(stdout).urls).toEqual(normalizedSample.urls)
       done()
     })
   })
 
   it('parses xml specified as a file', (done) => {
     exec('node ./dist/cli.js --parse ./tests/mocks/alltags.xml', {encoding: 'utf8'}).then(({stdout, stderr}) => {
-      expect(JSON.parse(stdout).urls).toEqual(nomralizedSample.urls)
+      expect(JSON.parse(stdout).urls).toEqual(normalizedSample.urls)
       done()
     })
   })
