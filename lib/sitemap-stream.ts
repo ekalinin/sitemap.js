@@ -34,6 +34,10 @@ export class SitemapStream extends Transform {
   }
 }
 
+/**
+ * Takes a stream returns a promise that resolves when stream emits finish
+ * @param stream what you want wrapped in a promise
+ */
 export function streamToPromise(stream: Readable): Promise<Buffer> {
   return new Promise((resolve, reject): void => {
     let drain: Buffer;

@@ -52,6 +52,10 @@ function newsTemplate (): INewsItem {
 export interface ISitemapStreamParseOpts extends TransformOptions, Pick<ISitemapOptions, 'level'> {
 }
 const defaultStreamOpts: ISitemapStreamParseOpts = {};
+/**
+ * Takes a stream of xml and transforms it into a stream of ISitemapOptions
+ * Use this to parse existing sitemaps into config options compatible with this library
+ */
 export class XMLToISitemapOptions extends Transform {
   level: ErrorLevel;
   saxStream: SAXStream;
@@ -454,6 +458,11 @@ export interface IObjectToStreamOpts extends TransformOptions {
 const defaultObjectStreamOpts: IObjectToStreamOpts = {
   lineSeparated: false
 };
+/**
+ * A Transform that converts a stream of objects into a JSON Array or a line
+ * separated stringified JSON
+ * @param [lineSeparated=false] whether to separate entries by a new line or comma
+ */
 export class ObjectStreamToJSON extends Transform {
   lineSeparated: boolean;
   firstWritten: boolean;

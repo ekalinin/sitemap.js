@@ -178,6 +178,9 @@ export interface IReadLineStreamOptions extends ReadableOptions {
   input: Readable;
 }
 
+/**
+ * Wraps node's ReadLine in a stream
+ */
 export class ReadLineStream extends Readable {
   private _source: Interface
   constructor(options: IReadLineStreamOptions) {

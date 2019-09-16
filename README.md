@@ -30,7 +30,10 @@ Table of Contents
     * [xmlLint](#xmllint)
     * [parseSitemap](#parsesitemap)
     * [SitemapStream](#sitemapstream)
+    * [XMLToISitemapOptions](#XMLToISitemapOptions)
     * [lineSeparatedURLsToSitemapOptions](#lineseparatedurlstositemapoptions)
+    * [streamToPromise](#streamtopromise)
+    * [ObjectStreamToJSON](#objectstreamtojson)
     * [Sitemap Item Options](#sitemap-item-options)
     * [ISitemapImage](#isitemapimage)
     * [IVideoItem](#ivideoitem)
@@ -423,8 +426,45 @@ A [Transform](https://nodejs.org/api/stream.html#stream_implementing_a_transform
   readable.pipe(sms).pipe(process.stdout)
 ```
 
+### XMLToISitemapOptions
+Takes a stream of xml and transforms it into a stream of ISitemapOptions.
+Use this to parse existing sitemaps into config options compatible with this library
+```javascript
+const { createReadStream, createWriteStream } = require('fs');
+const { XMLToISitemapOptions, ObjectStreamToJSON } = require('sitemap');
+
+createReadStream('./some/sitemap.xml')
+// turn the xml into sitemap option item options
+.pipe(new XMLToISitemapOptions())
+// convert the object stream to JSON
+.pipe(new ObjectStreamToJSON())
+// write the library compatible options to disk
+.pipe(createWriteStream('./sitemapOptions.json'))
+```
+
 ### lineSeparatedURLsToSitemapOptions
 Takes a stream of urls or sitemapoptions likely from fs.createReadStream('./path') and returns an object stream of sitemap items.
+
+### streamToPromise
+Takes a stream returns a promise that resolves when stream emits finish.
+```javascript
+const { streamToPromise, SitemapStream } = require('sitemap')
+const sitemap = new SitemapStream({ hostname: 'http://example.com' });
+sitemap.write({ url: '/page-1/', changefreq: 'daily', priority: 0.3 })
+sitemap.end()
+streamToPromise(sitemap).then(buffer => console.log(buffer.toString())) // emits the full sitemap
+```
+
+### ObjectStreamToJSON
+A Transform that converts a stream of objects into a JSON Array or a line separated stringified JSON.
+ * @param [lineSeparated=false] whether to separate entries by a new line or comma
+```javascript
+const stream = Readable.from([{a: 'b'}])
+  .pipe(new ObjectStreamToJSON())
+  .pipe(process.stdout)
+stream.end()
+// prints {"a":"b"}
+```
 
 ### Sitemap Item Options
 
