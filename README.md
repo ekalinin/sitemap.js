@@ -285,7 +285,7 @@ const smi = createSitemapIndex({
 
 ```
 const { Sitemap } = require('sitemap')
-const smi = new Sitemap({
+const sm = new Sitemap({
     urls: [{url: '/path'}],
     hostname: 'http://example.com',
     cacheTime: 0, // default
@@ -296,7 +296,7 @@ sm.toString() // returns the xml as a string
   
 __toString__
   ```
-  smi.toString(true)
+  sm.toString(true)
   ```
   Converts the urls stored in an instance of Sitemap to a valid sitemap xml document as a string. Accepts a boolean as its first argument to designate on whether to pretty print. Defaults to false.
   
@@ -305,33 +305,33 @@ alias for toString
 
 __toGzip__
   ```
-  smi.toGzip ((xmlGzippedBuffer) => console.log(xmlGzippedBuffer));
-  smi.toGzip();
+  sm.toGzip ((xmlGzippedBuffer) => console.log(xmlGzippedBuffer));
+  sm.toGzip();
   ```
   like toString, it builds the xmlDocument, then it runs gzip on the resulting string and returns it as a Buffer via callback or direct invokation
   
 __clearCache__
   ```
-  smi.clearCache()
+  sm.clearCache()
   ```
   cache will be emptied and will be bipassed until set again
   
 __isCacheValid__
   ```
-  smi.isCacheValid()
+  sm.isCacheValid()
   ```
   returns true if it has been less than cacheTimeout ms since cache was set
   
 __setCache__
   ```
-  smi.setCache('...xmlDoc')
+  sm.setCache('...xmlDoc')
   ```
   stores the passed in string on the instance to be used when toString is called within the configured cacheTimeout
   returns the passed in string unaltered
   
 __add__
   ```
-  smi.add('/path', 'warn')
+  sm.add('/path', 'warn')
   ```
   adds the provided url to the sitemap instance
   takes an optional parameter level for whether to print a console warning in the event of bad data 'warn' (default), throw an exception 'throw', or quietly ignore bad data 'silent'
@@ -339,13 +339,13 @@ __add__
   
 __contains__
   ```
-  smi.contains('/path')
+  sm.contains('/path')
   ```
   Returns true if path is already a part of the sitemap instance, false otherwise. 
   
 __del__
   ```
-  smi.del('/path')
+  sm.del('/path')
   ```
   removes the provided url or url option from the sitemap instance
 
