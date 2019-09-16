@@ -1,5 +1,7 @@
 # master
-Nothing yet
+xslURL is being dropped from all apis
+cacheTime is being dropped from createSitemapIndex - This didn't actually cache the way it was written so this should be a non-breaking change in effect.
+The SitemapIndex constructor has switched to using an options object for its constructor
 
 # 4.1.1
 Add a pretty print option to `toString(false)`
