@@ -24,7 +24,7 @@ export class SitemapStream extends Transform {
       this.hasHeadOutput = true;
       this.push(preamble);
     }
-    this.push(SitemapItem.justItem(Sitemap.normalizeURL(item, undefined, this.hostname), this.level));
+    this.push(SitemapItem.justItem(Sitemap.normalizeURL(item, this.hostname), this.level));
     callback();
   }
 

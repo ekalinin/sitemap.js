@@ -26,7 +26,7 @@ Table of Contents
     * [Create Sitemap](#create-sitemap)
     * [Sitemap](#sitemap)
     * [buildSitemapIndex](#buildsitemapindex)
-    * [createSitemapIndex](#createsitemapindex)
+    * [createSitemapsAndIndex](#createsitemapsandindex)
     * [xmlLint](#xmllint)
     * [parseSitemap](#parsesitemap)
     * [SitemapStream](#sitemapstream)
@@ -266,9 +266,8 @@ const smi = buildSitemapIndex({
 ### Auto creating sitemap and index files from one large list
 
 ```javascript
-const { createSitemapIndex } = require('sitemap')
-const smi = createSitemapIndex({
-  cacheTime: 600000,
+const { createSitemapsAndIndex } = require('sitemap')
+const smi = createSitemapsAndIndex({
   hostname: 'http://www.sitemap.org',
   sitemapName: 'sm-test',
   sitemapSize: 1,
@@ -351,7 +350,7 @@ __del__
 
 __normalizeURL__
   ```
-  Sitemap.normalizeURL('/', undefined, 'http://example.com')
+  Sitemap.normalizeURL('/', 'http://example.com')
   ```
   static function that returns the stricter form of a options passed to SitemapItem
   
@@ -371,12 +370,11 @@ const index =   buildSitemapIndex({
 })
 ```
 
-### createSitemapIndex
-Create several sitemaps and an index automatically from a list of urls
+### createSitemapsAndIndex
+several sitemaps and an index automatically from a list of urls
 ```
-const { createSitemapIndex } = require('sitemap')
-createSitemapIndex({
-  urls: [/* list of urls */],
+const { createSitemapsAndIndex } createsitemapsandindex('sitemap')
+createSitemapsAndIndex(createsitemapsandindex: [/* list of urls */],
   targetFolder: 'absolute path to target folder',
   hostname: 'http://example.com',
   cacheTime: 600,

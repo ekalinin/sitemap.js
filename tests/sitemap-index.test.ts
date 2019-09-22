@@ -1,5 +1,5 @@
 import 'babel-polyfill'
-import { buildSitemapIndex, createSitemapIndex } from '../index'
+import { buildSitemapIndex, createSitemapsAndIndex } from '../index'
 import { tmpdir } from 'os'
 import { existsSync, unlinkSync } from 'fs'
 /* eslint-env jest, jasmine */
@@ -127,7 +127,7 @@ describe('sitemapIndex', () => {
     ]
 
     try {
-      await createSitemapIndex({
+      await createSitemapsAndIndex({
         hostname: 'https://www.sitemap.org',
         sitemapName: 'sm-test',
         sitemapSize: 1,
@@ -142,7 +142,7 @@ describe('sitemapIndex', () => {
     // Cleanup before run test
     removeFilesArray(expectedFiles)
 
-    const succeeded = await createSitemapIndex({
+    const succeeded = await createSitemapsAndIndex({
       hostname: 'https://www.sitemap.org',
       sitemapName: 'sm-test',
       sitemapSize: 1,
@@ -170,7 +170,7 @@ describe('sitemapIndex', () => {
     // Cleanup before run test
     removeFilesArray(expectedFiles)
 
-    const succeeded = await createSitemapIndex({
+    const succeeded = await createSitemapsAndIndex({
       hostname: 'http://www.sitemap.org',
       sitemapName: 'sm-test',
       sitemapSize: 1,

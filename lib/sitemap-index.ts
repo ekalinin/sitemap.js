@@ -75,7 +75,7 @@ export function buildSitemapIndex (conf: {
  * @param   {Boolean}       conf.gzip whether to gzip the files (defaults to true)
  * @return  {SitemapIndex}
  */
-export async function createSitemapIndex ({
+export async function createSitemapsAndIndex ({
   urls,
   targetFolder,
   hostname,
@@ -144,3 +144,5 @@ export async function createSitemapIndex ({
     ...smPromises
   ]).then(() => true)
 }
+
+export { createSitemapsAndIndex as createSitemapIndex }

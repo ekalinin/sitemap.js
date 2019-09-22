@@ -93,7 +93,7 @@ export class Sitemap {
     }
 
     urls = Array.from(urls)
-    this.urls = Sitemap.normalizeURLs(urls, this.root, this.hostname)
+    this.urls = Sitemap.normalizeURLs(urls, this.hostname)
     for (const [, url] of this.urls) {
       validateSMIOptions(url, level)
     }
@@ -129,7 +129,7 @@ export class Sitemap {
   }
 
   private _normalizeURL(url: string | ISitemapItemOptionsLoose): SitemapItemOptions {
-    return Sitemap.normalizeURL(url, this.root, this.hostname)
+    return Sitemap.normalizeURL(url, this.hostname)
   }
 
   /**
@@ -173,11 +173,10 @@ export class Sitemap {
   /**
    * Converts the passed in sitemap entry into one capable of being consumed by SitemapItem
    * @param {string | ISitemapItemOptionsLoose} elem the string or object to be converted
-   * @param {XMLElement=} root xmlbuilder root object. Pass undefined here
    * @param {string} hostname
    * @returns SitemapItemOptions a strict sitemap item option
    */
-  static normalizeURL (elem: string | ISitemapItemOptionsLoose, root?: XMLElement, hostname?: string): SitemapItemOptions {
+  static normalizeURL (elem: string | ISitemapItemOptionsLoose, hostname?: string): SitemapItemOptions {
     // SitemapItem
     // create object with url property
     let smi: SitemapItemOptions = {
@@ -278,14 +277,13 @@ export class Sitemap {
   /**
    * Normalize multiple urls
    * @param {(string | ISitemapItemOptionsLoose)[]} urls array of urls to be normalized
-   * @param {XMLElement=} root xmlbuilder root object. Pass undefined here
    * @param {string=} hostname
    * @returns a Map of url to SitemapItemOption
    */
-  static normalizeURLs (urls: (string | ISitemapItemOptionsLoose)[], root?: XMLElement, hostname?: string): Map<string, SitemapItemOptions> {
+  static normalizeURLs (urls: (string | ISitemapItemOptionsLoose)[], hostname?: string): Map<string, SitemapItemOptions> {
     const urlMap = new Map<string, SitemapItemOptions>()
     urls.forEach((elem): void => {
-      const smio = Sitemap.normalizeURL(elem, root, hostname)
+      const smio = Sitemap.normalizeURL(elem, hostname)
       urlMap.set(smio.url, smio)
     })
     return urlMap
