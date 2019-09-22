@@ -1,5 +1,4 @@
 # master
- - [ ] reorganize the CLI options to append
 ## Streams
 This release is heavily focused on converting the core methods of this library to use streams. Why? Overall its made the API ~20% faster and uses only 10% or less of the memory. Some tradeoffs had to be made as in their nature streams are operate on individual segements of data as opposed to the whole. For instance, the streaming interface does not support removal of sitemap items as it does not hold on to a sitemap item after its converted to XML. It should however be possible to create your own transform that filters out entries should you desire it. The existing synchronous interfaces will remain for this release at least. Do not be surprised if they go away in a future breaking release.
 
@@ -8,6 +7,7 @@ This library interface has been overhauled to use streams internally. Although i
 ## Misc
 - runnable examples, some pulled streaight from README have been added to the examples directory.
 - createSitemapsIndex was renamed createSitemapsAndIndex to more accurately reflect its function. The old name still works.
+- You can now add to existing sitemap.xml files via the cli using `npx sitemap --prepend existingSitemap.xml < listOfNewURLs.json.txt`
 ## Breaking Changes
 - normalizeURL(url, XMLRoot, hostname) -> normalizeURL(url, hostname)
   - The second argument was unused and has been eliminated
@@ -17,6 +17,9 @@ This library interface has been overhauled to use streams internally. Although i
 - createSitemapIndex now gzips by default - pass gzip: false to disable
 - cacheTime is being dropped from createSitemapIndex - This didn't actually cache the way it was written so this should be a non-breaking change in effect.
 - SitemapIndex as a class has been dropped. The class did all its work on construction and there was no reason to hold on to it once you created it.
+- The options for the cli have been overhauled 
+  - `--json` is now inferred 
+  - `--line-separated` has been flipped to `--single-line-json` to by default output options immediately compatible with feeding back into sitemap
 
 # 4.1.1
 Add a pretty print option to `toString(false)`

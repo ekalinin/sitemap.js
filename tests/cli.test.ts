@@ -23,39 +23,66 @@ describe('cli', () => {
     const { stdout } = await exec('node ./dist/cli.js --version', {encoding: 'utf8'})
     expect(stdout).toBe(pkg.version + '\n')
   })
+
   it('prints a help doc when asked', async () => {
     const { stdout } = await exec('node ./dist/cli.js --help', {encoding: 'utf8'})
     expect(stdout.length).toBeGreaterThan(1)
   })
+
   it('accepts line separated urls', async () => {
     const { stdout } = await exec('node ./dist/cli.js < ./tests/mocks/cli-urls.txt', {encoding: 'utf8'})
     expect(stdout).toBe(txtxml)
   })
+
+  it('prepends to existing xml', async () => {
+    let threw = false
+    try {
+      await exec('echo "https://example.com/asdr32/" | node ./dist/cli.js --prepend ./tests/mocks/cli-urls.json.xml|grep \'https://example.com/asdr32/\'')
+    } catch (e) {
+      threw = true
+    }
+    expect(threw).toBe(false)
+  })
+
   it('accepts line separated urls as file', async () => {
     const { stdout } = await exec('node ./dist/cli.js ./tests/mocks/cli-urls.txt', {encoding: 'utf8'})
     expect(stdout).toBe(txtxml)
   })
+
   it('accepts multiple line separated urls as file', async () => {
     const { stdout } = await exec('node ./dist/cli.js ./tests/mocks/cli-urls.txt ./tests/mocks/cli-urls-2.txt', {encoding: 'utf8'})
     expect(stdout).toBe(txtxml2)
   })
+
   it('accepts json line separated urls', async () => {
-    const { stdout } = await exec('node ./dist/cli.js --json < ./tests/mocks/cli-urls.json.txt', {encoding: 'utf8'})
+    const { stdout } = await exec('node ./dist/cli.js < ./tests/mocks/cli-urls.json.txt', {encoding: 'utf8'})
     expect(stdout + '\n').toBe(jsonxml)
   })
 
-  it('parses xml piped in', (done) => {
-    exec('node ./dist/cli.js --parse < ./tests/mocks/alltags.xml', {encoding: 'utf8'}).then(({stdout, stderr}) => {
-      expect(JSON.parse(stdout).urls).toEqual(normalizedSample.urls)
-      done()
-    })
+  it('parses xml piped in', async () => {
+    let json
+    let threw = false
+    try {
+      const { stdout } = await exec('node ./dist/cli.js --parse --single-line-json < ./tests/mocks/alltags.xml', {encoding: 'utf8'})
+      json = JSON.parse(stdout)
+    } catch (e) {
+      threw = true
+    }
+    expect(threw).toBe(false)
+    expect(json).toEqual(normalizedSample.urls)
   })
 
-  it('parses xml specified as a file', (done) => {
-    exec('node ./dist/cli.js --parse ./tests/mocks/alltags.xml', {encoding: 'utf8'}).then(({stdout, stderr}) => {
-      expect(JSON.parse(stdout).urls).toEqual(normalizedSample.urls)
-      done()
-    })
+  it('parses xml specified as a file', async () => {
+    let threw = false
+    let json
+    try {
+      const { stdout } = await exec('node ./dist/cli.js --parse --single-line-json ./tests/mocks/alltags.xml', {encoding: 'utf8'})
+      json = JSON.parse(stdout)
+    } catch (e) {
+      threw = true
+    }
+    expect(threw).toBe(false)
+    expect(json).toEqual(normalizedSample.urls)
   })
 
   it('validates xml piped in', (done) => {

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { Readable, Transform } from 'stream'
+import { Readable } from 'stream'
 import { createReadStream } from 'fs'
 import { xmlLint } from './lib/xmllint'
 import { XMLLintUnavailable } from './lib/errors'
@@ -13,10 +13,10 @@ const arg = require('arg')
 const argSpec = {
   '--help':    Boolean,
   '--version': Boolean,
-  '--json': Boolean,
   '--validate': Boolean,
   '--parse': Boolean,
-  '--line-separated': Boolean
+  '--single-line-json': Boolean,
+  '--prepend': String
 }
 const argv = arg(argSpec)
 
@@ -40,33 +40,15 @@ Turn a list of urls into a sitemap xml.
 Options:
   --help           Print this text
   --version        Print the version
-  --json           Parse each line as json and feed to Sitemap
   --parse          Parse fed xml and spit out config
-  --line-separated When used with parse, it spits out each entry as json rather
-                   than the whole json. This can be then consumed with --json by
-                   the cli
+  --prepend sitemap.xml < urlsToAdd.json
+  --single-line-json         When used with parse, it spits out each entry as json rather
+                   than the whole json.
 `)
 } else if (argv['--parse']) {
-  let firstChunkWritten = false
   getStream()
     .pipe(new XMLToISitemapOptions())
-    .pipe(new ObjectStreamToJSON({ lineSeparated: argv["--line-separated"] }))
-    .pipe(new Transform({
-      transform (chunk, encoding, cb): void {
-        if (!firstChunkWritten && !argv["--line-separated"]) {
-          firstChunkWritten = true
-          this.push('{"urls":')
-        }
-        cb(undefined, chunk)
-      },
-      flush (cb): void {
-        if (argv["--line-separated"]) {
-          cb()
-        } else {
-          cb(undefined, '}')
-        }
-      }
-    }))
+    .pipe(new ObjectStreamToJSON({ lineSeparated: !argv["--single-line-json"] }))
     .pipe(process.stdout);
 } else if (argv['--validate']) {
   xmlLint(getStream())
@@ -87,7 +69,14 @@ Options:
     streams = argv._.map(
       (file: string): Readable => createReadStream(file, { encoding: 'utf8' }))
   }
-  lineSeparatedURLsToSitemapOptions(mergeStreams(streams), { isJSON: argv["--json"] })
-    .pipe(new SitemapStream())
+  const sms = new SitemapStream()
+
+  if (argv['--prepend']) {
+    createReadStream(argv["--prepend"])
+      .pipe(new XMLToISitemapOptions())
+      .pipe(sms);
+  }
+  lineSeparatedURLsToSitemapOptions(mergeStreams(streams))
+    .pipe(sms)
     .pipe(process.stdout);
 }
