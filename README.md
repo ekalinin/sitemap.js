@@ -1,7 +1,7 @@
 sitemap.js [![Build Status](https://travis-ci.org/ekalinin/sitemap.js.svg?branch=master)](https://travis-ci.org/ekalinin/sitemap.js)
 ==========
 
-**sitemap.js** is a high-level sitemap-generating library/cli that
+**sitemap.js** is a high-level sitemap-generating library/CLI that
 makes creating [sitemap XML](http://www.sitemaps.org/) files easy.
 
 Maintainers
@@ -23,7 +23,6 @@ Table of Contents
     * [Building just the sitemap index file](#building-just-the-sitemap-index-file)
     * [Auto creating sitemap and index files from one large list](#auto-creating-sitemap-and-index-files-from-one-large-list)
   * [API](#api)
-    * [Create Sitemap](#create-sitemap)
     * [Sitemap](#sitemap)
     * [buildSitemapIndex](#buildsitemapindex)
     * [createSitemapIndex](#createsitemapindex)
@@ -68,7 +67,7 @@ const sitemap = createSitemap({ options });
 const xml = sitemap.toString();
 ```
 
-### Example of using sitemap.js with [express](https://github.com/visionmedia/express):
+### Example of using sitemap.js with [express](https://expressjs.com/):
 
 ```javascript
 const express = require('express')
@@ -248,13 +247,13 @@ __toGzip__
   sm.toGzip ((xmlGzippedBuffer) => console.log(xmlGzippedBuffer));
   sm.toGzip();
   ```
-  like toString, it builds the xmlDocument, then it runs gzip on the resulting string and returns it as a Buffer via callback or direct invokation
+  like toString, it builds the xmlDocument, then it runs gzip on the resulting string and returns it as a Buffer via callback or direct invocation
   
 __clearCache__
   ```
   sm.clearCache()
   ```
-  cache will be emptied and will be bipassed until set again
+  cache will be emptied and will be bypassed until set again
   
 __isCacheValid__
   ```
@@ -293,7 +292,7 @@ __normalizeURL__
   ```
   Sitemap.normalizeURL('/', undefined, 'http://example.com')
   ```
-  static function that returns the stricter form of a options passed to SitemapItem
+  Static function that returns the stricter form of options passed to SitemapItem
   
 __normalizeURLs__
   ```
@@ -330,8 +329,8 @@ createSitemapIndex({
 
 ### xmlLint
 Resolve or reject depending on whether the passed in xml is a valid sitemap.
-This is just a wrapper around the xmllint command line tool and thus requires
-xmllint.
+This is just a wrapper around the xmlLint command line tool and thus requires
+xmlLint.
 ```
 const { createReadStream } = require('fs')
 const { xmlLint } = require('sitemap')
@@ -409,7 +408,7 @@ Sitemap video. https://support.google.com/webmasters/answer/80471?hl=en&ref_topi
 |price:resolution|string - optional|"HD"|Specifies the resolution of the purchased version. Supported values are hd and sd.|
 |price:currency| string - optional|"USD"|currency [Required] Specifies the currency in ISO 4217 format.|
 |price:type|string - optional|"rent"|type [Optional] Specifies the purchase option. Supported values are rent and own. |
-|uploader|string - optional|"GrillyMcGrillerson"|The video uploader's name. Only one <video:uploader> is allowed per video. String value, max 255 charactersc.|
+|uploader|string - optional|"GrillyMcGrillerson"|The video uploader's name. Only one <video:uploader> is allowed per video. String value, max 255 characters.|
 |platform|string - optional|"tv"|Whether to show or hide your video in search results on  specified platform types. This is a list of space-delimited platform types. See https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190 for more detail|
 |platform:relationship|string 'Allow'\|'Deny' - optional|'Allow'||
 |id|string - optional|||
