@@ -480,7 +480,6 @@ stream.end()
 |links|object[]|see [#ILinkItem](#ILinkItem)|Tell search engines about localized versions https://support.google.com/webmasters/answer/189077|
 |news|object|see [#INewsItem](#INewsItem)|https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190|
 |ampLink|string|'http://ampproject.org/article.amp.html'||
-|mobile|boolean or string|||
 |cdata|boolean|true|wrap url in cdata xml escape|
 
 ### ISitemapImage
