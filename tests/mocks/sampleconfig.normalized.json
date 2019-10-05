@@ -62,7 +62,6 @@
     }],
     "lastmod": "2016-09-12T00:00:00.000Z",
     "androidLink": "android-app://com.company.test/page-1/",
-    "mobile": true,
     "ampLink": "http://ampproject.org/article.amp.html",
     "video": [{
       "title": "2018:E10 - House Party - Part 2 (Uncensored)",
@@ -111,7 +110,6 @@
     "lastmod": "2011-06-27T00:00:00.000Z",
     "changefreq": "always",
     "priority": 0.9,
-    "mobile": true,
     "video": [],
     "links": []
   }, {
@@ -124,7 +122,6 @@
     "lastmod": "2011-06-27T00:00:00.000Z",
     "changefreq": "always",
     "priority": 0.9,
-    "mobile": true,
     "video": [],
     "links": []
   }, {
@@ -135,7 +132,6 @@
     "lastmod": "2011-06-27T00:00:00.000Z",
     "changefreq": "always",
     "priority": 0.9,
-    "mobile": true,
     "video": [],
     "links": []
   }]

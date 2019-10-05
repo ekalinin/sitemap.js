@@ -11,7 +11,6 @@ import {
 const urlset = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
              'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" ' +
              'xmlns:xhtml="http://www.w3.org/1999/xhtml" ' +
-             'xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" ' +
              'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" ' +
              'xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">'
 const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>'
@@ -72,8 +71,7 @@ describe('sitemapItem', () => {
       'img': [{url: 'http://urlTest.com'}],
       'lastmod': '2011-06-27T00:00:00.000Z',
       'changefreq': EnumChangefreq.ALWAYS,
-      'priority': 0.9,
-      'mobile': true
+      'priority': 0.9
     })
 
     expect(smi.toString()).toBe(
@@ -87,22 +85,6 @@ describe('sitemapItem', () => {
         'http://urlTest.com' +
         '</image:loc>' +
         '</image:image>' +
-        '<mobile:mobile/>' +
-      '</url>')
-  })
-
-  it('mobile with type', () => {
-    const url = 'http://ya.ru/'
-    const smi = new SitemapItem({
-      ...itemTemplate,
-      'url': url,
-      'mobile': 'pc,mobile'
-    })
-
-    expect(smi.toString()).toBe(
-      '<url>' +
-        xmlLoc +
-        '<mobile:mobile type="pc,mobile"/>' +
       '</url>')
   })
 

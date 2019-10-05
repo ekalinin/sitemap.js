@@ -48,7 +48,6 @@ export class SitemapItem {
   links?: SitemapItemOptions["links"];
   expires?: SitemapItemOptions["expires"];
   androidLink?: SitemapItemOptions["androidLink"];
-  mobile?: SitemapItemOptions["mobile"];
   video?: SitemapItemOptions["video"];
   ampLink?: SitemapItemOptions["ampLink"];
   url: XMLElement;
@@ -80,7 +79,6 @@ export class SitemapItem {
     this.links = conf.links
     this.expires = conf.expires
     this.androidLink = conf.androidLink
-    this.mobile = conf.mobile
     this.video = conf.video
     this.ampLink = conf.ampLink
     this.url = this.root.element('url')
@@ -243,11 +241,6 @@ export class SitemapItem {
         this.url.element('expires', new Date(this.expires).toISOString())
       } else if (this.androidLink && p === 'androidLink') {
         this.url.element('xhtml:link', {rel: 'alternate', href: this.androidLink})
-      } else if (this.mobile && p === 'mobile') {
-        const mobileitem = this.url.element('mobile:mobile')
-        if (typeof this.mobile === 'string') {
-          mobileitem.att('type', this.mobile)
-        }
       } else if (this.priority !== undefined && p === 'priority') {
         if (this.conf.fullPrecisionPriority) {
           this.url.element(p, this.priority + '')

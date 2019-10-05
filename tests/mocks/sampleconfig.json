@@ -56,7 +56,6 @@
     ],
     "lastmod": "2016-09-12",
     "androidLink": "android-app://com.company.test/page-1/",
-    "mobile": true,
     "ampLink": "http://ampproject.org/article.amp.html",
     "video": [{
       "title": "2018:E10 - House Party - Part 2 (Uncensored)",
@@ -102,21 +101,18 @@
     ],
     "lastmod": "2011-06-27",
     "changefreq": "always",
-    "priority": 0.9,
-    "mobile": true
+    "priority": 0.9
   }, {
     "url": "http://example.com/1",
     "img": ["http://urlTest.com", "http://example.com/img.jpg"],
     "lastmod": "2011-06-27",
     "changefreq": "always",
-    "priority": 0.9,
-    "mobile": true
+    "priority": 0.9
   }, {
     "url": "http://example.com",
     "img": "http://urlTest.com",
     "lastmod": "2011-06-27",
     "changefreq": "always",
-    "priority": 0.9,
-    "mobile": true
+    "priority": 0.9
   }]
 }

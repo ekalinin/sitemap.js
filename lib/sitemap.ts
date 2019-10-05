@@ -316,7 +316,6 @@ export class Sitemap {
       this.root.att('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9')
       this.root.att('xmlns:news', 'http://www.google.com/schemas/sitemap-news/0.9')
       this.root.att('xmlns:xhtml', 'http://www.w3.org/1999/xhtml')
-      this.root.att('xmlns:mobile', 'http://www.google.com/schemas/sitemap-mobile/1.0')
       this.root.att('xmlns:image', 'http://www.google.com/schemas/sitemap-image/1.1')
       this.root.att('xmlns:video', 'http://www.google.com/schemas/sitemap-video/1.1')
     }

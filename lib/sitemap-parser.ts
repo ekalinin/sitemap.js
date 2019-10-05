@@ -129,9 +129,6 @@ export class XMLToISitemapOptions extends Transform {
         case "news:stock_tickers":
         case "news:language":
           break;
-        case "mobile:mobile":
-          currentItem.mobile = true
-          break;
         case 'xhtml:link':
           if (
             typeof tag.attributes.rel === "string" ||
