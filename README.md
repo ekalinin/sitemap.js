@@ -1,7 +1,7 @@
 sitemap.js [![Build Status](https://travis-ci.org/ekalinin/sitemap.js.svg?branch=master)](https://travis-ci.org/ekalinin/sitemap.js)
 ==========
 
-**sitemap.js** is a high-level sitemap-generating library/cli that
+**sitemap.js** is a high-level sitemap-generating library/CLI that
 makes creating [sitemap XML](http://www.sitemaps.org/) files easy.
 
 Maintainers
@@ -17,13 +17,12 @@ Table of Contents
   * [Installation](#installation)
   * [Usage](#usage)
     * [CLI](#cli)
-    * [Example of using sitemap.js with <a href="https://expressjs.com/">express</a>:](#example-of-using-sitemapjs-with-express)
-    * [Example of dynamic page manipulations into sitemap:](#example-of-dynamic-page-manipulations-into-sitemap)
+    * [Example of using sitemap.js with <a href="https://expressjs.com/">express</a>](#example-of-using-sitemapjs-with-express)
+    * [Example of dynamic page manipulations into sitemap](#example-of-dynamic-page-manipulations-into-sitemap)
     * [Example of most of the options you can use for sitemap](#example-of-most-of-the-options-you-can-use-for-sitemap)
     * [Building just the sitemap index file](#building-just-the-sitemap-index-file)
     * [Auto creating sitemap and index files from one large list](#auto-creating-sitemap-and-index-files-from-one-large-list)
   * [API](#api)
-    * [Create Sitemap](#create-sitemap)
     * [Sitemap](#sitemap)
     * [buildSitemapIndex](#buildsitemapindex)
     * [createSitemapIndex](#createsitemapindex)
@@ -60,65 +59,65 @@ Or verify an existing sitemap
 
 ## As a library
 
-```javascript
+```js
 const { createSitemap } = require('sitemap')
 // Creates a sitemap object given the input configuration with URLs
-const sitemap = createSitemap({ options });
+const sitemap = createSitemap({ options })
 // Gives you a string containing the XML data
-const xml = sitemap.toString();
+const xml = sitemap.toString()
 ```
 
-### Example of using sitemap.js with [express](https://github.com/visionmedia/express):
+### Example of using sitemap.js with [express](https://expressjs.com/)
 
-```javascript
+```js
 const express = require('express')
-const { createSitemap } = require('sitemap');
+const { createSitemap } = require('sitemap')
 
 const app = express()
 const sitemap = createSitemap({
   hostname: 'http://example.com',
-  cacheTime: 600000,        // 600 sec - cache purge period
+  cacheTime: 600000, // 600 sec - cache purge period
   urls: [
-    { url: '/page-1/',  changefreq: 'daily', priority: 0.3 },
-    { url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 },
-    { url: '/page-3/'},    // changefreq: 'weekly',  priority: 0.5
-    { url: '/page-4/',   img: "http://urlTest.com" }
+    { url: '/page-1/', changefreq: 'daily', priority: 0.3 },
+    { url: '/page-2/', changefreq: 'monthly', priority: 0.7 },
+    { url: '/page-3/' }, // changefreq: 'weekly', priority: 0.5
+    { url: '/page-4/', img: 'http://urlTest.com' }
   ]
-});
+})
 
 app.get('/sitemap.xml', function(req, res) {
   try {
     const xml = sitemap.toXML()
-    res.header('Content-Type', 'application/xml');
-    res.send( xml );
+    res.header('Content-Type', 'application/xml')
+    res.send(xml)
   } catch (e) {
     console.error(e)
     res.status(500).end()
   }
-});
+})
 
-app.listen(3000);
+app.listen(3000)
 ```
 
-### Example of dynamic page manipulations into sitemap:
+### Example of dynamic page manipulations into sitemap
 
-```javascript
+```js
 const sitemap = createSitemap ({
   hostname: 'http://example.com',
   cacheTime: 600000
-});
-sitemap.add({url: '/page-1/'});
-sitemap.add({url: '/page-2/', changefreq: 'monthly', priority: 0.7});
-sitemap.del({url: '/page-2/'});
-sitemap.del('/page-1/');
+})
+sitemap.add({url: '/page-1/'})
+sitemap.add({url: '/page-2/', changefreq: 'monthly', priority: 0.7})
+sitemap.del({url: '/page-2/'})
+sitemap.del('/page-1/')
 ```
 
 
 
 ### Example of most of the options you can use for sitemap
 
-```javascript
-const { createSitemap } = require('sitemap');
+```js
+const { createSitemap } = require('sitemap')
 
 const sitemap = createSitemap({
   hostname: 'http://www.mywebsite.com',
@@ -189,23 +188,24 @@ const sitemap = createSitemap({
       }
     }
   ]
-});
+})
 ```
 
 ### Building just the sitemap index file
+
 The sitemap index file merely points to other sitemaps
 
-```javascript
+```js
 const { buildSitemapIndex } = require('sitemap')
 const smi = buildSitemapIndex({
   urls: ['https://example.com/sitemap1.xml', 'https://example.com/sitemap2.xml'],
   xslUrl: 'https://example.com/style.xsl' // optional
-});
+})
 ```
 
 ### Auto creating sitemap and index files from one large list
 
-```javascript
+```js
 const { createSitemapIndex } = require('sitemap')
 const smi = createSitemapIndex({
   cacheTime: 600000,
@@ -216,26 +216,26 @@ const smi = createSitemapIndex({
   urls: ['http://ya.ru', 'http://ya2.ru']
   // optional:
   // callback: function(err, result) {}
-});
+})
 ```
-## API 
 
+## API 
 
 ### Sitemap
 
-```
+```js
 const { Sitemap } = require('sitemap')
 const sm = new Sitemap({
-    urls: [{url: '/path'}],
+    urls: [{ url: '/path' }],
     hostname: 'http://example.com',
     cacheTime: 0, // default
-    level: 'warn' // default warns if it encounters bad data 
+    level: 'warn' // default warns if it encounters bad data
 })
 sm.toString() // returns the xml as a string
 ```
   
 __toString__
-  ```
+  ```js
   sm.toString(true)
   ```
   Converts the urls stored in an instance of Sitemap to a valid sitemap xml document as a string. Accepts a boolean as its first argument to designate on whether to pretty print. Defaults to false.
@@ -244,76 +244,81 @@ __toXML__
 alias for toString
 
 __toGzip__
+  ```js
+  sm.toGzip ((xmlGzippedBuffer) => console.log(xmlGzippedBuffer))
+  sm.toGzip()
   ```
-  sm.toGzip ((xmlGzippedBuffer) => console.log(xmlGzippedBuffer));
-  sm.toGzip();
-  ```
-  like toString, it builds the xmlDocument, then it runs gzip on the resulting string and returns it as a Buffer via callback or direct invokation
+  Like toString, it builds the xmlDocument, then it runs gzip on the resulting string and returns it as a Buffer via callback or direct invocation
   
 __clearCache__
-  ```
+  ```js
   sm.clearCache()
   ```
-  cache will be emptied and will be bipassed until set again
+  Cache will be emptied and will be bypassed until set again
   
 __isCacheValid__
-  ```
+  ```js
   sm.isCacheValid()
   ```
-  returns true if it has been less than cacheTimeout ms since cache was set
+  Returns true if it has been less than cacheTimeout ms since cache was set
   
 __setCache__
-  ```
+  ```js
   sm.setCache('...xmlDoc')
   ```
-  stores the passed in string on the instance to be used when toString is called within the configured cacheTimeout
+  Stores the passed in string on the instance to be used when toString is called within the configured cacheTimeout
   returns the passed in string unaltered
   
 __add__
-  ```
+  ```js
   sm.add('/path', 'warn')
   ```
-  adds the provided url to the sitemap instance
-  takes an optional parameter level for whether to print a console warning in the event of bad data 'warn' (default), throw an exception 'throw', or quietly ignore bad data 'silent'
+  Adds the provided url to the sitemap instance
+  takes an optional parameter level for whether to print a console warning in the event of bad data 'warn' (default),
+  throw an exception 'throw', or quietly ignore bad data 'silent'
   returns the number of locations currently in the sitemap instance
   
 __contains__
-  ```
+  ```js
   sm.contains('/path')
   ```
-  Returns true if path is already a part of the sitemap instance, false otherwise. 
+  Returns true if path is already a part of the sitemap instance, false otherwise.
   
 __del__
-  ```
+  ```js
   sm.del('/path')
   ```
-  removes the provided url or url option from the sitemap instance
+  Removes the provided url or url option from the sitemap instance
 
 __normalizeURL__
-  ```
+  ```js
   Sitemap.normalizeURL('/', undefined, 'http://example.com')
   ```
-  static function that returns the stricter form of a options passed to SitemapItem
+  Static function that returns the stricter form of a options passed to SitemapItem
   
 __normalizeURLs__
-  ```
+  ```js
   Sitemap.normalizeURLs(['http://example.com', {url: 'http://example.com'}])
   ```
-  static function that takes an array of urls and returns a Map of their resolved url to the strict form of SitemapItemOptions
+  Static function that takes an array of urls and returns a Map of their resolved url to the strict form of SitemapItemOptions
 
 ### buildSitemapIndex
+
 Build a sitemap index file
-```
+
+```js
 const { buildSitemapIndex } = require('sitemap')
-const index =   buildSitemapIndex({
-  urls: [{url: 'http://example.com/sitemap-1.xml', lastmod: '2019-07-01'}, 'http://example.com/sitemap-2.xml'],
+const index = buildSitemapIndex({
+  urls: [{ url: 'http://example.com/sitemap-1.xml', lastmod: '2019-07-01' }, 'http://example.com/sitemap-2.xml'],
   lastmod: '2019-07-29'
 })
 ```
 
 ### createSitemapIndex
+
 Create several sitemaps and an index automatically from a list of urls
-```
+
+```js
 const { createSitemapIndex } = require('sitemap')
 createSitemapIndex({
   urls: [/* list of urls */],
@@ -322,17 +327,19 @@ createSitemapIndex({
   cacheTime: 600,
   sitemapName: 'sitemap',
   sitemapSize: 50000, // number of urls to allow in each sitemap
-  xslUrl: '',// custom xsl url
+  xslUrl: '', // custom xsl url
   gzip: false, // whether to gzip the files
-  callback: // called when complete;
+  callback: // called when complete
 })
 ```
 
 ### xmlLint
+
 Resolve or reject depending on whether the passed in xml is a valid sitemap.
-This is just a wrapper around the xmllint command line tool and thus requires
-xmllint.
-```
+This is just a wrapper around the xmlLint command line tool and thus requires
+xmlLint.
+
+```js
 const { createReadStream } = require('fs')
 const { xmlLint } = require('sitemap')
 xmlLint(createReadStream('./example.xml')).then(
@@ -342,9 +349,11 @@ xmlLint(createReadStream('./example.xml')).then(
 ```
 
 ### parseSitemap
+
 Read xml and resolve with the configuration that would produce it or reject with
 an error
-```
+
+```js
 const { createReadStream } = require('fs')
 const { parseSitemap, createSitemap } = require('sitemap')
 parseSitemap(createReadStream('./example.xml')).then(
@@ -360,7 +369,7 @@ parseSitemap(createReadStream('./example.xml')).then(
 |Option|Type|eg|Description|
 |------|----|--|-----------|
 |url|string|http://example.com/some/path|The only required property for every sitemap entry|
-|lastmod|string|'2019-07-29' or '2019-07-22T05:58:37.037Z'|When the page we as last modified use the W3C Datetime ISO8601 subset  https://www.sitemaps.org/protocol.html#xmlTagDefinitions|
+|lastmod|string|'2019-07-29' or '2019-07-22T05:58:37.037Z'|When the page we as last modified use the W3C Datetime ISO8601 subset https://www.sitemaps.org/protocol.html#xmlTagDefinitions|
 |changefreq|string|'weekly'|How frequently the page is likely to change. This value provides general information to search engines and may not correlate exactly to how often they crawl the page. Please note that the value of this tag is considered a hint and not a command. See https://www.sitemaps.org/protocol.html#xmlTagDefinitions for the acceptable values|
 |priority|number|0.6|The priority of this URL relative to other URLs on your site. Valid values range from 0.0 to 1.0. This value does not affect how your pages are compared to pages on other sites—it only lets the search engines know which pages you deem most important for the crawlers. The default priority of a page is 0.5. https://www.sitemaps.org/protocol.html#xmlTagDefinitions|
 |img|object[]|see [#ISitemapImage](#ISitemapImage)|https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190|
@@ -409,8 +418,8 @@ Sitemap video. https://support.google.com/webmasters/answer/80471?hl=en&ref_topi
 |price:resolution|string - optional|"HD"|Specifies the resolution of the purchased version. Supported values are hd and sd.|
 |price:currency| string - optional|"USD"|currency [Required] Specifies the currency in ISO 4217 format.|
 |price:type|string - optional|"rent"|type [Optional] Specifies the purchase option. Supported values are rent and own. |
-|uploader|string - optional|"GrillyMcGrillerson"|The video uploader's name. Only one <video:uploader> is allowed per video. String value, max 255 charactersc.|
-|platform|string - optional|"tv"|Whether to show or hide your video in search results on  specified platform types. This is a list of space-delimited platform types. See https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190 for more detail|
+|uploader|string - optional|"GrillyMcGrillerson"|The video uploader's name. Only one <video:uploader> is allowed per video. String value, max 255 characters.|
+|platform|string - optional|"tv"|Whether to show or hide your video in search results on specified platform types. This is a list of space-delimited platform types. See https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190 for more detail|
 |platform:relationship|string 'Allow'\|'Deny' - optional|'Allow'||
 |id|string - optional|||
 |tag|string[] - optional|['Baking']|An arbitrary string tag describing the video. Tags are generally very short descriptions of key concepts associated with a video or piece of content.|
@@ -434,7 +443,7 @@ https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190
 
 |Option|Type|eg|Description|
 |------|----|--|-----------|
-|access|string - 'Registration' \| 'Subscription'| 'Registration'  - optional||
+|access|string - 'Registration' \| 'Subscription'| 'Registration' - optional||
 |publication| object|see following options||
 |publication['name']| string|'The Example Times'|The <name> is the name of the news publication. It must exactly match the name as it appears on your articles on news.google.com, except for anything in parentheses.|
 |publication['language']|string|'en'|he <language> is the language of your publication. Use an ISO 639 language code (2 or 3 letters).|
@@ -447,5 +456,4 @@ https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190
 License
 -------
 
-See [LICENSE](https://github.com/ekalinin/sitemap.js/blob/master/LICENSE)
-file.
+See [LICENSE](https://github.com/ekalinin/sitemap.js/blob/master/LICENSE) file.
