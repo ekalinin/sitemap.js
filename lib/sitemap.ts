@@ -269,6 +269,8 @@ export class Sitemap {
     } else if (smiLoose.lastmod) {
       smi.lastmod = (new Date(smiLoose.lastmod)).toISOString()
     }
+    delete smiLoose.lastmodfile
+    delete smiLoose.lastmodISO
 
     smi = {...smiLoose, ...smi}
     return smi

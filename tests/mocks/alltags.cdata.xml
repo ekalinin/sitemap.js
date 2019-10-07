@@ -5,8 +5,12 @@
     <changefreq>weekly</changefreq>
     <video:video>
       <video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg&amp;&gt;&lt;'"</video:thumbnail_loc>
-      <video:title>2018:E6 - GoldenEye: Source&amp;&gt;&lt;'"</video:title>
-      <video:description>We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.&amp;&gt;&lt;'"</video:description>
+      <video:title>
+        <![CDATA[2018:E6 - GoldenEye: Source&><'"]]>
+      </video:title>
+      <video:description>
+        <![CDATA[We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.&><'"]]>
+      </video:description>
       <video:player_loc autoplay="ap=1&amp;>&lt;'&quot;">https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source&amp;&gt;&lt;'"</video:player_loc>
       <video:duration>1208</video:duration>
       <video:publication_date>2018-04-27T17:00:00.000Z</video:publication_date>
@@ -21,8 +25,12 @@
     <changefreq>weekly</changefreq>
     <video:video>
       <video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/store/f255cd83-3d69-4ee8-959a-ac01817fa204.jpg/sm/thumblpchompinglistv2.jpg&amp;&gt;&lt;'"</video:thumbnail_loc>
-      <video:title>2018:E90 - Minecraft - Episode 310 - Chomping List&amp;&gt;&lt;'"</video:title>
-      <video:description>Now that the gang's a bit more settled into Achievement Cove, it's time for a competition. Whoever collects the most unique food items by the end of the episode wins. The winner may even receive a certain golden tower.&amp;&gt;&lt;'"</video:description>
+      <video:title>
+        <![CDATA[2018:E90 - Minecraft - Episode 310 - Chomping List&><'"]]>
+      </video:title>
+      <video:description>
+        <![CDATA[Now that the gang's a bit more settled into Achievement Cove, it's time for a competition. Whoever collects the most unique food items by the end of the episode wins. The winner may even receive a certain golden tower.&><'"]]>
+      </video:description>
       <video:player_loc>https://roosterteeth.com/embed/let-s-play-2018-minecraft-episode-310&amp;&gt;&lt;'"</video:player_loc>
       <video:duration>3070</video:duration>
       <video:expiration_date>2012-07-16T19:20:30+08:00</video:expiration_date>
@@ -48,8 +56,12 @@
     <priority>0.6</priority>
     <video:video>
       <video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/store/9dd9681a-0557-45fe-86b3-b662c91bbae7.jpg/sm/thumblwhouseparty2v4.jpg&amp;&gt;&lt;'"</video:thumbnail_loc>
-      <video:title>2018:E10 - House Party - Part 2 (Uncensored)&amp;&gt;&lt;'"</video:title>
-      <video:description>Achievement Hunter's House Party quest for some one-night intimacy continues. Can they use Ashley and Madison's sibling rivalry for their own dubious gains?&amp;&gt;&lt;'"</video:description>
+      <video:title>
+        <![CDATA[2018:E10 - House Party - Part 2 (Uncensored)&><'"]]>
+      </video:title>
+      <video:description>
+        <![CDATA[Achievement Hunter's House Party quest for some one-night intimacy continues. Can they use Ashley and Madison's sibling rivalry for their own dubious gains?&><'"]]>
+      </video:description>
       <video:player_loc>https://roosterteeth.com/embed/let-s-watch-2018-house-party-part-2&amp;&gt;&lt;'"</video:player_loc>
       <video:duration>2422</video:duration>
       <video:publication_date>2018-04-26T17:00:00.000Z</video:publication_date>
@@ -65,13 +77,17 @@
     <lastmod>2015-06-27T15:30:00.000Z</lastmod>
     <news:news>
       <news:publication>
-        <news:name>The Example Times&amp;&gt;&lt;'"</news:name>
+        <news:name>
+          <![CDATA[The Example Times&><'"]]>
+        </news:name>
         <news:language>en</news:language>
       </news:publication>
       <news:access>Registration</news:access>
       <news:genres>PressRelease, Blog</news:genres>
       <news:publication_date>2008-12-23</news:publication_date>
-      <news:title>Companies A, B in Merger Talks&amp;&gt;&lt;'"</news:title>
+      <news:title>
+        <![CDATA[Companies A, B in Merger Talks&><'"]]>
+      </news:title>
       <news:keywords>business, merger, acquisition, A, B&amp;&gt;&lt;'"</news:keywords>
       <news:stock_tickers>NASDAQ:A, NASDAQ:B</news:stock_tickers>
     </news:news>
@@ -83,16 +99,24 @@
     <priority>0.9</priority>
     <image:image>
       <image:loc>http://test.com/img1.jpg&amp;%3E%3C'%22</image:loc>
-      <image:caption>An image&amp;&gt;&lt;'"</image:caption>
+      <image:caption>
+        <![CDATA[An image&><'"]]>
+      </image:caption>
       <image:geo_location>London, United Kingdom&amp;&gt;&lt;'"</image:geo_location>
-      <image:title>The Title of Image One&amp;&gt;&lt;'"</image:title>
+      <image:title>
+        <![CDATA[The Title of Image One&><'"]]>
+      </image:title>
       <image:license>https://creativecommons.org/licenses/by/4.0/&amp;&gt;&lt;'"</image:license>
     </image:image>
     <image:image>
       <image:loc>http://test.com/img2.jpg&amp;%3E%3C'%22</image:loc>
-      <image:caption>Another image&amp;&gt;&lt;'"</image:caption>
+      <image:caption>
+        <![CDATA[Another image&><'"]]>
+      </image:caption>
       <image:geo_location>London, United Kingdom&amp;&gt;&lt;'"</image:geo_location>
-      <image:title>The Title of Image Two&amp;&gt;&lt;'"</image:title>
+      <image:title>
+        <![CDATA[The Title of Image Two&><'"]]>
+      </image:title>
       <image:license>https://creativecommons.org/licenses/by/4.0/&amp;&gt;&lt;'"</image:license>
     </image:image>
   </url>

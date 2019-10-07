@@ -36,6 +36,24 @@ describe('XMLToISitemapOptions', () => {
     );
     expect(sitemap).toEqual(normalizedSample.urls);
   })
+
+  it('stream parses XML with cdata', async () => {
+    let sitemap: ISitemapOptions[] = [];
+    await pipeline(
+      createReadStream(resolve(__dirname, "./mocks/alltags.cdata.xml"), {
+        encoding: "utf8"
+      }),
+      new XMLToISitemapOptions(),
+      new Writable({
+        objectMode: true,
+        write(chunk, a, cb) {
+          sitemap.push(chunk);
+          cb();
+        }
+      })
+    );
+    expect(sitemap).toEqual(normalizedSample.urls);
+  })
 })
 
 describe('ObjectStreamToJSON', () => {

@@ -128,6 +128,7 @@ export class XMLToISitemapOptions extends Transform {
         case "news:keywords":
         case "news:stock_tickers":
         case "news:language":
+        case "mobile:mobile":
           break;
         case 'xhtml:link':
           if (
@@ -282,6 +283,38 @@ export class XMLToISitemapOptions extends Transform {
             currentItem.news = newsTemplate();
           }
           currentItem.news.publication.language = text
+          break;
+        case "video:title":
+          currentVideo.title += text
+          break;
+        case "video:description":
+          currentVideo.description += text
+          break;
+        case "news:name":
+          if (!currentItem.news) {
+            currentItem.news = newsTemplate();
+          }
+          currentItem.news.publication.name += text
+          break;
+        case "news:title":
+          if (!currentItem.news) {
+            currentItem.news = newsTemplate();
+          }
+          currentItem.news.title += text
+          break;
+        case "image:caption":
+          if (!currentImage.caption) {
+            currentImage.caption = text;
+          } else {
+            currentImage.caption += text;
+          }
+          break;
+        case "image:title":
+          if (!currentImage.title) {
+            currentImage.title = text;
+          } else {
+            currentImage.title += text;
+          }
           break;
 
         default:

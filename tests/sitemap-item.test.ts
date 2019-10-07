@@ -68,7 +68,7 @@ describe('sitemapItem', () => {
     const smi = new SitemapItem({
       ...itemTemplate,
       'url': url,
-      'img': [{url: 'http://urlTest.com'}],
+      'img': [{url: 'http://urlTest.com?foo&bar'}],
       'lastmod': '2011-06-27T00:00:00.000Z',
       'changefreq': EnumChangefreq.ALWAYS,
       'priority': 0.9
@@ -82,7 +82,7 @@ describe('sitemapItem', () => {
         xmlPriority +
         '<image:image>' +
         '<image:loc>' +
-        'http://urlTest.com' +
+        'http://urlTest.com?foo&amp;bar' +
         '</image:loc>' +
         '</image:image>' +
       '</url>')
@@ -143,19 +143,19 @@ describe('sitemapItem', () => {
         id: "http://example.com/url",
         title: "2018:E6 - GoldenEye: Source",
         description:
-          "We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.",
+          "We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy. & > < ' \"",
         player_loc:
-          "https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source",
-        "player_loc:autoplay": "ap=1",
+          "https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source?foo&bar",
+        "player_loc:autoplay": "ap=1&foo",
         thumbnail_loc:
-          "https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg",
+          "https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg?foo&bar",
         duration: 1208,
         publication_date: "2018-04-27T17:00:00.000Z",
         requires_subscription: EnumYesNo.yes,
         tag: ["fruit", "flies"]
       });
       smap.buildVideoElement({
-        "title": "2018:E90 - Minecraft - Episode 310 - Chomping List",
+        "title": "2018:E90 - Minecraft - Episode 310 - Chomping List & > < ' \" foo",
         "description": "Now that the gang's a bit more settled into Achievement Cove, it's time for a competition. Whoever collects the most unique food items by the end of the episode wins. The winner may even receive a certain golden tower.",
         "player_loc": "https://roosterteeth.com/embed/let-s-play-2018-minecraft-episode-310",
         "thumbnail_loc": "https://rtv3-img-roosterteeth.akamaized.net/store/f255cd83-3d69-4ee8-959a-ac01817fa204.jpg/sm/thumblpchompinglistv2.jpg",
@@ -163,30 +163,30 @@ describe('sitemapItem', () => {
         "publication_date": "2018-04-27T14:00:00.000Z",
         "requires_subscription": EnumYesNo.no,
         "price": "1.99",
-        "price:type": "rent",
-        "price:currency": "USD",
-        "price:resolution": "HD",
-        "platform": "tv",
+        "price:type": "rent&'\"><",
+        "price:currency": "USD&'\"><",
+        "price:resolution": "HD & ' \" < >",
+        "platform": "tv&'\"><",
         "platform:relationship": EnumAllowDeny.ALLOW,
-        "restriction": "IE GB US CA",
+        "restriction": "IE GB US CA&'\"><",
         "restriction:relationship": "deny",
-        "uploader": "GrillyMcGrillerson",
-        "category": "Baking",
+        "uploader": "GrillyMcGrillerson&'\"><",
+        "category": "Baking&'\"><",
         "live": EnumYesNo.no,
         "expiration_date": "2012-07-16T19:20:30+08:00",
         "rating": 2.5,
         "view_count": 1000,
         "family_friendly": EnumYesNo.no,
-        "tag": ["steak"],
-        "gallery_loc": "https://roosterteeth.com/series/awhu",
-        "gallery_loc:title": "awhu series page"
+        "tag": ["steak&'\"><"],
+        "gallery_loc": "https://roosterteeth.com/series/awhu&'\"><",
+        "gallery_loc:title": "awhu series page&'\"><"
       })
       expect(smap.url.toString()).toBe(
         "<url><" +
-          "video:video><video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg</video:thumbnail_loc>" +
-          "<video:title><![CDATA[2018:E6 - GoldenEye: Source]]></video:title>" +
-          "<video:description><![CDATA[We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.]]></video:description>" +
-          '<video:player_loc autoplay="ap=1">https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source</video:player_loc>' +
+          "video:video><video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg?foo&amp;bar</video:thumbnail_loc>" +
+          "<video:title>2018:E6 - GoldenEye: Source</video:title>" +
+          "<video:description>We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy. &amp; &gt; &lt; ' \"</video:description>" +
+          '<video:player_loc autoplay="ap=1&amp;foo">https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source?foo&amp;bar</video:player_loc>' +
           "<video:duration>1208</video:duration>" +
           "<video:publication_date>2018-04-27T17:00:00.000Z</video:publication_date>" +
           "<video:tag>fruit</video:tag><video:tag>flies</video:tag>" +
@@ -194,23 +194,23 @@ describe('sitemapItem', () => {
           '<video:id type="url">http://example.com/url</video:id>' +
           "</video:video>" +
           '<video:video><video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/store/f255cd83-3d69-4ee8-959a-ac01817fa204.jpg/sm/thumblpchompinglistv2.jpg</video:thumbnail_loc>' +
-          '<video:title><![CDATA[2018:E90 - Minecraft - Episode 310 - Chomping List]]></video:title>' +
-          "<video:description><![CDATA[Now that the gang's a bit more settled into Achievement Cove, it's time for a competition. Whoever collects the most unique food items by the end of the episode wins. The winner may even receive a certain golden tower.]]></video:description>" +
+          '<video:title>2018:E90 - Minecraft - Episode 310 - Chomping List &amp; &gt; &lt; \' " foo</video:title>' +
+          "<video:description>Now that the gang's a bit more settled into Achievement Cove, it's time for a competition. Whoever collects the most unique food items by the end of the episode wins. The winner may even receive a certain golden tower.</video:description>" +
           '<video:player_loc>https://roosterteeth.com/embed/let-s-play-2018-minecraft-episode-310</video:player_loc>' +
           '<video:duration>3070</video:duration>' +
           '<video:expiration_date>2012-07-16T19:20:30+08:00</video:expiration_date>' +
           '<video:rating>2.5</video:rating>' +
           '<video:view_count>1000</video:view_count>' +
           '<video:publication_date>2018-04-27T14:00:00.000Z</video:publication_date>' +
-          '<video:tag>steak</video:tag>' +
-          '<video:category>Baking</video:category>' +
+          '<video:tag>steak&amp;\'"&gt;&lt;</video:tag>' +
+          '<video:category>Baking&amp;\'"&gt;&lt;</video:category>' +
           '<video:family_friendly>no</video:family_friendly>' +
-          '<video:restriction relationship="deny">IE GB US CA</video:restriction>' +
-          '<video:gallery_loc title="awhu series page">https://roosterteeth.com/series/awhu</video:gallery_loc>' +
-          '<video:price resolution="HD" currency="USD" type="rent">1.99</video:price>' +
+          '<video:restriction relationship="deny">IE GB US CA&amp;\'"&gt;&lt;</video:restriction>' +
+          '<video:gallery_loc title="awhu series page&amp;\'&quot;>&lt;">https://roosterteeth.com/series/awhu&amp;\'"&gt;&lt;</video:gallery_loc>' +
+          '<video:price resolution="HD &amp; \' &quot; &lt; >" currency="USD&amp;\'&quot;>&lt;" type="rent&amp;\'&quot;>&lt;">1.99</video:price>' +
           '<video:requires_subscription>no</video:requires_subscription>' +
-          '<video:uploader>GrillyMcGrillerson</video:uploader>' +
-          '<video:platform relationship="allow">tv</video:platform>' +
+          '<video:uploader>GrillyMcGrillerson&amp;\'"&gt;&lt;</video:uploader>' +
+          '<video:platform relationship="allow">tv&amp;\'"&gt;&lt;</video:platform>' +
           '<video:live>no</video:live>' +
           '</video:video>' +
           "</url>"
@@ -260,14 +260,14 @@ describe('sitemapItem', () => {
         url: "http://test.com/page-1/",
         changefreq: EnumChangefreq.WEEKLY,
         priority: 0.3,
-        ampLink: "http://ampproject.org/article.amp.html"
+        ampLink: "http://ampproject.org/article.amp.html?foo&bar"
       });
       expect(smi.toString()).toBe(
           '<url>' +
             '<loc>http://test.com/page-1/</loc>' +
             '<changefreq>weekly</changefreq>' +
             '<priority>0.3</priority>' +
-            '<xhtml:link rel="amphtml" href="http://ampproject.org/article.amp.html"/>' +
+            '<xhtml:link rel="amphtml" href="http://ampproject.org/article.amp.html?foo&amp;bar"/>' +
           '</url>')
     })
 
@@ -296,7 +296,7 @@ describe('sitemapItem', () => {
           url: 'http://test.com/a',
           img: [{
             url: 'http://test.com/image.jpg?param&otherparam',
-            caption: 'Test Caption'
+            caption: 'Test Caption&><"\''
           }]
       })
 
@@ -305,7 +305,7 @@ describe('sitemapItem', () => {
               '<loc>http://test.com/a</loc>' +
               '<image:image>' +
                   '<image:loc>http://test.com/image.jpg?param&amp;otherparam</image:loc>' +
-                  '<image:caption><![CDATA[Test Caption]]></image:caption>' +
+                  '<image:caption>Test Caption&amp;&gt;&lt;"\'</image:caption>' +
               '</image:image>' +
           '</url>')
     })
@@ -317,9 +317,9 @@ describe('sitemapItem', () => {
           img: [{
             url: 'http://test.com/image.jpg',
             caption: 'Test Caption',
-            title: 'Test title',
-            geoLocation: 'Test Geo Location',
-            license: 'http://test.com/license.txt'
+            title: 'Test title&><"\'',
+            geoLocation: 'Test Geo Location&><"\'',
+            license: 'http://test.com/license.txt&><"\''
           }]
       })
 
@@ -328,10 +328,10 @@ describe('sitemapItem', () => {
               '<loc>http://test.com</loc>' +
               '<image:image>' +
                   '<image:loc>http://test.com/image.jpg</image:loc>' +
-                  '<image:caption><![CDATA[Test Caption]]></image:caption>' +
-                  '<image:geo_location>Test Geo Location</image:geo_location>' +
-                  '<image:title><![CDATA[Test title]]></image:title>' +
-                  '<image:license>http://test.com/license.txt</image:license>' +
+                  '<image:caption>Test Caption</image:caption>' +
+                  '<image:geo_location>Test Geo Location&amp;&gt;&lt;"\'</image:geo_location>' +
+                  '<image:title>Test title&amp;&gt;&lt;"\'</image:title>' +
+                  '<image:license>http://test.com/license.txt&amp;&gt;&lt;"\'</image:license>' +
               '</image:image>' +
           '</url>')
     })
@@ -348,7 +348,7 @@ describe('sitemapItem', () => {
               '<loc>http://test.com</loc>' +
               '<image:image>' +
                   '<image:loc>http://test.com/image.jpg</image:loc>' +
-                  '<image:caption><![CDATA[Test Caption]]></image:caption>' +
+                  '<image:caption>Test Caption</image:caption>' +
               '</image:image>' +
           '</url>')
     })
@@ -396,8 +396,8 @@ describe('sitemapItem', () => {
         }]
       }
       thumbnailLoc = '<video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg</video:thumbnail_loc>'
-      title = '<video:title><![CDATA[2008:E2 - Burnout Paradise: Millionaire\'s Club]]></video:title>'
-      description = '<video:description><![CDATA[Jack gives us a walkthrough on getting the Millionaire\'s Club Achievement in Burnout Paradise.]]></video:description>'
+      title = '<video:title>2008:E2 - Burnout Paradise: Millionaire\'s Club</video:title>'
+      description = '<video:description>Jack gives us a walkthrough on getting the Millionaire\'s Club Achievement in Burnout Paradise.</video:description>'
       playerLoc = '<video:player_loc autoplay="ap=1">https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</video:player_loc>'
       duration = '<video:duration>174</video:duration>'
       publicationDate = '<video:publication_date>2008-07-29T14:58:04.000Z</video:publication_date>'
@@ -699,17 +699,17 @@ describe('sitemapItem', () => {
     beforeEach(() => {
       news = {
         ...itemTemplate,
-        url: 'http://www.example.org/business/article55.html',
+        url: 'http://www.example.org/business/article55.html?foo&bar',
         news: {
           publication: {
-            name: 'The Example Times',
-            language: 'en'
+            name: 'The Example Times&><"\'',
+            language: 'en&><"\''
           },
-          genres: 'PressRelease, Blog',
+          genres: 'PressRelease, Blog&><"\'',
           publication_date: '2008-12-23',
-          title: 'Companies A, B in Merger Talks',
-          keywords: 'business, merger, acquisition, A, B',
-          stock_tickers: 'NASDAQ:A, NASDAQ:B'
+          title: 'Companies A, B in Merger Talks&><"\'',
+          keywords: 'business, merger, acquisition, A, B&><"\'',
+          stock_tickers: 'NASDAQ:A, NASDAQ:B&><"\''
         }
       }
     })
@@ -717,7 +717,17 @@ describe('sitemapItem', () => {
     it('matches the example from google', () => {
       const smi = new SitemapItem(news)
 
-      expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name><![CDATA[${news.news.publication.name}]]></news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title><![CDATA[${news.news.title}]]></news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news></url>`)
+      expect(smi.toString()).toBe('<url>' +
+      '<loc>http://www.example.org/business/article55.html?foo&amp;bar</loc>' +
+      `<news:news>` +
+      '<news:publication><news:name>The Example Times&amp;&gt;&lt;"\'</news:name>' +
+      '<news:language>en&amp;&gt;&lt;"\'</news:language>' +
+      '</news:publication><news:genres>PressRelease, Blog&amp;&gt;&lt;"\'</news:genres>' +
+      `<news:publication_date>${news.news.publication_date}</news:publication_date>` +
+      '<news:title>Companies A, B in Merger Talks&amp;&gt;&lt;"\'</news:title>' +
+      '<news:keywords>business, merger, acquisition, A, B&amp;&gt;&lt;"\'</news:keywords>' +
+      '<news:stock_tickers>NASDAQ:A, NASDAQ:B&amp;&gt;&lt;"\'</news:stock_tickers>' +
+      `</news:news></url>`)
     })
 
     it('can render with only the required params', () => {
@@ -726,17 +736,45 @@ describe('sitemapItem', () => {
       delete news.news.stock_tickers
       const smi = new SitemapItem(news)
 
-      expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name><![CDATA[${news.news.publication.name}]]></news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:publication_date>${news.news.publication_date}</news:publication_date><news:title><![CDATA[${news.news.title}]]></news:title></news:news></url>`)
+      expect(smi.toString()).toBe('<url>' +
+      '<loc>http://www.example.org/business/article55.html?foo&amp;bar</loc>' +
+      `<news:news>` +
+      '<news:publication><news:name>The Example Times&amp;&gt;&lt;"\'</news:name>' +
+      '<news:language>en&amp;&gt;&lt;"\'</news:language>' +
+      '</news:publication>' +
+      `<news:publication_date>${news.news.publication_date}</news:publication_date>` +
+      '<news:title>Companies A, B in Merger Talks&amp;&gt;&lt;"\'</news:title>' +
+      `</news:news></url>`)
     })
 
     it('supports access', () => {
       news.news.access = 'Registration'
       let smi = new SitemapItem(news)
 
-      expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name><![CDATA[${news.news.publication.name}]]></news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:access>${news.news.access}</news:access><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title><![CDATA[${news.news.title}]]></news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news></url>`)
+      expect(smi.toString()).toBe('<url>' +
+      '<loc>http://www.example.org/business/article55.html?foo&amp;bar</loc>' +
+      `<news:news>` +
+      '<news:publication><news:name>The Example Times&amp;&gt;&lt;"\'</news:name>' +
+      '<news:language>en&amp;&gt;&lt;"\'</news:language>' +
+      '</news:publication><news:access>Registration</news:access><news:genres>PressRelease, Blog&amp;&gt;&lt;"\'</news:genres>' +
+      `<news:publication_date>${news.news.publication_date}</news:publication_date>` +
+      '<news:title>Companies A, B in Merger Talks&amp;&gt;&lt;"\'</news:title>' +
+      '<news:keywords>business, merger, acquisition, A, B&amp;&gt;&lt;"\'</news:keywords>' +
+      '<news:stock_tickers>NASDAQ:A, NASDAQ:B&amp;&gt;&lt;"\'</news:stock_tickers>' +
+      `</news:news></url>`)
       news.news.access = 'Subscription'
       smi = new SitemapItem(news)
-      expect(smi.toString()).toBe(`<url><loc>${news.url}</loc><news:news><news:publication><news:name><![CDATA[${news.news.publication.name}]]></news:name><news:language>${news.news.publication.language}</news:language></news:publication><news:access>${news.news.access}</news:access><news:genres>${news.news.genres}</news:genres><news:publication_date>${news.news.publication_date}</news:publication_date><news:title><![CDATA[${news.news.title}]]></news:title><news:keywords>${news.news.keywords}</news:keywords><news:stock_tickers>${news.news.stock_tickers}</news:stock_tickers></news:news></url>`)
+      expect(smi.toString()).toBe('<url>' +
+      '<loc>http://www.example.org/business/article55.html?foo&amp;bar</loc>' +
+      `<news:news>` +
+      '<news:publication><news:name>The Example Times&amp;&gt;&lt;"\'</news:name>' +
+      '<news:language>en&amp;&gt;&lt;"\'</news:language>' +
+      '</news:publication><news:access>Subscription</news:access><news:genres>PressRelease, Blog&amp;&gt;&lt;"\'</news:genres>' +
+      `<news:publication_date>${news.news.publication_date}</news:publication_date>` +
+      '<news:title>Companies A, B in Merger Talks&amp;&gt;&lt;"\'</news:title>' +
+      '<news:keywords>business, merger, acquisition, A, B&amp;&gt;&lt;"\'</news:keywords>' +
+      '<news:stock_tickers>NASDAQ:A, NASDAQ:B&amp;&gt;&lt;"\'</news:stock_tickers>' +
+      `</news:news></url>`)
     })
   })
 })

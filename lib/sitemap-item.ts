@@ -12,6 +12,17 @@ import {
   validateSMIOptions
 } from './utils'
 
+/*
+function escape(str: string): string {
+  return str
+    .replace(/>/g, '&gt;')
+    .replace(/</g, '&lt;')
+    .replace(/'/g, '&apos;')
+    .replace(/"/g, '&quot;')
+    .replace(/&/g, '&amp;')
+}
+*/
+
 
 // eslint-disable-next-line
 interface IStringObj { [index: string]: any }
@@ -111,20 +122,20 @@ export class SitemapItem {
   buildVideoElement (video: IVideoItem): void {
     const videoxml = this.url.element('video:video')
 
-    videoxml.element('video:thumbnail_loc', video.thumbnail_loc)
-    videoxml.element('video:title').cdata(video.title)
-    videoxml.element('video:description').cdata(video.description)
+    videoxml.element('video:thumbnail_loc').text(video.thumbnail_loc)
+    videoxml.element('video:title').text(video.title)
+    videoxml.element('video:description').text(video.description)
     if (video.content_loc) {
-      videoxml.element('video:content_loc', video.content_loc)
+      videoxml.element('video:content_loc').text(video.content_loc)
     }
     if (video.player_loc) {
-      videoxml.element('video:player_loc', attrBuilder(video, 'player_loc:autoplay'), video.player_loc)
+      videoxml.element('video:player_loc', attrBuilder(video, 'player_loc:autoplay')).text(video.player_loc)
     }
     if (video.duration) {
       videoxml.element('video:duration', video.duration)
     }
     if (video.expiration_date) {
-      videoxml.element('video:expiration_date', video.expiration_date)
+      videoxml.element('video:expiration_date').text(video.expiration_date)
     }
     if (video.rating !== undefined) {
       videoxml.element('video:rating', video.rating)
@@ -133,56 +144,56 @@ export class SitemapItem {
       videoxml.element('video:view_count', video.view_count)
     }
     if (video.publication_date) {
-      videoxml.element('video:publication_date', video.publication_date)
+      videoxml.element('video:publication_date').text(video.publication_date)
     }
     for (const tag of video.tag) {
-      videoxml.element('video:tag', tag)
+      videoxml.element('video:tag').text(tag)
     }
     if (video.category) {
-      videoxml.element('video:category', video.category)
+      videoxml.element('video:category').text(video.category)
     }
     if (video.family_friendly) {
-      videoxml.element('video:family_friendly', video.family_friendly)
+      videoxml.element('video:family_friendly').text(video.family_friendly)
     }
     if (video.restriction) {
       videoxml.element(
         'video:restriction',
-        attrBuilder(video, 'restriction:relationship'),
+        attrBuilder(video, 'restriction:relationship')).text(
         video.restriction
       )
     }
     if (video.gallery_loc) {
       videoxml.element(
         'video:gallery_loc',
-        {title: video['gallery_loc:title']},
+        {title: video['gallery_loc:title']}).text(
         video.gallery_loc
       )
     }
     if (video.price) {
       videoxml.element(
         'video:price',
-        attrBuilder(video, ['price:resolution', 'price:currency', 'price:type']),
+        attrBuilder(video, ['price:resolution', 'price:currency', 'price:type'])).text(
         video.price
       )
     }
     if (video.requires_subscription) {
-      videoxml.element('video:requires_subscription', video.requires_subscription)
+      videoxml.element('video:requires_subscription').text(video.requires_subscription)
     }
     if (video.uploader) {
-      videoxml.element('video:uploader', video.uploader)
+      videoxml.element('video:uploader').text(video.uploader)
     }
     if (video.platform) {
       videoxml.element(
         'video:platform',
-        attrBuilder(video, 'platform:relationship'),
+        attrBuilder(video, 'platform:relationship')).text(
         video.platform
       )
     }
     if (video.live) {
-      videoxml.element('video:live', video.live)
+      videoxml.element('video:live').text(video.live)
     }
     if (video.id) {
-      videoxml.element('video:id', {type: 'url'}, video.id)
+      videoxml.element('video:id', {type: 'url'}).text(video.id)
     }
   }
 
@@ -209,20 +220,22 @@ export class SitemapItem {
       if (this.img && p === 'img') {
         // Image handling
         this.img.forEach((image): void => {
-          const xmlObj: {[index: string]: string|{'#cdata': string}} = {}
-          xmlObj['image:loc'] = image.url
+          const xmlObj: {
+            [index: string]: string | { "#cdata"?: string; "#text"?: string };
+          } = {};
+          xmlObj['image:loc'] = { '#text': image.url }
 
           if (image.caption) {
-            xmlObj['image:caption'] = {'#cdata': image.caption}
+            xmlObj['image:caption'] = { '#text': image.caption }
           }
           if (image.geoLocation) {
-            xmlObj['image:geo_location'] = image.geoLocation
+            xmlObj['image:geo_location'] = { '#text': image.geoLocation }
           }
           if (image.title) {
-            xmlObj['image:title'] = {'#cdata': image.title}
+            xmlObj['image:title'] = { '#text': image.title }
           }
           if (image.license) {
-            xmlObj['image:license'] = image.license
+            xmlObj['image:license'] = { '#text': image.license }
           }
 
           this.url.element({'image:image': xmlObj})
@@ -238,12 +251,12 @@ export class SitemapItem {
           }})
         })
       } else if (this.expires && p === 'expires') {
-        this.url.element('expires', new Date(this.expires).toISOString())
+        this.url.element('expires').text(new Date(this.expires).toISOString())
       } else if (this.androidLink && p === 'androidLink') {
         this.url.element('xhtml:link', {rel: 'alternate', href: this.androidLink})
       } else if (this.priority !== undefined && p === 'priority') {
         if (this.conf.fullPrecisionPriority) {
-          this.url.element(p, this.priority + '')
+          this.url.element(p).text(this.priority + '')
         } else {
           this.url.element(p, parseFloat(this.priority + '').toFixed(1))
         }
@@ -255,30 +268,30 @@ export class SitemapItem {
         if (this.news.publication) {
           const publication = newsitem.element('news:publication')
           if (this.news.publication.name) {
-            publication.element('news:name').cdata(this.news.publication.name)
+            publication.element('news:name').text(this.news.publication.name)
           }
           if (this.news.publication.language) {
-            publication.element('news:language', this.news.publication.language)
+            publication.element('news:language').text(this.news.publication.language)
           }
         }
 
         if (this.news.access) {
-          newsitem.element('news:access', this.news.access)
+          newsitem.element('news:access').text(this.news.access)
         }
 
         if (this.news.genres) {
-          newsitem.element('news:genres', this.news.genres)
+          newsitem.element('news:genres').text(this.news.genres)
         }
 
-        newsitem.element('news:publication_date', this.news.publication_date)
-        newsitem.element('news:title').cdata(this.news.title)
+        newsitem.element('news:publication_date').text(this.news.publication_date)
+        newsitem.element('news:title').text(this.news.title)
 
         if (this.news.keywords) {
-          newsitem.element('news:keywords', this.news.keywords)
+          newsitem.element('news:keywords').text(this.news.keywords)
         }
 
         if (this.news.stock_tickers) {
-          newsitem.element('news:stock_tickers', this.news.stock_tickers)
+          newsitem.element('news:stock_tickers').text(this.news.stock_tickers)
         }
       } else if (this.loc && p === 'loc' && this.conf.cdata) {
         this.url.element({
@@ -287,11 +300,11 @@ export class SitemapItem {
           }
         })
       } else if (this.loc && p === 'loc') {
-        this.url.element(p, this.loc)
+        this.url.element(p).text(this.loc)
       } else if (this.changefreq && p === 'changefreq') {
-        this.url.element(p, this.changefreq)
+        this.url.element(p).text(this.changefreq)
       } else if (this.lastmod && p === 'lastmod') {
-        this.url.element(p, this.lastmod)
+        this.url.element(p).text(this.lastmod)
       }
     }
 

@@ -31,8 +31,29 @@ const validators: {[index: string]: RegExp} = {
   'price:type': /^rent|purchase|RENT|PURCHASE$/,
   'price:resolution': /^HD|hd|sd|SD$/,
   'platform:relationship': allowDeny,
-  'restriction:relationship': allowDeny
+  'restriction:relationship': allowDeny,
+  'restriction': /^([A-Z]{2}( +[A-Z]{2})*)?$/,
+  'platform': /^((web|mobile|tv)( (web|mobile|tv))*)?$/,
+  'language': /^zh-cn|zh-tw|([a-z]{2,3})$/,
+  'genres': /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
+  'stock_tickers': /^(\w+:\w+(, *\w+:\w+){0,4})?$/,
 }
+
+function validate(subject: object, name: string, url: string, level: ErrorLevel): void {
+  Object.keys(subject).forEach((key): void => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore
+    const val = subject[key]
+    if (validators[key] && !validators[key].test(val)) {
+      if (level === ErrorLevel.THROW) {
+        throw new InvalidAttrValue(key, val, validators[key])
+      } else {
+        console.warn(`${url}: ${name} key ${key} has invalid value: ${val}`)
+      }
+    }
+  })
+}
+
 export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel.WARN): SitemapItemOptions {
   if (!conf) {
     throw new NoConfigError()
@@ -104,6 +125,9 @@ export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel
         console.warn(`${url}: missing required news property`)
       }
     }
+
+    validate(news, 'news', url, level)
+    validate(news.publication, 'publication', url, level)
   }
 
   if (video) {
@@ -142,18 +166,7 @@ export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel
         }
       }
 
-      Object.keys(vid).forEach((key): void => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore
-        const val = vid[key]
-        if (validators[key] && !validators[key].test(val)) {
-          if (level === ErrorLevel.THROW) {
-            throw new InvalidAttrValue(key, val, validators[key])
-          } else {
-            console.warn(`${url}: video key ${key} has invalid value: ${val}`)
-          }
-        }
-      })
+      validate(vid, 'video', url, level)
     })
   }
 
