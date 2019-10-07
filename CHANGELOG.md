@@ -1,15 +1,15 @@
 # 5.0.0
 ## Streams
-This release is heavily focused on converting the core methods of this library to use streams. Why? Overall its made the API ~20% faster and uses only 10% or less of the memory. Some tradeoffs had to be made as in their nature streams are operate on individual segements of data as opposed to the whole. For instance, the streaming interface does not support removal of sitemap items as it does not hold on to a sitemap item after its converted to XML. It should however be possible to create your own transform that filters out entries should you desire it. The existing synchronous interfaces will remain for this release at least. Do not be surprised if they go away in a future breaking release.
+This release is heavily focused on converting the core methods of this library to use streams. Why? Overall its made the API ~20% faster and uses only 10% or less of the memory. Some tradeoffs had to be made as in their nature streams are operate on individual segments of data as opposed to the whole. For instance, the streaming interface does not support removal of sitemap items as it does not hold on to a sitemap item after its converted to XML. It should however be possible to create your own transform that filters out entries should you desire it. The existing synchronous interfaces will remain for this release at least. Do not be surprised if they go away in a future breaking release.
 
 ## Sitemap Index
 This library interface has been overhauled to use streams internally. Although it would have been preferable to convert this to a stream as well, I could not think of an interface that wouldn't actually end up more complex or confusing. It may be altered in the near future to accept a stream in addition to a simple list.
 ## Misc
-- runnable examples, some pulled streaight from README have been added to the examples directory.
+- runnable examples, some pulled straight from README have been added to the examples directory.
 - createSitemapsIndex was renamed createSitemapsAndIndex to more accurately reflect its function. It now returns a promise that resolves to true or throws with an error.
 - You can now add to existing sitemap.xml files via the cli using `npx sitemap --prepend existingSitemap.xml < listOfNewURLs.json.txt`
 ## Breaking Changes
-- Dropped support for mobile sitemap - Google appears to have deleted their dtd and all references to it, strongly implying that they do not want you to use it. As its absense now breaks the validator, it has been dropped.
+- Dropped support for mobile sitemap - Google appears to have deleted their dtd and all references to it, strongly implying that they do not want you to use it. As its absence now breaks the validator, it has been dropped.
 - normalizeURL(url, XMLRoot, hostname) -> normalizeURL(url, hostname)
   - The second argument was unused and has been eliminated
 - Support for Node 8 dropped - Node 8 is reaching its EOL December 2019
