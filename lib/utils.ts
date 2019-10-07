@@ -22,6 +22,8 @@ import {
   NoConfigError,
   PriorityInvalidError
 } from './errors'
+import { Readable, Transform, PassThrough, ReadableOptions } from 'stream'
+import { createInterface, Interface } from 'readline';
 
 const allowDeny = /^allow|deny$/
 const validators: {[index: string]: RegExp} = {
@@ -29,8 +31,29 @@ const validators: {[index: string]: RegExp} = {
   'price:type': /^rent|purchase|RENT|PURCHASE$/,
   'price:resolution': /^HD|hd|sd|SD$/,
   'platform:relationship': allowDeny,
-  'restriction:relationship': allowDeny
+  'restriction:relationship': allowDeny,
+  'restriction': /^([A-Z]{2}( +[A-Z]{2})*)?$/,
+  'platform': /^((web|mobile|tv)( (web|mobile|tv))*)?$/,
+  'language': /^zh-cn|zh-tw|([a-z]{2,3})$/,
+  'genres': /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
+  'stock_tickers': /^(\w+:\w+(, *\w+:\w+){0,4})?$/,
 }
+
+function validate(subject: object, name: string, url: string, level: ErrorLevel): void {
+  Object.keys(subject).forEach((key): void => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore
+    const val = subject[key]
+    if (validators[key] && !validators[key].test(val)) {
+      if (level === ErrorLevel.THROW) {
+        throw new InvalidAttrValue(key, val, validators[key])
+      } else {
+        console.warn(`${url}: ${name} key ${key} has invalid value: ${val}`)
+      }
+    }
+  })
+}
+
 export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel.WARN): SitemapItemOptions {
   if (!conf) {
     throw new NoConfigError()
@@ -102,6 +125,9 @@ export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel
         console.warn(`${url}: missing required news property`)
       }
     }
+
+    validate(news, 'news', url, level)
+    validate(news.publication, 'publication', url, level)
   }
 
   if (video) {
@@ -140,22 +166,92 @@ export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel
         }
       }
 
-      Object.keys(vid).forEach((key): void => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore
-        const val = vid[key]
-        if (validators[key] && !validators[key].test(val)) {
-          if (level === ErrorLevel.THROW) {
-            throw new InvalidAttrValue(key, val, validators[key])
-          } else {
-            console.warn(`${url}: video key ${key} has invalid value: ${val}`)
-          }
-        }
-      })
+      validate(vid, 'video', url, level)
     })
   }
 
   return conf
+}
+
+/**
+ * Combines multiple streams into one
+ * @param streams the streams to combine
+ */
+export function mergeStreams (streams: Readable[]): Readable {
+  let pass = new PassThrough()
+  let waiting = streams.length
+  for (const stream of streams) {
+    pass = stream.pipe(pass, {end: false})
+    stream.once('end', () => --waiting === 0 && pass.emit('end'))
+  }
+  return pass
+}
+
+export interface IReadLineStreamOptions extends ReadableOptions {
+  input: Readable;
+}
+
+/**
+ * Wraps node's ReadLine in a stream
+ */
+export class ReadLineStream extends Readable {
+  private _source: Interface
+  constructor(options: IReadLineStreamOptions) {
+    if (options.autoDestroy === undefined) {
+      options.autoDestroy = true
+    }
+    options.objectMode = true
+    super(options);
+
+    this._source = createInterface({
+      input: options.input,
+      terminal: false,
+      crlfDelay: Infinity
+    });
+
+    // Every time there's data, push it into the internal buffer.
+    this._source.on('line', (chunk) => {
+      // If push() returns false, then stop reading from source.
+      if (!this.push(chunk))
+        this._source.pause();
+    });
+
+    // When the source ends, push the EOF-signaling `null` chunk.
+    this._source.on('close', () => {
+      this.push(null);
+    });
+  }
+
+  // _read() will be called when the stream wants to pull more data in.
+  // The advisory size argument is ignored in this case.
+  _read(size: number): void {
+    this._source.resume();
+  }
+}
+
+/**
+ * Takes a stream likely from fs.createReadStream('./path') and returns a stream
+ * of sitemap items
+ * @param stream a stream of line separated urls.
+ * @param opts
+ * @param opts.isJSON is the stream line separated JSON. leave undefined to guess
+ */
+export function lineSeparatedURLsToSitemapOptions(
+  stream: Readable,
+  { isJSON }: { isJSON?: boolean } = {}
+): Readable {
+  return new ReadLineStream({ input: stream }).pipe(
+    new Transform({
+      objectMode: true,
+      transform: (line, encoding, cb): void => {
+        if (isJSON || (isJSON === undefined && line[0] === "{")) {
+          cb(null, JSON.parse(line));
+        } else {
+          cb(null, line);
+        }
+      }
+    })
+  );
 }
 
 /**

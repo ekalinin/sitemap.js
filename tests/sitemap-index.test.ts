@@ -1,5 +1,5 @@
 import 'babel-polyfill'
-import { buildSitemapIndex, createSitemapIndex } from '../index'
+import { buildSitemapIndex, createSitemapsAndIndex } from '../index'
 import { tmpdir } from 'os'
 import { existsSync, unlinkSync } from 'fs'
 /* eslint-env jest, jasmine */
@@ -18,7 +18,6 @@ describe('sitemapIndex', () => {
   it('build sitemap index', () => {
     const expectedResult =
       xmlDef +
-      '<?xml-stylesheet type="text/xsl" href="https://test.com/style.xsl"?>' +
       '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
       '<sitemap>' +
       '<loc>https://test.com/s1.xml</loc>' +
@@ -29,8 +28,7 @@ describe('sitemapIndex', () => {
       '</sitemapindex>'
 
     const result = buildSitemapIndex({
-      urls: ['https://test.com/s1.xml', 'https://test.com/s2.xml'],
-      xslUrl: 'https://test.com/style.xsl'
+      urls: ['https://test.com/s1.xml', 'https://test.com/s2.xml']
     })
 
     expect(result).toBe(expectedResult)
@@ -119,90 +117,68 @@ describe('sitemapIndex', () => {
   })
 
   it('simple sitemap index', async () => {
-    const tmp = tmpdir()
+    const targetFolder = tmpdir()
     const url1 = 'http://ya.ru'
     const url2 = 'http://ya2.ru'
     const expectedFiles = [
-      tmp + '/sm-test-0.xml',
-      tmp + '/sm-test-1.xml',
-      tmp + '/sm-test-index.xml'
+      targetFolder + '/sm-test-0.xml',
+      targetFolder + '/sm-test-1.xml',
+      targetFolder + '/sm-test-index.xml'
     ]
 
-    expect(function() {
-      createSitemapIndex({
-        cacheTime: 600000,
+    try {
+      await createSitemapsAndIndex({
         hostname: 'https://www.sitemap.org',
         sitemapName: 'sm-test',
         sitemapSize: 1,
         targetFolder: '/tmp2',
-        urls: [url1, url2]
+        urls: [url1, url2],
+        gzip: false
       })
-    }).toThrowError(/Target folder must exist/)
+    } catch (e) {
+      expect(e.message).toMatch(/Target folder must exist/)
+    }
 
     // Cleanup before run test
     removeFilesArray(expectedFiles)
 
-    const [err, result] = await new Promise((resolve): void => {
-      createSitemapIndex({
-        cacheTime: 600000,
-        hostname: 'https://www.sitemap.org',
-        sitemapName: 'sm-test',
-        sitemapSize: 1,
-        targetFolder: tmp,
-        urls: [url1, url2],
-        callback: (error, result) => {
-          resolve([error, result])
-        }
-      })
+    const succeeded = await createSitemapsAndIndex({
+      hostname: 'https://www.sitemap.org',
+      sitemapName: 'sm-test',
+      sitemapSize: 1,
+      targetFolder,
+      urls: [url1, url2],
+      gzip: false
     })
 
-    expect(err).toBeFalsy()
-    expect(result).toBe(true)
+    expect(succeeded).toBe(true)
     expectedFiles.forEach(function(expectedFile) {
       expect(existsSync(expectedFile)).toBe(true)
     })
   })
 
-  it('sitemap without callback', () => {
-    createSitemapIndex({
-      cacheTime: 600000,
-      hostname: 'http://www.sitemap.org',
-      sitemapName: 'sm-test',
-      sitemapSize: 1,
-      targetFolder: tmpdir(),
-      urls: ['http://ya.ru', 'http://ya2.ru']
-    })
-  })
-
   it('sitemap with gzip files', async () => {
-    const tmp = tmpdir()
+    const targetFolder = tmpdir()
     const url1 = 'http://ya.ru'
     const url2 = 'http://ya2.ru'
     const expectedFiles = [
-      tmp + '/sm-test-0.xml.gz',
-      tmp + '/sm-test-1.xml.gz',
-      tmp + '/sm-test-index.xml'
+      targetFolder + '/sm-test-0.xml.gz',
+      targetFolder + '/sm-test-1.xml.gz',
+      targetFolder + '/sm-test-index.xml'
     ]
 
     // Cleanup before run test
     removeFilesArray(expectedFiles)
 
-    const [err, result] = await new Promise((resolve): void => {
-      createSitemapIndex({
-        cacheTime: 600000,
-        hostname: 'http://www.sitemap.org',
-        sitemapName: 'sm-test',
-        sitemapSize: 1,
-        targetFolder: tmp,
-        gzip: true,
-        urls: [url1, url2],
-        callback: (error, result) => {
-          resolve([error, result])
-        }
-      })
+    const succeeded = await createSitemapsAndIndex({
+      hostname: 'http://www.sitemap.org',
+      sitemapName: 'sm-test',
+      sitemapSize: 1,
+      targetFolder,
+      gzip: true,
+      urls: [url1, url2],
     })
-    expect(err).toBeFalsy()
-    expect(result).toBe(true)
+    expect(succeeded).toBe(true)
     expectedFiles.forEach(function(expectedFile) {
       expect(existsSync(expectedFile)).toBe(true)
     })

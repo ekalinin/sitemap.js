@@ -19,57 +19,117 @@
  *
  */
 'use strict'
+const { resolve } = require('path')
+const { createReadStream, readFileSync, createWriteStream } = require('fs')
+const {clearLine, cursorTo} = require('readline')
+const { finished } = require('stream')
+const { promisify } = require('util')
+const { createSitemap, lineSeparatedURLsToSitemapOptions, SitemapStream } = require('../dist/index')
+const finishedP = promisify(finished)
 
-const sm = require('../dist/index')
 
-const urls = require('./mocks/perf-data')
-const { performance } = require('perf_hooks')
 const stats = require('stats-lite')
-const [ runs = 20 ] = process.argv.slice(2)
-console.log('runs:', runs)
+let [ runs = 10, batchSize = 10, testName = 'stream', measureMemory = false ] = process.argv.slice(2)
+const unit = measureMemory ? "mb" : "ms";
+console.log('npm run test:perf -- [number of runs = 10] [batch size = 10] [stream(default)|combined] [measure peak memory = false]')
 
 function printPerf (label, data) {
-  console.error('========= ', label, ' =============')
-  console.error('mean: %s', stats.mean(data).toFixed(1))
-  console.error('median: %s', stats.median(data).toFixed(1))
-  console.error('variance: %s', stats.variance(data).toFixed(1))
-  console.error('standard deviation: %s', stats.stdev(data).toFixed(1))
-  console.error('90th percentile: %s', stats.percentile(data, 0.9).toFixed(1))
-  console.error('99th percentile: %s', stats.percentile(data, 0.99).toFixed(1))
+  resetLine()
+  console.log(`========= ${label} =============`)
+  console.log(`median: %s±%s${unit}`, stats.median(data).toFixed(1), stats.stdev(data).toFixed(1))
+  console.log(`99th percentile: %s${unit}\n`, stats.percentile(data, 0.99).toFixed(1))
+}
+function resetLine () {
+  clearLine(process.stderr, 0);
+  cursorTo(process.stderr, 0);
+}
+function spinner (i, runNum, duration) {
+  resetLine()
+  process.stdout.write(`${["|", "/", "-", "\\"][i % 4]}, ${duration.toFixed()}${unit} ${runNum}`);
 }
 
-function createSitemap (stream) {
-  return sm.createSitemap({
-    hostname: 'https://roosterteeth.com',
-    urls,
-    stream
-  })
+function delay (time) {
+  return new Promise (resolve =>
+    setTimeout(resolve, time)
+  )
 }
-console.error('testing sitemap creation w/o printing')
-const durations = []
-for (let i = 0; i < runs; i++) {
-  const start = performance.now()
-  createSitemap()
-  durations.push(performance.now() - start)
-}
-printPerf('sitemap creation', durations)
-console.error('testing toString')
-const sitemap = createSitemap()
 
-const syncToString = []
-for (let i = 0; i < runs; i++) {
-  const start = performance.now()
-  sitemap.toString()
-  syncToString.push(performance.now() - start)
+async function batch (durations, runNum, fn) {
+  for (let i = 0; i < batchSize; i++) {
+    let start = process.resourceUsage().userCPUTime
+    await fn()
+    let duration
+    if (measureMemory) {
+      duration = (process.resourceUsage().maxRSS / (1024 ** 2)) | 0
+    } else {
+      duration = ((process.resourceUsage().userCPUTime - start) / 1e3) | 0
+    }
+    durations.push(duration);
+    spinner(i, runNum, duration)
+  }
 }
-printPerf('sync', syncToString)
 
-// console.error('testing streaming')
-// sitemap = createSitemap(process.stdout)
-// let streamToString = []
-// for (let i = 0; i < runs; i++) {
-// let start = performance.now()
-// sitemap.toString()
-// streamToString.push(performance.now() - start)
-// }
-// printPerf('stream', streamToString)
+async function run (durations, runNum, fn) {
+  if (runNum < runs) {
+    await batch(durations, ++runNum, fn)
+    resetLine()
+    const batchStart = (runNum - 1) * batchSize
+    process.stdout.write(
+      `${stats
+        .median(durations.slice(batchStart, batchStart + batchSize))
+        .toFixed(0)}${unit} | ${stats.median(durations).toFixed(0)}${unit} sleeping`
+    );
+    await delay(2000)
+    return run(durations, runNum, fn);
+  } else {
+    return durations
+  }
+}
+
+async function testPerf (runs, batches, testName) {
+  console.log(`runs: ${runs} batches: ${batches} total: ${runs * batches}`)
+  switch (testName) {
+    case 'creation':
+      console.log('testing sitemap creation w/o printing')
+      printPerf(
+        "sitemap creation",
+        await run([], 0, () =>
+          createSitemap({
+            hostname: "https://roosterteeth.com",
+            urls: JSON.parse(readFileSync(resolve( __dirname, 'mocks', 'perf-data.json'), { encoding: 'utf8'}))
+          })
+        )
+      );
+      break;
+    case 'toString':
+      console.log("testing toString");
+      let sitemap = createSitemap({
+        hostname: "https://roosterteeth.com",
+        urls: JSON.parse(readFileSync(resolve( __dirname, 'mocks', 'perf-data.json'), { encoding: 'utf8'}))
+      });
+      printPerf("toString", await run([], 0, () => sitemap.toString()));
+      break;
+    case 'combined':
+      console.log("testing combined");
+      printPerf("combined", await run([], 0, () => createSitemap({
+        hostname: "https://roosterteeth.com",
+        urls: JSON.parse(readFileSync(resolve( __dirname, 'mocks', 'perf-data.json'), { encoding: 'utf8'}))
+      }).toString()));
+      break;
+    case 'stream':
+    default:
+      console.log("testing stream");
+      printPerf(
+        "stream",
+        await run([], 0, () => {
+          const ws = createWriteStream('/dev/null')
+          const rs = createReadStream(resolve(__dirname, 'mocks', 'perf-data.json.txt'))
+          lineSeparatedURLsToSitemapOptions(rs)
+            .pipe(new SitemapStream())
+            .pipe(ws);
+          return finishedP(rs)
+        })
+      );
+  }
+}
+testPerf(runs, batchSize, testName)

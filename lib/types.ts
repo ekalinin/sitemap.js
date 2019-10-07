@@ -119,7 +119,6 @@ interface ISitemapItemOptionsBase {
   news?: INewsItem;
   expires?: string;
   androidLink?: string;
-  mobile?: boolean | string;
   ampLink?: string;
   url: string;
   cdata?: boolean;

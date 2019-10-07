@@ -15,7 +15,6 @@ import * as testUtil from './util'
 const urlset = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
              'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" ' +
              'xmlns:xhtml="http://www.w3.org/1999/xhtml" ' +
-             'xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" ' +
              'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" ' +
              'xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">'
 
@@ -452,8 +451,8 @@ describe('sitemap', () => {
             '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
             '<video:video>' +
                 '<video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg</video:thumbnail_loc>' +
-                '<video:title><![CDATA[2008:E2 - Burnout Paradise: Millionaire\'s Club]]></video:title>' +
-                '<video:description><![CDATA[Jack gives us a walkthrough on getting the Millionaire\'s Club Achievement in Burnout Paradise.]]></video:description>' +
+                '<video:title>2008:E2 - Burnout Paradise: Millionaire\'s Club</video:title>' +
+                '<video:description>Jack gives us a walkthrough on getting the Millionaire\'s Club Achievement in Burnout Paradise.</video:description>' +
                 '<video:player_loc autoplay="ap=1">https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</video:player_loc>' +
                 '<video:duration>174</video:duration>' +
                 '<video:publication_date>2008-07-29T14:58:04.000Z</video:publication_date>' +
@@ -539,8 +538,8 @@ describe('sitemap', () => {
             '<loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc>' +
             '<video:video>' +
                 '<video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg?a&amp;b</video:thumbnail_loc>' +
-                '<video:title><![CDATA[2008:E2 - Burnout Paradise: Millionaire\'s Club]]></video:title>' +
-                '<video:description><![CDATA[Jack gives us a walkthrough on getting the Millionaire\'s Club Achievement in Burnout Paradise.]]></video:description>' +
+                '<video:title>2008:E2 - Burnout Paradise: Millionaire\'s Club</video:title>' +
+                '<video:description>Jack gives us a walkthrough on getting the Millionaire\'s Club Achievement in Burnout Paradise.</video:description>' +
                 '<video:player_loc>https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club?a&amp;b</video:player_loc>' +
                 '<video:duration>174</video:duration>' +
                 '<video:publication_date>2008-07-29T14:58:04.000Z</video:publication_date>' +

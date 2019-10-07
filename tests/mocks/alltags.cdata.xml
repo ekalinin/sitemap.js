@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://roosterteeth.com/episode/rouletsplay-2018-goldeneye-source&amp;%3E%3C'%22</loc>
+    <changefreq>weekly</changefreq>
+    <video:video>
+      <video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg&amp;&gt;&lt;'"</video:thumbnail_loc>
+      <video:title>
+        <![CDATA[2018:E6 - GoldenEye: Source&><'"]]>
+      </video:title>
+      <video:description>
+        <![CDATA[We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.&><'"]]>
+      </video:description>
+      <video:player_loc autoplay="ap=1&amp;>&lt;'&quot;">https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source&amp;&gt;&lt;'"</video:player_loc>
+      <video:duration>1208</video:duration>
+      <video:publication_date>2018-04-27T17:00:00.000Z</video:publication_date>
+      <video:tag>fruit&amp;&gt;&lt;'"</video:tag>
+      <video:tag>flies&amp;&gt;&lt;'"</video:tag>
+      <video:requires_subscription>YES</video:requires_subscription>
+      <video:id type="url">http://example.com/url&amp;&gt;&lt;'"</video:id>
+    </video:video>
+  </url>
+  <url>
+    <loc>https://roosterteeth.com/episode/let-s-play-2018-minecraft-episode-310&amp;%3E%3C'%22</loc>
+    <changefreq>weekly</changefreq>
+    <video:video>
+      <video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/store/f255cd83-3d69-4ee8-959a-ac01817fa204.jpg/sm/thumblpchompinglistv2.jpg&amp;&gt;&lt;'"</video:thumbnail_loc>
+      <video:title>
+        <![CDATA[2018:E90 - Minecraft - Episode 310 - Chomping List&><'"]]>
+      </video:title>
+      <video:description>
+        <![CDATA[Now that the gang's a bit more settled into Achievement Cove, it's time for a competition. Whoever collects the most unique food items by the end of the episode wins. The winner may even receive a certain golden tower.&><'"]]>
+      </video:description>
+      <video:player_loc>https://roosterteeth.com/embed/let-s-play-2018-minecraft-episode-310&amp;&gt;&lt;'"</video:player_loc>
+      <video:duration>3070</video:duration>
+      <video:expiration_date>2012-07-16T19:20:30+08:00</video:expiration_date>
+      <video:rating>2.5</video:rating>
+      <video:view_count>1000</video:view_count>
+      <video:publication_date>2018-04-27T14:00:00.000Z</video:publication_date>
+      <video:tag>steak&amp;&gt;&lt;'"</video:tag>
+      <video:category>Baking&amp;&gt;&lt;'"</video:category>
+      <video:family_friendly>no</video:family_friendly>
+      <video:restriction relationship="deny">IE GB US CA</video:restriction>
+      <video:gallery_loc title="awhu series page&amp;>&lt;'&quot;">https://roosterteeth.com/series/awhu&amp;&gt;&lt;'"</video:gallery_loc>
+      <video:price resolution="HD" currency="USD" type="rent">1.99</video:price>
+      <video:requires_subscription>no</video:requires_subscription>
+      <video:uploader>GrillyMcGrillerson&amp;&gt;&lt;'"</video:uploader>
+      <video:platform relationship="allow">tv</video:platform>
+      <video:live>no</video:live>
+    </video:video>
+  </url>
+  <url>
+    <loc>https://roosterteeth.com/episode/let-s-watch-2018-house-party-part-2</loc>
+    <lastmod>2016-09-12T00:00:00.000Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+    <video:video>
+      <video:thumbnail_loc>https://rtv3-img-roosterteeth.akamaized.net/store/9dd9681a-0557-45fe-86b3-b662c91bbae7.jpg/sm/thumblwhouseparty2v4.jpg&amp;&gt;&lt;'"</video:thumbnail_loc>
+      <video:title>
+        <![CDATA[2018:E10 - House Party - Part 2 (Uncensored)&><'"]]>
+      </video:title>
+      <video:description>
+        <![CDATA[Achievement Hunter's House Party quest for some one-night intimacy continues. Can they use Ashley and Madison's sibling rivalry for their own dubious gains?&><'"]]>
+      </video:description>
+      <video:player_loc>https://roosterteeth.com/embed/let-s-watch-2018-house-party-part-2&amp;&gt;&lt;'"</video:player_loc>
+      <video:duration>2422</video:duration>
+      <video:publication_date>2018-04-26T17:00:00.000Z</video:publication_date>
+      <video:requires_subscription>no</video:requires_subscription>
+    </video:video>
+    <xhtml:link rel="alternate" hreflang="en" href="http://test.com/page-1/&amp;%3E%3C'%22"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="http://test.com/page-1/ja/&amp;%3E%3C'%22"/>
+    <xhtml:link rel="alternate" href="android-app://com.company.test/page-1/&amp;>&lt;'&quot;"/>
+    <xhtml:link rel="amphtml" href="http://ampproject.org/article.amp.html&amp;>&lt;'&quot;"/>
+  </url>
+  <url>
+    <loc>http://www.example.org/business/article55.html&amp;%3E%3C'%22</loc>
+    <lastmod>2015-06-27T15:30:00.000Z</lastmod>
+    <news:news>
+      <news:publication>
+        <news:name>
+          <![CDATA[The Example Times&><'"]]>
+        </news:name>
+        <news:language>en</news:language>
+      </news:publication>
+      <news:access>Registration</news:access>
+      <news:genres>PressRelease, Blog</news:genres>
+      <news:publication_date>2008-12-23</news:publication_date>
+      <news:title>
+        <![CDATA[Companies A, B in Merger Talks&><'"]]>
+      </news:title>
+      <news:keywords>business, merger, acquisition, A, B&amp;&gt;&lt;'"</news:keywords>
+      <news:stock_tickers>NASDAQ:A, NASDAQ:B</news:stock_tickers>
+    </news:news>
+  </url>
+  <url>
+    <loc>http://example.com/2&amp;%3E%3C'%22</loc>
+    <lastmod>2011-06-27T00:00:00.000Z</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>http://test.com/img1.jpg&amp;%3E%3C'%22</image:loc>
+      <image:caption>
+        <![CDATA[An image&><'"]]>
+      </image:caption>
+      <image:geo_location>London, United Kingdom&amp;&gt;&lt;'"</image:geo_location>
+      <image:title>
+        <![CDATA[The Title of Image One&><'"]]>
+      </image:title>
+      <image:license>https://creativecommons.org/licenses/by/4.0/&amp;&gt;&lt;'"</image:license>
+    </image:image>
+    <image:image>
+      <image:loc>http://test.com/img2.jpg&amp;%3E%3C'%22</image:loc>
+      <image:caption>
+        <![CDATA[Another image&><'"]]>
+      </image:caption>
+      <image:geo_location>London, United Kingdom&amp;&gt;&lt;'"</image:geo_location>
+      <image:title>
+        <![CDATA[The Title of Image Two&><'"]]>
+      </image:title>
+      <image:license>https://creativecommons.org/licenses/by/4.0/&amp;&gt;&lt;'"</image:license>
+    </image:image>
+  </url>
+  <url>
+    <loc>http://example.com/1&amp;%3E%3C'%22</loc>
+    <lastmod>2011-06-27T00:00:00.000Z</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>http://urltest.com&amp;&gt;&lt;'"/</image:loc>
+    </image:image>
+    <image:image>
+      <image:loc>http://example.com/img.jpg&amp;%3E%3C'%22</image:loc>
+    </image:image>
+  </url>
+  <url>
+    <loc>http://example.com&amp;&gt;&lt;'"/</loc>
+    <lastmod>2011-06-27T00:00:00.000Z</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>http://urltest.com&amp;&gt;&lt;'"/</image:loc>
+    </image:image>
+  </url>
+</urlset>

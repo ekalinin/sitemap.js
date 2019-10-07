@@ -23,7 +23,6 @@ jest.mock('../lib/sitemap-item')
 const urlset = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" ' +
              'xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" ' +
              'xmlns:xhtml="http://www.w3.org/1999/xhtml" ' +
-             'xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" ' +
              'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" ' +
              'xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">'
 
@@ -106,11 +105,11 @@ describe('sitemap', () => {
 
   describe('normalizeURL', () => {
     it('turns strings into full urls', () => {
-      expect(Sitemap.normalizeURL('http://example.com', create('urlset'))).toHaveProperty('url', 'http://example.com/')
+      expect(Sitemap.normalizeURL('http://example.com')).toHaveProperty('url', 'http://example.com/')
     })
 
     it('prepends paths with the provided hostname', () => {
-      expect(Sitemap.normalizeURL('/', create('urlset'), 'http://example.com')).toHaveProperty('url', 'http://example.com/')
+      expect(Sitemap.normalizeURL('/', 'http://example.com')).toHaveProperty('url', 'http://example.com/')
     })
 
     it('turns img prop provided as string into array of object', () => {
@@ -118,7 +117,7 @@ describe('sitemap', () => {
         url: 'http://example.com',
         img: 'http://example.com/img'
       }
-      expect(Sitemap.normalizeURL(url, create('urlset')).img[0]).toHaveProperty('url', 'http://example.com/img')
+      expect(Sitemap.normalizeURL(url).img[0]).toHaveProperty('url', 'http://example.com/img')
     })
 
     it('turns img prop provided as object into array of object', () => {
@@ -126,8 +125,8 @@ describe('sitemap', () => {
         url: 'http://example.com',
         img: {url: 'http://example.com/img', title: 'some thing'}
       }
-      expect(Sitemap.normalizeURL(url, create('urlset')).img[0]).toHaveProperty('url', 'http://example.com/img')
-      expect(Sitemap.normalizeURL(url, create('urlset')).img[0]).toHaveProperty('title', 'some thing')
+      expect(Sitemap.normalizeURL(url).img[0]).toHaveProperty('url', 'http://example.com/img')
+      expect(Sitemap.normalizeURL(url).img[0]).toHaveProperty('title', 'some thing')
     })
 
     it('turns img prop provided as array of strings into array of object', () => {
@@ -135,8 +134,8 @@ describe('sitemap', () => {
         url: 'http://example.com',
         img: ['http://example.com/img', '/img2']
       }
-      expect(Sitemap.normalizeURL(url, create('urlset'), 'http://example.com/').img[0]).toHaveProperty('url', 'http://example.com/img')
-      expect(Sitemap.normalizeURL(url, create('urlset'), 'http://example.com/').img[1]).toHaveProperty('url', 'http://example.com/img2')
+      expect(Sitemap.normalizeURL(url, 'http://example.com/').img[0]).toHaveProperty('url', 'http://example.com/img')
+      expect(Sitemap.normalizeURL(url, 'http://example.com/').img[1]).toHaveProperty('url', 'http://example.com/img2')
     })
 
     it('handles a valid img prop without transformation', () => {
@@ -152,7 +151,7 @@ describe('sitemap', () => {
           }
         ]
       };
-      const normal = Sitemap.normalizeURL(url, create('urlset'), 'http://example.com/').img[0]
+      const normal = Sitemap.normalizeURL(url, 'http://example.com/').img[0]
       expect(normal).toHaveProperty('url', 'http://test.com/img2.jpg')
       expect(normal).toHaveProperty('caption', "Another image")
       expect(normal).toHaveProperty('title', "The Title of Image Two")
@@ -164,11 +163,11 @@ describe('sitemap', () => {
       const url = {
         url: 'http://example.com'
       }
-      expect(Array.isArray(Sitemap.normalizeURL(url, create('urlset')).img)).toBeTruthy()
+      expect(Array.isArray(Sitemap.normalizeURL(url).img)).toBeTruthy()
     })
 
     it('ensures links is always an array', () => {
-      expect(Array.isArray(Sitemap.normalizeURL('http://example.com', create('urlset')).links)).toBeTruthy()
+      expect(Array.isArray(Sitemap.normalizeURL('http://example.com').links)).toBeTruthy()
     })
 
     it('prepends provided hostname to links', () => {
@@ -176,17 +175,17 @@ describe('sitemap', () => {
         url: 'http://example.com',
         links: [ {url: '/lang', lang: 'en-us'} ]
       }
-      expect(Sitemap.normalizeURL(url, create('urlset'), 'http://example.com').links[0]).toHaveProperty('url', 'http://example.com/lang')
+      expect(Sitemap.normalizeURL(url, 'http://example.com').links[0]).toHaveProperty('url', 'http://example.com/lang')
     })
 
     describe('video', () => {
       it('is ensured to be an array', () => {
-        expect(Array.isArray(Sitemap.normalizeURL('http://example.com', create('urlset')).video)).toBeTruthy()
+        expect(Array.isArray(Sitemap.normalizeURL('http://example.com').video)).toBeTruthy()
         const url = {
           url: 'http://example.com',
           video: {thumbnail_loc: 'foo', title: '', description: ''}
         }
-        expect(Sitemap.normalizeURL(url, create('urlset')).video[0]).toHaveProperty('thumbnail_loc', 'foo')
+        expect(Sitemap.normalizeURL(url).video[0]).toHaveProperty('thumbnail_loc', 'foo')
       })
 
       it('turns boolean-like props into yes/no', () => {
@@ -227,7 +226,7 @@ describe('sitemap', () => {
             }
           ]
         }
-        const smv = Sitemap.normalizeURL(url, create('urlset')).video
+        const smv = Sitemap.normalizeURL(url).video
         expect(smv[0]).toHaveProperty('family_friendly', 'no')
         expect(smv[0]).toHaveProperty('live', 'no')
         expect(smv[0]).toHaveProperty('requires_subscription', 'no')
@@ -247,7 +246,7 @@ describe('sitemap', () => {
           url: 'http://example.com',
           video: {thumbnail_loc: 'foo', title: '', description: ''}
         }
-        expect(Sitemap.normalizeURL(url, create('urlset')).video[0]).toHaveProperty('tag', [])
+        expect(Sitemap.normalizeURL(url).video[0]).toHaveProperty('tag', [])
         url = {
           url: 'http://example.com',
           video: [
@@ -265,8 +264,8 @@ describe('sitemap', () => {
             }
           ]
         }
-        expect(Sitemap.normalizeURL(url, create('urlset')).video[0]).toHaveProperty('tag', ['fizz'])
-        expect(Sitemap.normalizeURL(url, create('urlset')).video[1]).toHaveProperty('tag', ['bazz'])
+        expect(Sitemap.normalizeURL(url).video[0]).toHaveProperty('tag', ['fizz'])
+        expect(Sitemap.normalizeURL(url).video[1]).toHaveProperty('tag', ['bazz'])
       })
 
       it('ensures rating is always a number', () => {
@@ -287,8 +286,8 @@ describe('sitemap', () => {
             }
           ]
         }
-        expect(Sitemap.normalizeURL(url, create('urlset')).video[0]).toHaveProperty('rating', 5)
-        expect(Sitemap.normalizeURL(url, create('urlset')).video[1]).toHaveProperty('rating', 4)
+        expect(Sitemap.normalizeURL(url).video[0]).toHaveProperty('rating', 5)
+        expect(Sitemap.normalizeURL(url).video[1]).toHaveProperty('rating', 4)
       })
     })
 

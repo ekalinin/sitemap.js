@@ -1,12 +1,12 @@
-const { createSitemap }= require('../dist/index')
+const { createSitemap, Sitemap, validateSMIOptions }= require('../dist/index')
 
 const config = require('./mocks/sampleconfig.json')
 console.log(createSitemap(config).toString(true))
 /*
 let urls = []
 config.urls.forEach((smi) => {
-  urls.push(Sitemap.normalizeURL(smi, undefined, 'https://roosterteeth.com'))
+  urls.push(validateSMIOptions(Sitemap.normalizeURL(smi, 'https://roosterteeth.com')))
 })
 config.urls = urls
-  console.log(JSON.stringify(config))
+  console.log(JSON.stringify(config, null, 2))
   */

@@ -19,6 +19,7 @@ import { gzip, gzipSync, CompressCallback } from 'zlib';
 import { URL } from 'url'
 import { statSync } from 'fs';
 import { validateSMIOptions } from './utils';
+import { preamble, closetag } from './sitemap-stream';
 
 function boolToYESNO (bool?: boolean | EnumYesNo): EnumYesNo|undefined {
   if (bool === undefined) {
@@ -39,38 +40,6 @@ export interface ISitemapOptions {
   level?: ErrorLevel;
 }
 
-/**
- * Shortcut for `new Sitemap (...)`.
- *
- * @param   {Object}        conf
- * @param   {String}        conf.hostname
- * @param   {String|Array}  conf.urls
- * @param   {Number}        conf.cacheTime
- * @param   {String}        conf.xslUrl
- * @param   {String}        conf.xmlNs
- * @param   {ErrorLevel} [level=ErrorLevel.WARN]    level            optional
- * @return  {Sitemap}
- */
-export function createSitemap({
-  urls,
-  hostname,
-  cacheTime,
-  xslUrl,
-  xmlNs,
-  level
-}: ISitemapOptions): Sitemap {
-  // cleaner diff
-  // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  return new Sitemap({
-    urls,
-    hostname,
-    cacheTime,
-    xslUrl,
-    xmlNs,
-    level
-  });
-}
-
 export class Sitemap {
   // This limit is defined by Google. See:
   // https://sitemaps.org/protocol.php#index
@@ -87,6 +56,8 @@ export class Sitemap {
 
   /**
    * Sitemap constructor
+   * @deprecated This API will go away in the next major release - use streamToPromise
+   * & SitemapStream
    * @param {String|Array}  urls
    * @param {String}        hostname    optional
    * @param {Number} [cacheTime=0]       cacheTime   optional in milliseconds; 0 - cache disabled
@@ -124,7 +95,7 @@ export class Sitemap {
     }
 
     urls = Array.from(urls)
-    this.urls = Sitemap.normalizeURLs(urls, this.root, this.hostname)
+    this.urls = Sitemap.normalizeURLs(urls, this.hostname)
     for (const [, url] of this.urls) {
       validateSMIOptions(url, level)
     }
@@ -160,7 +131,7 @@ export class Sitemap {
   }
 
   private _normalizeURL(url: string | ISitemapItemOptionsLoose): SitemapItemOptions {
-    return Sitemap.normalizeURL(url, this.root, this.hostname)
+    return Sitemap.normalizeURL(url, this.hostname)
   }
 
   /**
@@ -204,11 +175,10 @@ export class Sitemap {
   /**
    * Converts the passed in sitemap entry into one capable of being consumed by SitemapItem
    * @param {string | ISitemapItemOptionsLoose} elem the string or object to be converted
-   * @param {XMLElement=} root xmlbuilder root object. Pass undefined here
    * @param {string} hostname
    * @returns SitemapItemOptions a strict sitemap item option
    */
-  static normalizeURL (elem: string | ISitemapItemOptionsLoose, root?: XMLElement, hostname?: string): SitemapItemOptions {
+  static normalizeURL (elem: string | ISitemapItemOptionsLoose, hostname?: string): SitemapItemOptions {
     // SitemapItem
     // create object with url property
     let smi: SitemapItemOptions = {
@@ -301,6 +271,8 @@ export class Sitemap {
     } else if (smiLoose.lastmod) {
       smi.lastmod = (new Date(smiLoose.lastmod)).toISOString()
     }
+    delete smiLoose.lastmodfile
+    delete smiLoose.lastmodISO
 
     smi = {...smiLoose, ...smi}
     return smi
@@ -309,14 +281,13 @@ export class Sitemap {
   /**
    * Normalize multiple urls
    * @param {(string | ISitemapItemOptionsLoose)[]} urls array of urls to be normalized
-   * @param {XMLElement=} root xmlbuilder root object. Pass undefined here
    * @param {string=} hostname
    * @returns a Map of url to SitemapItemOption
    */
-  static normalizeURLs (urls: (string | ISitemapItemOptionsLoose)[], root?: XMLElement, hostname?: string): Map<string, SitemapItemOptions> {
+  static normalizeURLs (urls: (string | ISitemapItemOptionsLoose)[], hostname?: string): Map<string, SitemapItemOptions> {
     const urlMap = new Map<string, SitemapItemOptions>()
     urls.forEach((elem): void => {
-      const smio = Sitemap.normalizeURL(elem, root, hostname)
+      const smio = Sitemap.normalizeURL(elem, hostname)
       urlMap.set(smio.url, smio)
     })
     return urlMap
@@ -329,6 +300,19 @@ export class Sitemap {
    *  @return {String}
    */
   toString (pretty = false): string {
+    if (this.isCacheValid()) {
+      return this.cache;
+    }
+
+    if (this.urls && !this.xslUrl && !this.xmlNs && !pretty) {
+      let xml = preamble
+      this.urls.forEach((url): void => {
+        xml += SitemapItem.justItem(url)
+      });
+      xml += closetag
+      return this.setCache(xml)
+    }
+
     if (this.root.children.length) {
       this.root.children = []
     }
@@ -336,7 +320,6 @@ export class Sitemap {
       this.root.att('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9')
       this.root.att('xmlns:news', 'http://www.google.com/schemas/sitemap-news/0.9')
       this.root.att('xmlns:xhtml', 'http://www.w3.org/1999/xhtml')
-      this.root.att('xmlns:mobile', 'http://www.google.com/schemas/sitemap-mobile/1.0')
       this.root.att('xmlns:image', 'http://www.google.com/schemas/sitemap-image/1.1')
       this.root.att('xmlns:video', 'http://www.google.com/schemas/sitemap-video/1.1')
     }
@@ -345,12 +328,7 @@ export class Sitemap {
       this.root.instructionBefore('xml-stylesheet', `type="text/xsl" href="${this.xslUrl}"`)
     }
 
-    if (this.isCacheValid()) {
-      return this.cache;
-    }
-
     // TODO: if size > limit: create sitemapindex
-
     for (const [, smi] of this.urls) {
       (new SitemapItem(smi, this.root)).buildXML()
     }
@@ -377,4 +355,34 @@ export class Sitemap {
       return gzipSync(this.toString());
     }
   }
+}
+
+/**
+ * Shortcut for `new Sitemap (...)`.
+ *
+ * @param   {Object}        conf
+ * @param   {String}        conf.hostname
+ * @param   {String|Array}  conf.urls
+ * @param   {Number}        conf.cacheTime
+ * @param   {String}        conf.xslUrl
+ * @param   {String}        conf.xmlNs
+ * @param   {ErrorLevel} [level=ErrorLevel.WARN]    level            optional
+ * @return  {Sitemap}
+ */
+export function createSitemap({
+  urls,
+  hostname,
+  cacheTime,
+  xslUrl,
+  xmlNs,
+  level
+}: ISitemapOptions): Sitemap {
+  return new Sitemap({
+    urls,
+    hostname,
+    cacheTime,
+    xslUrl,
+    xmlNs,
+    level
+  });
 }

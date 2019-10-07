@@ -67,3 +67,5 @@ babel.config.js
 urls.txt
 stream-write.js
 toflat.js
+*.map
+examples/
