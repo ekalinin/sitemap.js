@@ -4,7 +4,6 @@ import defaultexport, {
   Sitemap,
   SitemapItem,
   buildSitemapIndex,
-  createSitemapIndex,
   createSitemapsAndIndex,
   xmlLint,
   parseSitemap,
@@ -41,7 +40,6 @@ describe('sitemap shape', () => {
     expect(InvalidAttrValue).toBeDefined()
     expect(SitemapItem).toBeDefined()
     expect(buildSitemapIndex).toBeDefined()
-    expect(createSitemapIndex).toBeDefined()
     expect(createSitemapsAndIndex).toBeDefined()
     expect(parseSitemap).toBeDefined()
     expect(xmlLint).toBeDefined()

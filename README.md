@@ -23,7 +23,7 @@ Table of Contents
     * [Building just the sitemap index file](#building-just-the-sitemap-index-file)
     * [Auto creating sitemap and index files from one large list](#auto-creating-sitemap-and-index-files-from-one-large-list)
   * [API](#api)
-    * [Sitemap](#sitemap)
+    * [Sitemap (deprecated)](#sitemap---deprecated)
     * [buildSitemapIndex](#buildsitemapindex)
     * [createSitemapsAndIndex](#createsitemapsandindex)
     * [xmlLint](#xmllint)
@@ -269,14 +269,12 @@ const smi = createSitemapsAndIndex({
   sitemapSize: 1,
   targetFolder: require('os').tmpdir(),
   urls: ['http://ya.ru', 'http://ya2.ru']
-  // optional:
-  // callback: function(err, result) {}
 })
 ```
 
 ## API 
 
-### Sitemap
+### Sitemap - __deprecated__
 
 ```js
 const { Sitemap } = require('sitemap')
@@ -379,9 +377,7 @@ createSitemapsAndIndex(createsitemapsandindex: [/* list of urls */],
   cacheTime: 600,
   sitemapName: 'sitemap',
   sitemapSize: 50000, // number of urls to allow in each sitemap
-  xslUrl: '', // custom xsl url
-  gzip: false, // whether to gzip the files
-  callback: // called when complete
+  gzip: true, // whether to gzip the files
 })
 ```
 

@@ -144,5 +144,3 @@ export async function createSitemapsAndIndex ({
     ...smPromises
   ]).then(() => true)
 }
-
-export { createSitemapsAndIndex as createSitemapIndex }

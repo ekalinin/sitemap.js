@@ -6,7 +6,7 @@ This release is heavily focused on converting the core methods of this library t
 This library interface has been overhauled to use streams internally. Although it would have been preferable to convert this to a stream as well, I could not think of an interface that wouldn't actually end up more complex or confusing. It may be altered in the near future to accept a stream in addition to a simple list.
 ## Misc
 - runnable examples, some pulled streaight from README have been added to the examples directory.
-- createSitemapsIndex was renamed createSitemapsAndIndex to more accurately reflect its function. The old name still works.
+- createSitemapsIndex was renamed createSitemapsAndIndex to more accurately reflect its function. It now returns a promise that resolves to true or throws with an error.
 - You can now add to existing sitemap.xml files via the cli using `npx sitemap --prepend existingSitemap.xml < listOfNewURLs.json.txt`
 ## Breaking Changes
 - Dropped support for mobile sitemap - Google appears to have deleted their dtd and all references to it, strongly implying that they do not want you to use it. As its absense now breaks the validator, it has been dropped.

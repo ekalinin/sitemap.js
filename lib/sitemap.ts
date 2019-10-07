@@ -56,6 +56,8 @@ export class Sitemap {
 
   /**
    * Sitemap constructor
+   * @deprecated This API will go away in the next major release - use streamToPromise
+   * & SitemapStream
    * @param {String|Array}  urls
    * @param {String}        hostname    optional
    * @param {Number} [cacheTime=0]       cacheTime   optional in milliseconds; 0 - cache disabled
