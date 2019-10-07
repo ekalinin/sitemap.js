@@ -1,4 +1,4 @@
-# master
+# 5.0.0
 ## Streams
 This release is heavily focused on converting the core methods of this library to use streams. Why? Overall its made the API ~20% faster and uses only 10% or less of the memory. Some tradeoffs had to be made as in their nature streams are operate on individual segements of data as opposed to the whole. For instance, the streaming interface does not support removal of sitemap items as it does not hold on to a sitemap item after its converted to XML. It should however be possible to create your own transform that filters out entries should you desire it. The existing synchronous interfaces will remain for this release at least. Do not be surprised if they go away in a future breaking release.
 
