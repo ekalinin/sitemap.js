@@ -6,7 +6,6 @@ import { XMLLintUnavailable } from './lib/errors'
 import { ObjectStreamToJSON, XMLToISitemapOptions } from './lib/sitemap-parser'
 import { lineSeparatedURLsToSitemapOptions, mergeStreams } from './lib/utils';
 import { SitemapStream } from './lib/sitemap-stream'
-console.warn('CLI is new and likely to change quite a bit. Please send feature/bug requests to https://github.com/ekalinin/sitemap.js/issues')
 /* eslint-disable-next-line @typescript-eslint/no-var-requires */
 const arg = require('arg')
 

@@ -12,18 +12,6 @@ import {
   validateSMIOptions
 } from './utils'
 
-/*
-function escape(str: string): string {
-  return str
-    .replace(/>/g, '&gt;')
-    .replace(/</g, '&lt;')
-    .replace(/'/g, '&apos;')
-    .replace(/"/g, '&quot;')
-    .replace(/&/g, '&amp;')
-}
-*/
-
-
 // eslint-disable-next-line
 interface IStringObj { [index: string]: any }
 function attrBuilder (conf: IStringObj, keys: string | string[]): object {

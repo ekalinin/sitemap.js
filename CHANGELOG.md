@@ -9,6 +9,7 @@ This library interface has been overhauled to use streams internally. Although i
 - createSitemapsIndex was renamed createSitemapsAndIndex to more accurately reflect its function. The old name still works.
 - You can now add to existing sitemap.xml files via the cli using `npx sitemap --prepend existingSitemap.xml < listOfNewURLs.json.txt`
 ## Breaking Changes
+- Dropped support for mobile sitemap - Google appears to have deleted their dtd and all references to it, strongly implying that they do not want you to use it. As its absense now breaks the validator, it has been dropped.
 - normalizeURL(url, XMLRoot, hostname) -> normalizeURL(url, hostname)
   - The second argument was unused and has been eliminated
 - Support for Node 8 dropped - Node 8 is reaching its EOL December 2019
