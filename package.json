@@ -124,7 +124,7 @@
     "@types/sax": "^1.2.0",
     "arg": "^4.1.1",
     "sax": "^1.2.4",
-    "xmlbuilder": "^13.0.0"
+    "xmlbuilder": "^13.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",
