@@ -98,17 +98,18 @@ app.get('/sitemap.xml', function(req, res) {
   }
   try {
     const smStream = new SitemapStream({ hostname: 'https://example.com/' })
-    .pipe(createGzip())
+    const pipeline = smStream.pipe(createGzip())
 
     smStream.write({ url: '/page-1/',  changefreq: 'daily', priority: 0.3 })
     smStream.write({ url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 })
     smStream.write({ url: '/page-3/'})    // changefreq: 'weekly',  priority: 0.5
     smStream.write({ url: '/page-4/',   img: "http://urlTest.com" })
+    smStream.end()
 
     // cache the response
-    streamToPromise(gzippedStream).then(sm => sitemap = sm)
+    streamToPromise(pipeline).then(sm => sitemap = sm)
     // stream the response
-    gzippedStream.pipe(res).on('error', (e) => {throw e})
+    pipeline.pipe(res).on('error', (e) => {throw e})
   } catch (e) {
     console.error(e)
     res.status(500).end()
