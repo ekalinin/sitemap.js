@@ -371,8 +371,9 @@ const index = buildSitemapIndex({
 ### createSitemapsAndIndex
 Create several sitemaps and an index automatically from a list of urls
 ```js
-const { createSitemapsAndIndex } createsitemapsandindex('sitemap')
-createSitemapsAndIndex(createsitemapsandindex: [/* list of urls */],
+const { createSitemapsAndIndex } = require('sitemap')
+createSitemapsAndIndex({
+  urls: [/* list of urls */],
   targetFolder: 'absolute path to target folder',
   hostname: 'http://example.com',
   cacheTime: 600,
