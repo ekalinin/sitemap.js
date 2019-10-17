@@ -1,22 +1,25 @@
-import { SitemapItem } from './sitemap-item';
 import { ISitemapItemOptionsLoose, ErrorLevel } from './types';
 import { Transform, TransformOptions, TransformCallback, Readable, Writable } from 'stream';
 import { ISitemapOptions, Sitemap } from './sitemap';
+import { validateSMIOptions } from './utils'
+import { SitemapItemStream } from './sitemap-item'
 export const preamble = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">';
 export const closetag = '</urlset>';
 export interface ISitemapStreamOpts extends TransformOptions, Pick<ISitemapOptions, 'hostname' | 'level'> {
 }
-const defaultStreamOpts: ISitemapStreamOpts = {};
 export class SitemapStream extends Transform {
   hostname?: string;
   level: ErrorLevel;
   hasHeadOutput: boolean;
-  constructor(opts = defaultStreamOpts) {
+  private smiStream: SitemapItemStream;
+  constructor(opts: ISitemapStreamOpts = {}) {
     opts.objectMode = true;
     super(opts);
     this.hasHeadOutput = false;
     this.hostname = opts.hostname;
     this.level = opts.level || ErrorLevel.WARN;
+    this.smiStream = new SitemapItemStream({ level: opts.level })
+    this.smiStream.on('data', (data) => this.push(data))
   }
 
   _transform(item: ISitemapItemOptionsLoose, encoding: string, callback: TransformCallback): void {
@@ -24,7 +27,7 @@ export class SitemapStream extends Transform {
       this.hasHeadOutput = true;
       this.push(preamble);
     }
-    this.push(SitemapItem.justItem(Sitemap.normalizeURL(item, this.hostname), this.level));
+    this.smiStream.write(validateSMIOptions(Sitemap.normalizeURL(item, this.hostname)), this.level)
     callback();
   }
 
