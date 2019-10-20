@@ -1,5 +1,5 @@
 import 'babel-polyfill'
-import defaultexport, {
+import {
   buildSitemapIndex,
   createSitemapsAndIndex,
   xmlLint,

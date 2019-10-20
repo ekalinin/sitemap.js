@@ -25,73 +25,76 @@ import {
   InvalidVideoRating,
   NoURLError,
   NoConfigError,
-  PriorityInvalidError
-} from './errors'
-import { Readable, Transform, PassThrough, ReadableOptions } from 'stream'
+  PriorityInvalidError,
+} from './errors';
+import { Readable, Transform, PassThrough, ReadableOptions } from 'stream';
 import { createInterface, Interface } from 'readline';
-import { URL } from 'url'
+import { URL } from 'url';
 import { statSync } from 'fs';
 
-const allowDeny = /^allow|deny$/
-const validators: {[index: string]: RegExp} = {
+const allowDeny = /^allow|deny$/;
+const validators: { [index: string]: RegExp } = {
   'price:currency': /^[A-Z]{3}$/,
   'price:type': /^rent|purchase|RENT|PURCHASE$/,
   'price:resolution': /^HD|hd|sd|SD$/,
   'platform:relationship': allowDeny,
   'restriction:relationship': allowDeny,
-  'restriction': /^([A-Z]{2}( +[A-Z]{2})*)?$/,
-  'platform': /^((web|mobile|tv)( (web|mobile|tv))*)?$/,
-  'language': /^zh-cn|zh-tw|([a-z]{2,3})$/,
-  'genres': /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
-  'stock_tickers': /^(\w+:\w+(, *\w+:\w+){0,4})?$/,
-}
+  restriction: /^([A-Z]{2}( +[A-Z]{2})*)?$/,
+  platform: /^((web|mobile|tv)( (web|mobile|tv))*)?$/,
+  language: /^zh-cn|zh-tw|([a-z]{2,3})$/,
+  genres: /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
+  // eslint-disable-next-line @typescript-eslint/camelcase
+  stock_tickers: /^(\w+:\w+(, *\w+:\w+){0,4})?$/,
+};
 
-function validate(subject: object, name: string, url: string, level: ErrorLevel): void {
+function validate(
+  subject: object,
+  name: string,
+  url: string,
+  level: ErrorLevel
+): void {
   Object.keys(subject).forEach((key): void => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
-    const val = subject[key]
+    const val = subject[key];
     if (validators[key] && !validators[key].test(val)) {
       if (level === ErrorLevel.THROW) {
-        throw new InvalidAttrValue(key, val, validators[key])
+        throw new InvalidAttrValue(key, val, validators[key]);
       } else {
-        console.warn(`${url}: ${name} key ${key} has invalid value: ${val}`)
+        console.warn(`${url}: ${name} key ${key} has invalid value: ${val}`);
       }
     }
-  })
+  });
 }
 
-export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel.WARN): SitemapItemOptions {
+export function validateSMIOptions(
+  conf: SitemapItemOptions,
+  level = ErrorLevel.WARN
+): SitemapItemOptions {
   if (!conf) {
-    throw new NoConfigError()
+    throw new NoConfigError();
   }
 
   if (level === ErrorLevel.SILENT) {
-    return conf
+    return conf;
   }
 
-  const {
-    url,
-    changefreq,
-    priority,
-    news,
-    video
-  } = conf
+  const { url, changefreq, priority, news, video } = conf;
 
   if (!url) {
     if (level === ErrorLevel.THROW) {
-      throw new NoURLError()
+      throw new NoURLError();
     } else {
-      console.warn('URL is required')
+      console.warn('URL is required');
     }
   }
 
   if (changefreq) {
     if (CHANGEFREQ.indexOf(changefreq) === -1) {
       if (level === ErrorLevel.THROW) {
-        throw new ChangeFreqInvalidError()
+        throw new ChangeFreqInvalidError();
       } else {
-        console.warn(`${url}: changefreq ${changefreq} is not valid`)
+        console.warn(`${url}: changefreq ${changefreq} is not valid`);
       }
     }
   }
@@ -99,42 +102,42 @@ export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel
   if (priority) {
     if (!(priority >= 0.0 && priority <= 1.0)) {
       if (level === ErrorLevel.THROW) {
-        throw new PriorityInvalidError()
+        throw new PriorityInvalidError();
       } else {
-        console.warn(`${url}: priority ${priority} is not valid`)
+        console.warn(`${url}: priority ${priority} is not valid`);
       }
     }
   }
 
   if (news) {
-
     if (
       news.access &&
       news.access !== 'Registration' &&
       news.access !== 'Subscription'
     ) {
       if (level === ErrorLevel.THROW) {
-        throw new InvalidNewsAccessValue()
+        throw new InvalidNewsAccessValue();
       } else {
-        console.warn(`${url}: news access ${news.access} is invalid`)
+        console.warn(`${url}: news access ${news.access} is invalid`);
       }
     }
 
-    if (!news.publication ||
-        !news.publication.name ||
-        !news.publication.language ||
-        !news.publication_date ||
-        !news.title
+    if (
+      !news.publication ||
+      !news.publication.name ||
+      !news.publication.language ||
+      !news.publication_date ||
+      !news.title
     ) {
       if (level === ErrorLevel.THROW) {
-        throw new InvalidNewsFormat()
+        throw new InvalidNewsFormat();
       } else {
-        console.warn(`${url}: missing required news property`)
+        console.warn(`${url}: missing required news property`);
       }
     }
 
-    validate(news, 'news', url, level)
-    validate(news.publication, 'publication', url, level)
+    validate(news, 'news', url, level);
+    validate(news.publication, 'publication', url, level);
   }
 
   if (video) {
@@ -142,56 +145,66 @@ export function validateSMIOptions (conf: SitemapItemOptions, level = ErrorLevel
       if (vid.duration !== undefined) {
         if (vid.duration < 0 || vid.duration > 28800) {
           if (level === ErrorLevel.THROW) {
-            throw new InvalidVideoDuration()
+            throw new InvalidVideoDuration();
           } else {
-            console.warn(`${url}: video duration ${vid.duration} is invalid`)
+            console.warn(`${url}: video duration ${vid.duration} is invalid`);
           }
         }
       }
       if (vid.rating !== undefined && (vid.rating < 0 || vid.rating > 5)) {
         if (level === ErrorLevel.THROW) {
-          throw new InvalidVideoRating()
+          throw new InvalidVideoRating();
         } else {
-          console.warn(`${url}: video ${vid.title} rating ${vid.rating} must be between 0 and 5 inclusive`)
+          console.warn(
+            `${url}: video ${vid.title} rating ${vid.rating} must be between 0 and 5 inclusive`
+          );
         }
       }
 
-      if (typeof (vid) !== 'object' || !vid.thumbnail_loc || !vid.title || !vid.description) {
+      if (
+        typeof vid !== 'object' ||
+        !vid.thumbnail_loc ||
+        !vid.title ||
+        !vid.description
+      ) {
         // has to be an object and include required categories https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190
         if (level === ErrorLevel.THROW) {
-          throw new InvalidVideoFormat()
+          throw new InvalidVideoFormat();
         } else {
-          console.warn(`${url}: missing required video property`)
+          console.warn(`${url}: missing required video property`);
         }
       }
 
       if (vid.description.length > 2048) {
         if (level === ErrorLevel.THROW) {
-          throw new InvalidVideoDescription()
+          throw new InvalidVideoDescription();
         } else {
-          console.warn(`${url}: video description is too long`)
+          console.warn(`${url}: video description is too long`);
         }
       }
 
-      validate(vid, 'video', url, level)
-    })
+      validate(vid, 'video', url, level);
+    });
   }
 
-  return conf
+  return conf;
 }
 
 /**
  * Combines multiple streams into one
  * @param streams the streams to combine
  */
-export function mergeStreams (streams: Readable[]): Readable {
-  let pass = new PassThrough()
-  let waiting = streams.length
+export function mergeStreams(streams: Readable[]): Readable {
+  let pass = new PassThrough();
+  let waiting = streams.length;
   for (const stream of streams) {
-    pass = stream.pipe(pass, {end: false})
-    stream.once('end', () => --waiting === 0 && pass.emit('end'))
+    pass = stream.pipe(
+      pass,
+      { end: false }
+    );
+    stream.once('end', () => --waiting === 0 && pass.emit('end'));
   }
-  return pass
+  return pass;
 }
 
 export interface IReadLineStreamOptions extends ReadableOptions {
@@ -202,25 +215,24 @@ export interface IReadLineStreamOptions extends ReadableOptions {
  * Wraps node's ReadLine in a stream
  */
 export class ReadLineStream extends Readable {
-  private _source: Interface
+  private _source: Interface;
   constructor(options: IReadLineStreamOptions) {
     if (options.autoDestroy === undefined) {
-      options.autoDestroy = true
+      options.autoDestroy = true;
     }
-    options.objectMode = true
+    options.objectMode = true;
     super(options);
 
     this._source = createInterface({
       input: options.input,
       terminal: false,
-      crlfDelay: Infinity
+      crlfDelay: Infinity,
     });
 
     // Every time there's data, push it into the internal buffer.
-    this._source.on('line', (chunk) => {
+    this._source.on('line', chunk => {
       // If push() returns false, then stop reading from source.
-      if (!this.push(chunk))
-        this._source.pause();
+      if (!this.push(chunk)) this._source.pause();
     });
 
     // When the source ends, push the EOF-signaling `null` chunk.
@@ -251,12 +263,12 @@ export function lineSeparatedURLsToSitemapOptions(
     new Transform({
       objectMode: true,
       transform: (line, encoding, cb): void => {
-        if (isJSON || (isJSON === undefined && line[0] === "{")) {
+        if (isJSON || (isJSON === undefined && line[0] === '{')) {
           cb(null, JSON.parse(line));
         } else {
           cb(null, line);
         }
-      }
+      },
     })
   );
 }
@@ -274,7 +286,7 @@ export function lineSeparatedURLsToSitemapOptions(
  * available at https://github.com/lodash/lodash
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export function chunk (array: any[], size = 1): any[] {
+export function chunk(array: any[], size = 1): any[] {
   size = Math.max(Math.trunc(size), 0);
 
   const length = array ? array.length : 0;
@@ -291,14 +303,14 @@ export function chunk (array: any[], size = 1): any[] {
   return result;
 }
 
-function boolToYESNO (bool?: boolean | EnumYesNo): EnumYesNo|undefined {
+function boolToYESNO(bool?: boolean | EnumYesNo): EnumYesNo | undefined {
   if (bool === undefined) {
-    return bool
+    return bool;
   }
   if (typeof bool === 'boolean') {
-    return bool ? EnumYesNo.yes : EnumYesNo.no
+    return bool ? EnumYesNo.yes : EnumYesNo.no;
   }
-  return bool
+  return bool;
 }
 
 /**
@@ -307,26 +319,29 @@ function boolToYESNO (bool?: boolean | EnumYesNo): EnumYesNo|undefined {
  * @param {string} hostname
  * @returns SitemapItemOptions a strict sitemap item option
  */
-export function normalizeURL (elem: string | ISitemapItemOptionsLoose, hostname?: string): SitemapItemOptions {
+export function normalizeURL(
+  elem: string | ISitemapItemOptionsLoose,
+  hostname?: string
+): SitemapItemOptions {
   // SitemapItem
   // create object with url property
   let smi: SitemapItemOptions = {
     img: [],
     video: [],
     links: [],
-    url: ''
-  }
-  let smiLoose: ISitemapItemOptionsLoose
+    url: '',
+  };
+  let smiLoose: ISitemapItemOptionsLoose;
   if (typeof elem === 'string') {
-    smi.url = elem
-    smiLoose = {url: elem}
+    smi.url = elem;
+    smiLoose = { url: elem };
   } else {
-    smiLoose = elem
+    smiLoose = elem;
   }
 
-  smi.url = (new URL(smiLoose.url, hostname)).toString();
+  smi.url = new URL(smiLoose.url, hostname).toString();
 
-  let img: ISitemapImg[] = []
+  let img: ISitemapImg[] = [];
   if (smiLoose.img) {
     if (typeof smiLoose.img === 'string') {
       // string -> array of objects
@@ -336,73 +351,82 @@ export function normalizeURL (elem: string | ISitemapItemOptionsLoose, hostname?
       smiLoose.img = [smiLoose.img];
     }
 
-    img = smiLoose.img.map((el): ISitemapImg => typeof el === 'string' ? {url: el} : el);
+    img = smiLoose.img.map(
+      (el): ISitemapImg => (typeof el === 'string' ? { url: el } : el)
+    );
   }
   // prepend hostname to all image urls
-  smi.img = img.map((el: ISitemapImg): ISitemapImg => (
-    {...el, url: (new URL(el.url, hostname)).toString()}
-  ));
+  smi.img = img.map(
+    (el: ISitemapImg): ISitemapImg => ({
+      ...el,
+      url: new URL(el.url, hostname).toString(),
+    })
+  );
 
-  let links: ILinkItem[] = []
+  let links: ILinkItem[] = [];
   if (smiLoose.links) {
-    links = smiLoose.links
+    links = smiLoose.links;
   }
-  smi.links = links.map((link): ILinkItem => {
-    return {...link, url: (new URL(link.url, hostname)).toString()};
-  });
+  smi.links = links.map(
+    (link): ILinkItem => {
+      return { ...link, url: new URL(link.url, hostname).toString() };
+    }
+  );
 
   if (smiLoose.video) {
     if (!Array.isArray(smiLoose.video)) {
       // make it an array
-      smiLoose.video = [smiLoose.video]
+      smiLoose.video = [smiLoose.video];
     }
-    smi.video = smiLoose.video.map((video): IVideoItem => {
-      const nv: IVideoItem = {
-        ...video,
-        /* eslint-disable-next-line @typescript-eslint/camelcase */
-        family_friendly: boolToYESNO(video.family_friendly),
-        live: boolToYESNO(video.live),
-        /* eslint-disable-next-line @typescript-eslint/camelcase */
-        requires_subscription: boolToYESNO(video.requires_subscription),
-        tag: [],
-        rating: undefined
-      }
+    smi.video = smiLoose.video.map(
+      (video): IVideoItem => {
+        const nv: IVideoItem = {
+          ...video,
+          /* eslint-disable-next-line @typescript-eslint/camelcase */
+          family_friendly: boolToYESNO(video.family_friendly),
+          live: boolToYESNO(video.live),
+          /* eslint-disable-next-line @typescript-eslint/camelcase */
+          requires_subscription: boolToYESNO(video.requires_subscription),
+          tag: [],
+          rating: undefined,
+        };
 
-      if (video.tag !== undefined) {
-        nv.tag = !Array.isArray(video.tag) ? [video.tag] : video.tag
-      }
-
-      if (video.rating !== undefined) {
-        if (typeof video.rating === 'string') {
-          nv.rating = parseFloat(video.rating)
-        } else {
-          nv.rating = video.rating
+        if (video.tag !== undefined) {
+          nv.tag = !Array.isArray(video.tag) ? [video.tag] : video.tag;
         }
-      }
 
-      if (video.view_count !== undefined) {
-        /* eslint-disable-next-line @typescript-eslint/camelcase */
-        nv.view_count = '' + video.view_count
+        if (video.rating !== undefined) {
+          if (typeof video.rating === 'string') {
+            nv.rating = parseFloat(video.rating);
+          } else {
+            nv.rating = video.rating;
+          }
+        }
+
+        if (video.view_count !== undefined) {
+          /* eslint-disable-next-line @typescript-eslint/camelcase */
+          nv.view_count = '' + video.view_count;
+        }
+        return nv;
       }
-      return nv
-    })
+    );
   }
 
   // If given a file to use for last modified date
   if (smiLoose.lastmodfile) {
-    const { mtime } = statSync(smiLoose.lastmodfile)
+    const { mtime } = statSync(smiLoose.lastmodfile);
 
-    smi.lastmod = (new Date(mtime)).toISOString()
+    smi.lastmod = new Date(mtime).toISOString();
 
     // The date of last modification (YYYY-MM-DD)
   } else if (smiLoose.lastmodISO) {
-    smi.lastmod = (new Date(smiLoose.lastmodISO)).toISOString()
+    smi.lastmod = new Date(smiLoose.lastmodISO).toISOString();
   } else if (smiLoose.lastmod) {
-    smi.lastmod = (new Date(smiLoose.lastmod)).toISOString()
+    smi.lastmod = new Date(smiLoose.lastmod).toISOString();
   }
-  delete smiLoose.lastmodfile
-  delete smiLoose.lastmodISO
+  delete smiLoose.lastmodfile;
+  delete smiLoose.lastmodISO;
 
-  smi = {...smiLoose, ...smi}
-  return smi
+  smi = { ...smiLoose, ...smi };
+  return smi;
 }

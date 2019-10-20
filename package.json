@@ -52,7 +52,9 @@
     "extends": [
       "eslint:recommended",
       "plugin:@typescript-eslint/eslint-recommended",
-      "plugin:@typescript-eslint/recommended"
+      "plugin:@typescript-eslint/recommended",
+      "prettier/@typescript-eslint",
+      "plugin:prettier/recommended"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
@@ -83,10 +85,6 @@
           "prev": "multiline-expression",
           "next": "multiline-expression"
         }
-      ],
-      "@typescript-eslint/indent": [
-        "error",
-        2
       ],
       "@typescript-eslint/no-parameter-properties": "off",
       "@typescript-eslint/no-unused-vars": [
@@ -139,10 +137,13 @@
     "babel-polyfill": "^6.26.0",
     "concurrently": "^4.1.2",
     "eslint": "^6.5.1",
+    "eslint-config-prettier": "^6.4.0",
     "eslint-plugin-jest": "^22.19.0",
+    "eslint-plugin-prettier": "^3.1.1",
     "express": "^4.17.1",
     "husky": "^3.0.9",
     "jest": "^24.9.0",
+    "prettier": "1.18.2",
     "sort-package-json": "^1.22.1",
     "source-map": "~0.7.3",
     "stats-lite": "^2.2.0",
