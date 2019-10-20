@@ -7,7 +7,12 @@
 import {
   SitemapItemOptions,
   ErrorLevel,
-  CHANGEFREQ
+  CHANGEFREQ,
+  ISitemapItemOptionsLoose,
+  EnumYesNo,
+  ISitemapImg,
+  ILinkItem,
+  IVideoItem,
 } from './types';
 import {
   ChangeFreqInvalidError,
@@ -24,6 +29,8 @@ import {
 } from './errors'
 import { Readable, Transform, PassThrough, ReadableOptions } from 'stream'
 import { createInterface, Interface } from 'readline';
+import { URL } from 'url'
+import { statSync } from 'fs';
 
 const allowDeny = /^allow|deny$/
 const validators: {[index: string]: RegExp} = {
@@ -282,4 +289,120 @@ export function chunk (array: any[], size = 1): any[] {
     result[resIndex++] = array.slice(index, (index += size));
   }
   return result;
+}
+
+function boolToYESNO (bool?: boolean | EnumYesNo): EnumYesNo|undefined {
+  if (bool === undefined) {
+    return bool
+  }
+  if (typeof bool === 'boolean') {
+    return bool ? EnumYesNo.yes : EnumYesNo.no
+  }
+  return bool
+}
+
+/**
+ * Converts the passed in sitemap entry into one capable of being consumed by SitemapItem
+ * @param {string | ISitemapItemOptionsLoose} elem the string or object to be converted
+ * @param {string} hostname
+ * @returns SitemapItemOptions a strict sitemap item option
+ */
+export function normalizeURL (elem: string | ISitemapItemOptionsLoose, hostname?: string): SitemapItemOptions {
+  // SitemapItem
+  // create object with url property
+  let smi: SitemapItemOptions = {
+    img: [],
+    video: [],
+    links: [],
+    url: ''
+  }
+  let smiLoose: ISitemapItemOptionsLoose
+  if (typeof elem === 'string') {
+    smi.url = elem
+    smiLoose = {url: elem}
+  } else {
+    smiLoose = elem
+  }
+
+  smi.url = (new URL(smiLoose.url, hostname)).toString();
+
+  let img: ISitemapImg[] = []
+  if (smiLoose.img) {
+    if (typeof smiLoose.img === 'string') {
+      // string -> array of objects
+      smiLoose.img = [{ url: smiLoose.img }];
+    } else if (!Array.isArray(smiLoose.img)) {
+      // object -> array of objects
+      smiLoose.img = [smiLoose.img];
+    }
+
+    img = smiLoose.img.map((el): ISitemapImg => typeof el === 'string' ? {url: el} : el);
+  }
+  // prepend hostname to all image urls
+  smi.img = img.map((el: ISitemapImg): ISitemapImg => (
+    {...el, url: (new URL(el.url, hostname)).toString()}
+  ));
+
+  let links: ILinkItem[] = []
+  if (smiLoose.links) {
+    links = smiLoose.links
+  }
+  smi.links = links.map((link): ILinkItem => {
+    return {...link, url: (new URL(link.url, hostname)).toString()};
+  });
+
+  if (smiLoose.video) {
+    if (!Array.isArray(smiLoose.video)) {
+      // make it an array
+      smiLoose.video = [smiLoose.video]
+    }
+    smi.video = smiLoose.video.map((video): IVideoItem => {
+      const nv: IVideoItem = {
+        ...video,
+        /* eslint-disable-next-line @typescript-eslint/camelcase */
+        family_friendly: boolToYESNO(video.family_friendly),
+        live: boolToYESNO(video.live),
+        /* eslint-disable-next-line @typescript-eslint/camelcase */
+        requires_subscription: boolToYESNO(video.requires_subscription),
+        tag: [],
+        rating: undefined
+      }
+
+      if (video.tag !== undefined) {
+        nv.tag = !Array.isArray(video.tag) ? [video.tag] : video.tag
+      }
+
+      if (video.rating !== undefined) {
+        if (typeof video.rating === 'string') {
+          nv.rating = parseFloat(video.rating)
+        } else {
+          nv.rating = video.rating
+        }
+      }
+
+      if (video.view_count !== undefined) {
+        /* eslint-disable-next-line @typescript-eslint/camelcase */
+        nv.view_count = '' + video.view_count
+      }
+      return nv
+    })
+  }
+
+  // If given a file to use for last modified date
+  if (smiLoose.lastmodfile) {
+    const { mtime } = statSync(smiLoose.lastmodfile)
+
+    smi.lastmod = (new Date(mtime)).toISOString()
+
+    // The date of last modification (YYYY-MM-DD)
+  } else if (smiLoose.lastmodISO) {
+    smi.lastmod = (new Date(smiLoose.lastmodISO)).toISOString()
+  } else if (smiLoose.lastmod) {
+    smi.lastmod = (new Date(smiLoose.lastmod)).toISOString()
+  }
+  delete smiLoose.lastmodfile
+  delete smiLoose.lastmodISO
+
+  smi = {...smiLoose, ...smi}
+  return smi
 }

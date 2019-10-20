@@ -1,8 +1,6 @@
 import 'babel-polyfill'
-import { Readable, Writable } from 'stream'
 import { SitemapStream, preamble, closetag, streamToPromise } from '../lib/sitemap-stream'
 describe('sitemap stream', () => {
-  let drain: string
   const sampleURLs = ['http://example.com', 'http://example.com/path']
 
   it('pops out the preamble and closetag', async () => {

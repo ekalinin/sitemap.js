@@ -4,11 +4,12 @@ import {
   EnumAllowDeny,
   SitemapItemOptions,
   ErrorLevel,
-  preamble,
-  closetag,
+  ISitemapItemOptionsLoose,
+  EnumChangefreq,
 } from '../index'
+import * as testUtil from './util'
 import {
-  validateSMIOptions, lineSeparatedURLsToSitemapOptions
+  validateSMIOptions, lineSeparatedURLsToSitemapOptions, normalizeURL
 } from '../lib/utils'
 import { Readable, Writable } from 'stream';
 
@@ -469,4 +470,223 @@ describe("utils", () => {
     })
   })
 
+  describe('normalizeURL', () => {
+    it('turns strings into full urls', () => {
+      expect(normalizeURL('http://example.com')).toHaveProperty('url', 'http://example.com/')
+    })
+
+    it('prepends paths with the provided hostname', () => {
+      expect(normalizeURL('/', 'http://example.com')).toHaveProperty('url', 'http://example.com/')
+    })
+
+    it('turns img prop provided as string into array of object', () => {
+      const url = {
+        url: 'http://example.com',
+        img: 'http://example.com/img'
+      }
+      expect(normalizeURL(url).img[0]).toHaveProperty('url', 'http://example.com/img')
+    })
+
+    it('turns img prop provided as object into array of object', () => {
+      const url = {
+        url: 'http://example.com',
+        img: {url: 'http://example.com/img', title: 'some thing'}
+      }
+      expect(normalizeURL(url).img[0]).toHaveProperty('url', 'http://example.com/img')
+      expect(normalizeURL(url).img[0]).toHaveProperty('title', 'some thing')
+    })
+
+    it('turns img prop provided as array of strings into array of object', () => {
+      const url = {
+        url: 'http://example.com',
+        img: ['http://example.com/img', '/img2']
+      }
+      expect(normalizeURL(url, 'http://example.com/').img[0]).toHaveProperty('url', 'http://example.com/img')
+      expect(normalizeURL(url, 'http://example.com/').img[1]).toHaveProperty('url', 'http://example.com/img2')
+    })
+
+    it('handles a valid img prop without transformation', () => {
+      const url = {
+        url: "http://example.com",
+        img: [
+          {
+            url: "http://test.com/img2.jpg",
+            caption: "Another image",
+            title: "The Title of Image Two",
+            geoLocation: "London, United Kingdom",
+            license: "https://creativecommons.org/licenses/by/4.0/"
+          }
+        ]
+      };
+      const normal = normalizeURL(url, 'http://example.com/').img[0]
+      expect(normal).toHaveProperty('url', 'http://test.com/img2.jpg')
+      expect(normal).toHaveProperty('caption', "Another image")
+      expect(normal).toHaveProperty('title', "The Title of Image Two")
+      expect(normal).toHaveProperty('geoLocation', "London, United Kingdom")
+      expect(normal).toHaveProperty('license', "https://creativecommons.org/licenses/by/4.0/")
+    })
+
+    it('ensures img is always an array', () => {
+      const url = {
+        url: 'http://example.com'
+      }
+      expect(Array.isArray(normalizeURL(url).img)).toBeTruthy()
+    })
+
+    it('ensures links is always an array', () => {
+      expect(Array.isArray(normalizeURL('http://example.com').links)).toBeTruthy()
+    })
+
+    it('prepends provided hostname to links', () => {
+      const url = {
+        url: 'http://example.com',
+        links: [ {url: '/lang', lang: 'en-us'} ]
+      }
+      expect(normalizeURL(url, 'http://example.com').links[0]).toHaveProperty('url', 'http://example.com/lang')
+    })
+
+    describe('video', () => {
+      it('is ensured to be an array', () => {
+        expect(Array.isArray(normalizeURL('http://example.com').video)).toBeTruthy()
+        const url = {
+          url: 'http://example.com',
+          video: {thumbnail_loc: 'foo', title: '', description: ''}
+        }
+        expect(normalizeURL(url).video[0]).toHaveProperty('thumbnail_loc', 'foo')
+      })
+
+      it('turns boolean-like props into yes/no', () => {
+        const url = {
+          url: 'http://example.com',
+          video: [
+            {
+              thumbnail_loc: 'foo',
+              title: '',
+              description: '',
+              family_friendly: false,
+              live: false,
+              requires_subscription: false
+            },
+            {
+              thumbnail_loc: 'foo',
+              title: '',
+              description: '',
+              family_friendly: true,
+              live: true,
+              requires_subscription: true
+            },
+            {
+              thumbnail_loc: 'foo',
+              title: '',
+              description: '',
+              family_friendly: EnumYesNo.yes,
+              live: EnumYesNo.yes,
+              requires_subscription: EnumYesNo.yes
+            },
+            {
+              thumbnail_loc: 'foo',
+              title: '',
+              description: '',
+              family_friendly: EnumYesNo.no,
+              live: EnumYesNo.no,
+              requires_subscription: EnumYesNo.no
+            }
+          ]
+        }
+        const smv = normalizeURL(url).video
+        expect(smv[0]).toHaveProperty('family_friendly', 'no')
+        expect(smv[0]).toHaveProperty('live', 'no')
+        expect(smv[0]).toHaveProperty('requires_subscription', 'no')
+        expect(smv[1]).toHaveProperty('family_friendly', 'yes')
+        expect(smv[1]).toHaveProperty('live', 'yes')
+        expect(smv[1]).toHaveProperty('requires_subscription', 'yes')
+        expect(smv[2]).toHaveProperty('family_friendly', 'yes')
+        expect(smv[2]).toHaveProperty('live', 'yes')
+        expect(smv[2]).toHaveProperty('requires_subscription', 'yes')
+        expect(smv[3]).toHaveProperty('family_friendly', 'no')
+        expect(smv[3]).toHaveProperty('live', 'no')
+        expect(smv[3]).toHaveProperty('requires_subscription', 'no')
+      })
+
+      it('ensures tag is always an array', () => {
+        let url: ISitemapItemOptionsLoose = {
+          url: 'http://example.com',
+          video: {thumbnail_loc: 'foo', title: '', description: ''}
+        }
+        expect(normalizeURL(url).video[0]).toHaveProperty('tag', [])
+        url = {
+          url: 'http://example.com',
+          video: [
+            {
+              thumbnail_loc: 'foo',
+              title: '',
+              description: '',
+              tag: 'fizz'
+            },
+            {
+              thumbnail_loc: 'foo',
+              title: '',
+              description: '',
+              tag: ['bazz']
+            }
+          ]
+        }
+        expect(normalizeURL(url).video[0]).toHaveProperty('tag', ['fizz'])
+        expect(normalizeURL(url).video[1]).toHaveProperty('tag', ['bazz'])
+      })
+
+      it('ensures rating is always a number', () => {
+        const url = {
+          url: 'http://example.com',
+          video: [
+            {
+              thumbnail_loc: 'foo',
+              title: '',
+              description: '',
+              rating: '5',
+              view_count: 10000000000,
+            },
+            {
+              thumbnail_loc: 'foo',
+              title: '',
+              description: '',
+              rating: 4
+            }
+          ]
+        }
+        expect(normalizeURL(url).video[0]).toHaveProperty('rating', 5)
+        expect(normalizeURL(url).video[0]).toHaveProperty('view_count', '10000000000')
+        expect(normalizeURL(url).video[1]).toHaveProperty('rating', 4)
+      })
+    })
+
+    describe('lastmod', () => {
+      it('treats legacy ISO option like lastmod', () => {
+        expect(normalizeURL({'url': 'http://example.com', lastmodISO: '2019-01-01'})).toHaveProperty('lastmod', '2019-01-01T00:00:00.000Z')
+      })
+
+      it('turns all last mod strings into ISO timestamps', () => {
+        expect(normalizeURL({'url': 'http://example.com', lastmod: '2019-01-01'})).toHaveProperty('lastmod', '2019-01-01T00:00:00.000Z')
+        expect(normalizeURL({'url': 'http://example.com', lastmod: '2019-01-01T00:00:00.000Z'})).toHaveProperty('lastmod', '2019-01-01T00:00:00.000Z')
+      })
+
+      it('supports reading off file mtime', () => {
+        const { cacheFile, stat } = testUtil.createCache()
+
+        const dt = new Date(stat.mtime)
+        const lastmod = dt.toISOString()
+
+        const smcfg = normalizeURL({
+          url: 'http://example.com',
+          'lastmodfile': cacheFile,
+          'changefreq': EnumChangefreq.ALWAYS,
+          'priority': 0.9
+        })
+
+        testUtil.unlinkCache()
+
+        expect(smcfg).toHaveProperty('lastmod', lastmod)
+      })
+    })
+  })
 });

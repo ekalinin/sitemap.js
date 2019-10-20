@@ -11,15 +11,10 @@ export enum EnumChangefreq {
   NEVER = 'never',
 }
 
-export const CHANGEFREQ = [
-  EnumChangefreq.ALWAYS,
-  EnumChangefreq.HOURLY,
-  EnumChangefreq.DAILY,
-  EnumChangefreq.WEEKLY,
-  EnumChangefreq.MONTHLY,
-  EnumChangefreq.YEARLY,
-  EnumChangefreq.NEVER
-];
+export const CHANGEFREQ = Object.values(EnumChangefreq);
+export function isValidChangeFreq(freq: string): freq is EnumChangefreq {
+  return CHANGEFREQ.includes(freq as EnumChangefreq);
+}
 
 export enum EnumYesNo {
   YES = 'YES',
@@ -28,6 +23,10 @@ export enum EnumYesNo {
   No = 'No',
   yes = 'yes',
   no = 'no'
+}
+
+export function isValidYesNo(yn: string): yn is EnumYesNo {
+  return /^YES|NO|[Yy]es|[Nn]o$/.test(yn)
 }
 
 export enum EnumAllowDeny {
@@ -155,3 +154,11 @@ export enum ErrorLevel {
   THROW = 'throw',
 }
 
+export interface ISitemapOptions {
+  urls?: (ISitemapItemOptionsLoose | string)[];
+  hostname?: string;
+  cacheTime?: number;
+  xslUrl?: string;
+  xmlNs?: string;
+  level?: ErrorLevel;
+}

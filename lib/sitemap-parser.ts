@@ -1,17 +1,71 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import sax, { SAXStream } from 'sax'
 import { Readable, Transform, TransformOptions, TransformCallback } from 'stream'
 import {
   SitemapItemOptions,
-  EnumChangefreq,
+  isValidChangeFreq,
+  isValidYesNo,
   IVideoItem,
   ISitemapImg,
   ILinkItem,
-  EnumYesNo,
   EnumAllowDeny,
   INewsItem,
-  ErrorLevel
+  ErrorLevel,
+  ISitemapOptions,
 } from "./types";
-import { ISitemapOptions } from './sitemap'
+
+export enum ValidTagNames {
+  url = "url",
+  loc = "loc",
+  urlset = "urlset",
+  lastmod = "lastmod",
+  changefreq = "changefreq",
+  priority = "priority",
+  "video:thumbnail_loc" = "video:thumbnail_loc",
+  "video:video" = "video:video",
+  "video:title" = "video:title",
+  "video:description" = "video:description",
+  "video:tag" = "video:tag",
+  "video:duration" = "video:duration",
+  "video:player_loc" = "video:player_loc",
+  "image:image" = "image:image",
+  "image:loc" = "image:loc",
+  "image:geo_location" = "image:geo_location",
+  "image:license" = "image:license",
+  "image:title" = "image:title",
+  "image:caption" = "image:caption",
+  "video:requires_subscription" = "video:requires_subscription",
+  "video:publication_date" = "video:publication_date",
+  "video:id" = "video:id",
+  "video:restriction" = "video:restriction",
+  "video:family_friendly" = "video:family_friendly",
+  "video:view_count" = "video:view_count",
+  "video:uploader" = "video:uploader",
+  "video:expiration_date" = "video:expiration_date",
+  "video:platform" = "video:platform",
+  "video:price" = "video:price",
+  "video:rating" = "video:rating",
+  "video:category" = "video:category",
+  "video:live" = "video:live",
+  "video:gallery_loc" = "video:gallery_loc",
+  "news:news" = "news:news",
+  "news:publication" = "news:publication",
+  "news:name" = "news:name",
+  "news:access" = "news:access",
+  "news:genres" = "news:genres",
+  "news:publication_date" = "news:publication_date",
+  "news:title" = "news:title",
+  "news:keywords" = "news:keywords",
+  "news:stock_tickers" = "news:stock_tickers",
+  "news:language" = "news:language",
+  "mobile:mobile" = "mobile:mobile",
+  'xhtml:link' = 'xhtml:link',
+}
+
+function isValidTagName (tagName: string): tagName is ValidTagNames {
+  // This only works because the enum name and value are the same
+  return tagName in ValidTagNames;
+}
 
 function tagTemplate(): SitemapItemOptions {
   return {
@@ -25,7 +79,6 @@ function tagTemplate(): SitemapItemOptions {
 function videoTemplate(): IVideoItem {
   return {
     tag: [],
-    // eslint-disable-next-line @typescript-eslint/camelcase
     thumbnail_loc: "",
     title: "",
     description: ""
@@ -44,7 +97,6 @@ const linkTemplate: ILinkItem = {
 function newsTemplate (): INewsItem {
   return {
     publication: { name: "", language: "" },
-    // eslint-disable-next-line @typescript-eslint/camelcase
     publication_date: "",
     title: ""
   };
@@ -84,63 +136,18 @@ export class XMLToISitemapOptions extends Transform {
     })
 
     this.saxStream.on('opentag', (tag): void => {
-      switch (tag.name) {
-        case "url":
-        case "loc":
-        case "urlset":
-        case "lastmod":
-        case "changefreq":
-        case "priority":
-        case "video:thumbnail_loc":
-        case "video:video":
-        case "video:title":
-        case "video:description":
-        case "video:tag":
-        case "video:duration":
-        case "video:player_loc":
-        case "image:image":
-        case "image:loc":
-        case "image:geo_location":
-        case "image:license":
-        case "image:title":
-        case "image:caption":
-        case "video:requires_subscription":
-        case "video:publication_date":
-        case "video:id":
-        case "video:restriction":
-        case "video:family_friendly":
-        case "video:view_count":
-        case "video:uploader":
-        case "video:expiration_date":
-        case "video:platform":
-        case "video:price":
-        case "video:rating":
-        case "video:category":
-        case "video:live":
-        case "video:gallery_loc":
-        case "news:news":
-        case "news:publication":
-        case "news:name":
-        case "news:access":
-        case "news:genres":
-        case "news:publication_date":
-        case "news:title":
-        case "news:keywords":
-        case "news:stock_tickers":
-        case "news:language":
-        case "mobile:mobile":
-          break;
-        case 'xhtml:link':
+      if (isValidTagName(tag.name)) {
+        if (tag.name === 'xhtml:link') {
           if (
             typeof tag.attributes.rel === "string" ||
             typeof tag.attributes.href === "string"
           ) {
-            break;
+            return;
           }
           if (tag.attributes.rel.value === 'alternate' && tag.attributes.hreflang) {
             currentLink.url = tag.attributes.href.value
             if (typeof tag.attributes.hreflang === 'string')
-              break;
+              return;
             currentLink.lang = tag.attributes.hreflang.value as string
           } else if (tag.attributes.rel.value === 'alternate') {
             dontpushCurrentLink = true
@@ -151,11 +158,9 @@ export class XMLToISitemapOptions extends Transform {
           } else {
             console.log('unhandled attr for xhtml:link', tag.attributes)
           }
-          break;
-
-        default:
-          console.warn('unhandled tag', tag.name)
-          break;
+        }
+      } else {
+        console.warn('unhandled tag', tag.name)
       }
     })
 
@@ -167,7 +172,9 @@ export class XMLToISitemapOptions extends Transform {
           currentItem.url = text
           break;
         case 'changefreq':
-          currentItem.changefreq = text as EnumChangefreq
+          if (isValidChangeFreq(text)) {
+            currentItem.changefreq = text
+          }
           break;
         case 'priority':
           currentItem.priority = parseFloat(text)
@@ -176,7 +183,6 @@ export class XMLToISitemapOptions extends Transform {
           currentItem.lastmod = text
           break;
         case "video:thumbnail_loc":
-          // eslint-disable-next-line @typescript-eslint/camelcase
           currentVideo.thumbnail_loc = text
           break;
         case "video:tag":
@@ -186,15 +192,14 @@ export class XMLToISitemapOptions extends Transform {
           currentVideo.duration = parseInt(text, 10)
           break;
         case "video:player_loc":
-          // eslint-disable-next-line @typescript-eslint/camelcase
           currentVideo.player_loc = text
           break;
         case "video:requires_subscription":
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          currentVideo.requires_subscription = text as EnumYesNo
+          if (isValidYesNo(text)) {
+            currentVideo.requires_subscription = text
+          }
           break;
         case "video:publication_date":
-          // eslint-disable-next-line @typescript-eslint/camelcase
           currentVideo.publication_date = text
           break;
         case "video:id":
@@ -204,18 +209,17 @@ export class XMLToISitemapOptions extends Transform {
           currentVideo.restriction = text
           break;
         case "video:view_count":
-          // eslint-disable-next-line @typescript-eslint/camelcase
           currentVideo.view_count = text
           break;
         case "video:uploader":
           currentVideo.uploader = text
           break;
         case "video:family_friendly":
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          currentVideo.family_friendly = text as EnumYesNo
+          if (isValidYesNo(text)) {
+            currentVideo.family_friendly = text
+          }
           break;
         case "video:expiration_date":
-          // eslint-disable-next-line @typescript-eslint/camelcase
           currentVideo.expiration_date = text
           break;
         case "video:platform":
@@ -231,10 +235,11 @@ export class XMLToISitemapOptions extends Transform {
           currentVideo.category = text
           break;
         case "video:live":
-          currentVideo.live = text as EnumYesNo
+          if (isValidYesNo(text)) {
+            currentVideo.live = text
+          }
           break;
         case "video:gallery_loc":
-          // eslint-disable-next-line @typescript-eslint/camelcase
           currentVideo.gallery_loc = text
           break;
         case "image:loc":
@@ -262,7 +267,6 @@ export class XMLToISitemapOptions extends Transform {
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
-          // eslint-disable-next-line @typescript-eslint/camelcase
           currentItem.news.publication_date = text
           break;
         case "news:keywords":
@@ -275,7 +279,6 @@ export class XMLToISitemapOptions extends Transform {
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
-          // eslint-disable-next-line @typescript-eslint/camelcase
           currentItem.news.stock_tickers = text
           break;
         case "news:language":
