@@ -1,6 +1,6 @@
 /* eslint-env jest */
 import 'babel-polyfill';
-import { xmlLint } from '../index'
+import { xmlLint } from '../dist/index'
 const execFileSync = require('child_process').execFileSync
 let hasXMLLint = true
 try {
