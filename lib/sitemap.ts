@@ -38,6 +38,7 @@ export interface ISitemapOptions {
   xslUrl?: string;
   xmlNs?: string;
   level?: ErrorLevel;
+  lastmodDateOnly?: boolean;
 }
 
 export class Sitemap {
@@ -53,6 +54,7 @@ export class Sitemap {
   root: XMLElement;
   hostname?: string;
   xslUrl?: string;
+  private lastmodDateOnly = false;
 
   /**
    * Sitemap constructor
@@ -64,6 +66,7 @@ export class Sitemap {
    * @param {String=}        xslUrl            optional
    * @param {String=}        xmlNs            optional
    * @param {ErrorLevel} [level=ErrorLevel.WARN]    level            optional
+   * @param {boolean=false} lastmodDateOnly print only the date - for baidu quirk
    */
   constructor({
     urls = [],
@@ -72,6 +75,7 @@ export class Sitemap {
     xslUrl,
     xmlNs,
     level = ErrorLevel.WARN,
+    lastmodDateOnly = false,
   }: ISitemapOptions = {}) {
     // Base domain
     this.hostname = hostname;
@@ -81,6 +85,7 @@ export class Sitemap {
     this.cache = '';
 
     this.xslUrl = xslUrl;
+    this.lastmodDateOnly = lastmodDateOnly;
 
     this.root = create('urlset', { encoding: 'UTF-8' });
     if (xmlNs) {
@@ -93,7 +98,7 @@ export class Sitemap {
     }
 
     urls = Array.from(urls);
-    this.urls = Sitemap.normalizeURLs(urls, this.hostname);
+    this.urls = Sitemap.normalizeURLs(urls, this.hostname, lastmodDateOnly);
     for (const [, url] of this.urls) {
       validateSMIOptions(url, level);
     }
@@ -134,7 +139,7 @@ export class Sitemap {
   private _normalizeURL(
     url: string | ISitemapItemOptionsLoose
   ): SitemapItemOptions {
-    return Sitemap.normalizeURL(url, this.hostname);
+    return Sitemap.normalizeURL(url, this.hostname, this.lastmodDateOnly);
   }
 
   /**
@@ -178,11 +183,13 @@ export class Sitemap {
    * Converts the passed in sitemap entry into one capable of being consumed by SitemapItem
    * @param {string | ISitemapItemOptionsLoose} elem the string or object to be converted
    * @param {string} hostname
+   * @param {boolean=} lastmodDateOnly print only the date - for baidu quirk
    * @returns SitemapItemOptions a strict sitemap item option
    */
   static normalizeURL(
     elem: string | ISitemapItemOptionsLoose,
-    hostname?: string
+    hostname?: string,
+    lastmodDateOnly = false
   ): SitemapItemOptions {
     // SitemapItem
     // create object with url property
@@ -285,6 +292,9 @@ export class Sitemap {
     } else if (smiLoose.lastmod) {
       smi.lastmod = new Date(smiLoose.lastmod).toISOString();
     }
+    if (lastmodDateOnly && smi.lastmod) {
+      smi.lastmod = smi.lastmod.slice(0, 10);
+    }
     delete smiLoose.lastmodfile;
     delete smiLoose.lastmodISO;
 
@@ -296,15 +306,17 @@ export class Sitemap {
    * Normalize multiple urls
    * @param {(string | ISitemapItemOptionsLoose)[]} urls array of urls to be normalized
    * @param {string=} hostname
+   * @param {boolean=} lastmodDateOnly print only the date - for baidu quirk
    * @returns a Map of url to SitemapItemOption
    */
   static normalizeURLs(
     urls: (string | ISitemapItemOptionsLoose)[],
-    hostname?: string
+    hostname?: string,
+    lastmodDateOnly = false
   ): Map<string, SitemapItemOptions> {
     const urlMap = new Map<string, SitemapItemOptions>();
     urls.forEach((elem): void => {
-      const smio = Sitemap.normalizeURL(elem, hostname);
+      const smio = Sitemap.normalizeURL(elem, hostname, lastmodDateOnly);
       urlMap.set(smio.url, smio);
     });
     return urlMap;
