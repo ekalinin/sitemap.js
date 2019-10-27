@@ -61,7 +61,10 @@ export class UndefinedTargetFolder extends Error {
 
 export class InvalidVideoFormat extends Error {
   constructor(message?: string) {
-    super(message || 'must include thumbnail_loc, title and description fields for videos');
+    super(
+      message ||
+        'must include thumbnail_loc, title and description fields for videos'
+    );
     this.name = 'InvalidVideoFormat';
     Error.captureStackTrace(this, InvalidVideoFormat);
   }
@@ -69,7 +72,9 @@ export class InvalidVideoFormat extends Error {
 
 export class InvalidVideoDuration extends Error {
   constructor(message?: string) {
-    super(message || 'duration must be an integer of seconds between 0 and 28800');
+    super(
+      message || 'duration must be an integer of seconds between 0 and 28800'
+    );
     this.name = 'InvalidVideoDuration';
     Error.captureStackTrace(this, InvalidVideoDuration);
   }
@@ -94,7 +99,15 @@ export class InvalidVideoRating extends Error {
 export class InvalidAttrValue extends Error {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(key: string, val: any, validator: RegExp) {
-    super('"' + val + '" tested against: ' + validator + ' is not a valid value for attr: "' + key + '"');
+    super(
+      '"' +
+        val +
+        '" tested against: ' +
+        validator +
+        ' is not a valid value for attr: "' +
+        key +
+        '"'
+    );
     this.name = 'InvalidAttrValue';
     Error.captureStackTrace(this, InvalidAttrValue);
   }
@@ -112,7 +125,10 @@ export class InvalidAttr extends Error {
 
 export class InvalidNewsFormat extends Error {
   constructor(message?: string) {
-    super(message || 'must include publication, publication name, publication language, title, and publication_date for news');
+    super(
+      message ||
+        'must include publication, publication name, publication language, title, and publication_date for news'
+    );
     this.name = 'InvalidNewsFormat';
     Error.captureStackTrace(this, InvalidNewsFormat);
   }
@@ -120,7 +136,10 @@ export class InvalidNewsFormat extends Error {
 
 export class InvalidNewsAccessValue extends Error {
   constructor(message?: string) {
-    super(message || 'News access must be either Registration, Subscription or not be present');
+    super(
+      message ||
+        'News access must be either Registration, Subscription or not be present'
+    );
     this.name = 'InvalidNewsAccessValue';
     Error.captureStackTrace(this, InvalidNewsAccessValue);
   }
@@ -128,7 +147,9 @@ export class InvalidNewsAccessValue extends Error {
 
 export class XMLLintUnavailable extends Error {
   constructor(message?: string) {
-    super(message || 'xmlLint is not installed. XMLLint is required to validate');
+    super(
+      message || 'xmlLint is not installed. XMLLint is required to validate'
+    );
     this.name = 'XMLLintUnavailable';
     Error.captureStackTrace(this, XMLLintUnavailable);
   }

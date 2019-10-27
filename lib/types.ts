@@ -1,4 +1,4 @@
-import { URL } from 'url'
+import { URL } from 'url';
 // can't be const enum if we use babel to compile
 // https://github.com/babel/babel/issues/8741
 export enum EnumChangefreq {
@@ -18,7 +18,7 @@ export const CHANGEFREQ = [
   EnumChangefreq.WEEKLY,
   EnumChangefreq.MONTHLY,
   EnumChangefreq.YEARLY,
-  EnumChangefreq.NEVER
+  EnumChangefreq.NEVER,
 ];
 
 export enum EnumYesNo {
@@ -27,12 +27,12 @@ export enum EnumYesNo {
   Yes = 'Yes',
   No = 'No',
   yes = 'yes',
-  no = 'no'
+  no = 'no',
 }
 
 export enum EnumAllowDeny {
   ALLOW = 'allow',
-  DENY = 'deny'
+  DENY = 'deny',
 }
 
 export type ICallback<E extends Error, T> = (err?: E, data?: T) => void;
@@ -154,4 +154,3 @@ export enum ErrorLevel {
   WARN = 'warn',
   THROW = 'throw',
 }
-
