@@ -1,4 +1,5 @@
 import { Readable } from 'stream';
+import { resolve } from 'path';
 import { execFile } from 'child_process';
 import { XMLLintUnavailable } from './errors';
 /**
@@ -7,7 +8,12 @@ import { XMLLintUnavailable } from './errors';
  * @return {Promise<null>} resolves on valid rejects [error stderr]
  */
 export function xmlLint(xml: string | Readable): Promise<null> {
-  const args = ['--schema', './schema/all.xsd', '--noout', '-'];
+  const args = [
+    '--schema',
+    resolve(__dirname, '..', '..', 'schema', 'all.xsd'),
+    '--noout',
+    '-',
+  ];
   if (typeof xml === 'string') {
     args[args.length - 1] = xml;
   }

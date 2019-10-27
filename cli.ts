@@ -39,6 +39,7 @@ Turn a list of urls into a sitemap xml.
 Options:
   --help           Print this text
   --version        Print the version
+  --validate       ensure the passed in file is conforms to the sitemap spec
   --parse          Parse fed xml and spit out config
   --prepend sitemap.xml < urlsToAdd.json
   --single-line-json         When used with parse, it spits out each entry as json rather
