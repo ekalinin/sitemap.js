@@ -4,12 +4,10 @@ env/
 node_modules/
 dist
 
-# WebStorm
+# editors
 .idea/
 .vscode/
 *.code-workspace
-
-# Emacs
 *~
 
 # code coverage
