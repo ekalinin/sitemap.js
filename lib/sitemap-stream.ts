@@ -13,18 +13,20 @@ export const preamble =
 export const closetag = '</urlset>';
 export interface ISitemapStreamOpts
   extends TransformOptions,
-    Pick<ISitemapOptions, 'hostname' | 'level'> {}
+    Pick<ISitemapOptions, 'hostname' | 'level' | 'lastmodDateOnly'> {}
 const defaultStreamOpts: ISitemapStreamOpts = {};
 export class SitemapStream extends Transform {
   hostname?: string;
   level: ErrorLevel;
   hasHeadOutput: boolean;
+  lastmodDateOnly: boolean;
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
     this.hasHeadOutput = false;
     this.hostname = opts.hostname;
     this.level = opts.level || ErrorLevel.WARN;
+    this.lastmodDateOnly = opts.lastmodDateOnly || false;
   }
 
   _transform(
@@ -38,7 +40,7 @@ export class SitemapStream extends Transform {
     }
     this.push(
       SitemapItem.justItem(
-        Sitemap.normalizeURL(item, this.hostname),
+        Sitemap.normalizeURL(item, this.hostname, this.lastmodDateOnly),
         this.level
       )
     );
