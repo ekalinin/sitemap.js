@@ -1,4 +1,4 @@
-import 'babel-polyfill'
+import 'babel-polyfill';
 import defaultexport, {
   createSitemap,
   Sitemap,
@@ -7,7 +7,6 @@ import defaultexport, {
   createSitemapsAndIndex,
   xmlLint,
   parseSitemap,
-
   InvalidNewsFormat,
   NoURLError,
   NoConfigError,
@@ -17,31 +16,31 @@ import defaultexport, {
   InvalidVideoFormat,
   InvalidVideoDuration,
   InvalidVideoDescription,
-  InvalidAttrValue
-} from '../index'
+  InvalidAttrValue,
+} from '../index';
 
 describe('sitemap shape', () => {
   it('exports a default with sitemap hanging off it', () => {
-    expect(typeof defaultexport).toBe('function')
-  })
+    expect(typeof defaultexport).toBe('function');
+  });
 
   it('exports individually as well', () => {
-    expect(createSitemap).toBeDefined()
-    expect(Sitemap).toBeDefined()
-    expect(NoURLError).toBeDefined()
-    expect(InvalidNewsFormat).toBeDefined()
-    expect(NoConfigError).toBeDefined()
-    expect(ChangeFreqInvalidError).toBeDefined()
-    expect(PriorityInvalidError).toBeDefined()
-    expect(UndefinedTargetFolder).toBeDefined()
-    expect(InvalidVideoFormat).toBeDefined()
-    expect(InvalidVideoDuration).toBeDefined()
-    expect(InvalidVideoDescription).toBeDefined()
-    expect(InvalidAttrValue).toBeDefined()
-    expect(SitemapItem).toBeDefined()
-    expect(buildSitemapIndex).toBeDefined()
-    expect(createSitemapsAndIndex).toBeDefined()
-    expect(parseSitemap).toBeDefined()
-    expect(xmlLint).toBeDefined()
-  })
-})
+    expect(createSitemap).toBeDefined();
+    expect(Sitemap).toBeDefined();
+    expect(NoURLError).toBeDefined();
+    expect(InvalidNewsFormat).toBeDefined();
+    expect(NoConfigError).toBeDefined();
+    expect(ChangeFreqInvalidError).toBeDefined();
+    expect(PriorityInvalidError).toBeDefined();
+    expect(UndefinedTargetFolder).toBeDefined();
+    expect(InvalidVideoFormat).toBeDefined();
+    expect(InvalidVideoDuration).toBeDefined();
+    expect(InvalidVideoDescription).toBeDefined();
+    expect(InvalidAttrValue).toBeDefined();
+    expect(SitemapItem).toBeDefined();
+    expect(buildSitemapIndex).toBeDefined();
+    expect(createSitemapsAndIndex).toBeDefined();
+    expect(parseSitemap).toBeDefined();
+    expect(xmlLint).toBeDefined();
+  });
+});

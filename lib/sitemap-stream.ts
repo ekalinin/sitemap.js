@@ -1,11 +1,19 @@
 import { SitemapItem } from './sitemap-item';
 import { ISitemapItemOptionsLoose, ErrorLevel } from './types';
-import { Transform, TransformOptions, TransformCallback, Readable, Writable } from 'stream';
+import {
+  Transform,
+  TransformOptions,
+  TransformCallback,
+  Readable,
+  Writable,
+} from 'stream';
 import { ISitemapOptions, Sitemap } from './sitemap';
-export const preamble = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">';
+export const preamble =
+  '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">';
 export const closetag = '</urlset>';
-export interface ISitemapStreamOpts extends TransformOptions, Pick<ISitemapOptions, 'hostname' | 'level'> {
-}
+export interface ISitemapStreamOpts
+  extends TransformOptions,
+    Pick<ISitemapOptions, 'hostname' | 'level'> {}
 const defaultStreamOpts: ISitemapStreamOpts = {};
 export class SitemapStream extends Transform {
   hostname?: string;
@@ -19,12 +27,21 @@ export class SitemapStream extends Transform {
     this.level = opts.level || ErrorLevel.WARN;
   }
 
-  _transform(item: ISitemapItemOptionsLoose, encoding: string, callback: TransformCallback): void {
+  _transform(
+    item: ISitemapItemOptionsLoose,
+    encoding: string,
+    callback: TransformCallback
+  ): void {
     if (!this.hasHeadOutput) {
       this.hasHeadOutput = true;
       this.push(preamble);
     }
-    this.push(SitemapItem.justItem(Sitemap.normalizeURL(item, this.hostname), this.level));
+    this.push(
+      SitemapItem.justItem(
+        Sitemap.normalizeURL(item, this.hostname),
+        this.level
+      )
+    );
     callback();
   }
 
@@ -46,15 +63,15 @@ export function streamToPromise(stream: Readable): Promise<Buffer> {
         new Writable({
           write(chunk, enc, next): void {
             if (!drain) {
-              drain = chunk
+              drain = chunk;
             } else {
               drain = Buffer.concat([drain, chunk]);
             }
             next();
-          }
+          },
         })
       )
-      .on("error", reject)
-      .on("finish", () => resolve(drain));
-  })
+      .on('error', reject)
+      .on('finish', () => resolve(drain));
+  });
 }

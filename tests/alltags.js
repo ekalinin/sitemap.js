@@ -1,7 +1,10 @@
-const { createSitemap, Sitemap, validateSMIOptions }= require('../dist/index')
+/* eslint-disable @typescript-eslint/no-var-requires */
+const {
+  createSitemap /* , Sitemap, validateSMIOptions */,
+} = require('../dist/index');
 
-const config = require('./mocks/sampleconfig.json')
-console.log(createSitemap(config).toString(true))
+const config = require('./mocks/sampleconfig.json');
+console.log(createSitemap(config).toString(true));
 /*
 let urls = []
 config.urls.forEach((smi) => {
