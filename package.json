@@ -1,6 +1,6 @@
 {
   "name": "sitemap",
-  "version": "5.0.1",
+  "version": "5.1.0",
   "description": "Sitemap-generating lib/cli",
   "keywords": [
     "sitemap",
@@ -118,7 +118,7 @@
     }
   },
   "dependencies": {
-    "@types/node": "^12.11.7",
+    "@types/node": "^12.12.3",
     "@types/sax": "^1.2.0",
     "arg": "^4.1.1",
     "sax": "^1.2.4",
@@ -130,15 +130,15 @@
     "@babel/plugin-transform-typescript": "^7.6.3",
     "@babel/preset-env": "^7.6.3",
     "@babel/preset-typescript": "^7.6.0",
-    "@types/jest": "^24.0.20",
-    "@typescript-eslint/eslint-plugin": "^2.5.0",
-    "@typescript-eslint/parser": "^2.5.0",
+    "@types/jest": "^24.0.21",
+    "@typescript-eslint/eslint-plugin": "^2.6.0",
+    "@typescript-eslint/parser": "^2.6.0",
     "babel-eslint": "^10.0.3",
     "babel-polyfill": "^6.26.0",
     "concurrently": "^5.0.0",
     "eslint": "^6.6.0",
     "eslint-config-prettier": "^6.5.0",
-    "eslint-plugin-jest": "^22.20.1",
+    "eslint-plugin-jest": "^22.21.0",
     "eslint-plugin-prettier": "^3.1.1",
     "express": "^4.17.1",
     "husky": "^3.0.9",

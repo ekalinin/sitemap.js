@@ -321,7 +321,8 @@ function boolToYESNO(bool?: boolean | EnumYesNo): EnumYesNo | undefined {
  */
 export function normalizeURL(
   elem: string | ISitemapItemOptionsLoose,
-  hostname?: string
+  hostname?: string,
+  lastmodDateOnly = false
 ): SitemapItemOptions {
   // SitemapItem
   // create object with url property
@@ -423,6 +424,10 @@ export function normalizeURL(
     smi.lastmod = new Date(smiLoose.lastmodISO).toISOString();
   } else if (smiLoose.lastmod) {
     smi.lastmod = new Date(smiLoose.lastmod).toISOString();
+  }
+
+  if (lastmodDateOnly && smi.lastmod) {
+    smi.lastmod = smi.lastmod.slice(0, 10);
   }
   delete smiLoose.lastmodfile;
   delete smiLoose.lastmodISO;

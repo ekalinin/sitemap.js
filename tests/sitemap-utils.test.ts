@@ -752,6 +752,30 @@ describe('utils', () => {
         ).toHaveProperty('lastmod', '2019-01-01T00:00:00.000Z');
       });
 
+      it('date-only', () => {
+        expect(
+          normalizeURL(
+            {
+              url: 'http://example.com',
+              lastmod: '2019-01-01',
+            },
+            undefined,
+            true
+          )
+        ).toHaveProperty('lastmod', '2019-01-01');
+
+        expect(
+          normalizeURL(
+            {
+              url: 'http://example.com',
+              lastmod: '2019-01-01T00:00:00.000Z',
+            },
+            undefined,
+            true
+          )
+        ).toHaveProperty('lastmod', '2019-01-01');
+      });
+
       it('supports reading off file mtime', () => {
         const { cacheFile, stat } = testUtil.createCache();
 

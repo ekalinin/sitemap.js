@@ -13,13 +13,15 @@ export const preamble =
 export const closetag = '</urlset>';
 export interface ISitemapStreamOpts
   extends TransformOptions,
-    Pick<ISitemapOptions, 'hostname' | 'level'> {}
+    Pick<ISitemapOptions, 'hostname' | 'level' | 'lastmodDateOnly'> {}
+const defaultStreamOpts: ISitemapStreamOpts = {};
 export class SitemapStream extends Transform {
   hostname?: string;
   level: ErrorLevel;
   hasHeadOutput: boolean;
   private smiStream: SitemapItemStream;
-  constructor(opts: ISitemapStreamOpts = {}) {
+  lastmodDateOnly: boolean;
+  constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
     this.hasHeadOutput = false;
@@ -27,6 +29,7 @@ export class SitemapStream extends Transform {
     this.level = opts.level || ErrorLevel.WARN;
     this.smiStream = new SitemapItemStream({ level: opts.level });
     this.smiStream.on('data', data => this.push(data));
+    this.lastmodDateOnly = opts.lastmodDateOnly || false;
   }
 
   _transform(
@@ -39,7 +42,9 @@ export class SitemapStream extends Transform {
       this.push(preamble);
     }
     this.smiStream.write(
-      validateSMIOptions(normalizeURL(item, this.hostname)),
+      validateSMIOptions(
+        normalizeURL(item, this.hostname, this.lastmodDateOnly)
+      ),
       this.level
     );
     callback();

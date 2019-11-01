@@ -161,4 +161,5 @@ export interface ISitemapOptions {
   xslUrl?: string;
   xmlNs?: string;
   level?: ErrorLevel;
+  lastmodDateOnly?: boolean;
 }

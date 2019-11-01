@@ -297,7 +297,8 @@ const sm = new Sitemap({
     urls: [{ url: '/path' }],
     hostname: 'http://example.com',
     cacheTime: 0, // default
-    level: 'warn' // default warns if it encounters bad data
+    level: 'warn', // default warns if it encounters bad data
+    lastmodDateOnly: false // relevant for baidu
 })
 sm.toString() // returns the xml as a string
 ```
@@ -377,15 +378,15 @@ Removes the provided url or url option from the sitemap instance
 #### normalizeURL
 
 ```js
-Sitemap.normalizeURL('/', 'http://example.com')
+Sitemap.normalizeURL('/', 'http://example.com', false)
 ```
 
-Static function that returns the stricter form of a options passed to SitemapItem
+Static function that returns the stricter form of a options passed to SitemapItem. The third argument is whether to use date-only varient of lastmod. For baidu.
   
 #### normalizeURLs
 
 ```js
-Sitemap.normalizeURLs(['http://example.com', {url: 'http://example.com'}])
+Sitemap.normalizeURLs(['http://example.com', {url: '/'}], 'http://example.com', false)
 ```
 
 Static function that takes an array of urls and returns a Map of their resolved url to the strict form of SitemapItemOptions
@@ -457,7 +458,8 @@ A [Transform](https://nodejs.org/api/stream.html#stream_implementing_a_transform
 ```javascript
 const { SitemapStream } = require('sitemap')
 const sms = new SitemapStream({
-  hostname: 'https://example.com' // optional only necessary if your paths are relative
+  hostname: 'https://example.com', // optional only necessary if your paths are relative
+  lastmodDateOnly: false // defaults to false, flip to true for baidu
 })
 const readable = // a readable stream of objects
 readable.pipe(sms).pipe(process.stdout)
