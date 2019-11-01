@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.1.0
 
 Fix for #255. Baidu does not like timestamp in its sitemap.xml, this adds an option to truncate lastmod
 
