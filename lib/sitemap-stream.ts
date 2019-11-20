@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { ISitemapItemOptionsLoose, ErrorLevel } from './types';
 import { Transform, TransformOptions, TransformCallback, Readable } from 'stream';
 import { ISitemapOptions } from './sitemap';
