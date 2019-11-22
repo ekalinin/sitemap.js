@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 /* eslint-env jest */
 import { SitemapItemStream, streamToPromise } from '../index';
 import {

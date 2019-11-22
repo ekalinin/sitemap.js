@@ -285,6 +285,36 @@ describe('utils', () => {
       }).toThrowError(/long 2100 vs limit of 2048/);
     });
 
+    it('video title limit', () => {
+      expect(function() {
+        validateSMIOptions(
+          {
+            ...itemTemplate,
+            url:
+              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            video: [
+              {
+                title:
+                  "2008:E2 - Burnout Paradise: Millionaire's Clubconsectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc, quis gravida magna mi a libero. Fusce vulputate eleifend sapien. Vestibulum purus quam, scelerisque ut, mollis sed, nonummy id, metus. Nullam accumsan lorem in dui. Cras ultricies mi eu turpis hendrerit fringilla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; In ac dui quis mi consectetuer lacinia. Nam pretium turpis et arcu. Duis arcu tortor, suscipit eget, imperdiet nec, imperdiet iaculis, ipsum. Sed aliquam ultrices mauris. Integer ante arcu, accumsan a, consectetuer eget, posuere ut, mauris. Praesent adipiscing. Phasellus ullamcorper ipsum rutrum nunc. Nunc nonummy metus. Vestibulum volutpat pretium libero. Cras id dui. Aenean ut eros et nisl sagittis vestibulum. Nullam nulla.',",
+                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                // @ts-ignore
+                description: 'Lorem ipsum dolor sit amet, ',
+                player_loc:
+                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                thumbnail_loc:
+                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                duration: 1,
+                publication_date: '2008-07-29T14:58:04.000Z',
+                requires_subscription: EnumYesNo.NO,
+                tag: [],
+              },
+            ],
+          },
+          ErrorLevel.THROW
+        );
+      }).toThrowError(/long 2120 vs 100/);
+    });
+
     it('video price type', () => {
       expect(function() {
         validateSMIOptions(
@@ -430,7 +460,7 @@ describe('utils', () => {
       }).toThrowError(/is not a valid value for attr: "platform:relationship"/);
     });
 
-    it('video restriction', () => {
+    it('throws without a restriction of allow or deny', () => {
       expect(function() {
         validateSMIOptions(
           {
@@ -456,7 +486,7 @@ describe('utils', () => {
       }).toThrowError(/must be either allow or deny/);
     });
 
-    it('video restriction', () => {
+    it('throws if it gets a rating out of bounds', () => {
       expect(function() {
         validateSMIOptions(
           {
@@ -480,6 +510,178 @@ describe('utils', () => {
           ErrorLevel.THROW
         );
       }).toThrowError(/0 and 5/);
+    });
+
+    it('throws if it gets an invalid video restriction', () => {
+      expect(function() {
+        validateSMIOptions(
+          {
+            ...itemTemplate,
+            url:
+              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            video: [
+              {
+                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                description: 'Lorem ipsum',
+                player_loc:
+                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                thumbnail_loc:
+                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                rating: 5,
+                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                // @ts-ignore
+                restriction: 's',
+
+                tag: [],
+              },
+            ],
+          },
+          ErrorLevel.THROW
+        );
+      }).toThrowError(/country codes/);
+    });
+
+    it('throws if it gets an invalid value for family friendly', () => {
+      expect(function() {
+        validateSMIOptions(
+          {
+            ...itemTemplate,
+            url:
+              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            video: [
+              {
+                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                description: 'Lorem ipsum',
+                player_loc:
+                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                thumbnail_loc:
+                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                rating: 5,
+                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                // @ts-ignore
+                family_friendly: 'foo',
+
+                tag: [],
+              },
+            ],
+          },
+          ErrorLevel.THROW
+        );
+      }).toThrowError(/family friendly/);
+    });
+
+    it('throws if it gets a category that is too long', () => {
+      expect(function() {
+        validateSMIOptions(
+          {
+            ...itemTemplate,
+            url:
+              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            video: [
+              {
+                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                description: 'Lorem ipsum',
+                player_loc:
+                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                thumbnail_loc:
+                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                rating: 5,
+                category:
+                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpghttps://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpghttps://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpghttps://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                tag: [],
+              },
+            ],
+          },
+          ErrorLevel.THROW
+        );
+      }).toThrowError(/video category can only be 256/);
+    });
+
+    it('throws if it gets a negative view count', () => {
+      expect(function() {
+        validateSMIOptions(
+          {
+            ...itemTemplate,
+            url:
+              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            video: [
+              {
+                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                description: 'Lorem ipsum',
+                player_loc:
+                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                thumbnail_loc:
+                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                restriction: 'IE GB US CA',
+                rating: 5,
+                view_count: -1,
+                tag: [],
+              },
+            ],
+          },
+          ErrorLevel.THROW
+        );
+      }).toThrowError(/positive/);
+    });
+
+    it('throws if it gets more than 32 tags', () => {
+      expect(function() {
+        validateSMIOptions(
+          {
+            ...itemTemplate,
+            url:
+              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            video: [
+              {
+                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                description: 'Lorem ipsum',
+                player_loc:
+                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                thumbnail_loc:
+                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                restriction: 'IE GB US CA',
+                rating: 5,
+                tag: [
+                  'one',
+                  'two',
+                  'three',
+                  'four',
+                  '5',
+                  '6',
+                  '7',
+                  '8',
+                  '9',
+                  '10',
+                  '11',
+                  '12',
+                  '13',
+                  '14',
+                  '15',
+                  '16',
+                  '17',
+                  '18',
+                  '19',
+                  '20',
+                  '21',
+                  '22',
+                  '23',
+                  '24',
+                  '25',
+                  '26',
+                  '27',
+                  '28',
+                  '29',
+                  '30',
+                  '31',
+                  '32',
+                  '33',
+                ],
+              },
+            ],
+          },
+          ErrorLevel.THROW
+        );
+      }).toThrowError(/32 tags/);
     });
   });
 
