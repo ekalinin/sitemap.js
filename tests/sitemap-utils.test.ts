@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/camelcase */
-import 'babel-polyfill';
 import {
   EnumYesNo,
   EnumAllowDeny,
@@ -283,7 +282,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/no longer than 2048/);
+      }).toThrowError(/long 2100 vs limit of 2048/);
     });
 
     it('video price type', () => {
@@ -302,6 +301,8 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 price: '1.99',
+                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                // @ts-ignore
                 'price:type': 'subscription',
                 tag: [],
               },
@@ -309,7 +310,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/is not a valid value for attr: "price:type"/);
+      }).toThrowError(/is not "rent" or "purchase"/);
     });
 
     it('video price currency', () => {
@@ -337,7 +338,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/is not a valid value for attr: "price:currency"/);
+      }).toThrowError(/abbrieviation for the country currency/);
     });
 
     it('video price resolution', () => {
@@ -365,7 +366,38 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/is not a valid value for attr: "price:resolution"/);
+      }).toThrowError(/is not hd or sd/);
+    });
+
+    it('requires video price type when price is not provided', () => {
+      expect(function() {
+        validateSMIOptions(
+          {
+            ...itemTemplate,
+            url:
+              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            video: [
+              {
+                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                description: 'Lorem ipsum',
+                player_loc:
+                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                thumbnail_loc:
+                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                platform: 'tv',
+                price: '',
+                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                // @ts-ignore
+                'platform:relationship': 'mother',
+                tag: [],
+              },
+            ],
+          },
+          ErrorLevel.THROW
+        );
+      }).toThrowError(/priceType is required when price is not provided/);
     });
 
     it('video platform relationship', () => {
@@ -421,9 +453,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(
-        /is not a valid value for attr: "restriction:relationship"/
-      );
+      }).toThrowError(/must be either allow or deny/);
     });
 
     it('video restriction', () => {
@@ -713,7 +743,7 @@ describe('utils', () => {
               title: '',
               description: '',
               rating: '5',
-              view_count: 10000000000,
+              view_count: '10000000000',
             },
             {
               thumbnail_loc: 'foo',
@@ -723,11 +753,17 @@ describe('utils', () => {
             },
           ],
         };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
         expect(normalizeURL(url).video[0]).toHaveProperty('rating', 5);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
         expect(normalizeURL(url).video[0]).toHaveProperty(
           'view_count',
-          '10000000000'
+          10000000000
         );
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        // @ts-ignore
         expect(normalizeURL(url).video[1]).toHaveProperty('rating', 4);
       });
     });

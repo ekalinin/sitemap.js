@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/camelcase */
-import 'babel-polyfill';
-
 import { EnumChangefreq, EnumYesNo, EnumAllowDeny } from '../index';
 import { gzipSync, gunzipSync } from 'zlib';
 

@@ -1,4 +1,3 @@
-import 'babel-polyfill';
 import { buildSitemapIndex, createSitemapsAndIndex } from '../index';
 import { tmpdir } from 'os';
 import { existsSync, unlinkSync } from 'fs';

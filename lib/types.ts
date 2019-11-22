@@ -11,6 +11,29 @@ export enum EnumChangefreq {
   NEVER = 'never',
 }
 
+export const allowDeny = /^(?:allow|deny)$/;
+export const validators: { [index: string]: RegExp } = {
+  'price:currency': /^[A-Z]{3}$/,
+  'price:type': /^(?:rent|purchase|RENT|PURCHASE)$/,
+  'price:resolution': /^(?:HD|hd|sd|SD)$/,
+  'platform:relationship': allowDeny,
+  'restriction:relationship': allowDeny,
+  restriction: /^([A-Z]{2}( +[A-Z]{2})*)?$/,
+  platform: /^((web|mobile|tv)( (web|mobile|tv))*)?$/,
+  language: /^zh-cn|zh-tw|([a-z]{2,3})$/,
+  genres: /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
+  // eslint-disable-next-line @typescript-eslint/camelcase
+  stock_tickers: /^(\w+:\w+(, *\w+:\w+){0,4})?$/,
+};
+
+export function isPriceType(pt: string | PriceType): pt is PriceType {
+  return validators['price:type'].test(pt);
+}
+
+export function isResolution(res: string): res is Resolution {
+  return validators['price:resolution'].test(res);
+}
+
 export const CHANGEFREQ = Object.values(EnumChangefreq);
 export function isValidChangeFreq(freq: string): freq is EnumChangefreq {
   return CHANGEFREQ.includes(freq as EnumChangefreq);
@@ -32,6 +55,10 @@ export function isValidYesNo(yn: string): yn is EnumYesNo {
 export enum EnumAllowDeny {
   ALLOW = 'allow',
   DENY = 'deny',
+}
+
+export function isAllowDeny(ad: string): ad is EnumAllowDeny {
+  return allowDeny.test(ad);
 }
 
 export type ICallback<E extends Error, T> = (err?: E, data?: T) => void;
@@ -66,7 +93,7 @@ interface IVideoItemBase {
   'player_loc:autoplay'?: string;
   duration?: number;
   expiration_date?: string;
-  view_count?: string | number;
+  view_count?: number;
   publication_date?: string;
   category?: string;
   restriction?: string;
@@ -74,14 +101,17 @@ interface IVideoItemBase {
   gallery_loc?: string;
   'gallery_loc:title'?: string;
   price?: string;
-  'price:resolution'?: string;
+  'price:resolution'?: Resolution;
   'price:currency'?: string;
-  'price:type'?: string;
+  'price:type'?: PriceType;
   uploader?: string;
   platform?: string;
   id?: string;
   'platform:relationship'?: EnumAllowDeny;
 }
+
+export type PriceType = 'rent' | 'purchase' | 'RENT' | 'PURCHASE';
+export type Resolution = 'HD' | 'hd' | 'sd' | 'SD';
 
 export interface IVideoItem extends IVideoItemBase {
   tag: string[];
@@ -107,7 +137,6 @@ export interface ILinkItem {
 export interface ISitemapIndexItemOptions {
   url: string;
   lastmod?: string;
-  lastmodISO?: string;
 }
 
 interface ISitemapItemOptionsBase {
@@ -120,7 +149,6 @@ interface ISitemapItemOptionsBase {
   androidLink?: string;
   ampLink?: string;
   url: string;
-  cdata?: boolean;
 }
 
 /**
@@ -157,9 +185,6 @@ export enum ErrorLevel {
 export interface ISitemapOptions {
   urls?: (ISitemapItemOptionsLoose | string)[];
   hostname?: string;
-  cacheTime?: number;
-  xslUrl?: string;
-  xmlNs?: string;
   level?: ErrorLevel;
   lastmodDateOnly?: boolean;
 }

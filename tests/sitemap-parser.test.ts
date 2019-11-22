@@ -1,4 +1,3 @@
-import 'babel-polyfill';
 import { createReadStream } from 'fs';
 import { resolve } from 'path';
 import { promisify } from 'util';

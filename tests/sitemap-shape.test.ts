@@ -1,4 +1,3 @@
-import 'babel-polyfill';
 import {
   buildSitemapIndex,
   createSitemapsAndIndex,

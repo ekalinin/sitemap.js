@@ -5,7 +5,6 @@
  * MIT Licensed
  */
 /* eslint-env jest */
-import 'babel-polyfill';
 jest.mock('../lib/sitemap-item');
 
 describe.skip('sitemap', () => {

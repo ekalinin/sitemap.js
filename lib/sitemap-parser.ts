@@ -13,10 +13,12 @@ import {
   IVideoItem,
   ISitemapImg,
   ILinkItem,
-  EnumAllowDeny,
   INewsItem,
   ErrorLevel,
   ISitemapOptions,
+  isAllowDeny,
+  isPriceType,
+  isResolution,
 } from './types';
 
 export enum ValidTagNames {
@@ -33,6 +35,7 @@ export enum ValidTagNames {
   'video:tag' = 'video:tag',
   'video:duration' = 'video:duration',
   'video:player_loc' = 'video:player_loc',
+  'video:content_loc' = 'video:content_loc',
   'image:image' = 'image:image',
   'image:loc' = 'image:loc',
   'image:geo_location' = 'image:geo_location',
@@ -65,6 +68,7 @@ export enum ValidTagNames {
   'news:language' = 'news:language',
   'mobile:mobile' = 'mobile:mobile',
   'xhtml:link' = 'xhtml:link',
+  'expires' = 'expires',
 }
 
 function isValidTagName(tagName: string): tagName is ValidTagNames {
@@ -176,151 +180,151 @@ export class XMLToISitemapOptions extends Transform {
       switch (currentTag) {
         case 'mobile:mobile':
           break;
-        case 'loc':
+        case ValidTagNames.loc:
           currentItem.url = text;
           break;
-        case 'changefreq':
+        case ValidTagNames.changefreq:
           if (isValidChangeFreq(text)) {
             currentItem.changefreq = text;
           }
           break;
-        case 'priority':
+        case ValidTagNames.priority:
           currentItem.priority = parseFloat(text);
           break;
-        case 'lastmod':
+        case ValidTagNames.lastmod:
           currentItem.lastmod = text;
           break;
-        case 'video:thumbnail_loc':
+        case ValidTagNames['video:thumbnail_loc']:
           currentVideo.thumbnail_loc = text;
           break;
-        case 'video:tag':
+        case ValidTagNames['video:tag']:
           currentVideo.tag.push(text);
           break;
-        case 'video:duration':
+        case ValidTagNames['video:duration']:
           currentVideo.duration = parseInt(text, 10);
           break;
-        case 'video:player_loc':
+        case ValidTagNames['video:player_loc']:
           currentVideo.player_loc = text;
           break;
-        case 'video:requires_subscription':
+        case ValidTagNames['video:requires_subscription']:
           if (isValidYesNo(text)) {
             currentVideo.requires_subscription = text;
           }
           break;
-        case 'video:publication_date':
+        case ValidTagNames['video:publication_date']:
           currentVideo.publication_date = text;
           break;
-        case 'video:id':
+        case ValidTagNames['video:id']:
           currentVideo.id = text;
           break;
-        case 'video:restriction':
+        case ValidTagNames['video:restriction']:
           currentVideo.restriction = text;
           break;
-        case 'video:view_count':
-          currentVideo.view_count = text;
+        case ValidTagNames['video:view_count']:
+          currentVideo.view_count = parseInt(text, 10);
           break;
-        case 'video:uploader':
+        case ValidTagNames['video:uploader']:
           currentVideo.uploader = text;
           break;
-        case 'video:family_friendly':
+        case ValidTagNames['video:family_friendly']:
           if (isValidYesNo(text)) {
             currentVideo.family_friendly = text;
           }
           break;
-        case 'video:expiration_date':
+        case ValidTagNames['video:expiration_date']:
           currentVideo.expiration_date = text;
           break;
-        case 'video:platform':
+        case ValidTagNames['video:platform']:
           currentVideo.platform = text;
           break;
-        case 'video:price':
+        case ValidTagNames['video:price']:
           currentVideo.price = text;
           break;
-        case 'video:rating':
+        case ValidTagNames['video:rating']:
           currentVideo.rating = parseFloat(text);
           break;
-        case 'video:category':
+        case ValidTagNames['video:category']:
           currentVideo.category = text;
           break;
-        case 'video:live':
+        case ValidTagNames['video:live']:
           if (isValidYesNo(text)) {
             currentVideo.live = text;
           }
           break;
-        case 'video:gallery_loc':
+        case ValidTagNames['video:gallery_loc']:
           currentVideo.gallery_loc = text;
           break;
-        case 'image:loc':
+        case ValidTagNames['image:loc']:
           currentImage.url = text;
           break;
-        case 'image:geo_location':
+        case ValidTagNames['image:geo_location']:
           currentImage.geoLocation = text;
           break;
-        case 'image:license':
+        case ValidTagNames['image:license']:
           currentImage.license = text;
           break;
-        case 'news:access':
+        case ValidTagNames['news:access']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.access = text as INewsItem['access'];
           break;
-        case 'news:genres':
+        case ValidTagNames['news:genres']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.genres = text;
           break;
-        case 'news:publication_date':
+        case ValidTagNames['news:publication_date']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.publication_date = text;
           break;
-        case 'news:keywords':
+        case ValidTagNames['news:keywords']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.keywords = text;
           break;
-        case 'news:stock_tickers':
+        case ValidTagNames['news:stock_tickers']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.stock_tickers = text;
           break;
-        case 'news:language':
+        case ValidTagNames['news:language']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.publication.language = text;
           break;
-        case 'video:title':
+        case ValidTagNames['video:title']:
           currentVideo.title += text;
           break;
-        case 'video:description':
+        case ValidTagNames['video:description']:
           currentVideo.description += text;
           break;
-        case 'news:name':
+        case ValidTagNames['news:name']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.publication.name += text;
           break;
-        case 'news:title':
+        case ValidTagNames['news:title']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.title += text;
           break;
-        case 'image:caption':
+        case ValidTagNames['image:caption']:
           if (!currentImage.caption) {
             currentImage.caption = text;
           } else {
             currentImage.caption += text;
           }
           break;
-        case 'image:title':
+        case ValidTagNames['image:title']:
           if (!currentImage.title) {
             currentImage.title = text;
           } else {
@@ -336,32 +340,32 @@ export class XMLToISitemapOptions extends Transform {
 
     this.saxStream.on('cdata', (text): void => {
       switch (currentTag) {
-        case 'video:title':
+        case ValidTagNames['video:title']:
           currentVideo.title += text;
           break;
-        case 'video:description':
+        case ValidTagNames['video:description']:
           currentVideo.description += text;
           break;
-        case 'news:name':
+        case ValidTagNames['news:name']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.publication.name += text;
           break;
-        case 'news:title':
+        case ValidTagNames['news:title']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.title += text;
           break;
-        case 'image:caption':
+        case ValidTagNames['image:caption']:
           if (!currentImage.caption) {
             currentImage.caption = text;
           } else {
             currentImage.caption += text;
           }
           break;
-        case 'image:title':
+        case ValidTagNames['image:title']:
           if (!currentImage.title) {
             currentImage.title = text;
           } else {
@@ -377,43 +381,47 @@ export class XMLToISitemapOptions extends Transform {
 
     this.saxStream.on('attribute', (attr): void => {
       switch (currentTag) {
-        case 'urlset':
-        case 'xhtml:link':
-        case 'video:id':
+        case ValidTagNames['urlset']:
+        case ValidTagNames['xhtml:link']:
+        case ValidTagNames['video:id']:
           break;
-        case 'video:restriction':
+        case ValidTagNames['video:restriction']:
           if (attr.name === 'relationship') {
             currentVideo['restriction:relationship'] = attr.value;
           } else {
             console.log('unhandled attr', currentTag, attr.name);
           }
           break;
-        case 'video:price':
-          if (attr.name === 'type') {
+        case ValidTagNames['video:price']:
+          if (attr.name === 'type' && isPriceType(attr.value)) {
             currentVideo['price:type'] = attr.value;
           } else if (attr.name === 'currency') {
             currentVideo['price:currency'] = attr.value;
-          } else if (attr.name === 'resolution') {
+          } else if (attr.name === 'resolution' && isResolution(attr.value)) {
             currentVideo['price:resolution'] = attr.value;
           } else {
             console.log('unhandled attr for video:price', attr.name);
           }
           break;
-        case 'video:player_loc':
+        case ValidTagNames['video:player_loc']:
           if (attr.name === 'autoplay') {
             currentVideo['player_loc:autoplay'] = attr.value;
           } else {
             console.log('unhandled attr for video:player_loc', attr.name);
           }
           break;
-        case 'video:platform':
-          if (attr.name === 'relationship') {
-            currentVideo['platform:relationship'] = attr.value as EnumAllowDeny;
+        case ValidTagNames['video:platform']:
+          if (attr.name === 'relationship' && isAllowDeny(attr.value)) {
+            currentVideo['platform:relationship'] = attr.value;
           } else {
-            console.log('unhandled attr for video:platform', attr.name);
+            console.log(
+              'unhandled attr for video:platform',
+              attr.name,
+              attr.value
+            );
           }
           break;
-        case 'video:gallery_loc':
+        case ValidTagNames['video:gallery_loc']:
           if (attr.name === 'title') {
             currentVideo['gallery_loc:title'] = attr.value;
           } else {
@@ -427,19 +435,19 @@ export class XMLToISitemapOptions extends Transform {
 
     this.saxStream.on('closetag', (tag): void => {
       switch (tag) {
-        case 'url':
+        case ValidTagNames.url:
           this.push(currentItem);
           currentItem = tagTemplate();
           break;
-        case 'video:video':
+        case ValidTagNames['video:video']:
           currentItem.video.push(currentVideo);
           currentVideo = videoTemplate();
           break;
-        case 'image:image':
+        case ValidTagNames['image:image']:
           currentItem.img.push(currentImage);
           currentImage = { ...imageTemplate };
           break;
-        case 'xhtml:link':
+        case ValidTagNames['xhtml:link']:
           if (!dontpushCurrentLink) {
             currentItem.links.push(currentLink);
           }

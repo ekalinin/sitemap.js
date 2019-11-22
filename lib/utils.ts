@@ -7,12 +7,16 @@
 import {
   SitemapItemOptions,
   ErrorLevel,
-  CHANGEFREQ,
   ISitemapItemOptionsLoose,
   EnumYesNo,
   ISitemapImg,
   ILinkItem,
   IVideoItem,
+  isValidChangeFreq,
+  isValidYesNo,
+  isAllowDeny,
+  isPriceType,
+  isResolution,
 } from './types';
 import {
   ChangeFreqInvalidError,
@@ -26,26 +30,22 @@ import {
   NoURLError,
   NoConfigError,
   PriorityInvalidError,
+  InvalidVideoTitle,
+  InvalidVideoViewCount,
+  InvalidVideoTagCount,
+  InvalidVideoCategory,
+  InvalidVideoFamilyFriendly,
+  InvalidVideoRestriction,
+  InvalidVideoRestrictionRelationship,
+  InvalidVideoPriceType,
+  InvalidVideoResolution,
+  InvalidVideoPriceCurrency,
 } from './errors';
 import { Readable, Transform, PassThrough, ReadableOptions } from 'stream';
 import { createInterface, Interface } from 'readline';
 import { URL } from 'url';
 import { statSync } from 'fs';
-
-const allowDeny = /^allow|deny$/;
-const validators: { [index: string]: RegExp } = {
-  'price:currency': /^[A-Z]{3}$/,
-  'price:type': /^rent|purchase|RENT|PURCHASE$/,
-  'price:resolution': /^HD|hd|sd|SD$/,
-  'platform:relationship': allowDeny,
-  'restriction:relationship': allowDeny,
-  restriction: /^([A-Z]{2}( +[A-Z]{2})*)?$/,
-  platform: /^((web|mobile|tv)( (web|mobile|tv))*)?$/,
-  language: /^zh-cn|zh-tw|([a-z]{2,3})$/,
-  genres: /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
-  // eslint-disable-next-line @typescript-eslint/camelcase
-  stock_tickers: /^(\w+:\w+(, *\w+:\w+){0,4})?$/,
-};
+import { validators } from './types';
 
 function validate(
   subject: object,
@@ -67,6 +67,13 @@ function validate(
   });
 }
 
+function handleError(error: Error, level: ErrorLevel): void {
+  if (level === ErrorLevel.THROW) {
+    throw error;
+  } else {
+    console.warn('URL is required');
+  }
+}
 export function validateSMIOptions(
   conf: SitemapItemOptions,
   level = ErrorLevel.WARN
@@ -90,7 +97,7 @@ export function validateSMIOptions(
   }
 
   if (changefreq) {
-    if (CHANGEFREQ.indexOf(changefreq) === -1) {
+    if (!isValidChangeFreq(changefreq)) {
       if (level === ErrorLevel.THROW) {
         throw new ChangeFreqInvalidError();
       } else {
@@ -175,12 +182,85 @@ export function validateSMIOptions(
         }
       }
 
+      if (vid.title.length > 100) {
+        handleError(new InvalidVideoTitle(url, vid.title.length), level);
+      }
+
       if (vid.description.length > 2048) {
-        if (level === ErrorLevel.THROW) {
-          throw new InvalidVideoDescription();
-        } else {
-          console.warn(`${url}: video description is too long`);
+        handleError(
+          new InvalidVideoDescription(url, vid.description.length),
+          level
+        );
+      }
+
+      if (vid.view_count !== undefined && vid.view_count < 0) {
+        handleError(new InvalidVideoViewCount(url, vid.view_count), level);
+      }
+
+      if (vid.tag.length > 32) {
+        handleError(new InvalidVideoTagCount(url, vid.tag.length), level);
+      }
+
+      if (vid.category !== undefined && vid.category?.length > 256) {
+        handleError(new InvalidVideoCategory(url, vid.category.length), level);
+      }
+
+      if (
+        vid.family_friendly !== undefined &&
+        !isValidYesNo(vid.family_friendly)
+      ) {
+        handleError(
+          new InvalidVideoFamilyFriendly(url, vid.family_friendly),
+          level
+        );
+      }
+
+      if (vid.restriction) {
+        if (!validators.restriction.test(vid.restriction)) {
+          handleError(new InvalidVideoRestriction(url, vid.restriction), level);
         }
+        if (
+          !vid['restriction:relationship'] ||
+          !isAllowDeny(vid['restriction:relationship'])
+        ) {
+          handleError(
+            new InvalidVideoRestrictionRelationship(
+              url,
+              vid['restriction:relationship']
+            ),
+            level
+          );
+        }
+      }
+
+      // TODO price element should be unbounded
+      if (
+        (vid.price === '' && vid['price:type'] === undefined) ||
+        (vid['price:type'] !== undefined && !isPriceType(vid['price:type']))
+      ) {
+        handleError(
+          new InvalidVideoPriceType(url, vid['price:type'], vid.price),
+          level
+        );
+      }
+      if (
+        vid['price:resolution'] !== undefined &&
+        !isResolution(vid['price:resolution'])
+      ) {
+        handleError(
+          new InvalidVideoResolution(url, vid['price:resolution']),
+          level
+        );
+      }
+
+      if (
+        vid['price:currency'] !== undefined &&
+        !validators['price:currency'].test(vid['price:currency'])
+      ) {
+        handleError(
+          new InvalidVideoPriceCurrency(url, vid['price:currency']),
+          level
+        );
       }
 
       validate(vid, 'video', url, level);
@@ -401,9 +481,12 @@ export function normalizeURL(
           }
         }
 
-        if (video.view_count !== undefined) {
+        if (typeof video.view_count === 'string') {
           /* eslint-disable-next-line @typescript-eslint/camelcase */
-          nv.view_count = '' + video.view_count;
+          nv.view_count = parseInt(video.view_count, 10);
+        } else if (typeof video.view_count === 'number') {
+          /* eslint-disable-next-line @typescript-eslint/camelcase */
+          nv.view_count = video.view_count;
         }
         return nv;
       }
