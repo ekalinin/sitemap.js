@@ -1,7 +1,6 @@
 import { Transform, TransformOptions, TransformCallback } from 'stream';
 import { InvalidAttr } from './errors';
-import { SitemapItemOptions, ErrorLevel } from './types';
-import { ValidTagNames } from './sitemap-parser';
+import { SitemapItemOptions, ErrorLevel, ValidTagNames } from './types';
 import { element, otag, ctag } from './sitemap-xml';
 
 export interface IStringObj {

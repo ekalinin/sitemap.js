@@ -1,4 +1,4 @@
-import { ValidTagNames } from './sitemap-parser';
+import { ValidTagNames } from './types';
 import { IStringObj } from './sitemap-item-stream';
 import { ValidIndexTagNames } from './sitemap-index-stream';
 

@@ -1,4 +1,3 @@
-import { ISitemapItemOptionsLoose, ErrorLevel, ISitemapOptions } from './types';
 import {
   Transform,
   TransformOptions,
@@ -6,6 +5,7 @@ import {
   Readable,
   Writable,
 } from 'stream';
+import { ISitemapItemOptionsLoose, ErrorLevel, ISitemapOptions } from './types';
 import { validateSMIOptions, normalizeURL } from './utils';
 import { SitemapItemStream } from './sitemap-item-stream';
 export const preamble =

@@ -3,7 +3,10 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-
+import { statSync } from 'fs';
+import { Readable, Transform, PassThrough, ReadableOptions } from 'stream';
+import { createInterface, Interface } from 'readline';
+import { URL } from 'url';
 import {
   SitemapItemOptions,
   ErrorLevel,
@@ -41,10 +44,6 @@ import {
   InvalidVideoResolution,
   InvalidVideoPriceCurrency,
 } from './errors';
-import { Readable, Transform, PassThrough, ReadableOptions } from 'stream';
-import { createInterface, Interface } from 'readline';
-import { URL } from 'url';
-import { statSync } from 'fs';
 import { validators } from './types';
 
 function validate(

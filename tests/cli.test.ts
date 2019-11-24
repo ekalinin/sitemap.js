@@ -1,4 +1,3 @@
-import 'babel-polyfill';
 import util from 'util';
 import fs from 'fs';
 import path from 'path';

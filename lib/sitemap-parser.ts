@@ -19,57 +19,8 @@ import {
   isAllowDeny,
   isPriceType,
   isResolution,
+  ValidTagNames,
 } from './types';
-
-export enum ValidTagNames {
-  url = 'url',
-  loc = 'loc',
-  urlset = 'urlset',
-  lastmod = 'lastmod',
-  changefreq = 'changefreq',
-  priority = 'priority',
-  'video:thumbnail_loc' = 'video:thumbnail_loc',
-  'video:video' = 'video:video',
-  'video:title' = 'video:title',
-  'video:description' = 'video:description',
-  'video:tag' = 'video:tag',
-  'video:duration' = 'video:duration',
-  'video:player_loc' = 'video:player_loc',
-  'video:content_loc' = 'video:content_loc',
-  'image:image' = 'image:image',
-  'image:loc' = 'image:loc',
-  'image:geo_location' = 'image:geo_location',
-  'image:license' = 'image:license',
-  'image:title' = 'image:title',
-  'image:caption' = 'image:caption',
-  'video:requires_subscription' = 'video:requires_subscription',
-  'video:publication_date' = 'video:publication_date',
-  'video:id' = 'video:id',
-  'video:restriction' = 'video:restriction',
-  'video:family_friendly' = 'video:family_friendly',
-  'video:view_count' = 'video:view_count',
-  'video:uploader' = 'video:uploader',
-  'video:expiration_date' = 'video:expiration_date',
-  'video:platform' = 'video:platform',
-  'video:price' = 'video:price',
-  'video:rating' = 'video:rating',
-  'video:category' = 'video:category',
-  'video:live' = 'video:live',
-  'video:gallery_loc' = 'video:gallery_loc',
-  'news:news' = 'news:news',
-  'news:publication' = 'news:publication',
-  'news:name' = 'news:name',
-  'news:access' = 'news:access',
-  'news:genres' = 'news:genres',
-  'news:publication_date' = 'news:publication_date',
-  'news:title' = 'news:title',
-  'news:keywords' = 'news:keywords',
-  'news:stock_tickers' = 'news:stock_tickers',
-  'news:language' = 'news:language',
-  'mobile:mobile' = 'mobile:mobile',
-  'xhtml:link' = 'xhtml:link',
-  'expires' = 'expires',
-}
 
 function isValidTagName(tagName: string): tagName is ValidTagNames {
   // This only works because the enum name and value are the same
@@ -488,8 +439,6 @@ export class XMLToISitemapOptions extends Transform {
   passed to createSitemap. Rejects with an Error object.
  */
 export async function parseSitemap(xml: Readable): Promise<ISitemapOptions> {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-  // @ts-ignore
   const urls: SitemapItemOptions[] = [];
   return new Promise((resolve, reject): void => {
     xml

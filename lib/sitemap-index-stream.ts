@@ -1,6 +1,13 @@
 import { promisify } from 'util';
 import { URL } from 'url';
 import { stat, createWriteStream } from 'fs';
+import { createGzip } from 'zlib';
+import {
+  Transform,
+  TransformOptions,
+  TransformCallback,
+  Writable,
+} from 'stream';
 import {
   ISitemapIndexItemOptions,
   ISitemapItemOptionsLoose,
@@ -9,13 +16,6 @@ import {
 import { UndefinedTargetFolder } from './errors';
 import { chunk } from './utils';
 import { SitemapStream } from './sitemap-stream';
-import { createGzip } from 'zlib';
-import {
-  Transform,
-  TransformOptions,
-  TransformCallback,
-  Writable,
-} from 'stream';
 import { element, otag, ctag } from './sitemap-xml';
 
 export enum ValidIndexTagNames {
