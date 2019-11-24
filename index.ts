@@ -3,7 +3,7 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-export * from './lib/sitemap-item';
+export * from './lib/sitemap-item-stream';
 export * from './lib/sitemap-index';
 export * from './lib/sitemap-stream';
 export * from './lib/errors';

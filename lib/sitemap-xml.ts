@@ -1,5 +1,5 @@
 import { ValidTagNames } from './sitemap-parser';
-import { IStringObj } from './sitemap-item';
+import { IStringObj } from './sitemap-item-stream';
 
 export function text(txt: string): string {
   return txt.replace(/&/g, '&amp;').replace(/</g, '&lt;');

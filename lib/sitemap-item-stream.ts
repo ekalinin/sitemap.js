@@ -5,7 +5,9 @@ import { ValidTagNames } from './sitemap-parser';
 import { element, otag, ctag } from './sitemap-xml';
 
 // eslint-disable-next-line
-export interface IStringObj { [index: string]: any }
+export interface IStringObj {
+  [index: string]: any;
+}
 function attrBuilder(conf: IStringObj, keys: string | string[]): object {
   if (typeof keys === 'string') {
     keys = [keys];
