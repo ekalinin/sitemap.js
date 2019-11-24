@@ -4,7 +4,7 @@
  * MIT Licensed
  */
 export * from './lib/sitemap-item-stream';
-export * from './lib/sitemap-index';
+export * from './lib/sitemap-index-stream';
 export * from './lib/sitemap-stream';
 export * from './lib/errors';
 export * from './lib/types';

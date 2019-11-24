@@ -4,8 +4,8 @@ import { SitemapItemOptions, ErrorLevel } from './types';
 import { ValidTagNames } from './sitemap-parser';
 import { element, otag, ctag } from './sitemap-xml';
 
-// eslint-disable-next-line
 export interface IStringObj {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [index: string]: any;
 }
 function attrBuilder(conf: IStringObj, keys: string | string[]): object {
