@@ -1,5 +1,14 @@
 # Changelog
 
+## unreleased
+
+- removed xmlbuilder as a dependency
+- replaced buildSitemapIndex with SitemapIndexStream
+- removed deprecated Sitemap and SitemapIndex classes
+- added stronger validity checking on values supplied to sitemap
+- various types renamed or made more specific
+- TODO document SitemapItemStream and SitemapIndexStream
+
 ## 5.1.0
 
 Fix for #255. Baidu does not like timestamp in its sitemap.xml, this adds an option to truncate lastmod
