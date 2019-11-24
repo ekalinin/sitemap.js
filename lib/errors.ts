@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*!
  * Sitemap
  * Copyright(c) 2011 Eugene Kalinin
@@ -30,8 +31,8 @@ export class NoConfigError extends Error {
  * changefreq property in sitemap is invalid
  */
 export class ChangeFreqInvalidError extends Error {
-  constructor(message?: string) {
-    super(message || 'changefreq is invalid');
+  constructor(url: string, changefreq: any) {
+    super(`${url}: changefreq "${changefreq}" is invalid`);
     this.name = 'ChangeFreqInvalidError';
     Error.captureStackTrace(this, ChangeFreqInvalidError);
   }
@@ -41,8 +42,10 @@ export class ChangeFreqInvalidError extends Error {
  * priority property in sitemap is invalid
  */
 export class PriorityInvalidError extends Error {
-  constructor(message?: string) {
-    super(message || 'priority is invalid');
+  constructor(url: string, priority: any) {
+    super(
+      `${url}: priority "${priority}" must be a number between 0 and 1 inclusive`
+    );
     this.name = 'PriorityInvalidError';
     Error.captureStackTrace(this, PriorityInvalidError);
   }
@@ -60,10 +63,9 @@ export class UndefinedTargetFolder extends Error {
 }
 
 export class InvalidVideoFormat extends Error {
-  constructor(message?: string) {
+  constructor(url: string) {
     super(
-      message ||
-        'must include thumbnail_loc, title and description fields for videos'
+      `${url} video must include thumbnail_loc, title and description fields for videos`
     );
     this.name = 'InvalidVideoFormat';
     Error.captureStackTrace(this, InvalidVideoFormat);
@@ -71,9 +73,9 @@ export class InvalidVideoFormat extends Error {
 }
 
 export class InvalidVideoDuration extends Error {
-  constructor(message?: string) {
+  constructor(url: string, duration: any) {
     super(
-      message || 'duration must be an integer of seconds between 0 and 28800'
+      `${url} duration "${duration}" must be an integer of seconds between 0 and 28800`
     );
     this.name = 'InvalidVideoDuration';
     Error.captureStackTrace(this, InvalidVideoDuration);
@@ -90,8 +92,10 @@ export class InvalidVideoDescription extends Error {
 }
 
 export class InvalidVideoRating extends Error {
-  constructor(message?: string) {
-    super(message || 'rating must be between 0 and 5');
+  constructor(url: string, title: any, rating: any) {
+    super(
+      `${url}: video "${title}" rating "${rating}" must be between 0 and 5 inclusive`
+    );
     this.name = 'InvalidVideoRating';
     Error.captureStackTrace(this, InvalidVideoRating);
   }
@@ -125,10 +129,9 @@ export class InvalidAttr extends Error {
 }
 
 export class InvalidNewsFormat extends Error {
-  constructor(message?: string) {
+  constructor(url: string) {
     super(
-      message ||
-        'must include publication, publication name, publication language, title, and publication_date for news'
+      `${url} News must include publication, publication name, publication language, title, and publication_date for news`
     );
     this.name = 'InvalidNewsFormat';
     Error.captureStackTrace(this, InvalidNewsFormat);
@@ -136,10 +139,9 @@ export class InvalidNewsFormat extends Error {
 }
 
 export class InvalidNewsAccessValue extends Error {
-  constructor(message?: string) {
+  constructor(url: string, access: any) {
     super(
-      message ||
-        'News access must be either Registration, Subscription or not be present'
+      `${url} News access "${access}" must be either Registration, Subscription or not be present`
     );
     this.name = 'InvalidNewsAccessValue';
     Error.captureStackTrace(this, InvalidNewsAccessValue);

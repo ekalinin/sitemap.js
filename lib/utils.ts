@@ -69,8 +69,8 @@ function validate(
 function handleError(error: Error, level: ErrorLevel): void {
   if (level === ErrorLevel.THROW) {
     throw error;
-  } else {
-    console.warn('URL is required');
+  } else if (level === ErrorLevel.WARN) {
+    console.warn(error.name, error.message);
   }
 }
 export function validateSMIOptions(
@@ -88,30 +88,18 @@ export function validateSMIOptions(
   const { url, changefreq, priority, news, video } = conf;
 
   if (!url) {
-    if (level === ErrorLevel.THROW) {
-      throw new NoURLError();
-    } else {
-      console.warn('URL is required');
-    }
+    handleError(new NoURLError(), level);
   }
 
   if (changefreq) {
     if (!isValidChangeFreq(changefreq)) {
-      if (level === ErrorLevel.THROW) {
-        throw new ChangeFreqInvalidError();
-      } else {
-        console.warn(`${url}: changefreq ${changefreq} is not valid`);
-      }
+      handleError(new ChangeFreqInvalidError(url, changefreq), level);
     }
   }
 
   if (priority) {
     if (!(priority >= 0.0 && priority <= 1.0)) {
-      if (level === ErrorLevel.THROW) {
-        throw new PriorityInvalidError();
-      } else {
-        console.warn(`${url}: priority ${priority} is not valid`);
-      }
+      handleError(new PriorityInvalidError(url, priority), level);
     }
   }
 
@@ -121,11 +109,7 @@ export function validateSMIOptions(
       news.access !== 'Registration' &&
       news.access !== 'Subscription'
     ) {
-      if (level === ErrorLevel.THROW) {
-        throw new InvalidNewsAccessValue();
-      } else {
-        console.warn(`${url}: news access ${news.access} is invalid`);
-      }
+      handleError(new InvalidNewsAccessValue(url, news.access), level);
     }
 
     if (
@@ -135,11 +119,7 @@ export function validateSMIOptions(
       !news.publication_date ||
       !news.title
     ) {
-      if (level === ErrorLevel.THROW) {
-        throw new InvalidNewsFormat();
-      } else {
-        console.warn(`${url}: missing required news property`);
-      }
+      handleError(new InvalidNewsFormat(url), level);
     }
 
     validate(news, 'news', url, level);
@@ -150,21 +130,11 @@ export function validateSMIOptions(
     video.forEach((vid): void => {
       if (vid.duration !== undefined) {
         if (vid.duration < 0 || vid.duration > 28800) {
-          if (level === ErrorLevel.THROW) {
-            throw new InvalidVideoDuration();
-          } else {
-            console.warn(`${url}: video duration ${vid.duration} is invalid`);
-          }
+          handleError(new InvalidVideoDuration(url, vid.duration), level);
         }
       }
       if (vid.rating !== undefined && (vid.rating < 0 || vid.rating > 5)) {
-        if (level === ErrorLevel.THROW) {
-          throw new InvalidVideoRating();
-        } else {
-          console.warn(
-            `${url}: video ${vid.title} rating ${vid.rating} must be between 0 and 5 inclusive`
-          );
-        }
+        handleError(new InvalidVideoRating(url, vid.title, vid.rating), level);
       }
 
       if (
@@ -174,11 +144,7 @@ export function validateSMIOptions(
         !vid.description
       ) {
         // has to be an object and include required categories https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190
-        if (level === ErrorLevel.THROW) {
-          throw new InvalidVideoFormat();
-        } else {
-          console.warn(`${url}: missing required video property`);
-        }
+        handleError(new InvalidVideoFormat(url), level);
       }
 
       if (vid.title.length > 100) {

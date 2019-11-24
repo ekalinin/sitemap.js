@@ -43,9 +43,9 @@ export class SitemapStream extends Transform {
     }
     this.smiStream.write(
       validateSMIOptions(
-        normalizeURL(item, this.hostname, this.lastmodDateOnly)
-      ),
-      this.level
+        normalizeURL(item, this.hostname, this.lastmodDateOnly),
+        this.level
+      )
     );
     callback();
   }

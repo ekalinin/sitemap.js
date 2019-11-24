@@ -15,6 +15,7 @@ const { promisify } = require('util');
 const {
   lineSeparatedURLsToSitemapOptions,
   SitemapStream,
+  ErrorLevel,
 } = require('../dist/index');
 const finishedP = promisify(finished);
 
@@ -108,7 +109,7 @@ async function testPerf(runs, batches, testName) {
             resolve(__dirname, 'mocks', 'perf-data.json.txt')
           );
           lineSeparatedURLsToSitemapOptions(rs)
-            .pipe(new SitemapStream())
+            .pipe(new SitemapStream({ level: ErrorLevel.SILENT }))
             .pipe(ws);
           return finishedP(rs);
         })

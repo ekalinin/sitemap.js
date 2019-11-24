@@ -54,7 +54,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         ).toString();
-      }).toThrowError(/changefreq is invalid/);
+      }).toThrowError(/changefreq "allllways" is invalid/);
     });
 
     it('sitemap: invalid priority error', () => {
@@ -67,7 +67,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         ).toString();
-      }).toThrowError(/priority is invalid/);
+      }).toThrowError(/priority "1.1" must be a number between/);
     });
 
     describe('news', () => {
@@ -148,7 +148,7 @@ describe('utils', () => {
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
         }).toThrowError(
-          /News access must be either Registration, Subscription or not be present/
+          /News access "a" must be either Registration, Subscription or not be present/
         );
       });
     });
@@ -252,7 +252,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/duration must be an integer/);
+      }).toThrowError(/must be an integer of seconds/);
     });
 
     it('video description limit', () => {
