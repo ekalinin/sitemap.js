@@ -75,7 +75,8 @@ function handleError(error: Error, level: ErrorLevel): void {
 }
 export function validateSMIOptions(
   conf: SitemapItemOptions,
-  level = ErrorLevel.WARN
+  level = ErrorLevel.WARN,
+  errorHandler = handleError
 ): SitemapItemOptions {
   if (!conf) {
     throw new NoConfigError();
@@ -88,18 +89,18 @@ export function validateSMIOptions(
   const { url, changefreq, priority, news, video } = conf;
 
   if (!url) {
-    handleError(new NoURLError(), level);
+    errorHandler(new NoURLError(), level);
   }
 
   if (changefreq) {
     if (!isValidChangeFreq(changefreq)) {
-      handleError(new ChangeFreqInvalidError(url, changefreq), level);
+      errorHandler(new ChangeFreqInvalidError(url, changefreq), level);
     }
   }
 
   if (priority) {
     if (!(priority >= 0.0 && priority <= 1.0)) {
-      handleError(new PriorityInvalidError(url, priority), level);
+      errorHandler(new PriorityInvalidError(url, priority), level);
     }
   }
 
@@ -109,7 +110,7 @@ export function validateSMIOptions(
       news.access !== 'Registration' &&
       news.access !== 'Subscription'
     ) {
-      handleError(new InvalidNewsAccessValue(url, news.access), level);
+      errorHandler(new InvalidNewsAccessValue(url, news.access), level);
     }
 
     if (
@@ -119,7 +120,7 @@ export function validateSMIOptions(
       !news.publication_date ||
       !news.title
     ) {
-      handleError(new InvalidNewsFormat(url), level);
+      errorHandler(new InvalidNewsFormat(url), level);
     }
 
     validate(news, 'news', url, level);
@@ -130,11 +131,11 @@ export function validateSMIOptions(
     video.forEach((vid): void => {
       if (vid.duration !== undefined) {
         if (vid.duration < 0 || vid.duration > 28800) {
-          handleError(new InvalidVideoDuration(url, vid.duration), level);
+          errorHandler(new InvalidVideoDuration(url, vid.duration), level);
         }
       }
       if (vid.rating !== undefined && (vid.rating < 0 || vid.rating > 5)) {
-        handleError(new InvalidVideoRating(url, vid.title, vid.rating), level);
+        errorHandler(new InvalidVideoRating(url, vid.title, vid.rating), level);
       }
 
       if (
@@ -144,37 +145,37 @@ export function validateSMIOptions(
         !vid.description
       ) {
         // has to be an object and include required categories https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190
-        handleError(new InvalidVideoFormat(url), level);
+        errorHandler(new InvalidVideoFormat(url), level);
       }
 
       if (vid.title.length > 100) {
-        handleError(new InvalidVideoTitle(url, vid.title.length), level);
+        errorHandler(new InvalidVideoTitle(url, vid.title.length), level);
       }
 
       if (vid.description.length > 2048) {
-        handleError(
+        errorHandler(
           new InvalidVideoDescription(url, vid.description.length),
           level
         );
       }
 
       if (vid.view_count !== undefined && vid.view_count < 0) {
-        handleError(new InvalidVideoViewCount(url, vid.view_count), level);
+        errorHandler(new InvalidVideoViewCount(url, vid.view_count), level);
       }
 
       if (vid.tag.length > 32) {
-        handleError(new InvalidVideoTagCount(url, vid.tag.length), level);
+        errorHandler(new InvalidVideoTagCount(url, vid.tag.length), level);
       }
 
       if (vid.category !== undefined && vid.category?.length > 256) {
-        handleError(new InvalidVideoCategory(url, vid.category.length), level);
+        errorHandler(new InvalidVideoCategory(url, vid.category.length), level);
       }
 
       if (
         vid.family_friendly !== undefined &&
         !isValidYesNo(vid.family_friendly)
       ) {
-        handleError(
+        errorHandler(
           new InvalidVideoFamilyFriendly(url, vid.family_friendly),
           level
         );
@@ -182,13 +183,16 @@ export function validateSMIOptions(
 
       if (vid.restriction) {
         if (!validators.restriction.test(vid.restriction)) {
-          handleError(new InvalidVideoRestriction(url, vid.restriction), level);
+          errorHandler(
+            new InvalidVideoRestriction(url, vid.restriction),
+            level
+          );
         }
         if (
           !vid['restriction:relationship'] ||
           !isAllowDeny(vid['restriction:relationship'])
         ) {
-          handleError(
+          errorHandler(
             new InvalidVideoRestrictionRelationship(
               url,
               vid['restriction:relationship']
@@ -203,7 +207,7 @@ export function validateSMIOptions(
         (vid.price === '' && vid['price:type'] === undefined) ||
         (vid['price:type'] !== undefined && !isPriceType(vid['price:type']))
       ) {
-        handleError(
+        errorHandler(
           new InvalidVideoPriceType(url, vid['price:type'], vid.price),
           level
         );
@@ -212,7 +216,7 @@ export function validateSMIOptions(
         vid['price:resolution'] !== undefined &&
         !isResolution(vid['price:resolution'])
       ) {
-        handleError(
+        errorHandler(
           new InvalidVideoResolution(url, vid['price:resolution']),
           level
         );
@@ -222,7 +226,7 @@ export function validateSMIOptions(
         vid['price:currency'] !== undefined &&
         !validators['price:currency'].test(vid['price:currency'])
       ) {
-        handleError(
+        errorHandler(
           new InvalidVideoPriceCurrency(url, vid['price:currency']),
           level
         );
