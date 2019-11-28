@@ -3,17 +3,17 @@ import { InvalidAttr } from './errors';
 import { SitemapItemOptions, ErrorLevel, ValidTagNames } from './types';
 import { element, otag, ctag } from './sitemap-xml';
 
-export interface IStringObj {
+export interface StringObj {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [index: string]: any;
 }
-function attrBuilder(conf: IStringObj, keys: string | string[]): object {
+function attrBuilder(conf: StringObj, keys: string | string[]): object {
   if (typeof keys === 'string') {
     keys = [keys];
   }
 
-  const iv: IStringObj = {};
-  return keys.reduce((attrs, key): IStringObj => {
+  const iv: StringObj = {};
+  return keys.reduce((attrs, key): StringObj => {
     // eslint-disable-next-line
     if (conf[key] !== undefined) {
       const keyAr = key.split(':');
@@ -32,6 +32,17 @@ export interface SitemapItemStreamOpts extends TransformOptions {
   level?: ErrorLevel;
 }
 
+/**
+ * Takes a stream of SitemapItemOptions and spits out xml for each
+ * @example
+ * // writes <url><loc>https://example.com</loc><url><url><loc>https://example.com/2</loc><url>
+ * const smis = new SitemapItemStream({level: 'warn'})
+ * smis.pipe(writestream)
+ * smis.write({url: 'https://example.com', img: [], video: [], links: []})
+ * smis.write({url: 'https://example.com/2', img: [], video: [], links: []})
+ * smis.end()
+ * @param level - Error level
+ */
 export class SitemapItemStream extends Transform {
   level: ErrorLevel;
   constructor(opts: SitemapItemStreamOpts = { level: ErrorLevel.WARN }) {

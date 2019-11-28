@@ -61,9 +61,7 @@ export function isAllowDeny(ad: string): ad is EnumAllowDeny {
   return allowDeny.test(ad);
 }
 
-export type ICallback<E extends Error, T> = (err?: E, data?: T) => void;
-
-export interface INewsItem {
+export interface NewsItem {
   access?: 'Registration' | 'Subscription';
   publication: {
     name: string;
@@ -76,7 +74,7 @@ export interface INewsItem {
   stock_tickers?: string;
 }
 
-export interface ISitemapImg {
+export interface SitemapImg {
   url: string;
   caption?: string;
   title?: string;
@@ -84,7 +82,7 @@ export interface ISitemapImg {
   license?: string;
 }
 
-interface IVideoItemBase {
+interface VideoItemBase {
   thumbnail_loc: string;
   title: string;
   description: string;
@@ -113,7 +111,7 @@ interface IVideoItemBase {
 export type PriceType = 'rent' | 'purchase' | 'RENT' | 'PURCHASE';
 export type Resolution = 'HD' | 'hd' | 'sd' | 'SD';
 
-export interface IVideoItem extends IVideoItemBase {
+export interface VideoItem extends VideoItemBase {
   tag: string[];
   rating?: number;
   family_friendly?: EnumYesNo;
@@ -121,7 +119,7 @@ export interface IVideoItem extends IVideoItemBase {
   live?: EnumYesNo;
 }
 
-export interface IVideoItemLoose extends IVideoItemBase {
+export interface VideoItemLoose extends VideoItemBase {
   tag?: string | string[];
   rating?: string | number;
   family_friendly?: EnumYesNo | boolean;
@@ -129,22 +127,22 @@ export interface IVideoItemLoose extends IVideoItemBase {
   live?: EnumYesNo | boolean;
 }
 
-export interface ILinkItem {
+export interface LinkItem {
   lang: string;
   url: string;
 }
 
-export interface ISitemapIndexItemOptions {
+export interface SitemapIndexItemOptions {
   url: string;
   lastmod?: string;
 }
 
-interface ISitemapItemOptionsBase {
+interface SitemapItemOptionsBase {
   lastmod?: string;
   changefreq?: EnumChangefreq;
   fullPrecisionPriority?: boolean;
   priority?: number;
-  news?: INewsItem;
+  news?: NewsItem;
   expires?: string;
   androidLink?: string;
   ampLink?: string;
@@ -155,19 +153,19 @@ interface ISitemapItemOptionsBase {
  * Strict options for individual sitemap entries
  */
 // eslint-disable-next-line @typescript-eslint/interface-name-prefix
-export interface SitemapItemOptions extends ISitemapItemOptionsBase {
-  img: ISitemapImg[];
-  video: IVideoItem[];
-  links: ILinkItem[];
+export interface SitemapItemOptions extends SitemapItemOptionsBase {
+  img: SitemapImg[];
+  video: VideoItem[];
+  links: LinkItem[];
 }
 
 /**
  * Options for individual sitemap entries prior to normalization
  */
-export interface ISitemapItemOptionsLoose extends ISitemapItemOptionsBase {
-  video?: IVideoItemLoose | IVideoItemLoose[];
-  img?: string | ISitemapImg | (string | ISitemapImg)[];
-  links?: ILinkItem[];
+export interface SitemapItemOptionsLoose extends SitemapItemOptionsBase {
+  video?: VideoItemLoose | VideoItemLoose[];
+  img?: string | SitemapImg | (string | SitemapImg)[];
+  links?: LinkItem[];
   lastmodfile?: string | Buffer | URL;
   lastmodISO?: string;
   lastmodrealtime?: boolean;
@@ -182,8 +180,8 @@ export enum ErrorLevel {
   THROW = 'throw',
 }
 
-export interface ISitemapOptions {
-  urls?: (ISitemapItemOptionsLoose | string)[];
+export interface SitemapOptions {
+  urls?: (SitemapItemOptionsLoose | string)[];
   hostname?: string;
   level?: ErrorLevel;
   lastmodDateOnly?: boolean;

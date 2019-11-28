@@ -10,11 +10,11 @@ import { URL } from 'url';
 import {
   SitemapItemOptions,
   ErrorLevel,
-  ISitemapItemOptionsLoose,
+  SitemapItemOptionsLoose,
   EnumYesNo,
-  ISitemapImg,
-  ILinkItem,
-  IVideoItem,
+  SitemapImg,
+  LinkItem,
+  VideoItem,
   isValidChangeFreq,
   isValidYesNo,
   isAllowDeny,
@@ -253,7 +253,7 @@ export function mergeStreams(streams: Readable[]): Readable {
   return pass;
 }
 
-export interface IReadLineStreamOptions extends ReadableOptions {
+export interface ReadLineStreamOptions extends ReadableOptions {
   input: Readable;
 }
 
@@ -262,7 +262,7 @@ export interface IReadLineStreamOptions extends ReadableOptions {
  */
 export class ReadLineStream extends Readable {
   private _source: Interface;
-  constructor(options: IReadLineStreamOptions) {
+  constructor(options: ReadLineStreamOptions) {
     if (options.autoDestroy === undefined) {
       options.autoDestroy = true;
     }
@@ -361,12 +361,12 @@ function boolToYESNO(bool?: boolean | EnumYesNo): EnumYesNo | undefined {
 
 /**
  * Converts the passed in sitemap entry into one capable of being consumed by SitemapItem
- * @param {string | ISitemapItemOptionsLoose} elem the string or object to be converted
+ * @param {string | SitemapItemOptionsLoose} elem the string or object to be converted
  * @param {string} hostname
  * @returns SitemapItemOptions a strict sitemap item option
  */
 export function normalizeURL(
-  elem: string | ISitemapItemOptionsLoose,
+  elem: string | SitemapItemOptionsLoose,
   hostname?: string,
   lastmodDateOnly = false
 ): SitemapItemOptions {
@@ -378,7 +378,7 @@ export function normalizeURL(
     links: [],
     url: '',
   };
-  let smiLoose: ISitemapItemOptionsLoose;
+  let smiLoose: SitemapItemOptionsLoose;
   if (typeof elem === 'string') {
     smi.url = elem;
     smiLoose = { url: elem };
@@ -388,7 +388,7 @@ export function normalizeURL(
 
   smi.url = new URL(smiLoose.url, hostname).toString();
 
-  let img: ISitemapImg[] = [];
+  let img: SitemapImg[] = [];
   if (smiLoose.img) {
     if (typeof smiLoose.img === 'string') {
       // string -> array of objects
@@ -399,23 +399,23 @@ export function normalizeURL(
     }
 
     img = smiLoose.img.map(
-      (el): ISitemapImg => (typeof el === 'string' ? { url: el } : el)
+      (el): SitemapImg => (typeof el === 'string' ? { url: el } : el)
     );
   }
   // prepend hostname to all image urls
   smi.img = img.map(
-    (el: ISitemapImg): ISitemapImg => ({
+    (el: SitemapImg): SitemapImg => ({
       ...el,
       url: new URL(el.url, hostname).toString(),
     })
   );
 
-  let links: ILinkItem[] = [];
+  let links: LinkItem[] = [];
   if (smiLoose.links) {
     links = smiLoose.links;
   }
   smi.links = links.map(
-    (link): ILinkItem => {
+    (link): LinkItem => {
       return { ...link, url: new URL(link.url, hostname).toString() };
     }
   );
@@ -426,8 +426,8 @@ export function normalizeURL(
       smiLoose.video = [smiLoose.video];
     }
     smi.video = smiLoose.video.map(
-      (video): IVideoItem => {
-        const nv: IVideoItem = {
+      (video): VideoItem => {
+        const nv: VideoItem = {
           ...video,
           /* eslint-disable-next-line @typescript-eslint/camelcase */
           family_friendly: boolToYESNO(video.family_friendly),

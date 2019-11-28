@@ -9,8 +9,8 @@ import {
   Writable,
 } from 'stream';
 import {
-  ISitemapIndexItemOptions,
-  ISitemapItemOptionsLoose,
+  SitemapIndexItemOptions,
+  SitemapItemOptionsLoose,
   ErrorLevel,
 } from './types';
 import { UndefinedTargetFolder } from './errors';
@@ -35,7 +35,7 @@ export interface SitemapIndexStreamOpts extends TransformOptions {
 const defaultStreamOpts: SitemapIndexStreamOpts = {};
 export class SitemapIndexStream extends Transform {
   level: ErrorLevel;
-  hasHeadOutput: boolean;
+  private hasHeadOutput: boolean;
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
@@ -44,7 +44,7 @@ export class SitemapIndexStream extends Transform {
   }
 
   _transform(
-    item: ISitemapIndexItemOptions | string,
+    item: SitemapIndexItemOptions | string,
     encoding: string,
     callback: TransformCallback
   ): void {
@@ -97,7 +97,7 @@ export async function createSitemapsAndIndex({
   sitemapSize = 50000,
   gzip = true,
 }: {
-  urls: (string | ISitemapItemOptionsLoose)[];
+  urls: (string | SitemapItemOptionsLoose)[];
   targetFolder: string;
   hostname?: string;
   sitemapName?: string;
@@ -120,7 +120,7 @@ export async function createSitemapsAndIndex({
   );
   indexStream.pipe(indexWS);
   const smPromises = chunk(urls, sitemapSize).map(
-    (chunk: (string | ISitemapItemOptionsLoose)[], idx): Promise<boolean> => {
+    (chunk: (string | SitemapItemOptionsLoose)[], idx): Promise<boolean> => {
       return new Promise((resolve, reject): void => {
         const extension = '.xml' + (gzip ? '.gz' : '');
         const filename = sitemapName + '-' + idx + extension;

@@ -1,6 +1,6 @@
 {
   "name": "sitemap",
-  "version": "5.1.0",
+  "version": "6.0.0",
   "description": "Sitemap-generating lib/cli",
   "keywords": [
     "sitemap",
@@ -81,7 +81,6 @@
       "no-console": 0,
       "no-unused-vars": 0,
       "indent": "off",
-      "no-dupe-class-members": "off",
       "lines-between-class-members": [
         "error",
         "always",
@@ -104,11 +103,7 @@
           "args": "none"
         }
       ],
-      "@typescript-eslint/explicit-member-accessibility": "off",
-      "@typescript-eslint/interface-name-prefix": [
-        2,
-        "always"
-      ]
+      "@typescript-eslint/explicit-member-accessibility": "off"
     }
   },
   "jest": {

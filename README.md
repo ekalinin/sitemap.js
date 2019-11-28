@@ -1,7 +1,7 @@
-# sitemap.js [![Build Status](https://travis-ci.org/ekalinin/sitemap.js.svg?branch=master)](https://travis-ci.org/ekalinin/sitemap.js)
+# sitemap [![Build Status](https://travis-ci.org/ekalinin/sitemap.js.svg?branch=master)](https://travis-ci.org/ekalinin/sitemap.js)
 
-**sitemap.js** is a high-level sitemap-generating library/CLI that
-makes creating [sitemap XML](http://www.sitemaps.org/) files easy.
+**sitemap** is a high-level streaming sitemap-generating library/CLI that
+makes creating [sitemap XML](http://www.sitemaps.org/) files easy. [What is a sitemap?](https://support.google.com/webmasters/answer/156184?hl=en&ref_topic=4581190)
 
 ## Maintainers
 
@@ -20,18 +20,20 @@ makes creating [sitemap XML](http://www.sitemaps.org/) files easy.
   - [Auto creating sitemap and index files from one large list](#auto-creating-sitemap-and-index-files-from-one-large-list)
 - [API](#api)
   - [createSitemapsAndIndex](#createsitemapsandindex)
+  - [SitemapIndexStream](#SitemapIndexStream)
   - [xmlLint](#xmllint)
   - [parseSitemap](#parsesitemap)
   - [SitemapStream](#sitemapstream)
-  - [XMLToISitemapOptions](#XMLToISitemapOptions)
+  - [XMLToSitemapOptions](#XMLToSitemapOptions)
   - [lineSeparatedURLsToSitemapOptions](#lineseparatedurlstositemapoptions)
   - [streamToPromise](#streamtopromise)
   - [ObjectStreamToJSON](#objectstreamtojson)
+  - [SitemapItemStream](#SitemapItemStream)
   - [Sitemap Item Options](#sitemap-item-options)
-  - [ISitemapImage](#isitemapimage)
-  - [IVideoItem](#ivideoitem)
-  - [ILinkItem](#ilinkitem)
-  - [INewsItem](#inewsitem)
+  - [SitemapImage](#sitemapimage)
+  - [VideoItem](#videoitem)
+  - [LinkItem](#linkitem)
+  - [NewsItem](#newsitem)
 - [License](#license)
 
 ## Installation
@@ -304,6 +306,29 @@ createSitemapsAndIndex({
 })
 ```
 
+### SitemapIndexStream
+
+Writes a sitemap index when given a stream urls.
+
+```js
+/**
+ * writes the following
+ * <?xml version="1.0" encoding="UTF-8"?>
+   <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+   <sitemap>
+      <loc>https://example.com/</loc>
+   </sitemap>
+   <sitemap>
+      <loc>https://example.com/2</loc>
+   </sitemap>
+ */
+const smis = new SitemapIndexStream({level: 'warn'})
+smis.write({url: 'https://example.com/'})
+smis.write({url: 'https://example.com/2'})
+smis.pipe(writestream)
+smis.end()
+```
+
 ### xmlLint
 
 Resolve or reject depending on whether the passed in xml is a valid sitemap.
@@ -349,7 +374,7 @@ const readable = // a readable stream of objects
 readable.pipe(sms).pipe(process.stdout)
 ```
 
-### XMLToISitemapOptions
+### XMLToSitemapOptions
 
 Takes a stream of xml and transforms it into a stream of ISitemapOptions.
 Use this to parse existing sitemaps into config options compatible with this library
@@ -397,6 +422,19 @@ stream.end()
 // prints {"a":"b"}
 ```
 
+### SitemapItemStream
+
+Takes a stream of SitemapItemOptions and spits out xml for each
+
+```js
+// writes <url><loc>https://example.com</loc><url><url><loc>https://example.com/2</loc><url>
+const smis = new SitemapItemStream({level: 'warn'})
+smis.pipe(writestream)
+smis.write({url: 'https://example.com', img: [], video: [], links: []})
+smis.write({url: 'https://example.com/2', img: [], video: [], links: []})
+smis.end()
+```
+
 ### Sitemap Item Options
 
 |Option|Type|eg|Description|
@@ -412,7 +450,7 @@ stream.end()
 |ampLink|string|`http://ampproject.org/article.amp.html`||
 |cdata|boolean|true|wrap url in cdata xml escape|
 
-### ISitemapImage
+### SitemapImage
 
 Sitemap image
 <https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190>
@@ -425,7 +463,7 @@ Sitemap image
 |geoLocation|string - optional|'Limerick, Ireland'|The geographic location of the image.|
 |license|string - optional|`http://example.com/license.txt`|A URL to the license of the image.|
 
-### IVideoItem
+### VideoItem
 
 Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190>
 
@@ -469,7 +507,7 @@ Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_top
 |lang|string|'en'||
 |url|string|`'http://example.com/en/'`||
 
-### INewsItem
+### NewsItem
 
 <https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190>
 

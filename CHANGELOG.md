@@ -3,11 +3,17 @@
 ## unreleased
 
 - removed xmlbuilder as a dependency
-- replaced buildSitemapIndex with SitemapIndexStream
-- removed deprecated Sitemap and SitemapIndex classes
 - added stronger validity checking on values supplied to sitemap
-- various types renamed or made more specific
-- TODO document SitemapItemStream and SitemapIndexStream
+- TODO verify parser is compatible with older xml versions
+- TODO strip invalid unicode ranges
+
+### unreleased breaking changes
+
+- various types renamed or made more specific, removed I prefix
+- renamed XMLToISitemapOptions to XMLToSitemapOptions
+- various error messages changed.
+- removed deprecated Sitemap and SitemapIndex classes
+- replaced buildSitemapIndex with SitemapIndexStream
 
 ## 5.1.0
 
@@ -43,7 +49,7 @@ This library interface has been overhauled to use streams internally. Although i
 - createSitemapsIndex was renamed createSitemapsAndIndex to more accurately reflect its function. It now returns a promise that resolves to true or throws with an error.
 - You can now add to existing sitemap.xml files via the cli using `npx sitemap --prepend existingSitemap.xml < listOfNewURLs.json.txt`
 
-### Breaking Changes
+### 5.0 Breaking Changes
 
 - Dropped support for mobile sitemap - Google appears to have deleted their dtd and all references to it, strongly implying that they do not want you to use it. As its absence now breaks the validator, it has been dropped.
 - normalizeURL(url, XMLRoot, hostname) -> normalizeURL(url, hostname)
@@ -153,7 +159,7 @@ items remain, including the confusing names of buildSitemapIndex and createSitem
 - properly encode URLs #179
 - updated core dependency
 
-### breaking changes
+### 3.0 breaking changes
 
 This will likely not break anyone's code but we're bumping to be safe
 

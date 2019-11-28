@@ -1,5 +1,5 @@
 import { ValidTagNames } from './types';
-import { IStringObj } from './sitemap-item-stream';
+import { StringObj } from './sitemap-item-stream';
 import { ValidIndexTagNames } from './sitemap-index-stream';
 
 export function text(txt: string): string {
@@ -8,7 +8,7 @@ export function text(txt: string): string {
 
 export function otag(
   nodeName: ValidTagNames | ValidIndexTagNames,
-  attrs?: IStringObj,
+  attrs?: StringObj,
   selfClose = false
 ): string {
   let attrstr = '';
@@ -29,17 +29,17 @@ export function ctag(nodeName: ValidTagNames | ValidIndexTagNames): string {
 
 export function element(
   nodeName: ValidTagNames,
-  attrs: IStringObj,
+  attrs: StringObj,
   innerText: string
 ): string;
 export function element(
   nodeName: ValidTagNames | ValidIndexTagNames,
   innerText: string
 ): string;
-export function element(nodeName: ValidTagNames, attrs: IStringObj): string;
+export function element(nodeName: ValidTagNames, attrs: StringObj): string;
 export function element(
   nodeName: ValidTagNames | ValidIndexTagNames,
-  attrs: string | IStringObj,
+  attrs: string | StringObj,
   innerText?: string
 ): string {
   if (typeof attrs === 'string') {

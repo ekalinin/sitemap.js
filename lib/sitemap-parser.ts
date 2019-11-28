@@ -10,12 +10,12 @@ import {
   SitemapItemOptions,
   isValidChangeFreq,
   isValidYesNo,
-  IVideoItem,
-  ISitemapImg,
-  ILinkItem,
-  INewsItem,
+  VideoItem,
+  SitemapImg,
+  LinkItem,
+  NewsItem,
   ErrorLevel,
-  ISitemapOptions,
+  SitemapOptions,
   isAllowDeny,
   isPriceType,
   isResolution,
@@ -36,7 +36,7 @@ function tagTemplate(): SitemapItemOptions {
   };
 }
 
-function videoTemplate(): IVideoItem {
+function videoTemplate(): VideoItem {
   return {
     tag: [],
     thumbnail_loc: '',
@@ -45,26 +45,26 @@ function videoTemplate(): IVideoItem {
   };
 }
 
-const imageTemplate: ISitemapImg = {
+const imageTemplate: SitemapImg = {
   url: '',
 };
 
-const linkTemplate: ILinkItem = {
+const linkTemplate: LinkItem = {
   lang: '',
   url: '',
 };
 
-function newsTemplate(): INewsItem {
+function newsTemplate(): NewsItem {
   return {
     publication: { name: '', language: '' },
     publication_date: '',
     title: '',
   };
 }
-export interface ISitemapStreamParseOpts
+export interface SitemapStreamParseOpts
   extends TransformOptions,
-    Pick<ISitemapOptions, 'level'> {}
-const defaultStreamOpts: ISitemapStreamParseOpts = {};
+    Pick<SitemapOptions, 'level'> {}
+const defaultStreamOpts: SitemapStreamParseOpts = {};
 /**
  * Takes a stream of xml and transforms it into a stream of ISitemapOptions
  * Use this to parse existing sitemaps into config options compatible with this library
@@ -85,9 +85,9 @@ export class XMLToISitemapOptions extends Transform {
     this.level = opts.level || ErrorLevel.WARN;
     let currentItem: SitemapItemOptions = tagTemplate();
     let currentTag: string;
-    let currentVideo: IVideoItem = videoTemplate();
-    let currentImage: ISitemapImg = { ...imageTemplate };
-    let currentLink: ILinkItem = { ...linkTemplate };
+    let currentVideo: VideoItem = videoTemplate();
+    let currentImage: SitemapImg = { ...imageTemplate };
+    let currentLink: LinkItem = { ...linkTemplate };
     let dontpushCurrentLink = false;
     this.saxStream.on('opentagstart', (tag): void => {
       currentTag = tag.name;
@@ -218,7 +218,7 @@ export class XMLToISitemapOptions extends Transform {
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
-          currentItem.news.access = text as INewsItem['access'];
+          currentItem.news.access = text as NewsItem['access'];
           break;
         case ValidTagNames['news:genres']:
           if (!currentItem.news) {
@@ -435,10 +435,10 @@ export class XMLToISitemapOptions extends Transform {
   )
   ```
   @param {Readable} xml what to parse
-  @return {Promise<ISitemapOptions>} resolves with a valid config that can be
+  @return {Promise<SitemapOptions>} resolves with a valid config that can be
   passed to createSitemap. Rejects with an Error object.
  */
-export async function parseSitemap(xml: Readable): Promise<ISitemapOptions> {
+export async function parseSitemap(xml: Readable): Promise<SitemapOptions> {
   const urls: SitemapItemOptions[] = [];
   return new Promise((resolve, reject): void => {
     xml
@@ -453,11 +453,11 @@ export async function parseSitemap(xml: Readable): Promise<ISitemapOptions> {
   });
 }
 
-export interface IObjectToStreamOpts extends TransformOptions {
+export interface ObjectToStreamOpts extends TransformOptions {
   lineSeparated: boolean;
 }
 
-const defaultObjectStreamOpts: IObjectToStreamOpts = {
+const defaultObjectStreamOpts: ObjectToStreamOpts = {
   lineSeparated: false,
 };
 /**

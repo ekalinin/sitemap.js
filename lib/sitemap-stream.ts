@@ -5,18 +5,18 @@ import {
   Readable,
   Writable,
 } from 'stream';
-import { ISitemapItemOptionsLoose, ErrorLevel, ISitemapOptions } from './types';
+import { SitemapItemOptionsLoose, ErrorLevel, SitemapOptions } from './types';
 import { validateSMIOptions, normalizeURL } from './utils';
 import { SitemapItemStream } from './sitemap-item-stream';
 export const preamble =
   '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">';
 export const closetag = '</urlset>';
-export interface ISitemapStreamOpts
+export interface SitemapStreamOpts
   extends TransformOptions,
-    Pick<ISitemapOptions, 'hostname' | 'level' | 'lastmodDateOnly'> {
+    Pick<SitemapOptions, 'hostname' | 'level' | 'lastmodDateOnly'> {
   errorHandler?: (error: Error, level: ErrorLevel) => void;
 }
-const defaultStreamOpts: ISitemapStreamOpts = {};
+const defaultStreamOpts: SitemapStreamOpts = {};
 export class SitemapStream extends Transform {
   errorHandler?: (error: Error, level: ErrorLevel) => void;
   hostname?: string;
@@ -37,7 +37,7 @@ export class SitemapStream extends Transform {
   }
 
   _transform(
-    item: ISitemapItemOptionsLoose,
+    item: SitemapItemOptionsLoose,
     encoding: string,
     callback: TransformCallback
   ): void {

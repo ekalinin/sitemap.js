@@ -4,7 +4,7 @@ import {
   EnumAllowDeny,
   SitemapItemOptions,
   ErrorLevel,
-  ISitemapItemOptionsLoose,
+  SitemapItemOptionsLoose,
   EnumChangefreq,
 } from '../index';
 import * as testUtil from './util';
@@ -910,7 +910,7 @@ describe('utils', () => {
       });
 
       it('ensures tag is always an array', () => {
-        let url: ISitemapItemOptionsLoose = {
+        let url: SitemapItemOptionsLoose = {
           url: 'http://example.com',
           video: { thumbnail_loc: 'foo', title: '', description: '' },
         };
