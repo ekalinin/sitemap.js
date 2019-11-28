@@ -6,14 +6,18 @@
 - added stronger validity checking on values supplied to sitemap
 - TODO verify parser is compatible with older xml versions
 - TODO strip invalid unicode ranges
+- TODO flesh out error handler
+- TODO mark as private things that should.
 
 ### unreleased breaking changes
 
-- various types renamed or made more specific, removed I prefix
 - renamed XMLToISitemapOptions to XMLToSitemapOptions
 - various error messages changed.
 - removed deprecated Sitemap and SitemapIndex classes
 - replaced buildSitemapIndex with SitemapIndexStream
+- Typescript: various types renamed or made more specific, removed I prefix
+- Typescript: view_count is now exclusively a number
+- Typescript: `price:type` and `price:resolution` are now more restrictive types
 
 ## 5.1.0
 
