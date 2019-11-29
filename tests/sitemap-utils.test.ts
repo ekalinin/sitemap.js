@@ -170,7 +170,7 @@ describe('utils', () => {
                 'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
               'player_loc:autoplay': 'ap=1',
               restriction: 'IE GB US CA',
-              'restriction:relationship': 'allow',
+              'restriction:relationship': EnumAllowDeny.ALLOW,
               gallery_loc: 'https://roosterteeth.com/series/awhu',
               'gallery_loc:title': 'awhu series page',
               price: '1.99',
@@ -476,6 +476,8 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 restriction: 'IE GB US CA',
+                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                // @ts-ignore
                 'restriction:relationship': 'father',
                 tag: [],
               },

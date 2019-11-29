@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { execFile } from 'child_process';
 import { XMLLintUnavailable } from './errors';
 /**
- * Verify the passed in xml is valid
+ * Verify the passed in xml is valid. Requires xmllib be installed
  * @param xml what you want validated
  * @return {Promise<null>} resolves on valid rejects [error stderr]
  */

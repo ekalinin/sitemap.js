@@ -337,7 +337,7 @@ export class XMLToISitemapOptions extends Transform {
         case ValidTagNames['video:id']:
           break;
         case ValidTagNames['video:restriction']:
-          if (attr.name === 'relationship') {
+          if (attr.name === 'relationship' && isAllowDeny(attr.value)) {
             currentVideo['restriction:relationship'] = attr.value;
           } else {
             console.log('unhandled attr', currentTag, attr.name);

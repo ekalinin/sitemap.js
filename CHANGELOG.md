@@ -18,6 +18,7 @@
 - Typescript: various types renamed or made more specific, removed I prefix
 - Typescript: view_count is now exclusively a number
 - Typescript: `price:type` and `price:resolution` are now more restrictive types
+- TODO verify old json formats are still accepted.
 
 ## 5.1.0
 

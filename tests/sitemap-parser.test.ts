@@ -7,7 +7,7 @@ import {
   XMLToISitemapOptions,
   ObjectStreamToJSON,
 } from '../lib/sitemap-parser';
-import { ISitemapOptions } from '../dist';
+import { SitemapOptions } from '../dist';
 const pipeline = promisify(pipe);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const normalizedSample = require('./mocks/sampleconfig.normalized.json');
@@ -24,7 +24,7 @@ describe('parseSitemap', () => {
 
 describe('XMLToISitemapOptions', () => {
   it('stream parses XML', async () => {
-    const sitemap: ISitemapOptions[] = [];
+    const sitemap: SitemapOptions[] = [];
     await pipeline(
       createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
@@ -42,7 +42,7 @@ describe('XMLToISitemapOptions', () => {
   });
 
   it('stream parses XML with cdata', async () => {
-    const sitemap: ISitemapOptions[] = [];
+    const sitemap: SitemapOptions[] = [];
     await pipeline(
       createReadStream(resolve(__dirname, './mocks/alltags.cdata.xml'), {
         encoding: 'utf8',
