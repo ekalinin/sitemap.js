@@ -17,6 +17,13 @@ export interface SitemapStreamOpts
   errorHandler?: (error: Error, level: ErrorLevel) => void;
 }
 const defaultStreamOpts: SitemapStreamOpts = {};
+/**
+ * A [Transform](https://nodejs.org/api/stream.html#stream_implementing_a_transform_stream)
+ * for turning a
+ * [Readable stream](https://nodejs.org/api/stream.html#stream_readable_streams)
+ * of either [SitemapItemOptions](#sitemap-item-options) or url strings into a
+ * Sitemap. The readable stream it transforms **must** be in object mode.
+ */
 export class SitemapStream extends Transform {
   errorHandler?: (error: Error, level: ErrorLevel) => void;
   hostname?: string;

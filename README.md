@@ -472,12 +472,12 @@ Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_top
 |thumbnail_loc|string|`"https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg"`|A URL pointing to the video thumbnail image file|
 |title|string|'2018:E6 - GoldenEye: Source'|The title of the video. |
 |description|string|'We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.'|A description of the video. Maximum 2048 characters. |
-|content_loc|string - optional|`"http://streamserver.example.com/video123.mp4"`|A URL pointing to the actual video media file. Should be one of the supported formats.HTML is not a supported format. Flash is allowed, but no longer supported on most mobile platforms, and so may be indexed less well. Must not be the same as the `<loc>` URL.|
+|content_loc|string - optional|`"http://streamserver.example.com/video123.mp4"`|A URL pointing to the actual video media file. Should be one of the supported formats. HTML is not a supported format. Flash is allowed, but no longer supported on most mobile platforms, and so may be indexed less well. Must not be the same as the `<loc>` URL.|
 |player_loc|string - optional|`"https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source"`|A URL pointing to a player for a specific video. Usually this is the information in the src element of an `<embed>` tag. Must not be the same as the `<loc>` URL|
 |'player_loc:autoplay'|string - optional|'ap=1'|a string the search engine can append as a query param to enable automatic playback|
 |duration|number - optional| 600| duration of video in seconds|
 |expiration_date| string - optional|"2012-07-16T19:20:30+08:00"|The date after which the video will no longer be available|
-|view_count|string - optional|'21000000000'|The number of times the video has been viewed.|
+|view_count|number - optional|'21000000000'|The number of times the video has been viewed.|
 |publication_date| string - optional|"2018-04-27T17:00:00.000Z"|The date the video was first published, in W3C format.|
 |category|string - optional|"Baking"|A short description of the broad category that the video belongs to. This is a string no longer than 256 characters.|
 |restriction|string - optional|"IE GB US CA"|Whether to show or hide your video in search results from specific countries.|
@@ -493,7 +493,7 @@ Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_top
 |platform:relationship|string 'Allow'\|'Deny' - optional|'Allow'||
 |id|string - optional|||
 |tag|string[] - optional|['Baking']|An arbitrary string tag describing the video. Tags are generally very short descriptions of key concepts associated with a video or piece of content.|
-|rating|number - optional|2.5|The rating of the video. Supported values are float numbers i|
+|rating|number - optional|2.5|The rating of the video. Supported values are float numbers|
 |family_friendly|string 'YES'\|'NO' - optional|'YES'||
 |requires_subscription|string 'YES'\|'NO' - optional|'YES'|Indicates whether a subscription (either paid or free) is required to view the video. Allowed values are yes or no.|
 |live|string 'YES'\|'NO' - optional|'NO'|Indicates whether the video is a live stream. Supported values are yes or no.|
@@ -516,7 +516,7 @@ Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_top
 |access|string - 'Registration' \| 'Subscription'| 'Registration' - optional||
 |publication| object|see following options||
 |publication['name']| string|'The Example Times'|The `<name>` is the name of the news publication. It must exactly match the name as it appears on your articles on news.google.com, except for anything in parentheses.|
-|publication['language']|string|'en'|he `<language>` is the language of your publication. Use an ISO 639 language code (2 or 3 letters).|
+|publication['language']|string|'en'|The `<language>` is the language of your publication. Use an ISO 639 language code (2 or 3 letters).|
 |genres|string - optional|'PressRelease, Blog'||
 |publication_date|string|'2008-12-23'|Article publication date in W3C format, using either the "complete date" (YYYY-MM-DD) format or the "complete date plus hours, minutes, and seconds"|
 |title|string|'Companies A, B in Merger Talks'|The title of the news article.|

@@ -73,6 +73,12 @@ function handleError(error: Error, level: ErrorLevel): void {
     console.warn(error.name, error.message);
   }
 }
+/**
+ * Verifies all data passed in will comply with sitemap spec.
+ * @param conf Options to validate
+ * @param level logging level
+ * @param errorHandler error handling func
+ */
 export function validateSMIOptions(
   conf: SitemapItem,
   level = ErrorLevel.WARN,
@@ -298,7 +304,6 @@ export class ReadlineStream extends Readable {
  * Takes a stream likely from fs.createReadStream('./path') and returns a stream
  * of sitemap items
  * @param stream a stream of line separated urls.
- * @param opts
  * @param opts.isJSON is the stream line separated JSON. leave undefined to guess
  */
 export function lineSeparatedURLsToSitemapOptions(
