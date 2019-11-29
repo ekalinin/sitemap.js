@@ -4,15 +4,15 @@ import { promisify } from 'util';
 import { pipeline as pipe, Writable, Readable } from 'stream';
 import {
   parseSitemap,
-  XMLToISitemapOptions,
+  XMLToSitemapItemStream,
   ObjectStreamToJSON,
 } from '../lib/sitemap-parser';
-import { ISitemapOptions } from '../dist';
+import { SitemapStreamOptions } from '../dist';
 const pipeline = promisify(pipe);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const normalizedSample = require('./mocks/sampleconfig.normalized.json');
 describe('parseSitemap', () => {
-  it('parses xml into sitemap-item-options', async () => {
+  it('parses xml into sitemap-items', async () => {
     const config = await parseSitemap(
       createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
@@ -24,12 +24,12 @@ describe('parseSitemap', () => {
 
 describe('XMLToISitemapOptions', () => {
   it('stream parses XML', async () => {
-    const sitemap: ISitemapOptions[] = [];
+    const sitemap: SitemapStreamOptions[] = [];
     await pipeline(
       createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
       }),
-      new XMLToISitemapOptions(),
+      new XMLToSitemapItemStream(),
       new Writable({
         objectMode: true,
         write(chunk, a, cb): void {
@@ -42,12 +42,12 @@ describe('XMLToISitemapOptions', () => {
   });
 
   it('stream parses XML with cdata', async () => {
-    const sitemap: ISitemapOptions[] = [];
+    const sitemap: SitemapStreamOptions[] = [];
     await pipeline(
       createReadStream(resolve(__dirname, './mocks/alltags.cdata.xml'), {
         encoding: 'utf8',
       }),
-      new XMLToISitemapOptions(),
+      new XMLToSitemapItemStream(),
       new Writable({
         objectMode: true,
         write(chunk, a, cb): void {

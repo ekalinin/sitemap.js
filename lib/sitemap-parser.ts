@@ -7,27 +7,27 @@ import {
   TransformCallback,
 } from 'stream';
 import {
-  SitemapItemOptions,
+  SitemapItem,
   isValidChangeFreq,
   isValidYesNo,
-  VideoItem,
+  SitemapVideoItem,
   SitemapImg,
-  LinkItem,
-  NewsItem,
+  SitemapLinkItem,
+  SitemapNewsItem,
   ErrorLevel,
-  SitemapOptions,
+  SitemapStreamOptions,
   isAllowDeny,
   isPriceType,
   isResolution,
-  ValidTagNames,
+  TagNames,
 } from './types';
 
-function isValidTagName(tagName: string): tagName is ValidTagNames {
+function isValidTagName(tagName: string): tagName is TagNames {
   // This only works because the enum name and value are the same
-  return tagName in ValidTagNames;
+  return tagName in TagNames;
 }
 
-function tagTemplate(): SitemapItemOptions {
+function tagTemplate(): SitemapItem {
   return {
     img: [],
     video: [],
@@ -36,7 +36,7 @@ function tagTemplate(): SitemapItemOptions {
   };
 }
 
-function videoTemplate(): VideoItem {
+function videoTemplate(): SitemapVideoItem {
   return {
     tag: [],
     thumbnail_loc: '',
@@ -49,27 +49,29 @@ const imageTemplate: SitemapImg = {
   url: '',
 };
 
-const linkTemplate: LinkItem = {
+const linkTemplate: SitemapLinkItem = {
   lang: '',
   url: '',
 };
 
-function newsTemplate(): NewsItem {
+function newsTemplate(): SitemapNewsItem {
   return {
     publication: { name: '', language: '' },
     publication_date: '',
     title: '',
   };
 }
-export interface SitemapStreamParseOpts
+export interface XMLToSitemapItemStreamOptions
   extends TransformOptions,
-    Pick<SitemapOptions, 'level'> {}
-const defaultStreamOpts: SitemapStreamParseOpts = {};
+    Pick<SitemapStreamOptions, 'level'> {}
+const defaultStreamOpts: XMLToSitemapItemStreamOptions = {};
+
+// TODO does this need to end with `options`
 /**
- * Takes a stream of xml and transforms it into a stream of ISitemapOptions
+ * Takes a stream of xml and transforms it into a stream of SitemapItems
  * Use this to parse existing sitemaps into config options compatible with this library
  */
-export class XMLToISitemapOptions extends Transform {
+export class XMLToSitemapItemStream extends Transform {
   level: ErrorLevel;
   saxStream: SAXStream;
   constructor(opts = defaultStreamOpts) {
@@ -83,11 +85,11 @@ export class XMLToISitemapOptions extends Transform {
       trim: true,
     });
     this.level = opts.level || ErrorLevel.WARN;
-    let currentItem: SitemapItemOptions = tagTemplate();
+    let currentItem: SitemapItem = tagTemplate();
     let currentTag: string;
-    let currentVideo: VideoItem = videoTemplate();
+    let currentVideo: SitemapVideoItem = videoTemplate();
     let currentImage: SitemapImg = { ...imageTemplate };
-    let currentLink: LinkItem = { ...linkTemplate };
+    let currentLink: SitemapLinkItem = { ...linkTemplate };
     let dontpushCurrentLink = false;
     this.saxStream.on('opentagstart', (tag): void => {
       currentTag = tag.name;
@@ -131,151 +133,151 @@ export class XMLToISitemapOptions extends Transform {
       switch (currentTag) {
         case 'mobile:mobile':
           break;
-        case ValidTagNames.loc:
+        case TagNames.loc:
           currentItem.url = text;
           break;
-        case ValidTagNames.changefreq:
+        case TagNames.changefreq:
           if (isValidChangeFreq(text)) {
             currentItem.changefreq = text;
           }
           break;
-        case ValidTagNames.priority:
+        case TagNames.priority:
           currentItem.priority = parseFloat(text);
           break;
-        case ValidTagNames.lastmod:
+        case TagNames.lastmod:
           currentItem.lastmod = text;
           break;
-        case ValidTagNames['video:thumbnail_loc']:
+        case TagNames['video:thumbnail_loc']:
           currentVideo.thumbnail_loc = text;
           break;
-        case ValidTagNames['video:tag']:
+        case TagNames['video:tag']:
           currentVideo.tag.push(text);
           break;
-        case ValidTagNames['video:duration']:
+        case TagNames['video:duration']:
           currentVideo.duration = parseInt(text, 10);
           break;
-        case ValidTagNames['video:player_loc']:
+        case TagNames['video:player_loc']:
           currentVideo.player_loc = text;
           break;
-        case ValidTagNames['video:requires_subscription']:
+        case TagNames['video:requires_subscription']:
           if (isValidYesNo(text)) {
             currentVideo.requires_subscription = text;
           }
           break;
-        case ValidTagNames['video:publication_date']:
+        case TagNames['video:publication_date']:
           currentVideo.publication_date = text;
           break;
-        case ValidTagNames['video:id']:
+        case TagNames['video:id']:
           currentVideo.id = text;
           break;
-        case ValidTagNames['video:restriction']:
+        case TagNames['video:restriction']:
           currentVideo.restriction = text;
           break;
-        case ValidTagNames['video:view_count']:
+        case TagNames['video:view_count']:
           currentVideo.view_count = parseInt(text, 10);
           break;
-        case ValidTagNames['video:uploader']:
+        case TagNames['video:uploader']:
           currentVideo.uploader = text;
           break;
-        case ValidTagNames['video:family_friendly']:
+        case TagNames['video:family_friendly']:
           if (isValidYesNo(text)) {
             currentVideo.family_friendly = text;
           }
           break;
-        case ValidTagNames['video:expiration_date']:
+        case TagNames['video:expiration_date']:
           currentVideo.expiration_date = text;
           break;
-        case ValidTagNames['video:platform']:
+        case TagNames['video:platform']:
           currentVideo.platform = text;
           break;
-        case ValidTagNames['video:price']:
+        case TagNames['video:price']:
           currentVideo.price = text;
           break;
-        case ValidTagNames['video:rating']:
+        case TagNames['video:rating']:
           currentVideo.rating = parseFloat(text);
           break;
-        case ValidTagNames['video:category']:
+        case TagNames['video:category']:
           currentVideo.category = text;
           break;
-        case ValidTagNames['video:live']:
+        case TagNames['video:live']:
           if (isValidYesNo(text)) {
             currentVideo.live = text;
           }
           break;
-        case ValidTagNames['video:gallery_loc']:
+        case TagNames['video:gallery_loc']:
           currentVideo.gallery_loc = text;
           break;
-        case ValidTagNames['image:loc']:
+        case TagNames['image:loc']:
           currentImage.url = text;
           break;
-        case ValidTagNames['image:geo_location']:
+        case TagNames['image:geo_location']:
           currentImage.geoLocation = text;
           break;
-        case ValidTagNames['image:license']:
+        case TagNames['image:license']:
           currentImage.license = text;
           break;
-        case ValidTagNames['news:access']:
+        case TagNames['news:access']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
-          currentItem.news.access = text as NewsItem['access'];
+          currentItem.news.access = text as SitemapNewsItem['access'];
           break;
-        case ValidTagNames['news:genres']:
+        case TagNames['news:genres']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.genres = text;
           break;
-        case ValidTagNames['news:publication_date']:
+        case TagNames['news:publication_date']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.publication_date = text;
           break;
-        case ValidTagNames['news:keywords']:
+        case TagNames['news:keywords']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.keywords = text;
           break;
-        case ValidTagNames['news:stock_tickers']:
+        case TagNames['news:stock_tickers']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.stock_tickers = text;
           break;
-        case ValidTagNames['news:language']:
+        case TagNames['news:language']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.publication.language = text;
           break;
-        case ValidTagNames['video:title']:
+        case TagNames['video:title']:
           currentVideo.title += text;
           break;
-        case ValidTagNames['video:description']:
+        case TagNames['video:description']:
           currentVideo.description += text;
           break;
-        case ValidTagNames['news:name']:
+        case TagNames['news:name']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.publication.name += text;
           break;
-        case ValidTagNames['news:title']:
+        case TagNames['news:title']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.title += text;
           break;
-        case ValidTagNames['image:caption']:
+        case TagNames['image:caption']:
           if (!currentImage.caption) {
             currentImage.caption = text;
           } else {
             currentImage.caption += text;
           }
           break;
-        case ValidTagNames['image:title']:
+        case TagNames['image:title']:
           if (!currentImage.title) {
             currentImage.title = text;
           } else {
@@ -291,32 +293,32 @@ export class XMLToISitemapOptions extends Transform {
 
     this.saxStream.on('cdata', (text): void => {
       switch (currentTag) {
-        case ValidTagNames['video:title']:
+        case TagNames['video:title']:
           currentVideo.title += text;
           break;
-        case ValidTagNames['video:description']:
+        case TagNames['video:description']:
           currentVideo.description += text;
           break;
-        case ValidTagNames['news:name']:
+        case TagNames['news:name']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.publication.name += text;
           break;
-        case ValidTagNames['news:title']:
+        case TagNames['news:title']:
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
           currentItem.news.title += text;
           break;
-        case ValidTagNames['image:caption']:
+        case TagNames['image:caption']:
           if (!currentImage.caption) {
             currentImage.caption = text;
           } else {
             currentImage.caption += text;
           }
           break;
-        case ValidTagNames['image:title']:
+        case TagNames['image:title']:
           if (!currentImage.title) {
             currentImage.title = text;
           } else {
@@ -332,18 +334,18 @@ export class XMLToISitemapOptions extends Transform {
 
     this.saxStream.on('attribute', (attr): void => {
       switch (currentTag) {
-        case ValidTagNames['urlset']:
-        case ValidTagNames['xhtml:link']:
-        case ValidTagNames['video:id']:
+        case TagNames['urlset']:
+        case TagNames['xhtml:link']:
+        case TagNames['video:id']:
           break;
-        case ValidTagNames['video:restriction']:
+        case TagNames['video:restriction']:
           if (attr.name === 'relationship') {
             currentVideo['restriction:relationship'] = attr.value;
           } else {
             console.log('unhandled attr', currentTag, attr.name);
           }
           break;
-        case ValidTagNames['video:price']:
+        case TagNames['video:price']:
           if (attr.name === 'type' && isPriceType(attr.value)) {
             currentVideo['price:type'] = attr.value;
           } else if (attr.name === 'currency') {
@@ -354,14 +356,14 @@ export class XMLToISitemapOptions extends Transform {
             console.log('unhandled attr for video:price', attr.name);
           }
           break;
-        case ValidTagNames['video:player_loc']:
+        case TagNames['video:player_loc']:
           if (attr.name === 'autoplay') {
             currentVideo['player_loc:autoplay'] = attr.value;
           } else {
             console.log('unhandled attr for video:player_loc', attr.name);
           }
           break;
-        case ValidTagNames['video:platform']:
+        case TagNames['video:platform']:
           if (attr.name === 'relationship' && isAllowDeny(attr.value)) {
             currentVideo['platform:relationship'] = attr.value;
           } else {
@@ -372,7 +374,7 @@ export class XMLToISitemapOptions extends Transform {
             );
           }
           break;
-        case ValidTagNames['video:gallery_loc']:
+        case TagNames['video:gallery_loc']:
           if (attr.name === 'title') {
             currentVideo['gallery_loc:title'] = attr.value;
           } else {
@@ -386,19 +388,19 @@ export class XMLToISitemapOptions extends Transform {
 
     this.saxStream.on('closetag', (tag): void => {
       switch (tag) {
-        case ValidTagNames.url:
+        case TagNames.url:
           this.push(currentItem);
           currentItem = tagTemplate();
           break;
-        case ValidTagNames['video:video']:
+        case TagNames['video:video']:
           currentItem.video.push(currentVideo);
           currentVideo = videoTemplate();
           break;
-        case ValidTagNames['image:image']:
+        case TagNames['image:image']:
           currentItem.img.push(currentImage);
           currentImage = { ...imageTemplate };
           break;
-        case ValidTagNames['xhtml:link']:
+        case TagNames['xhtml:link']:
           if (!dontpushCurrentLink) {
             currentItem.links.push(currentLink);
           }
@@ -435,15 +437,17 @@ export class XMLToISitemapOptions extends Transform {
   )
   ```
   @param {Readable} xml what to parse
-  @return {Promise<SitemapOptions>} resolves with a valid config that can be
+  @return {Promise<SitemapStreamOptions>} resolves with a valid config that can be
   passed to createSitemap. Rejects with an Error object.
  */
-export async function parseSitemap(xml: Readable): Promise<SitemapOptions> {
-  const urls: SitemapItemOptions[] = [];
+export async function parseSitemap(
+  xml: Readable
+): Promise<SitemapStreamOptions> {
+  const urls: SitemapItem[] = [];
   return new Promise((resolve, reject): void => {
     xml
-      .pipe(new XMLToISitemapOptions())
-      .on('data', (smi: SitemapItemOptions) => urls.push(smi))
+      .pipe(new XMLToSitemapItemStream())
+      .on('data', (smi: SitemapItem) => urls.push(smi))
       .on('end', (): void => {
         resolve({ urls });
       })
@@ -453,11 +457,11 @@ export async function parseSitemap(xml: Readable): Promise<SitemapOptions> {
   });
 }
 
-export interface ObjectToStreamOpts extends TransformOptions {
+export interface ObjectStreamToJSONOptions extends TransformOptions {
   lineSeparated: boolean;
 }
 
-const defaultObjectStreamOpts: ObjectToStreamOpts = {
+const defaultObjectStreamOpts: ObjectStreamToJSONOptions = {
   lineSeparated: false,
 };
 /**
@@ -477,7 +481,7 @@ export class ObjectStreamToJSON extends Transform {
   }
 
   _transform(
-    chunk: SitemapItemOptions,
+    chunk: SitemapItem,
     encoding: string,
     cb: TransformCallback
   ): void {

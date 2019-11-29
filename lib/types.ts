@@ -11,7 +11,7 @@ export enum EnumChangefreq {
   NEVER = 'never',
 }
 
-export const allowDeny = /^(?:allow|deny)$/;
+const allowDeny = /^(?:allow|deny)$/;
 export const validators: { [index: string]: RegExp } = {
   'price:currency': /^[A-Z]{3}$/,
   'price:type': /^(?:rent|purchase|RENT|PURCHASE)$/,
@@ -61,7 +61,7 @@ export function isAllowDeny(ad: string): ad is EnumAllowDeny {
   return allowDeny.test(ad);
 }
 
-export interface NewsItem {
+export interface SitemapNewsItem {
   access?: 'Registration' | 'Subscription';
   publication: {
     name: string;
@@ -82,7 +82,7 @@ export interface SitemapImg {
   license?: string;
 }
 
-interface VideoItemBase {
+interface SitemapVideoItemBase {
   thumbnail_loc: string;
   title: string;
   description: string;
@@ -111,7 +111,7 @@ interface VideoItemBase {
 export type PriceType = 'rent' | 'purchase' | 'RENT' | 'PURCHASE';
 export type Resolution = 'HD' | 'hd' | 'sd' | 'SD';
 
-export interface VideoItem extends VideoItemBase {
+export interface SitemapVideoItem extends SitemapVideoItemBase {
   tag: string[];
   rating?: number;
   family_friendly?: EnumYesNo;
@@ -119,7 +119,7 @@ export interface VideoItem extends VideoItemBase {
   live?: EnumYesNo;
 }
 
-export interface VideoItemLoose extends VideoItemBase {
+export interface SitemapVideoItemLoose extends SitemapVideoItemBase {
   tag?: string | string[];
   rating?: string | number;
   family_friendly?: EnumYesNo | boolean;
@@ -127,22 +127,22 @@ export interface VideoItemLoose extends VideoItemBase {
   live?: EnumYesNo | boolean;
 }
 
-export interface LinkItem {
+export interface SitemapLinkItem {
   lang: string;
   url: string;
 }
 
-export interface SitemapIndexItemOptions {
+export interface SitemapIndexItem {
   url: string;
   lastmod?: string;
 }
 
-interface SitemapItemOptionsBase {
+interface SitemapItemBase {
   lastmod?: string;
   changefreq?: EnumChangefreq;
   fullPrecisionPriority?: boolean;
   priority?: number;
-  news?: NewsItem;
+  news?: SitemapNewsItem;
   expires?: string;
   androidLink?: string;
   ampLink?: string;
@@ -153,19 +153,19 @@ interface SitemapItemOptionsBase {
  * Strict options for individual sitemap entries
  */
 // eslint-disable-next-line @typescript-eslint/interface-name-prefix
-export interface SitemapItemOptions extends SitemapItemOptionsBase {
+export interface SitemapItem extends SitemapItemBase {
   img: SitemapImg[];
-  video: VideoItem[];
-  links: LinkItem[];
+  video: SitemapVideoItem[];
+  links: SitemapLinkItem[];
 }
 
 /**
  * Options for individual sitemap entries prior to normalization
  */
-export interface SitemapItemOptionsLoose extends SitemapItemOptionsBase {
-  video?: VideoItemLoose | VideoItemLoose[];
+export interface SitemapItemLoose extends SitemapItemBase {
+  video?: SitemapVideoItemLoose | SitemapVideoItemLoose[];
   img?: string | SitemapImg | (string | SitemapImg)[];
-  links?: LinkItem[];
+  links?: SitemapLinkItem[];
   lastmodfile?: string | Buffer | URL;
   lastmodISO?: string;
   lastmodrealtime?: boolean;
@@ -180,14 +180,14 @@ export enum ErrorLevel {
   THROW = 'throw',
 }
 
-export interface SitemapOptions {
-  urls?: (SitemapItemOptionsLoose | string)[];
+export interface SitemapStreamOptions {
+  urls?: (SitemapItemLoose | string)[];
   hostname?: string;
   level?: ErrorLevel;
   lastmodDateOnly?: boolean;
 }
 
-export enum ValidTagNames {
+export enum TagNames {
   url = 'url',
   loc = 'loc',
   urlset = 'urlset',

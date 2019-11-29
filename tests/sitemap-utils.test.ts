@@ -2,9 +2,9 @@
 import {
   EnumYesNo,
   EnumAllowDeny,
-  SitemapItemOptions,
+  SitemapItem,
   ErrorLevel,
-  SitemapItemOptionsLoose,
+  SitemapItemLoose,
   EnumChangefreq,
 } from '../index';
 import * as testUtil from './util';
@@ -16,7 +16,7 @@ import {
 import { Readable, Writable } from 'stream';
 
 describe('utils', () => {
-  let itemTemplate: SitemapItemOptions;
+  let itemTemplate: SitemapItem;
   beforeEach(() => {
     itemTemplate = { url: '', video: [], img: [], links: [] };
   });
@@ -25,7 +25,7 @@ describe('utils', () => {
     it('ignores errors if told to do so', () => {
       /*  eslint-disable no-new */
       expect(() =>
-        validateSMIOptions({} as SitemapItemOptions, ErrorLevel.SILENT)
+        validateSMIOptions({} as SitemapItem, ErrorLevel.SILENT)
       ).not.toThrow();
     });
 
@@ -39,7 +39,7 @@ describe('utils', () => {
     it('throws an error for url absence', () => {
       /*  eslint-disable no-new */
       expect(() =>
-        validateSMIOptions({} as SitemapItemOptions, ErrorLevel.THROW)
+        validateSMIOptions({} as SitemapItem, ErrorLevel.THROW)
       ).toThrowError(/URL is required/);
     });
 
@@ -71,7 +71,7 @@ describe('utils', () => {
     });
 
     describe('news', () => {
-      let news: SitemapItemOptions;
+      let news: SitemapItem;
       beforeEach(() => {
         news = {
           ...itemTemplate,
@@ -154,7 +154,7 @@ describe('utils', () => {
     });
 
     describe('video', () => {
-      let testvideo: SitemapItemOptions;
+      let testvideo: SitemapItem;
       beforeEach(() => {
         testvideo = {
           ...itemTemplate,
@@ -910,7 +910,7 @@ describe('utils', () => {
       });
 
       it('ensures tag is always an array', () => {
-        let url: SitemapItemOptionsLoose = {
+        let url: SitemapItemLoose = {
           url: 'http://example.com',
           video: { thumbnail_loc: 'foo', title: '', description: '' },
         };

@@ -1,13 +1,13 @@
-import { ValidTagNames } from './types';
+import { TagNames } from './types';
 import { StringObj } from './sitemap-item-stream';
-import { ValidIndexTagNames } from './sitemap-index-stream';
+import { IndexTagNames } from './sitemap-index-stream';
 
 export function text(txt: string): string {
   return txt.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 }
 
 export function otag(
-  nodeName: ValidTagNames | ValidIndexTagNames,
+  nodeName: TagNames | IndexTagNames,
   attrs?: StringObj,
   selfClose = false
 ): string {
@@ -23,22 +23,22 @@ export function otag(
   return `<${nodeName}${attrstr}${selfClose ? '/' : ''}>`;
 }
 
-export function ctag(nodeName: ValidTagNames | ValidIndexTagNames): string {
+export function ctag(nodeName: TagNames | IndexTagNames): string {
   return `</${nodeName}>`;
 }
 
 export function element(
-  nodeName: ValidTagNames,
+  nodeName: TagNames,
   attrs: StringObj,
   innerText: string
 ): string;
 export function element(
-  nodeName: ValidTagNames | ValidIndexTagNames,
+  nodeName: TagNames | IndexTagNames,
   innerText: string
 ): string;
-export function element(nodeName: ValidTagNames, attrs: StringObj): string;
+export function element(nodeName: TagNames, attrs: StringObj): string;
 export function element(
-  nodeName: ValidTagNames | ValidIndexTagNames,
+  nodeName: TagNames | IndexTagNames,
   attrs: string | StringObj,
   innerText?: string
 ): string {

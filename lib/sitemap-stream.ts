@@ -5,7 +5,7 @@ import {
   Readable,
   Writable,
 } from 'stream';
-import { SitemapItemOptionsLoose, ErrorLevel, SitemapOptions } from './types';
+import { SitemapItemLoose, ErrorLevel, SitemapStreamOptions } from './types';
 import { validateSMIOptions, normalizeURL } from './utils';
 import { SitemapItemStream } from './sitemap-item-stream';
 export const preamble =
@@ -13,7 +13,7 @@ export const preamble =
 export const closetag = '</urlset>';
 export interface SitemapStreamOpts
   extends TransformOptions,
-    Pick<SitemapOptions, 'hostname' | 'level' | 'lastmodDateOnly'> {
+    Pick<SitemapStreamOptions, 'hostname' | 'level' | 'lastmodDateOnly'> {
   errorHandler?: (error: Error, level: ErrorLevel) => void;
 }
 const defaultStreamOpts: SitemapStreamOpts = {};
@@ -21,7 +21,7 @@ export class SitemapStream extends Transform {
   errorHandler?: (error: Error, level: ErrorLevel) => void;
   hostname?: string;
   level: ErrorLevel;
-  hasHeadOutput: boolean;
+  private hasHeadOutput: boolean;
   private smiStream: SitemapItemStream;
   lastmodDateOnly: boolean;
   constructor(opts = defaultStreamOpts) {
@@ -37,7 +37,7 @@ export class SitemapStream extends Transform {
   }
 
   _transform(
-    item: SitemapItemOptionsLoose,
+    item: SitemapItemLoose,
     encoding: string,
     callback: TransformCallback
   ): void {
