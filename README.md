@@ -1,4 +1,4 @@
-# sitemap.js [![Build Status](https://travis-ci.org/ekalinin/sitemap.js.svg?branch=master)](https://travis-ci.org/ekalinin/sitemap.js)
+# sitemap.js ![MIT License](https://img.shields.io/npm/l/sitemap)[![Build Status](https://travis-ci.org/ekalinin/sitemap.js.svg?branch=master)](https://travis-ci.org/ekalinin/sitemap.js)![Monthly Downloads](https://img.shields.io/npm/dm/sitemap)
 
 **sitemap.js** is a high-level sitemap-generating library/CLI that
 makes creating [sitemap XML](http://www.sitemaps.org/) files easy.

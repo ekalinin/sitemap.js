@@ -13,7 +13,7 @@ A clear and concise description of what the bug is.
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-**Desktop (please complete the following information):**
+**Context:**
  - Library Version [e.g. 3.2.2]
 
 **Additional context**
