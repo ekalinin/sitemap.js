@@ -4,8 +4,6 @@
 
 - removed xmlbuilder as a dependency
 - added stronger validity checking on values supplied to sitemap
-- TODO verify parser is compatible with older xml versions
-- TODO strip invalid unicode ranges
 - TODO flesh out error handler
 - TODO mark as private things that should.
 

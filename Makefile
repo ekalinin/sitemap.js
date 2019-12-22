@@ -13,16 +13,6 @@ env:
 test:
 	npm run test
 
-test-perf:
-	npm run test-perf $(runs)
-perf-prof:
-	node --prof tests/perf.js $(runs)
-	node --prof-process iso* && rm isolate-*
-
-deploy-github:
-	@git tag `grep "version" package.json | grep -o -E '[0-9]\.[0-9]{1,2}\.[0-9]{1,2}'`
-	@git push --tags origin master
-
 deploy-npm:
 	npm publish
 
