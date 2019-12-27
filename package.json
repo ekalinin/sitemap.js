@@ -130,7 +130,7 @@
     "sax": "^1.2.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.5",
+    "@babel/core": "^7.7.7",
     "@babel/plugin-proposal-class-properties": "^7.7.4",
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.7.4",
     "@babel/plugin-proposal-optional-chaining": "^7.7.5",
@@ -142,11 +142,11 @@
     "@typescript-eslint/parser": "^2.13.0",
     "babel-eslint": "^10.0.3",
     "babel-polyfill": "^6.26.0",
-    "concurrently": "^5.0.1",
+    "concurrently": "^5.0.2",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.8.0",
     "eslint-plugin-jest": "^23.1.0",
-    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-prettier": "^3.1.2",
     "express": "^4.17.1",
     "husky": "^3.1.0",
     "jest": "^24.9.0",
