@@ -5,7 +5,6 @@
 - removed xmlbuilder as a dependency
 - added stronger validity checking on values supplied to sitemap
 - TODO flesh out error handler
-- TODO mark as private things that should.
 
 ### unreleased breaking changes
 
