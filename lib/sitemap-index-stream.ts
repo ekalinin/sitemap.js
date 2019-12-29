@@ -8,7 +8,7 @@ import {
   TransformCallback,
   Writable,
 } from 'stream';
-import { SitemapIndexItem, SitemapItemLoose, ErrorLevel } from './types';
+import { IndexItem, SitemapItemLoose, ErrorLevel } from './types';
 import { UndefinedTargetFolder } from './errors';
 import { chunk } from './utils';
 import { SitemapStream } from './sitemap-stream';
@@ -40,7 +40,7 @@ export class SitemapIndexStream extends Transform {
   }
 
   _transform(
-    item: SitemapIndexItem | string,
+    item: IndexItem | string,
     encoding: string,
     callback: TransformCallback
   ): void {

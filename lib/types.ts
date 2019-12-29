@@ -69,7 +69,7 @@ export function isAllowDeny(ad: string): ad is EnumAllowDeny {
 /**
  * https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190
  */
-export interface SitemapNewsItem {
+export interface NewsItem {
   access?: 'Registration' | 'Subscription';
   publication: {
     name: string;
@@ -107,7 +107,7 @@ export interface SitemapNewsItem {
  * Sitemap Image
  * https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190
  */
-export interface SitemapImg {
+export interface Img {
   /**
    * The URL of the image
    * @example 'https://example.com/image.jpg'
@@ -135,7 +135,7 @@ export interface SitemapImg {
   license?: string;
 }
 
-interface SitemapVideoItemBase {
+interface VideoItemBase {
   /**
    * A URL pointing to the video thumbnail image file
    * @example "https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg"
@@ -247,7 +247,7 @@ export type Resolution = 'HD' | 'hd' | 'sd' | 'SD';
 /**
  * Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190>
  */
-export interface SitemapVideoItem extends SitemapVideoItemBase {
+export interface VideoItem extends VideoItemBase {
   /**
    * An arbitrary string tag describing the video. Tags are generally very short descriptions of key concepts associated
    * with a video or piece of content.
@@ -274,7 +274,7 @@ export interface SitemapVideoItem extends SitemapVideoItemBase {
 /**
  * Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190>
  */
-export interface SitemapVideoItemLoose extends SitemapVideoItemBase {
+export interface VideoItemLoose extends VideoItemBase {
   /**
    * An arbitrary string tag describing the video. Tags are generally very short descriptions of key concepts associated
    * with a video or piece of content.
@@ -297,7 +297,7 @@ export interface SitemapVideoItemLoose extends SitemapVideoItemBase {
 /**
  * https://support.google.com/webmasters/answer/189077
  */
-export interface SitemapLinkItem {
+export interface LinkItem {
   /**
    * @example 'en'
    */
@@ -305,7 +305,7 @@ export interface SitemapLinkItem {
   url: string;
 }
 
-export interface SitemapIndexItem {
+export interface IndexItem {
   url: string;
   lastmod?: string;
 }
@@ -315,7 +315,7 @@ interface SitemapItemBase {
   changefreq?: EnumChangefreq;
   fullPrecisionPriority?: boolean;
   priority?: number;
-  news?: SitemapNewsItem;
+  news?: NewsItem;
   expires?: string;
   androidLink?: string;
   ampLink?: string;
@@ -327,18 +327,18 @@ interface SitemapItemBase {
  */
 // eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface SitemapItem extends SitemapItemBase {
-  img: SitemapImg[];
-  video: SitemapVideoItem[];
-  links: SitemapLinkItem[];
+  img: Img[];
+  video: VideoItem[];
+  links: LinkItem[];
 }
 
 /**
  * Options for individual sitemap entries prior to normalization
  */
 export interface SitemapItemLoose extends SitemapItemBase {
-  video?: SitemapVideoItemLoose | SitemapVideoItemLoose[];
-  img?: string | SitemapImg | (string | SitemapImg)[];
-  links?: SitemapLinkItem[];
+  video?: VideoItemLoose | VideoItemLoose[];
+  img?: string | Img | (string | Img)[];
+  links?: LinkItem[];
   lastmodfile?: string | Buffer | URL;
   lastmodISO?: string;
   lastmodrealtime?: boolean;

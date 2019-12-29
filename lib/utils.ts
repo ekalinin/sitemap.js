@@ -12,9 +12,9 @@ import {
   ErrorLevel,
   SitemapItemLoose,
   EnumYesNo,
-  SitemapImg,
-  SitemapLinkItem,
-  SitemapVideoItem,
+  Img,
+  LinkItem,
+  VideoItem,
   isValidChangeFreq,
   isValidYesNo,
   isAllowDeny,
@@ -393,7 +393,7 @@ export function normalizeURL(
 
   smi.url = new URL(smiLoose.url, hostname).toString();
 
-  let img: SitemapImg[] = [];
+  let img: Img[] = [];
   if (smiLoose.img) {
     if (typeof smiLoose.img === 'string') {
       // string -> array of objects
@@ -404,23 +404,23 @@ export function normalizeURL(
     }
 
     img = smiLoose.img.map(
-      (el): SitemapImg => (typeof el === 'string' ? { url: el } : el)
+      (el): Img => (typeof el === 'string' ? { url: el } : el)
     );
   }
   // prepend hostname to all image urls
   smi.img = img.map(
-    (el: SitemapImg): SitemapImg => ({
+    (el: Img): Img => ({
       ...el,
       url: new URL(el.url, hostname).toString(),
     })
   );
 
-  let links: SitemapLinkItem[] = [];
+  let links: LinkItem[] = [];
   if (smiLoose.links) {
     links = smiLoose.links;
   }
   smi.links = links.map(
-    (link): SitemapLinkItem => {
+    (link): LinkItem => {
       return { ...link, url: new URL(link.url, hostname).toString() };
     }
   );
@@ -431,8 +431,8 @@ export function normalizeURL(
       smiLoose.video = [smiLoose.video];
     }
     smi.video = smiLoose.video.map(
-      (video): SitemapVideoItem => {
-        const nv: SitemapVideoItem = {
+      (video): VideoItem => {
+        const nv: VideoItem = {
           ...video,
           /* eslint-disable-next-line @typescript-eslint/camelcase */
           family_friendly: boolToYESNO(video.family_friendly),

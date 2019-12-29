@@ -10,10 +10,10 @@ import {
   SitemapItem,
   isValidChangeFreq,
   isValidYesNo,
-  SitemapVideoItem,
-  SitemapImg,
-  SitemapLinkItem,
-  SitemapNewsItem,
+  VideoItem,
+  Img,
+  LinkItem,
+  NewsItem,
   ErrorLevel,
   SitemapStreamOptions,
   isAllowDeny,
@@ -36,7 +36,7 @@ function tagTemplate(): SitemapItem {
   };
 }
 
-function videoTemplate(): SitemapVideoItem {
+function videoTemplate(): VideoItem {
   return {
     tag: [],
     thumbnail_loc: '',
@@ -45,16 +45,16 @@ function videoTemplate(): SitemapVideoItem {
   };
 }
 
-const imageTemplate: SitemapImg = {
+const imageTemplate: Img = {
   url: '',
 };
 
-const linkTemplate: SitemapLinkItem = {
+const linkTemplate: LinkItem = {
   lang: '',
   url: '',
 };
 
-function newsTemplate(): SitemapNewsItem {
+function newsTemplate(): NewsItem {
   return {
     publication: { name: '', language: '' },
     publication_date: '',
@@ -87,9 +87,9 @@ export class XMLToSitemapItemStream extends Transform {
     this.level = opts.level || ErrorLevel.WARN;
     let currentItem: SitemapItem = tagTemplate();
     let currentTag: string;
-    let currentVideo: SitemapVideoItem = videoTemplate();
-    let currentImage: SitemapImg = { ...imageTemplate };
-    let currentLink: SitemapLinkItem = { ...linkTemplate };
+    let currentVideo: VideoItem = videoTemplate();
+    let currentImage: Img = { ...imageTemplate };
+    let currentLink: LinkItem = { ...linkTemplate };
     let dontpushCurrentLink = false;
     this.saxStream.on('opentagstart', (tag): void => {
       currentTag = tag.name;
@@ -220,7 +220,7 @@ export class XMLToSitemapItemStream extends Transform {
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
-          currentItem.news.access = text as SitemapNewsItem['access'];
+          currentItem.news.access = text as NewsItem['access'];
           break;
         case TagNames['news:genres']:
           if (!currentItem.news) {
