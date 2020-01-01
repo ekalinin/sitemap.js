@@ -6,7 +6,7 @@
  */
 
 /**
- * URL in SitemapItem does not exists
+ * URL in SitemapItem does not exist
  */
 export class NoURLError extends Error {
   constructor(message?: string) {

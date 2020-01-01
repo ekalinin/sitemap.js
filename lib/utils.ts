@@ -8,11 +8,11 @@ import { Readable, Transform, PassThrough, ReadableOptions } from 'stream';
 import { createInterface, Interface } from 'readline';
 import { URL } from 'url';
 import {
-  SitemapItemOptions,
+  SitemapItem,
   ErrorLevel,
-  SitemapItemOptionsLoose,
+  SitemapItemLoose,
   EnumYesNo,
-  SitemapImg,
+  Img,
   LinkItem,
   VideoItem,
   isValidChangeFreq,
@@ -80,10 +80,10 @@ function handleError(error: Error, level: ErrorLevel): void {
  * @param errorHandler error handling func
  */
 export function validateSMIOptions(
-  conf: SitemapItemOptions,
+  conf: SitemapItem,
   level = ErrorLevel.WARN,
   errorHandler = handleError
-): SitemapItemOptions {
+): SitemapItem {
   if (!conf) {
     throw new NoConfigError();
   }
@@ -259,16 +259,16 @@ export function mergeStreams(streams: Readable[]): Readable {
   return pass;
 }
 
-export interface ReadLineStreamOptions extends ReadableOptions {
+export interface ReadlineStreamOptions extends ReadableOptions {
   input: Readable;
 }
 
 /**
  * Wraps node's ReadLine in a stream
  */
-export class ReadLineStream extends Readable {
+export class ReadlineStream extends Readable {
   private _source: Interface;
-  constructor(options: ReadLineStreamOptions) {
+  constructor(options: ReadlineStreamOptions) {
     if (options.autoDestroy === undefined) {
       options.autoDestroy = true;
     }
@@ -310,7 +310,7 @@ export function lineSeparatedURLsToSitemapOptions(
   stream: Readable,
   { isJSON }: { isJSON?: boolean } = {}
 ): Readable {
-  return new ReadLineStream({ input: stream }).pipe(
+  return new ReadlineStream({ input: stream }).pipe(
     new Transform({
       objectMode: true,
       transform: (line, encoding, cb): void => {
@@ -366,24 +366,24 @@ function boolToYESNO(bool?: boolean | EnumYesNo): EnumYesNo | undefined {
 
 /**
  * Converts the passed in sitemap entry into one capable of being consumed by SitemapItem
- * @param {string | SitemapItemOptionsLoose} elem the string or object to be converted
+ * @param {string | SitemapItemLoose} elem the string or object to be converted
  * @param {string} hostname
  * @returns SitemapItemOptions a strict sitemap item option
  */
 export function normalizeURL(
-  elem: string | SitemapItemOptionsLoose,
+  elem: string | SitemapItemLoose,
   hostname?: string,
   lastmodDateOnly = false
-): SitemapItemOptions {
+): SitemapItem {
   // SitemapItem
   // create object with url property
-  let smi: SitemapItemOptions = {
+  let smi: SitemapItem = {
     img: [],
     video: [],
     links: [],
     url: '',
   };
-  let smiLoose: SitemapItemOptionsLoose;
+  let smiLoose: SitemapItemLoose;
   if (typeof elem === 'string') {
     smi.url = elem;
     smiLoose = { url: elem };
@@ -393,7 +393,7 @@ export function normalizeURL(
 
   smi.url = new URL(smiLoose.url, hostname).toString();
 
-  let img: SitemapImg[] = [];
+  let img: Img[] = [];
   if (smiLoose.img) {
     if (typeof smiLoose.img === 'string') {
       // string -> array of objects
@@ -404,12 +404,12 @@ export function normalizeURL(
     }
 
     img = smiLoose.img.map(
-      (el): SitemapImg => (typeof el === 'string' ? { url: el } : el)
+      (el): Img => (typeof el === 'string' ? { url: el } : el)
     );
   }
   // prepend hostname to all image urls
   smi.img = img.map(
-    (el: SitemapImg): SitemapImg => ({
+    (el: Img): Img => ({
       ...el,
       url: new URL(el.url, hostname).toString(),
     })

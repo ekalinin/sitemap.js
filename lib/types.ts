@@ -16,7 +16,7 @@ export enum EnumChangefreq {
   NEVER = 'never',
 }
 
-export const allowDeny = /^(?:allow|deny)$/;
+const allowDeny = /^(?:allow|deny)$/;
 export const validators: { [index: string]: RegExp } = {
   'price:currency': /^[A-Z]{3}$/,
   'price:type': /^(?:rent|purchase|RENT|PURCHASE)$/,
@@ -107,7 +107,7 @@ export interface NewsItem {
  * Sitemap Image
  * https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190
  */
-export interface SitemapImg {
+export interface Img {
   /**
    * The URL of the image
    * @example 'https://example.com/image.jpg'
@@ -305,12 +305,12 @@ export interface LinkItem {
   url: string;
 }
 
-export interface SitemapIndexItemOptions {
+export interface IndexItem {
   url: string;
   lastmod?: string;
 }
 
-interface SitemapItemOptionsBase {
+interface SitemapItemBase {
   lastmod?: string;
   changefreq?: EnumChangefreq;
   fullPrecisionPriority?: boolean;
@@ -326,8 +326,8 @@ interface SitemapItemOptionsBase {
  * Strict options for individual sitemap entries
  */
 // eslint-disable-next-line @typescript-eslint/interface-name-prefix
-export interface SitemapItemOptions extends SitemapItemOptionsBase {
-  img: SitemapImg[];
+export interface SitemapItem extends SitemapItemBase {
+  img: Img[];
   video: VideoItem[];
   links: LinkItem[];
 }
@@ -335,9 +335,9 @@ export interface SitemapItemOptions extends SitemapItemOptionsBase {
 /**
  * Options for individual sitemap entries prior to normalization
  */
-export interface SitemapItemOptionsLoose extends SitemapItemOptionsBase {
+export interface SitemapItemLoose extends SitemapItemBase {
   video?: VideoItemLoose | VideoItemLoose[];
-  img?: string | SitemapImg | (string | SitemapImg)[];
+  img?: string | Img | (string | Img)[];
   links?: LinkItem[];
   lastmodfile?: string | Buffer | URL;
   lastmodISO?: string;
@@ -362,14 +362,14 @@ export enum ErrorLevel {
   THROW = 'throw',
 }
 
-export interface SitemapOptions {
-  urls?: (SitemapItemOptionsLoose | string)[];
+export interface SitemapStreamOptions {
+  urls?: (SitemapItemLoose | string)[];
   hostname?: string;
   level?: ErrorLevel;
   lastmodDateOnly?: boolean;
 }
 
-export enum ValidTagNames {
+export enum TagNames {
   url = 'url',
   loc = 'loc',
   urlset = 'urlset',
@@ -418,4 +418,3 @@ export enum ValidTagNames {
   'xhtml:link' = 'xhtml:link',
   'expires' = 'expires',
 }
-ValidTagNames.url;

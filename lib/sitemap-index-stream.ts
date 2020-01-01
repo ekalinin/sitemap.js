@@ -8,17 +8,13 @@ import {
   TransformCallback,
   Writable,
 } from 'stream';
-import {
-  SitemapIndexItemOptions,
-  SitemapItemOptionsLoose,
-  ErrorLevel,
-} from './types';
+import { IndexItem, SitemapItemLoose, ErrorLevel } from './types';
 import { UndefinedTargetFolder } from './errors';
 import { chunk } from './utils';
 import { SitemapStream } from './sitemap-stream';
 import { element, otag, ctag } from './sitemap-xml';
 
-export enum ValidIndexTagNames {
+export enum IndexTagNames {
   sitemap = 'sitemap',
   loc = 'loc',
   lastmod = 'lastmod',
@@ -29,10 +25,10 @@ const preamble =
   '<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 const closetag = '</sitemapindex>';
 // eslint-disable-next-line @typescript-eslint/interface-name-prefix
-export interface SitemapIndexStreamOpts extends TransformOptions {
+export interface SitemapIndexStreamOptions extends TransformOptions {
   level?: ErrorLevel;
 }
-const defaultStreamOpts: SitemapIndexStreamOpts = {};
+const defaultStreamOpts: SitemapIndexStreamOptions = {};
 export class SitemapIndexStream extends Transform {
   level: ErrorLevel;
   private hasHeadOutput: boolean;
@@ -44,7 +40,7 @@ export class SitemapIndexStream extends Transform {
   }
 
   _transform(
-    item: SitemapIndexItemOptions | string,
+    item: IndexItem | string,
     encoding: string,
     callback: TransformCallback
   ): void {
@@ -52,21 +48,18 @@ export class SitemapIndexStream extends Transform {
       this.hasHeadOutput = true;
       this.push(preamble);
     }
-    this.push(otag(ValidIndexTagNames.sitemap));
+    this.push(otag(IndexTagNames.sitemap));
     if (typeof item === 'string') {
-      this.push(element(ValidIndexTagNames.loc, item));
+      this.push(element(IndexTagNames.loc, item));
     } else {
-      this.push(element(ValidIndexTagNames.loc, item.url));
+      this.push(element(IndexTagNames.loc, item.url));
       if (item.lastmod) {
         this.push(
-          element(
-            ValidIndexTagNames.lastmod,
-            new Date(item.lastmod).toISOString()
-          )
+          element(IndexTagNames.lastmod, new Date(item.lastmod).toISOString())
         );
       }
     }
-    this.push(ctag(ValidIndexTagNames.sitemap));
+    this.push(ctag(IndexTagNames.sitemap));
     callback();
   }
 
@@ -97,7 +90,7 @@ export async function createSitemapsAndIndex({
   sitemapSize = 50000,
   gzip = true,
 }: {
-  urls: (string | SitemapItemOptionsLoose)[];
+  urls: (string | SitemapItemLoose)[];
   targetFolder: string;
   hostname?: string;
   sitemapName?: string;
@@ -120,7 +113,7 @@ export async function createSitemapsAndIndex({
   );
   indexStream.pipe(indexWS);
   const smPromises = chunk(urls, sitemapSize).map(
-    (chunk: (string | SitemapItemOptionsLoose)[], idx): Promise<boolean> => {
+    (chunk: (string | SitemapItemLoose)[], idx): Promise<boolean> => {
       return new Promise((resolve, reject): void => {
         const extension = '.xml' + (gzip ? '.gz' : '');
         const filename = sitemapName + '-' + idx + extension;

@@ -1,6 +1,6 @@
 import { Transform, TransformOptions, TransformCallback } from 'stream';
 import { InvalidAttr } from './errors';
-import { SitemapItemOptions, ErrorLevel, ValidTagNames } from './types';
+import { SitemapItem, ErrorLevel, TagNames } from './types';
 import { element, otag, ctag } from './sitemap-xml';
 
 export interface StringObj {
@@ -27,8 +27,7 @@ function attrBuilder(conf: StringObj, keys: string | string[]): object {
   }, iv);
 }
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
-export interface SitemapItemStreamOpts extends TransformOptions {
+export interface SitemapItemStreamOptions extends TransformOptions {
   level?: ErrorLevel;
 }
 
@@ -45,55 +44,51 @@ export interface SitemapItemStreamOpts extends TransformOptions {
  */
 export class SitemapItemStream extends Transform {
   level: ErrorLevel;
-  constructor(opts: SitemapItemStreamOpts = { level: ErrorLevel.WARN }) {
+  constructor(opts: SitemapItemStreamOptions = { level: ErrorLevel.WARN }) {
     opts.objectMode = true;
     super(opts);
     this.level = opts.level || ErrorLevel.WARN;
   }
 
   _transform(
-    item: SitemapItemOptions,
+    item: SitemapItem,
     encoding: string,
     callback: TransformCallback
   ): void {
-    this.push(otag(ValidTagNames.url));
-    this.push(element(ValidTagNames.loc, item.url));
+    this.push(otag(TagNames.url));
+    this.push(element(TagNames.loc, item.url));
 
     if (item.lastmod) {
-      this.push(element(ValidTagNames.lastmod, item.lastmod));
+      this.push(element(TagNames.lastmod, item.lastmod));
     }
 
     if (item.changefreq) {
-      this.push(element(ValidTagNames.changefreq, item.changefreq));
+      this.push(element(TagNames.changefreq, item.changefreq));
     }
 
     if (item.priority !== undefined) {
       if (item.fullPrecisionPriority) {
-        this.push(element(ValidTagNames.priority, item.priority.toString()));
+        this.push(element(TagNames.priority, item.priority.toString()));
       } else {
-        this.push(element(ValidTagNames.priority, item.priority.toFixed(1)));
+        this.push(element(TagNames.priority, item.priority.toFixed(1)));
       }
     }
 
     item.video.forEach(video => {
-      this.push(otag(ValidTagNames['video:video']));
+      this.push(otag(TagNames['video:video']));
 
-      this.push(
-        element(ValidTagNames['video:thumbnail_loc'], video.thumbnail_loc)
-      );
-      this.push(element(ValidTagNames['video:title'], video.title));
-      this.push(element(ValidTagNames['video:description'], video.description));
+      this.push(element(TagNames['video:thumbnail_loc'], video.thumbnail_loc));
+      this.push(element(TagNames['video:title'], video.title));
+      this.push(element(TagNames['video:description'], video.description));
 
       if (video.content_loc) {
-        this.push(
-          element(ValidTagNames['video:content_loc'], video.content_loc)
-        );
+        this.push(element(TagNames['video:content_loc'], video.content_loc));
       }
 
       if (video.player_loc) {
         this.push(
           element(
-            ValidTagNames['video:player_loc'],
+            TagNames['video:player_loc'],
             attrBuilder(video, 'player_loc:autoplay'),
             video.player_loc
           )
@@ -102,58 +97,50 @@ export class SitemapItemStream extends Transform {
 
       if (video.duration) {
         this.push(
-          element(ValidTagNames['video:duration'], video.duration.toString())
+          element(TagNames['video:duration'], video.duration.toString())
         );
       }
 
       if (video.expiration_date) {
         this.push(
-          element(ValidTagNames['video:expiration_date'], video.expiration_date)
+          element(TagNames['video:expiration_date'], video.expiration_date)
         );
       }
 
       if (video.rating !== undefined) {
-        this.push(
-          element(ValidTagNames['video:rating'], video.rating.toString())
-        );
+        this.push(element(TagNames['video:rating'], video.rating.toString()));
       }
 
       if (video.view_count !== undefined) {
         this.push(
-          element(
-            ValidTagNames['video:view_count'],
-            video.view_count.toString()
-          )
+          element(TagNames['video:view_count'], video.view_count.toString())
         );
       }
 
       if (video.publication_date) {
         this.push(
-          element(
-            ValidTagNames['video:publication_date'],
-            video.publication_date
-          )
+          element(TagNames['video:publication_date'], video.publication_date)
         );
       }
 
       for (const tag of video.tag) {
-        this.push(element(ValidTagNames['video:tag'], tag));
+        this.push(element(TagNames['video:tag'], tag));
       }
 
       if (video.category) {
-        this.push(element(ValidTagNames['video:category'], video.category));
+        this.push(element(TagNames['video:category'], video.category));
       }
 
       if (video.family_friendly) {
         this.push(
-          element(ValidTagNames['video:family_friendly'], video.family_friendly)
+          element(TagNames['video:family_friendly'], video.family_friendly)
         );
       }
 
       if (video.restriction) {
         this.push(
           element(
-            ValidTagNames['video:restriction'],
+            TagNames['video:restriction'],
             attrBuilder(video, 'restriction:relationship'),
             video.restriction
           )
@@ -163,7 +150,7 @@ export class SitemapItemStream extends Transform {
       if (video.gallery_loc) {
         this.push(
           element(
-            ValidTagNames['video:gallery_loc'],
+            TagNames['video:gallery_loc'],
             { title: video['gallery_loc:title'] },
             video.gallery_loc
           )
@@ -173,7 +160,7 @@ export class SitemapItemStream extends Transform {
       if (video.price) {
         this.push(
           element(
-            ValidTagNames['video:price'],
+            TagNames['video:price'],
             attrBuilder(video, [
               'price:resolution',
               'price:currency',
@@ -187,20 +174,20 @@ export class SitemapItemStream extends Transform {
       if (video.requires_subscription) {
         this.push(
           element(
-            ValidTagNames['video:requires_subscription'],
+            TagNames['video:requires_subscription'],
             video.requires_subscription
           )
         );
       }
 
       if (video.uploader) {
-        this.push(element(ValidTagNames['video:uploader'], video.uploader));
+        this.push(element(TagNames['video:uploader'], video.uploader));
       }
 
       if (video.platform) {
         this.push(
           element(
-            ValidTagNames['video:platform'],
+            TagNames['video:platform'],
             attrBuilder(video, 'platform:relationship'),
             video.platform
           )
@@ -208,21 +195,19 @@ export class SitemapItemStream extends Transform {
       }
 
       if (video.live) {
-        this.push(element(ValidTagNames['video:live'], video.live));
+        this.push(element(TagNames['video:live'], video.live));
       }
 
       if (video.id) {
-        this.push(
-          element(ValidTagNames['video:id'], { type: 'url' }, video.id)
-        );
+        this.push(element(TagNames['video:id'], { type: 'url' }, video.id));
       }
 
-      this.push(ctag(ValidTagNames['video:video']));
+      this.push(ctag(TagNames['video:video']));
     });
 
     item.links.forEach(link => {
       this.push(
-        element(ValidTagNames['xhtml:link'], {
+        element(TagNames['xhtml:link'], {
           rel: 'alternate',
           hreflang: link.lang,
           href: link.url,
@@ -232,13 +217,13 @@ export class SitemapItemStream extends Transform {
 
     if (item.expires) {
       this.push(
-        element(ValidTagNames.expires, new Date(item.expires).toISOString())
+        element(TagNames.expires, new Date(item.expires).toISOString())
       );
     }
 
     if (item.androidLink) {
       this.push(
-        element(ValidTagNames['xhtml:link'], {
+        element(TagNames['xhtml:link'], {
           rel: 'alternate',
           href: item.androidLink,
         })
@@ -247,7 +232,7 @@ export class SitemapItemStream extends Transform {
 
     if (item.ampLink) {
       this.push(
-        element(ValidTagNames['xhtml:link'], {
+        element(TagNames['xhtml:link'], {
           rel: 'amphtml',
           href: item.ampLink,
         })
@@ -255,72 +240,65 @@ export class SitemapItemStream extends Transform {
     }
 
     if (item.news) {
-      this.push(otag(ValidTagNames['news:news']));
-      this.push(otag(ValidTagNames['news:publication']));
-      this.push(
-        element(ValidTagNames['news:name'], item.news.publication.name)
-      );
+      this.push(otag(TagNames['news:news']));
+      this.push(otag(TagNames['news:publication']));
+      this.push(element(TagNames['news:name'], item.news.publication.name));
 
       this.push(
-        element(ValidTagNames['news:language'], item.news.publication.language)
+        element(TagNames['news:language'], item.news.publication.language)
       );
-      this.push(ctag(ValidTagNames['news:publication']));
+      this.push(ctag(TagNames['news:publication']));
 
       if (item.news.access) {
-        this.push(element(ValidTagNames['news:access'], item.news.access));
+        this.push(element(TagNames['news:access'], item.news.access));
       }
 
       if (item.news.genres) {
-        this.push(element(ValidTagNames['news:genres'], item.news.genres));
+        this.push(element(TagNames['news:genres'], item.news.genres));
       }
 
       this.push(
-        element(
-          ValidTagNames['news:publication_date'],
-          item.news.publication_date
-        )
+        element(TagNames['news:publication_date'], item.news.publication_date)
       );
-      this.push(element(ValidTagNames['news:title'], item.news.title));
+      this.push(element(TagNames['news:title'], item.news.title));
 
       if (item.news.keywords) {
-        this.push(element(ValidTagNames['news:keywords'], item.news.keywords));
+        this.push(element(TagNames['news:keywords'], item.news.keywords));
       }
 
       if (item.news.stock_tickers) {
         this.push(
-          element(ValidTagNames['news:stock_tickers'], item.news.stock_tickers)
+          element(TagNames['news:stock_tickers'], item.news.stock_tickers)
         );
       }
-      this.push(ctag(ValidTagNames['news:news']));
+      this.push(ctag(TagNames['news:news']));
     }
 
     // Image handling
     item.img.forEach((image): void => {
-      this.push(otag(ValidTagNames['image:image']));
-      this.push(element(ValidTagNames['image:loc'], image.url));
+      this.push(otag(TagNames['image:image']));
+      this.push(element(TagNames['image:loc'], image.url));
 
       if (image.caption) {
-        this.push(element(ValidTagNames['image:caption'], image.caption));
+        this.push(element(TagNames['image:caption'], image.caption));
       }
 
       if (image.geoLocation) {
-        this.push(
-          element(ValidTagNames['image:geo_location'], image.geoLocation)
-        );
+        this.push(element(TagNames['image:geo_location'], image.geoLocation));
       }
 
       if (image.title) {
-        this.push(element(ValidTagNames['image:title'], image.title));
+        this.push(element(TagNames['image:title'], image.title));
       }
 
       if (image.license) {
-        this.push(element(ValidTagNames['image:license'], image.license));
+        this.push(element(TagNames['image:license'], image.license));
       }
 
-      this.push(ctag(ValidTagNames['image:image']));
+      this.push(ctag(TagNames['image:image']));
     });
 
-    this.push(ctag(ValidTagNames.url));
+    this.push(ctag(TagNames.url));
     callback();
   }
 }
