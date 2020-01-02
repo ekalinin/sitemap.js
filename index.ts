@@ -16,7 +16,7 @@ export {
 export {
   streamToPromise,
   SitemapStream,
-  SitemapStreamOpts,
+  SitemapStreamOptions,
 } from './lib/sitemap-stream';
 export * from './lib/errors';
 export * from './lib/types';

@@ -362,13 +362,6 @@ export enum ErrorLevel {
   THROW = 'throw',
 }
 
-export interface SitemapStreamOptions {
-  urls?: (SitemapItemLoose | string)[];
-  hostname?: string;
-  level?: ErrorLevel;
-  lastmodDateOnly?: boolean;
-}
-
 export enum TagNames {
   url = 'url',
   loc = 'loc',

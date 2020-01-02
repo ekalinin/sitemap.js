@@ -13,12 +13,12 @@ const pipeline = promisify(pipe);
 const normalizedSample = require('./mocks/sampleconfig.normalized.json');
 describe('parseSitemap', () => {
   it('parses xml into sitemap-items', async () => {
-    const config = await parseSitemap(
+    const urls = await parseSitemap(
       createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
       })
     );
-    expect(config.urls).toEqual(normalizedSample.urls);
+    expect(urls).toEqual(normalizedSample.urls);
   });
 });
 

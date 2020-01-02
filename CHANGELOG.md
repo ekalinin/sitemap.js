@@ -4,7 +4,6 @@
 
 - removed xmlbuilder as a dependency
 - added stronger validity checking on values supplied to sitemap
-- TODO flesh out error handler
 
 ### unreleased breaking changes
 
@@ -15,7 +14,7 @@
 - Typescript: various types renamed or made more specific, removed I prefix
 - Typescript: view_count is now exclusively a number
 - Typescript: `price:type` and `price:resolution` are now more restrictive types
-- TODO verify old json formats are still accepted.
+- sitemap parser now returns a sitemapItem array rather than a config object that could be passed to the now removed Sitemap class
 
 ## 5.1.0
 

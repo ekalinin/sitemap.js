@@ -5,18 +5,19 @@ import {
   Readable,
   Writable,
 } from 'stream';
-import { SitemapItemLoose, ErrorLevel, SitemapStreamOptions } from './types';
+import { SitemapItemLoose, ErrorLevel } from './types';
 import { validateSMIOptions, normalizeURL } from './utils';
 import { SitemapItemStream } from './sitemap-item-stream';
 export const preamble =
   '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">';
 export const closetag = '</urlset>';
-export interface SitemapStreamOpts
-  extends TransformOptions,
-    Pick<SitemapStreamOptions, 'hostname' | 'level' | 'lastmodDateOnly'> {
+export interface SitemapStreamOptions extends TransformOptions {
+  hostname?: string;
+  level?: ErrorLevel;
+  lastmodDateOnly?: boolean;
   errorHandler?: (error: Error, level: ErrorLevel) => void;
 }
-const defaultStreamOpts: SitemapStreamOpts = {};
+const defaultStreamOpts: SitemapStreamOptions = {};
 /**
  * A [Transform](https://nodejs.org/api/stream.html#stream_implementing_a_transform_stream)
  * for turning a
@@ -25,10 +26,9 @@ const defaultStreamOpts: SitemapStreamOpts = {};
  * Sitemap. The readable stream it transforms **must** be in object mode.
  */
 export class SitemapStream extends Transform {
-  errorHandler?: (error: Error, level: ErrorLevel) => void;
   hostname?: string;
   level: ErrorLevel;
-  private hasHeadOutput: boolean;
+  hasHeadOutput: boolean;
   private smiStream: SitemapItemStream;
   lastmodDateOnly: boolean;
   constructor(opts = defaultStreamOpts) {
@@ -40,7 +40,6 @@ export class SitemapStream extends Transform {
     this.smiStream = new SitemapItemStream({ level: opts.level });
     this.smiStream.on('data', data => this.push(data));
     this.lastmodDateOnly = opts.lastmodDateOnly || false;
-    this.errorHandler = opts.errorHandler;
   }
 
   _transform(
@@ -55,8 +54,7 @@ export class SitemapStream extends Transform {
     this.smiStream.write(
       validateSMIOptions(
         normalizeURL(item, this.hostname, this.lastmodDateOnly),
-        this.level,
-        this.errorHandler
+        this.level
       )
     );
     callback();

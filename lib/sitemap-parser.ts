@@ -15,7 +15,6 @@ import {
   LinkItem,
   NewsItem,
   ErrorLevel,
-  SitemapStreamOptions,
   isAllowDeny,
   isPriceType,
   isResolution,
@@ -61,9 +60,9 @@ function newsTemplate(): NewsItem {
     title: '',
   };
 }
-export interface XMLToSitemapItemStreamOptions
-  extends TransformOptions,
-    Pick<SitemapStreamOptions, 'level'> {}
+export interface XMLToSitemapItemStreamOptions extends TransformOptions {
+  level?: ErrorLevel;
+}
 const defaultStreamOpts: XMLToSitemapItemStreamOptions = {};
 
 // TODO does this need to end with `options`
@@ -437,19 +436,16 @@ export class XMLToSitemapItemStream extends Transform {
   )
   ```
   @param {Readable} xml what to parse
-  @return {Promise<SitemapStreamOptions>} resolves with a valid config that can be
-  passed to createSitemap. Rejects with an Error object.
+  @return {Promise<SitemapItem[]>} resolves with list of sitemap items that can be fed into a SitemapStream. Rejects with an Error object.
  */
-export async function parseSitemap(
-  xml: Readable
-): Promise<SitemapStreamOptions> {
+export async function parseSitemap(xml: Readable): Promise<SitemapItem[]> {
   const urls: SitemapItem[] = [];
   return new Promise((resolve, reject): void => {
     xml
       .pipe(new XMLToSitemapItemStream())
       .on('data', (smi: SitemapItem) => urls.push(smi))
       .on('end', (): void => {
-        resolve({ urls });
+        resolve(urls);
       })
       .on('error', (error: Error): void => {
         reject(error);
