@@ -3,7 +3,10 @@ import { Readable } from 'stream';
 import { createReadStream } from 'fs';
 import { xmlLint } from './lib/xmllint';
 import { XMLLintUnavailable } from './lib/errors';
-import { ObjectStreamToJSON, XMLToISitemapOptions } from './lib/sitemap-parser';
+import {
+  ObjectStreamToJSON,
+  XMLToSitemapItemStream,
+} from './lib/sitemap-parser';
 import { lineSeparatedURLsToSitemapOptions, mergeStreams } from './lib/utils';
 import { SitemapStream } from './lib/sitemap-stream';
 /* eslint-disable-next-line @typescript-eslint/no-var-requires */
@@ -47,7 +50,7 @@ Options:
 `);
 } else if (argv['--parse']) {
   getStream()
-    .pipe(new XMLToISitemapOptions())
+    .pipe(new XMLToSitemapItemStream())
     .pipe(
       new ObjectStreamToJSON({ lineSeparated: !argv['--single-line-json'] })
     )
@@ -76,7 +79,7 @@ Options:
 
   if (argv['--prepend']) {
     createReadStream(argv['--prepend'])
-      .pipe(new XMLToISitemapOptions())
+      .pipe(new XMLToSitemapItemStream())
       .pipe(sms);
   }
   lineSeparatedURLsToSitemapOptions(mergeStreams(streams))

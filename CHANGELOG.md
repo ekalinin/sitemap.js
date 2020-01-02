@@ -1,5 +1,21 @@
 # Changelog
 
+## unreleased
+
+- removed xmlbuilder as a dependency
+- added stronger validity checking on values supplied to sitemap
+
+### unreleased breaking changes
+
+- renamed XMLToISitemapOptions to XMLToSitemapOptions
+- various error messages changed.
+- removed deprecated Sitemap and SitemapIndex classes
+- replaced buildSitemapIndex with SitemapIndexStream
+- Typescript: various types renamed or made more specific, removed I prefix
+- Typescript: view_count is now exclusively a number
+- Typescript: `price:type` and `price:resolution` are now more restrictive types
+- sitemap parser now returns a sitemapItem array rather than a config object that could be passed to the now removed Sitemap class
+
 ## 5.1.0
 
 Fix for #255. Baidu does not like timestamp in its sitemap.xml, this adds an option to truncate lastmod
@@ -34,7 +50,7 @@ This library interface has been overhauled to use streams internally. Although i
 - createSitemapsIndex was renamed createSitemapsAndIndex to more accurately reflect its function. It now returns a promise that resolves to true or throws with an error.
 - You can now add to existing sitemap.xml files via the cli using `npx sitemap --prepend existingSitemap.xml < listOfNewURLs.json.txt`
 
-### Breaking Changes
+### 5.0 Breaking Changes
 
 - Dropped support for mobile sitemap - Google appears to have deleted their dtd and all references to it, strongly implying that they do not want you to use it. As its absence now breaks the validator, it has been dropped.
 - normalizeURL(url, XMLRoot, hostname) -> normalizeURL(url, hostname)
@@ -144,7 +160,7 @@ items remain, including the confusing names of buildSitemapIndex and createSitem
 - properly encode URLs #179
 - updated core dependency
 
-### breaking changes
+### 3.0 breaking changes
 
 This will likely not break anyone's code but we're bumping to be safe
 

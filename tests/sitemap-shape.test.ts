@@ -1,9 +1,5 @@
-import 'babel-polyfill';
-import defaultexport, {
-  createSitemap,
-  Sitemap,
-  SitemapItem,
-  buildSitemapIndex,
+import {
+  SitemapIndexStream,
   createSitemapsAndIndex,
   xmlLint,
   parseSitemap,
@@ -17,16 +13,13 @@ import defaultexport, {
   InvalidVideoDuration,
   InvalidVideoDescription,
   InvalidAttrValue,
+  normalizeURL,
+  SitemapStream,
+  SitemapItemStream,
 } from '../index';
 
 describe('sitemap shape', () => {
-  it('exports a default with sitemap hanging off it', () => {
-    expect(typeof defaultexport).toBe('function');
-  });
-
   it('exports individually as well', () => {
-    expect(createSitemap).toBeDefined();
-    expect(Sitemap).toBeDefined();
     expect(NoURLError).toBeDefined();
     expect(InvalidNewsFormat).toBeDefined();
     expect(NoConfigError).toBeDefined();
@@ -37,10 +30,12 @@ describe('sitemap shape', () => {
     expect(InvalidVideoDuration).toBeDefined();
     expect(InvalidVideoDescription).toBeDefined();
     expect(InvalidAttrValue).toBeDefined();
-    expect(SitemapItem).toBeDefined();
-    expect(buildSitemapIndex).toBeDefined();
+    expect(SitemapIndexStream).toBeDefined();
     expect(createSitemapsAndIndex).toBeDefined();
     expect(parseSitemap).toBeDefined();
     expect(xmlLint).toBeDefined();
+    expect(normalizeURL).toBeDefined();
+    expect(SitemapStream).toBeDefined();
+    expect(SitemapItemStream).toBeDefined();
   });
 });

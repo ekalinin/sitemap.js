@@ -1,7 +1,8 @@
-import 'babel-polyfill';
-import { buildSitemapIndex, createSitemapsAndIndex } from '../index';
+import { createSitemapsAndIndex } from '../index';
 import { tmpdir } from 'os';
 import { existsSync, unlinkSync } from 'fs';
+import { SitemapIndexStream } from '../lib/sitemap-index-stream';
+import { streamToPromise } from '../dist';
 /* eslint-env jest, jasmine */
 function removeFilesArray(files): void {
   if (files && files.length) {
@@ -15,7 +16,7 @@ function removeFilesArray(files): void {
 
 const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>';
 describe('sitemapIndex', () => {
-  it('build sitemap index', () => {
+  it('build sitemap index', async () => {
     const expectedResult =
       xmlDef +
       '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
@@ -26,35 +27,16 @@ describe('sitemapIndex', () => {
       '<loc>https://test.com/s2.xml</loc>' +
       '</sitemap>' +
       '</sitemapindex>';
+    const smis = new SitemapIndexStream();
+    smis.write('https://test.com/s1.xml');
+    smis.write('https://test.com/s2.xml');
+    smis.end();
+    const result = await streamToPromise(smis);
 
-    const result = buildSitemapIndex({
-      urls: ['https://test.com/s1.xml', 'https://test.com/s2.xml'],
-    });
-
-    expect(result).toBe(expectedResult);
+    expect(result.toString()).toBe(expectedResult);
   });
 
-  it('build sitemap index with custom xmlNS', () => {
-    const expectedResult =
-      xmlDef +
-      '<sitemapindex xmlns="http://www.example.org/schemas/sitemap/0.9">' +
-      '<sitemap>' +
-      '<loc>https://test.com/s1.xml</loc>' +
-      '</sitemap>' +
-      '<sitemap>' +
-      '<loc>https://test.com/s2.xml</loc>' +
-      '</sitemap>' +
-      '</sitemapindex>';
-
-    const result = buildSitemapIndex({
-      urls: ['https://test.com/s1.xml', 'https://test.com/s2.xml'],
-      xmlNs: 'xmlns="http://www.example.org/schemas/sitemap/0.9"',
-    });
-
-    expect(result).toBe(expectedResult);
-  });
-
-  it('build sitemap index with lastmodISO', () => {
+  it('build sitemap index with lastmodISO', async () => {
     const expectedResult =
       xmlDef +
       '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
@@ -68,52 +50,26 @@ describe('sitemapIndex', () => {
       '</sitemap>' +
       '<sitemap>' +
       '<loc>https://test.com/s3.xml</loc>' +
-      '<lastmod>2019-07-01T00:00:00.000Z</lastmod>' +
       '</sitemap>' +
       '</sitemapindex>';
-
-    const result = buildSitemapIndex({
-      urls: [
-        {
-          url: 'https://test.com/s1.xml',
-          lastmod: '2018-11-26',
-        },
-        {
-          url: 'https://test.com/s2.xml',
-          lastmod: '2018-11-27',
-        },
-        {
-          url: 'https://test.com/s3.xml',
-        },
-      ],
-      xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
-      lastmod: '2019-07-01',
-    });
-
-    expect(result).toBe(expectedResult);
-  });
-
-  it('build sitemap index with lastmod', () => {
-    const expectedResult =
-      xmlDef +
-      '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
-      '<sitemap>' +
-      '<loc>https://test.com/s1.xml</loc>' +
-      '<lastmod>2018-11-26T00:00:00.000Z</lastmod>' +
-      '</sitemap>' +
-      '</sitemapindex>';
-
-    const result = buildSitemapIndex({
-      urls: [
-        {
-          url: 'https://test.com/s1.xml',
-        },
-      ],
-      xmlNs: 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+    const smis = new SitemapIndexStream();
+    smis.write({
+      url: 'https://test.com/s1.xml',
       lastmod: '2018-11-26',
     });
 
-    expect(result).toBe(expectedResult);
+    smis.write({
+      url: 'https://test.com/s2.xml',
+      lastmod: '2018-11-27',
+    });
+
+    smis.write({
+      url: 'https://test.com/s3.xml',
+    });
+    smis.end();
+    const result = await streamToPromise(smis);
+
+    expect(result.toString()).toBe(expectedResult);
   });
 
   it('simple sitemap index', async () => {

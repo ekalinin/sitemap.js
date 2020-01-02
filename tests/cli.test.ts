@@ -1,4 +1,3 @@
-import 'babel-polyfill';
 import util from 'util';
 import fs from 'fs';
 import path from 'path';
@@ -42,7 +41,9 @@ describe('cli', () => {
   it('accepts line separated urls', async () => {
     const { stdout } = await exec(
       'node ./dist/cli.js < ./tests/mocks/cli-urls.txt',
-      { encoding: 'utf8' }
+      {
+        encoding: 'utf8',
+      }
     );
     expect(stdout).toBe(txtxml);
   });
@@ -62,13 +63,17 @@ describe('cli', () => {
   it('accepts line separated urls as file', async () => {
     const { stdout } = await exec(
       'node ./dist/cli.js ./tests/mocks/cli-urls.txt',
-      { encoding: 'utf8' }
+      {
+        encoding: 'utf8',
+      }
     );
     expect(stdout).toBe(txtxml);
   });
 
   it('accepts multiple line separated urls as file', async () => {
-    const { stdout } = await exec(
+    const {
+      stdout,
+    } = await exec(
       'node ./dist/cli.js ./tests/mocks/cli-urls.txt ./tests/mocks/cli-urls-2.txt',
       { encoding: 'utf8' }
     );
@@ -78,7 +83,9 @@ describe('cli', () => {
   it('accepts json line separated urls', async () => {
     const { stdout } = await exec(
       'node ./dist/cli.js < ./tests/mocks/cli-urls.json.txt',
-      { encoding: 'utf8' }
+      {
+        encoding: 'utf8',
+      }
     );
     expect(stdout + '\n').toBe(jsonxml);
   });
@@ -87,7 +94,9 @@ describe('cli', () => {
     let json;
     let threw = false;
     try {
-      const { stdout } = await exec(
+      const {
+        stdout,
+      } = await exec(
         'node ./dist/cli.js --parse --single-line-json < ./tests/mocks/alltags.xml',
         { encoding: 'utf8' }
       );
@@ -103,7 +112,9 @@ describe('cli', () => {
     let threw = false;
     let json;
     try {
-      const { stdout } = await exec(
+      const {
+        stdout,
+      } = await exec(
         'node ./dist/cli.js --parse --single-line-json ./tests/mocks/alltags.xml',
         { encoding: 'utf8' }
       );

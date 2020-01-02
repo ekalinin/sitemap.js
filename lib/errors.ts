@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*!
  * Sitemap
  * Copyright(c) 2011 Eugene Kalinin
@@ -5,7 +6,7 @@
  */
 
 /**
- * URL in SitemapItem does not exists
+ * URL in SitemapItem does not exist
  */
 export class NoURLError extends Error {
   constructor(message?: string) {
@@ -30,8 +31,8 @@ export class NoConfigError extends Error {
  * changefreq property in sitemap is invalid
  */
 export class ChangeFreqInvalidError extends Error {
-  constructor(message?: string) {
-    super(message || 'changefreq is invalid');
+  constructor(url: string, changefreq: any) {
+    super(`${url}: changefreq "${changefreq}" is invalid`);
     this.name = 'ChangeFreqInvalidError';
     Error.captureStackTrace(this, ChangeFreqInvalidError);
   }
@@ -41,8 +42,10 @@ export class ChangeFreqInvalidError extends Error {
  * priority property in sitemap is invalid
  */
 export class PriorityInvalidError extends Error {
-  constructor(message?: string) {
-    super(message || 'priority is invalid');
+  constructor(url: string, priority: any) {
+    super(
+      `${url}: priority "${priority}" must be a number between 0 and 1 inclusive`
+    );
     this.name = 'PriorityInvalidError';
     Error.captureStackTrace(this, PriorityInvalidError);
   }
@@ -60,10 +63,9 @@ export class UndefinedTargetFolder extends Error {
 }
 
 export class InvalidVideoFormat extends Error {
-  constructor(message?: string) {
+  constructor(url: string) {
     super(
-      message ||
-        'must include thumbnail_loc, title and description fields for videos'
+      `${url} video must include thumbnail_loc, title and description fields for videos`
     );
     this.name = 'InvalidVideoFormat';
     Error.captureStackTrace(this, InvalidVideoFormat);
@@ -71,9 +73,9 @@ export class InvalidVideoFormat extends Error {
 }
 
 export class InvalidVideoDuration extends Error {
-  constructor(message?: string) {
+  constructor(url: string, duration: any) {
     super(
-      message || 'duration must be an integer of seconds between 0 and 28800'
+      `${url} duration "${duration}" must be an integer of seconds between 0 and 28800`
     );
     this.name = 'InvalidVideoDuration';
     Error.captureStackTrace(this, InvalidVideoDuration);
@@ -81,16 +83,19 @@ export class InvalidVideoDuration extends Error {
 }
 
 export class InvalidVideoDescription extends Error {
-  constructor(message?: string) {
-    super(message || 'description must be no longer than 2048 characters');
+  constructor(url: string, length: number) {
+    const message = `${url}: video description is too long ${length} vs limit of 2048 characters.`;
+    super(message);
     this.name = 'InvalidVideoDescription';
     Error.captureStackTrace(this, InvalidVideoDescription);
   }
 }
 
 export class InvalidVideoRating extends Error {
-  constructor(message?: string) {
-    super(message || 'rating must be between 0 and 5');
+  constructor(url: string, title: any, rating: any) {
+    super(
+      `${url}: video "${title}" rating "${rating}" must be between 0 and 5 inclusive`
+    );
     this.name = 'InvalidVideoRating';
     Error.captureStackTrace(this, InvalidVideoRating);
   }
@@ -124,10 +129,9 @@ export class InvalidAttr extends Error {
 }
 
 export class InvalidNewsFormat extends Error {
-  constructor(message?: string) {
+  constructor(url: string) {
     super(
-      message ||
-        'must include publication, publication name, publication language, title, and publication_date for news'
+      `${url} News must include publication, publication name, publication language, title, and publication_date for news`
     );
     this.name = 'InvalidNewsFormat';
     Error.captureStackTrace(this, InvalidNewsFormat);
@@ -135,10 +139,9 @@ export class InvalidNewsFormat extends Error {
 }
 
 export class InvalidNewsAccessValue extends Error {
-  constructor(message?: string) {
+  constructor(url: string, access: any) {
     super(
-      message ||
-        'News access must be either Registration, Subscription or not be present'
+      `${url} News access "${access}" must be either Registration, Subscription or not be present`
     );
     this.name = 'InvalidNewsAccessValue';
     Error.captureStackTrace(this, InvalidNewsAccessValue);
@@ -152,5 +155,99 @@ export class XMLLintUnavailable extends Error {
     );
     this.name = 'XMLLintUnavailable';
     Error.captureStackTrace(this, XMLLintUnavailable);
+  }
+}
+
+export class InvalidVideoTitle extends Error {
+  constructor(url: string, length: number) {
+    super(`${url}: video title is too long ${length} vs 100 character limit`);
+    this.name = 'InvalidVideoTitle';
+    Error.captureStackTrace(this, InvalidVideoTitle);
+  }
+}
+
+export class InvalidVideoViewCount extends Error {
+  constructor(url: string, count: number) {
+    super(`${url}: video view count must be positive, view count was ${count}`);
+    this.name = 'InvalidVideoViewCount';
+    Error.captureStackTrace(this, InvalidVideoViewCount);
+  }
+}
+
+export class InvalidVideoTagCount extends Error {
+  constructor(url: string, count: number) {
+    super(`${url}: video can have no more than 32 tags, this has ${count}`);
+    this.name = 'InvalidVideoTagCount';
+    Error.captureStackTrace(this, InvalidVideoTagCount);
+  }
+}
+
+export class InvalidVideoCategory extends Error {
+  constructor(url: string, count: number) {
+    super(
+      `${url}: video category can only be 256 characters but was passed ${count}`
+    );
+    this.name = 'InvalidVideoCategory';
+    Error.captureStackTrace(this, InvalidVideoCategory);
+  }
+}
+
+export class InvalidVideoFamilyFriendly extends Error {
+  constructor(url: string, fam: string) {
+    super(
+      `${url}: video family friendly must be yes or no, was passed "${fam}"`
+    );
+    this.name = 'InvalidVideoFamilyFriendly';
+    Error.captureStackTrace(this, InvalidVideoFamilyFriendly);
+  }
+}
+
+export class InvalidVideoRestriction extends Error {
+  constructor(url: string, code: string) {
+    super(
+      `${url}: video restriction must be one or more two letter country codes. Was passed "${code}"`
+    );
+    this.name = 'InvalidVideoRestriction';
+    Error.captureStackTrace(this, InvalidVideoRestriction);
+  }
+}
+
+export class InvalidVideoRestrictionRelationship extends Error {
+  constructor(url: string, val?: string) {
+    super(
+      `${url}: video restriction relationship must be either allow or deny. Was passed "${val}"`
+    );
+    this.name = 'InvalidVideoRestrictionRelationship';
+    Error.captureStackTrace(this, InvalidVideoRestrictionRelationship);
+  }
+}
+
+export class InvalidVideoPriceType extends Error {
+  constructor(url: string, priceType?: string, price?: string) {
+    super(
+      priceType === undefined && price === ''
+        ? `${url}: video priceType is required when price is not provided`
+        : `${url}: video price type "${priceType}" is not "rent" or "purchase"`
+    );
+    this.name = 'InvalidVideoPriceType';
+    Error.captureStackTrace(this, InvalidVideoPriceType);
+  }
+}
+
+export class InvalidVideoResolution extends Error {
+  constructor(url: string, resolution: string) {
+    super(`${url}: video price resolution "${resolution}" is not hd or sd`);
+    this.name = 'InvalidVideoResolution';
+    Error.captureStackTrace(this, InvalidVideoResolution);
+  }
+}
+
+export class InvalidVideoPriceCurrency extends Error {
+  constructor(url: string, currency: string) {
+    super(
+      `${url}: video price currency "${currency}" must be a three capital letter abbrieviation for the country currency`
+    );
+    this.name = 'InvalidVideoPriceCurrency';
+    Error.captureStackTrace(this, InvalidVideoPriceCurrency);
   }
 }
