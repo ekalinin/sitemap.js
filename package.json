@@ -49,13 +49,6 @@
       "jest": true,
       "node": true
     },
-    "extends": [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/eslint-recommended",
-      "plugin:@typescript-eslint/recommended",
-      "prettier/@typescript-eslint",
-      "plugin:prettier/recommended"
-    ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
       "ecmaVersion": 2018,
@@ -64,6 +57,13 @@
     "plugins": [
       "jest",
       "@typescript-eslint"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended",
+      "prettier/@typescript-eslint",
+      "plugin:prettier/recommended"
     ],
     "rules": {
       "no-case-declarations": 0,
@@ -118,7 +118,7 @@
     }
   },
   "dependencies": {
-    "@types/node": "^12.12.22",
+    "@types/node": "^12.12.24",
     "@types/sax": "^1.2.0",
     "arg": "^4.1.2",
     "sax": "^1.2.4",
@@ -131,20 +131,20 @@
     "@babel/preset-env": "^7.7.6",
     "@babel/preset-typescript": "^7.7.4",
     "@types/jest": "^24.0.25",
-    "@typescript-eslint/eslint-plugin": "^2.13.0",
-    "@typescript-eslint/parser": "^2.13.0",
+    "@typescript-eslint/eslint-plugin": "^2.14.0",
+    "@typescript-eslint/parser": "^2.14.0",
     "babel-eslint": "^10.0.3",
     "babel-polyfill": "^6.26.0",
     "concurrently": "^5.0.1",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.8.0",
-    "eslint-plugin-jest": "^23.1.0",
+    "eslint-plugin-jest": "^23.3.0",
     "eslint-plugin-prettier": "^3.1.1",
     "express": "^4.17.1",
     "husky": "^3.1.0",
     "jest": "^24.9.0",
     "prettier": "^1.19.1",
-    "sort-package-json": "^1.31.0",
+    "sort-package-json": "^1.36.0",
     "source-map": "~0.7.3",
     "stats-lite": "^2.2.0",
     "stream-json": "^1.3.1",
