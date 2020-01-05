@@ -369,6 +369,13 @@ const { SitemapStream } = require('sitemap')
 const sms = new SitemapStream({
   hostname: 'https://example.com', // optional only necessary if your paths are relative
   lastmodDateOnly: false // defaults to false, flip to true for baidu
+  xmlNS: { // XML namespaces to turn on - all by default
+    news: true,
+    xhtml: true,
+    image: true,
+    video: true,
+    // custom: ['xmlns:custom="https://example.com"']
+  }
 })
 const readable = // a readable stream of objects
 readable.pipe(sms).pipe(process.stdout)
