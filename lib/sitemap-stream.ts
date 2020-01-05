@@ -8,16 +8,65 @@ import {
 import { SitemapItemLoose, ErrorLevel } from './types';
 import { validateSMIOptions, normalizeURL } from './utils';
 import { SitemapItemStream } from './sitemap-item-stream';
-export const preamble =
-  '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">';
+const preamble =
+  '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
+
+export interface NSArgs {
+  news: boolean;
+  video: boolean;
+  xhtml: boolean;
+  image: boolean;
+  custom?: string[];
+}
+const getURLSetNs: (opts: NSArgs) => string = ({
+  news,
+  video,
+  image,
+  xhtml,
+  custom,
+}) => {
+  let ns = preamble;
+
+  if (news) {
+    ns += ' xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"';
+  }
+
+  if (xhtml) {
+    ns += ' xmlns:xhtml="http://www.w3.org/1999/xhtml"';
+  }
+
+  if (image) {
+    ns += ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"';
+  }
+
+  if (video) {
+    ns += ' xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"';
+  }
+
+  if (custom) {
+    ns += ' ' + custom.join(' ');
+  }
+
+  return ns + '>';
+};
+
 export const closetag = '</urlset>';
 export interface SitemapStreamOptions extends TransformOptions {
   hostname?: string;
   level?: ErrorLevel;
   lastmodDateOnly?: boolean;
+  xmlns?: NSArgs;
   errorHandler?: (error: Error, level: ErrorLevel) => void;
 }
-const defaultStreamOpts: SitemapStreamOptions = {};
+const defaultXMLNS: NSArgs = {
+  news: true,
+  xhtml: true,
+  image: true,
+  video: true,
+};
+const defaultStreamOpts: SitemapStreamOptions = {
+  xmlns: defaultXMLNS,
+};
 /**
  * A [Transform](https://nodejs.org/api/stream.html#stream_implementing_a_transform_stream)
  * for turning a
@@ -29,6 +78,7 @@ export class SitemapStream extends Transform {
   hostname?: string;
   level: ErrorLevel;
   hasHeadOutput: boolean;
+  xmlNS: NSArgs;
   private smiStream: SitemapItemStream;
   lastmodDateOnly: boolean;
   constructor(opts = defaultStreamOpts) {
@@ -40,6 +90,7 @@ export class SitemapStream extends Transform {
     this.smiStream = new SitemapItemStream({ level: opts.level });
     this.smiStream.on('data', data => this.push(data));
     this.lastmodDateOnly = opts.lastmodDateOnly || false;
+    this.xmlNS = opts.xmlns || defaultXMLNS;
   }
 
   _transform(
@@ -49,7 +100,7 @@ export class SitemapStream extends Transform {
   ): void {
     if (!this.hasHeadOutput) {
       this.hasHeadOutput = true;
-      this.push(preamble);
+      this.push(getURLSetNs(this.xmlNS));
     }
     this.smiStream.write(
       validateSMIOptions(
