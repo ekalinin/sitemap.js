@@ -141,7 +141,7 @@
     "eslint-plugin-jest": "^23.3.0",
     "eslint-plugin-prettier": "^3.1.1",
     "express": "^4.17.1",
-    "husky": "^3.1.0",
+    "husky": "^4.0.10",
     "jest": "^24.9.0",
     "prettier": "^1.19.1",
     "sort-package-json": "^1.36.0",
