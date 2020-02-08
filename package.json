@@ -39,8 +39,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "npm run test:fast"
+      "pre-commit": "lint-staged && npm run test:fast"
     }
   },
   "lint-staged": {
@@ -77,24 +76,10 @@
       "plugin:prettier/recommended"
     ],
     "rules": {
-      "no-case-declarations": 0,
-      "no-console": 0,
-      "no-unused-vars": 0,
-      "indent": "off",
-      "lines-between-class-members": [
-        "error",
-        "always",
-        {
-          "exceptAfterSingleLine": true
-        }
-      ],
-      "padding-line-between-statements": [
-        "error",
-        {
-          "blankLine": "always",
-          "prev": "multiline-expression",
-          "next": "multiline-expression"
-        }
+      "@typescript-eslint/explicit-member-accessibility": "off",
+      "@typescript-eslint/interface-name-prefix": [
+        2,
+        "always"
       ],
       "@typescript-eslint/no-parameter-properties": "off",
       "@typescript-eslint/no-unused-vars": [
@@ -103,7 +88,26 @@
           "args": "none"
         }
       ],
-      "@typescript-eslint/explicit-member-accessibility": "off"
+      "indent": "off",
+      "lines-between-class-members": [
+        "error",
+        "always",
+        {
+          "exceptAfterSingleLine": true
+        }
+      ],
+      "no-case-declarations": 0,
+      "no-console": 0,
+      "no-dupe-class-members": "off",
+      "no-unused-vars": 0,
+      "padding-line-between-statements": [
+        "error",
+        {
+          "blankLine": "always",
+          "prev": "multiline-expression",
+          "next": "multiline-expression"
+        }
+      ]
     }
   },
   "jest": {
@@ -124,35 +128,28 @@
     }
   },
   "dependencies": {
-    "@types/node": "^12.12.24",
-    "@types/sax": "^1.2.0",
-    "arg": "^4.1.2",
+    "@types/node": "^12.12.26",
+    "@types/sax": "^1.2.1",
+    "arg": "^4.1.3",
     "sax": "^1.2.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.7",
+    "@babel/core": "^7.8.4",
     "@babel/plugin-proposal-class-properties": "^7.7.4",
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.7.4",
     "@babel/plugin-proposal-optional-chaining": "^7.7.5",
     "@babel/plugin-transform-typescript": "^7.7.4",
-    "@babel/preset-env": "^7.7.6",
+    "@babel/preset-env": "^7.8.4",
     "@babel/preset-typescript": "^7.7.4",
-    "@types/jest": "^24.0.25",
-    "@typescript-eslint/eslint-plugin": "^2.14.0",
-    "@typescript-eslint/parser": "^2.14.0",
+    "@types/jest": "^25.1.0",
+    "@typescript-eslint/eslint-plugin": "^2.19.0",
+    "@typescript-eslint/parser": "^2.19.0",
     "babel-eslint": "^10.0.3",
     "babel-polyfill": "^6.26.0",
-    "concurrently": "^5.0.2",
     "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.8.0",
-    "eslint-plugin-jest": "^23.3.0",
-    "eslint-plugin-prettier": "^3.1.2",
-    "express": "^4.17.1",
-    "husky": "^3.1.0",
-    "jest": "^24.9.0",
     "lint-staged": "^9.5.0",
     "prettier": "^1.19.1",
-    "sort-package-json": "^1.36.0",
+    "sort-package-json": "^1.39.1",
     "source-map": "~0.7.3",
     "stats-lite": "^2.2.0",
     "stream-json": "^1.3.1",
