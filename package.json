@@ -66,25 +66,10 @@
       "plugin:prettier/recommended"
     ],
     "rules": {
-      "no-case-declarations": 0,
-      "no-console": 0,
-      "no-unused-vars": 0,
-      "indent": "off",
-      "no-dupe-class-members": "off",
-      "lines-between-class-members": [
-        "error",
-        "always",
-        {
-          "exceptAfterSingleLine": true
-        }
-      ],
-      "padding-line-between-statements": [
-        "error",
-        {
-          "blankLine": "always",
-          "prev": "multiline-expression",
-          "next": "multiline-expression"
-        }
+      "@typescript-eslint/explicit-member-accessibility": "off",
+      "@typescript-eslint/interface-name-prefix": [
+        2,
+        "always"
       ],
       "@typescript-eslint/no-parameter-properties": "off",
       "@typescript-eslint/no-unused-vars": [
@@ -93,10 +78,25 @@
           "args": "none"
         }
       ],
-      "@typescript-eslint/explicit-member-accessibility": "off",
-      "@typescript-eslint/interface-name-prefix": [
-        2,
-        "always"
+      "indent": "off",
+      "lines-between-class-members": [
+        "error",
+        "always",
+        {
+          "exceptAfterSingleLine": true
+        }
+      ],
+      "no-case-declarations": 0,
+      "no-console": 0,
+      "no-dupe-class-members": "off",
+      "no-unused-vars": 0,
+      "padding-line-between-statements": [
+        "error",
+        {
+          "blankLine": "always",
+          "prev": "multiline-expression",
+          "next": "multiline-expression"
+        }
       ]
     }
   },
