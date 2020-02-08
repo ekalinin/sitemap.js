@@ -77,10 +77,7 @@
     ],
     "rules": {
       "@typescript-eslint/explicit-member-accessibility": "off",
-      "@typescript-eslint/interface-name-prefix": [
-        2,
-        "always"
-      ],
+      "@typescript-eslint/interface-name-prefix": "off",
       "@typescript-eslint/no-parameter-properties": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
@@ -147,6 +144,9 @@
     "babel-eslint": "^10.0.3",
     "babel-polyfill": "^6.26.0",
     "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-plugin-jest": "^23.7.0",
+    "eslint-plugin-prettier": "^3.1.2",
     "lint-staged": "^9.5.0",
     "prettier": "^1.19.1",
     "sort-package-json": "^1.39.1",
