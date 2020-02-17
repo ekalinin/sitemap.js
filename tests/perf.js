@@ -12,6 +12,7 @@ const { createReadStream, createWriteStream } = require('fs');
 const { clearLine, cursorTo } = require('readline');
 const { finished } = require('stream');
 const { promisify } = require('util');
+const { createGunzip } = require('zlib');
 const {
   lineSeparatedURLsToSitemapOptions,
   SitemapStream,
@@ -98,6 +99,22 @@ async function run(durations, runNum, fn) {
 async function testPerf(runs, batches, testName) {
   console.log(`runs: ${runs} batches: ${batches} total: ${runs * batches}`);
   switch (testName) {
+    case 'stream-2':
+      console.log('testing lots of data');
+      printPerf(
+        'stream',
+        await run([], 0, () => {
+          const ws = createWriteStream('/dev/null');
+          const rs = createReadStream(
+            resolve(__dirname, 'mocks', 'long-list.txt.gz')
+          );
+          lineSeparatedURLsToSitemapOptions(rs.pipe(createGunzip()))
+            .pipe(new SitemapStream({ level: ErrorLevel.SILENT }))
+            .pipe(ws);
+          return finishedP(rs);
+        })
+      );
+      break;
     case 'stream':
     default:
       console.log('testing stream');

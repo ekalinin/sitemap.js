@@ -16,8 +16,6 @@ try {
 const txtxml =
   '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"><url><loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc></url><url><loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-endangered-species-walkthrough-</loc></url></urlset>';
 
-const txtxml2 = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"><url><loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc></url><url><loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-endangered-species-walkthrough-</loc></url><url><loc>https://roosterteeth.com/episode/rouletsplay-2018-goldeneye-source</loc></url><url><loc>https://roosterteeth.com/episode/let-s-play-2018-minecraft-episode-310</loc></url></urlset>`;
-
 const jsonxml = fs.readFileSync(
   path.resolve(__dirname, './mocks/cli-urls.json.xml'),
   { encoding: 'utf8' }
@@ -70,15 +68,36 @@ describe('cli', () => {
     expect(stdout).toBe(txtxml);
   });
 
-  it('accepts multiple line separated urls as file', async () => {
-    const {
-      stdout,
-    } = await exec(
-      'node ./dist/cli.js ./tests/mocks/cli-urls.txt ./tests/mocks/cli-urls-2.txt',
-      { encoding: 'utf8' }
+  it('streams a index file and writes sitemaps', async () => {
+    const { stdout } = await exec(
+      'gzcat ./tests/mocks/medium-list.txt.gz | node ./dist/cli.js --index --limit 25000 --index-base-url https://example.com/path/ --gzip | gunzip',
+      {
+        encoding: 'utf8',
+      }
     );
-    expect(stdout).toBe(txtxml2);
-  });
+    try {
+      fs.accessSync(path.resolve('./sitemap-0.xml'), fs.constants.R_OK);
+      fs.accessSync(path.resolve('./sitemap-3.xml'), fs.constants.R_OK);
+      expect('file exists').toBe('file exists');
+    } catch (e) {
+      expect('file to exist').toBe(e);
+    }
+    expect(stdout).toContain('https://example.com/path/sitemap-0.xml');
+    expect(stdout).toContain('https://example.com/path/sitemap-1.xml');
+    expect(stdout).toContain('https://example.com/path/sitemap-2.xml');
+    expect(stdout).toContain('https://example.com/path/sitemap-3.xml');
+    expect(stdout).not.toContain('https://example.com/path/sitemap-4.xml');
+    try {
+      fs.accessSync(path.resolve('sitemap-4.xml'), fs.constants.R_OK);
+      expect('file to not exist').toBe(true);
+    } catch {
+      expect('file does not exist').toBe('file does not exist');
+    }
+    fs.unlinkSync(path.resolve('./sitemap-0.xml'));
+    fs.unlinkSync(path.resolve('./sitemap-1.xml'));
+    fs.unlinkSync(path.resolve('./sitemap-2.xml'));
+    fs.unlinkSync(path.resolve('./sitemap-3.xml'));
+  }, 30000);
 
   it('accepts json line separated urls', async () => {
     const { stdout } = await exec(
