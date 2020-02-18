@@ -24,7 +24,7 @@ const statPromise = promisify(stat);
 const preamble =
   '<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 const closetag = '</sitemapindex>';
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+
 export interface SitemapIndexStreamOptions extends TransformOptions {
   level?: ErrorLevel;
 }
@@ -73,6 +73,7 @@ export class SitemapIndexStream extends Transform {
  * Shortcut for `new SitemapIndex (...)`.
  * Create several sitemaps and an index automatically from a list of urls
  *
+ * @deprecated Use SitemapAndIndexStream
  * @param   {Object}        conf
  * @param   {String|Array}  conf.urls
  * @param   {String}        conf.targetFolder where do you want the generated index and maps put
@@ -136,4 +137,62 @@ export async function createSitemapsAndIndex({
   );
   indexWS.end();
   return Promise.all(smPromises).then(() => true);
+}
+
+type getSitemapStream = (i: number) => [IndexItem | string, SitemapStream];
+
+export interface SitemapAndIndexStreamOptions
+  extends SitemapIndexStreamOptions {
+  level?: ErrorLevel;
+  limit?: number;
+  getSitemapStream: getSitemapStream;
+}
+// const defaultSIStreamOpts: SitemapAndIndexStreamOptions = {};
+export class SitemapAndIndexStream extends SitemapIndexStream {
+  private i: number;
+  private getSitemapStream: getSitemapStream;
+  private currentSitemap: SitemapStream;
+  private idxItem: IndexItem | string;
+  private limit: number;
+  constructor(opts: SitemapAndIndexStreamOptions) {
+    opts.objectMode = true;
+    super(opts);
+    this.i = 0;
+    this.getSitemapStream = opts.getSitemapStream;
+    [this.idxItem, this.currentSitemap] = this.getSitemapStream(0);
+    this.limit = opts.limit ?? 45000;
+  }
+
+  _writeSMI(item: SitemapItemLoose): void {
+    this.currentSitemap.write(item);
+    this.i++;
+  }
+
+  _transform(
+    item: SitemapItemLoose,
+    encoding: string,
+    callback: TransformCallback
+  ): void {
+    if (this.i === 0) {
+      this._writeSMI(item);
+      super._transform(this.idxItem, encoding, callback);
+    } else if (this.i % this.limit === 0) {
+      this.currentSitemap.end();
+      const [idxItem, currentSitemap] = this.getSitemapStream(
+        this.i / this.limit
+      );
+      this.currentSitemap = currentSitemap;
+      this._writeSMI(item);
+      // push to index stream
+      super._transform(idxItem, encoding, callback);
+    } else {
+      this._writeSMI(item);
+      callback();
+    }
+  }
+
+  _flush(cb: TransformCallback): void {
+    this.currentSitemap.end();
+    super._flush(cb);
+  }
 }
