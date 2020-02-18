@@ -19,6 +19,7 @@ makes creating [sitemap XML](http://www.sitemaps.org/) files easy. [What is a si
   - [Building just the sitemap index file](#building-just-the-sitemap-index-file)
   - [Auto creating sitemap and index files from one large list](#auto-creating-sitemap-and-index-files-from-one-large-list)
 - [API](#api)
+  - [sitemapAndIndexStream](#sitemapandindexstream)
   - [createSitemapsAndIndex](#createsitemapsandindex)
   - [SitemapIndexStream](#SitemapIndexStream)
   - [xmlLint](#xmllint)
@@ -277,21 +278,66 @@ const smi = buildSitemapIndex({
 ### Auto creating sitemap and index files from one large list
 
 ```js
-const { createSitemapsAndIndex } = require('sitemap')
-const smi = createSitemapsAndIndex({
-  hostname: 'http://www.sitemap.org',
-  sitemapName: 'sm-test',
-  sitemapSize: 1,
-  targetFolder: require('os').tmpdir(),
-  urls: ['http://ya.ru', 'http://ya2.ru']
-})
+  const limit = 45000
+  const baseURL = 'https://example.com/subdir/'
+  const sms = new SitemapAndIndexStream({
+    limit, // defaults to 45k
+    getSitemapStream: (i) => {
+      const sm = new SitemapStream();
+      const path = `./sitemap-${i}.xml`;
+
+      if (argv['--gzip']) {
+        sm.pipe(createGzip()).pipe(createWriteStream(path));
+      } else {
+        sm.pipe(createWriteStream(path));
+      }
+      return [new URL(path, baseURL).toString(), sm];
+    },
+  });
+  let oStream = lineSeparatedURLsToSitemapOptions(
+    pickStreamOrArg(argv)
+  ).pipe(sms);
+  if (argv['--gzip']) {
+    oStream = oStream.pipe(createGzip());
+  }
+  oStream.pipe(process.stdout);
 ```
 
 ## API
 
+### sitemapAndIndexStream
+
+Use this to take a stream which may go over the max of 50000 items and split it into an index and sitemaps.
+SitemapAndIndexStream consumes a stream of urls and streams out index entries while writing individual urls to the streams you give it.
+Provide it with a function which when provided with a index returns a url where the sitemap will ultimately be hosted and a stream to write the current sitemap to. This function will be called everytime the next item in the stream would exceed the provided limit.
+
+```js
+  const sms = new SitemapAndIndexStream({
+    limit, // defaults to 45k
+    getSitemapStream: (i) => {
+      const sm = new SitemapStream();
+      const path = `./sitemap-${i}.xml`;
+
+      if (argv['--gzip']) {
+        sm.pipe(createGzip()).pipe(createWriteStream(path));
+      } else {
+        sm.pipe(createWriteStream(path));
+      }
+      return [new URL(path, baseURL).toString(), sm];
+    },
+  });
+  let oStream = lineSeparatedURLsToSitemapOptions(
+    pickStreamOrArg(argv)
+  ).pipe(sms);
+  if (argv['--gzip']) {
+    oStream = oStream.pipe(createGzip());
+  }
+  oStream.pipe(process.stdout);
+```
+
 ### createSitemapsAndIndex
 
-Create several sitemaps and an index automatically from a list of urls
+Create several sitemaps and an index automatically from a list of urls. __deprecated__
 
 ```js
 const { createSitemapsAndIndex } = require('sitemap')

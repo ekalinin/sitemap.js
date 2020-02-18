@@ -5,6 +5,7 @@
 - removed xmlbuilder as a dependency
 - added stronger validity checking on values supplied to sitemap
 - Added the ability to turn off or add custom xml namespaces
+- CLI and library now can accept a stream which will automatically write both the index and the sitemaps. See README for usage.
 
 ### unreleased breaking changes
 
@@ -16,6 +17,7 @@
 - Typescript: view_count is now exclusively a number
 - Typescript: `price:type` and `price:resolution` are now more restrictive types
 - sitemap parser now returns a sitemapItem array rather than a config object that could be passed to the now removed Sitemap class
+- CLI no longer accepts multiple file arguments or a mixture of file and streams except as a part of a parameter eg. prepend
 
 ## 5.1.0
 

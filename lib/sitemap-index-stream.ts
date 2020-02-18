@@ -73,6 +73,7 @@ export class SitemapIndexStream extends Transform {
  * Shortcut for `new SitemapIndex (...)`.
  * Create several sitemaps and an index automatically from a list of urls
  *
+ * @deprecated Use SitemapAndIndexStream
  * @param   {Object}        conf
  * @param   {String|Array}  conf.urls
  * @param   {String}        conf.targetFolder where do you want the generated index and maps put
