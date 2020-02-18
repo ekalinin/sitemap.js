@@ -75,6 +75,11 @@ describe('cli', () => {
         encoding: 'utf8',
       }
     );
+    expect(stdout).toContain('https://example.com/path/sitemap-0.xml');
+    expect(stdout).toContain('https://example.com/path/sitemap-1.xml');
+    expect(stdout).toContain('https://example.com/path/sitemap-2.xml');
+    expect(stdout).toContain('https://example.com/path/sitemap-3.xml');
+    expect(stdout).not.toContain('https://example.com/path/sitemap-4.xml');
     try {
       fs.accessSync(path.resolve('./sitemap-0.xml'), fs.constants.R_OK);
       fs.accessSync(path.resolve('./sitemap-3.xml'), fs.constants.R_OK);
@@ -82,11 +87,6 @@ describe('cli', () => {
     } catch (e) {
       expect('file to exist').toBe(e);
     }
-    expect(stdout).toContain('https://example.com/path/sitemap-0.xml');
-    expect(stdout).toContain('https://example.com/path/sitemap-1.xml');
-    expect(stdout).toContain('https://example.com/path/sitemap-2.xml');
-    expect(stdout).toContain('https://example.com/path/sitemap-3.xml');
-    expect(stdout).not.toContain('https://example.com/path/sitemap-4.xml');
     try {
       fs.accessSync(path.resolve('sitemap-4.xml'), fs.constants.R_OK);
       expect('file to not exist').toBe(true);
