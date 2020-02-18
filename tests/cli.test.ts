@@ -70,7 +70,7 @@ describe('cli', () => {
 
   it('streams a index file and writes sitemaps', async () => {
     const { stdout } = await exec(
-      'gzcat ./tests/mocks/medium-list.txt.gz | node ./dist/cli.js --index --limit 25000 --index-base-url https://example.com/path/ --gzip | gunzip',
+      'cat ./tests/mocks/short-list.txt | node ./dist/cli.js --index --limit 250 --index-base-url https://example.com/path/',
       {
         encoding: 'utf8',
       }
