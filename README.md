@@ -53,6 +53,12 @@ Just feed the list of urls into sitemap
 npx sitemap < listofurls.txt
 ```
 
+Or create an index and sitemaps at the same time.
+
+```sh
+npx sitemap --index --index-base-url https://example.com/path/to/sitemaps/ < listofurls.txt > sitemap-index.xml
+```
+
 Or validate an existing sitemap (requires libxml)
 
 ```sh

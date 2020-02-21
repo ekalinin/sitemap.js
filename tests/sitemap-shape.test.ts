@@ -1,6 +1,7 @@
 import {
   SitemapIndexStream,
   createSitemapsAndIndex,
+  SitemapAndIndexStream,
   xmlLint,
   parseSitemap,
   InvalidNewsFormat,
@@ -32,6 +33,7 @@ describe('sitemap shape', () => {
     expect(InvalidAttrValue).toBeDefined();
     expect(SitemapIndexStream).toBeDefined();
     expect(createSitemapsAndIndex).toBeDefined();
+    expect(SitemapAndIndexStream).toBeDefined();
     expect(parseSitemap).toBeDefined();
     expect(xmlLint).toBeDefined();
     expect(normalizeURL).toBeDefined();

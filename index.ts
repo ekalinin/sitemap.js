@@ -12,6 +12,8 @@ export {
   SitemapIndexStream,
   SitemapIndexStreamOptions,
   createSitemapsAndIndex,
+  SitemapAndIndexStream,
+  SitemapAndIndexStreamOptions,
 } from './lib/sitemap-index-stream';
 export {
   streamToPromise,
