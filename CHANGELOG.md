@@ -1,13 +1,13 @@
 # Changelog
 
-## unreleased
+## 6.0.0
 
 - removed xmlbuilder as a dependency
 - added stronger validity checking on values supplied to sitemap
 - Added the ability to turn off or add custom xml namespaces
 - CLI and library now can accept a stream which will automatically write both the index and the sitemaps. See README for usage.
 
-### unreleased breaking changes
+### 6.0.0 breaking changes
 
 - renamed XMLToISitemapOptions to XMLToSitemapOptions
 - various error messages changed.
