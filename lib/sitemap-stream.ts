@@ -1,5 +1,3 @@
-import { SitemapItem } from './sitemap-item';
-import { ISitemapItemOptionsLoose, ErrorLevel } from './types';
 import {
   Transform,
   TransformOptions,
@@ -7,18 +5,81 @@ import {
   Readable,
   Writable,
 } from 'stream';
-import { ISitemapOptions, Sitemap } from './sitemap';
-export const preamble =
-  '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">';
+import { SitemapItemLoose, ErrorLevel } from './types';
+import { validateSMIOptions, normalizeURL } from './utils';
+import { SitemapItemStream } from './sitemap-item-stream';
+const preamble =
+  '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
+
+export interface NSArgs {
+  news: boolean;
+  video: boolean;
+  xhtml: boolean;
+  image: boolean;
+  custom?: string[];
+}
+const getURLSetNs: (opts: NSArgs) => string = ({
+  news,
+  video,
+  image,
+  xhtml,
+  custom,
+}) => {
+  let ns = preamble;
+
+  if (news) {
+    ns += ' xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"';
+  }
+
+  if (xhtml) {
+    ns += ' xmlns:xhtml="http://www.w3.org/1999/xhtml"';
+  }
+
+  if (image) {
+    ns += ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"';
+  }
+
+  if (video) {
+    ns += ' xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"';
+  }
+
+  if (custom) {
+    ns += ' ' + custom.join(' ');
+  }
+
+  return ns + '>';
+};
+
 export const closetag = '</urlset>';
-export interface ISitemapStreamOpts
-  extends TransformOptions,
-    Pick<ISitemapOptions, 'hostname' | 'level' | 'lastmodDateOnly'> {}
-const defaultStreamOpts: ISitemapStreamOpts = {};
+export interface SitemapStreamOptions extends TransformOptions {
+  hostname?: string;
+  level?: ErrorLevel;
+  lastmodDateOnly?: boolean;
+  xmlns?: NSArgs;
+  errorHandler?: (error: Error, level: ErrorLevel) => void;
+}
+const defaultXMLNS: NSArgs = {
+  news: true,
+  xhtml: true,
+  image: true,
+  video: true,
+};
+const defaultStreamOpts: SitemapStreamOptions = {
+  xmlns: defaultXMLNS,
+};
+/**
+ * A [Transform](https://nodejs.org/api/stream.html#stream_implementing_a_transform_stream)
+ * for turning a
+ * [Readable stream](https://nodejs.org/api/stream.html#stream_readable_streams)
+ * of either [SitemapItemOptions](#sitemap-item-options) or url strings into a
+ * Sitemap. The readable stream it transforms **must** be in object mode.
+ */
 export class SitemapStream extends Transform {
   hostname?: string;
   level: ErrorLevel;
   hasHeadOutput: boolean;
+  xmlNS: NSArgs;
+  private smiStream: SitemapItemStream;
   lastmodDateOnly: boolean;
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
@@ -26,21 +87,24 @@ export class SitemapStream extends Transform {
     this.hasHeadOutput = false;
     this.hostname = opts.hostname;
     this.level = opts.level || ErrorLevel.WARN;
+    this.smiStream = new SitemapItemStream({ level: opts.level });
+    this.smiStream.on('data', data => this.push(data));
     this.lastmodDateOnly = opts.lastmodDateOnly || false;
+    this.xmlNS = opts.xmlns || defaultXMLNS;
   }
 
   _transform(
-    item: ISitemapItemOptionsLoose,
+    item: SitemapItemLoose,
     encoding: string,
     callback: TransformCallback
   ): void {
     if (!this.hasHeadOutput) {
       this.hasHeadOutput = true;
-      this.push(preamble);
+      this.push(getURLSetNs(this.xmlNS));
     }
-    this.push(
-      SitemapItem.justItem(
-        Sitemap.normalizeURL(item, this.hostname, this.lastmodDateOnly),
+    this.smiStream.write(
+      validateSMIOptions(
+        normalizeURL(item, this.hostname, this.lastmodDateOnly),
         this.level
       )
     );

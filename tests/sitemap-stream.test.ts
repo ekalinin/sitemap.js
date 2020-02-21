@@ -1,10 +1,16 @@
-import 'babel-polyfill';
 import {
   SitemapStream,
-  preamble,
   closetag,
   streamToPromise,
 } from '../lib/sitemap-stream';
+
+const minimumns =
+  '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
+const news = ' xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"';
+const xhtml = ' xmlns:xhtml="http://www.w3.org/1999/xhtml"';
+const image = ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"';
+const video = ' xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"';
+const preamble = minimumns + news + xhtml + image + video + '>';
 describe('sitemap stream', () => {
   const sampleURLs = ['http://example.com', 'http://example.com/path'];
 
@@ -15,6 +21,35 @@ describe('sitemap stream', () => {
     sms.end();
     expect((await streamToPromise(sms)).toString()).toBe(
       preamble +
+        `<url><loc>${sampleURLs[0]}/</loc></url>` +
+        `<url><loc>${sampleURLs[1]}</loc></url>` +
+        closetag
+    );
+  });
+
+  it('pops out custom xmlns', async () => {
+    const sms = new SitemapStream({
+      xmlns: {
+        news: false,
+        video: true,
+        image: true,
+        xhtml: true,
+        custom: [
+          'xmlns:custom="http://example.com"',
+          'xmlns:example="http://o.example.com"',
+        ],
+      },
+    });
+    sms.write(sampleURLs[0]);
+    sms.write(sampleURLs[1]);
+    sms.end();
+    expect((await streamToPromise(sms)).toString()).toBe(
+      minimumns +
+        xhtml +
+        image +
+        video +
+        ' xmlns:custom="http://example.com" xmlns:example="http://o.example.com"' +
+        '>' +
         `<url><loc>${sampleURLs[0]}/</loc></url>` +
         `<url><loc>${sampleURLs[1]}</loc></url>` +
         closetag

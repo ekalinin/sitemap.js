@@ -8,14 +8,15 @@
 
 'use strict';
 const { resolve } = require('path');
-const { createReadStream, readFileSync, createWriteStream } = require('fs');
+const { createReadStream, createWriteStream } = require('fs');
 const { clearLine, cursorTo } = require('readline');
 const { finished } = require('stream');
 const { promisify } = require('util');
+const { createGunzip } = require('zlib');
 const {
-  createSitemap,
   lineSeparatedURLsToSitemapOptions,
   SitemapStream,
+  ErrorLevel,
 } = require('../dist/index');
 const finishedP = promisify(finished);
 
@@ -98,48 +99,20 @@ async function run(durations, runNum, fn) {
 async function testPerf(runs, batches, testName) {
   console.log(`runs: ${runs} batches: ${batches} total: ${runs * batches}`);
   switch (testName) {
-    case 'creation':
-      console.log('testing sitemap creation w/o printing');
+    case 'stream-2':
+      console.log('testing lots of data');
       printPerf(
-        'sitemap creation',
-        await run([], 0, () =>
-          createSitemap({
-            hostname: 'https://roosterteeth.com',
-            urls: JSON.parse(
-              readFileSync(resolve(__dirname, 'mocks', 'perf-data.json'), {
-                encoding: 'utf8',
-              })
-            ),
-          })
-        )
-      );
-      break;
-    case 'toString':
-      console.log('testing toString');
-      const sitemap = createSitemap({
-        hostname: 'https://roosterteeth.com',
-        urls: JSON.parse(
-          readFileSync(resolve(__dirname, 'mocks', 'perf-data.json'), {
-            encoding: 'utf8',
-          })
-        ),
-      });
-      printPerf('toString', await run([], 0, () => sitemap.toString()));
-      break;
-    case 'combined':
-      console.log('testing combined');
-      printPerf(
-        'combined',
-        await run([], 0, () =>
-          createSitemap({
-            hostname: 'https://roosterteeth.com',
-            urls: JSON.parse(
-              readFileSync(resolve(__dirname, 'mocks', 'perf-data.json'), {
-                encoding: 'utf8',
-              })
-            ),
-          }).toString()
-        )
+        'stream',
+        await run([], 0, () => {
+          const ws = createWriteStream('/dev/null');
+          const rs = createReadStream(
+            resolve(__dirname, 'mocks', 'long-list.txt.gz')
+          );
+          lineSeparatedURLsToSitemapOptions(rs.pipe(createGunzip()))
+            .pipe(new SitemapStream({ level: ErrorLevel.SILENT }))
+            .pipe(ws);
+          return finishedP(rs);
+        })
       );
       break;
     case 'stream':
@@ -153,7 +126,7 @@ async function testPerf(runs, batches, testName) {
             resolve(__dirname, 'mocks', 'perf-data.json.txt')
           );
           lineSeparatedURLsToSitemapOptions(rs)
-            .pipe(new SitemapStream())
+            .pipe(new SitemapStream({ level: ErrorLevel.SILENT }))
             .pipe(ws);
           return finishedP(rs);
         })

@@ -3,23 +3,38 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-import { createSitemap } from './lib/sitemap';
-export * from './lib/sitemap';
-export * from './lib/sitemap-item';
-export * from './lib/sitemap-index';
-export * from './lib/sitemap-stream';
+export {
+  SitemapItemStream,
+  SitemapItemStreamOptions,
+} from './lib/sitemap-item-stream';
+export {
+  IndexTagNames,
+  SitemapIndexStream,
+  SitemapIndexStreamOptions,
+  createSitemapsAndIndex,
+  SitemapAndIndexStream,
+  SitemapAndIndexStreamOptions,
+} from './lib/sitemap-index-stream';
+export {
+  streamToPromise,
+  SitemapStream,
+  SitemapStreamOptions,
+} from './lib/sitemap-stream';
 export * from './lib/errors';
 export * from './lib/types';
 export {
   lineSeparatedURLsToSitemapOptions,
   mergeStreams,
   validateSMIOptions,
+  normalizeURL,
+  ReadlineStream,
+  ReadlineStreamOptions,
 } from './lib/utils';
 export { xmlLint } from './lib/xmllint';
 export {
   parseSitemap,
-  XMLToISitemapOptions,
+  XMLToSitemapItemStream,
+  XMLToSitemapItemStreamOptions,
   ObjectStreamToJSON,
+  ObjectStreamToJSONOptions,
 } from './lib/sitemap-parser';
-
-export default createSitemap;
