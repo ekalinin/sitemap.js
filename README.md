@@ -13,19 +13,20 @@ makes creating [sitemap XML](http://www.sitemaps.org/) files easy. [What is a si
 - [Installation](#installation)
 - [Usage](#usage)
   - [CLI](#cli)
-  - [Example of using sitemap.js with <a href="https://expressjs.com/">express</a>](#example-of-using-sitemapjs-with-express)
+  - [Example of using sitemap.js with](#example-of-using-sitemapjs-with-express) [express](https://expressjs.com/)
   - [Stream writing a sitemap](#stream-writing-a-sitemap)
   - [Example of most of the options you can use for sitemap](#example-of-most-of-the-options-you-can-use-for-sitemap)
   - [Building just the sitemap index file](#building-just-the-sitemap-index-file)
   - [Auto creating sitemap and index files from one large list](#auto-creating-sitemap-and-index-files-from-one-large-list)
+  - [More](#more)
 - [API](#api)
-  - [sitemapAndIndexStream](#sitemapandindexstream)
-  - [createSitemapsAndIndex](#createsitemapsandindex)
-  - [SitemapIndexStream](#SitemapIndexStream)
-  - [xmlLint](#xmllint)
-  - [parseSitemap](#parsesitemap)
   - [SitemapStream](#sitemapstream)
   - [XMLToSitemapOptions](#XMLToSitemapOptions)
+  - [sitemapAndIndexStream](#sitemapandindexstream)
+  - [SitemapIndexStream](#SitemapIndexStream)
+  - [createSitemapsAndIndex](#createsitemapsandindex)
+  - [xmlLint](#xmllint)
+  - [parseSitemap](#parsesitemap)
   - [lineSeparatedURLsToSitemapOptions](#lineseparatedurlstositemapoptions)
   - [streamToPromise](#streamtopromise)
   - [ObjectStreamToJSON](#objectstreamtojson)
@@ -309,7 +310,73 @@ const smi = buildSitemapIndex({
   oStream.pipe(process.stdout);
 ```
 
+## More
+
+For more examples see the [examples directory](./examples/)
+
 ## API
+
+### SitemapStream
+
+A [Transform](https://nodejs.org/api/stream.html#stream_implementing_a_transform_stream) for turning a [Readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) of either [SitemapItemOptions](#sitemap-item-options) or url strings into a Sitemap. The readable stream it transforms **must** be in object mode.
+
+```javascript
+const { SitemapStream } = require('sitemap')
+const sms = new SitemapStream({
+  hostname: 'https://example.com', // optional only necessary if your paths are relative
+  lastmodDateOnly: false // defaults to false, flip to true for baidu
+  xmlNS: { // XML namespaces to turn on - all by default
+    news: true,
+    xhtml: true,
+    image: true,
+    video: true,
+    // custom: ['xmlns:custom="https://example.com"']
+  }
+})
+const readable = // a readable stream of objects
+readable.pipe(sms).pipe(process.stdout)
+```
+
+### XMLToSitemapOptions
+
+Takes a stream of xml and transforms it into a stream of ISitemapOptions.
+Use this to parse existing sitemaps into config options compatible with this library
+
+```javascript
+const { createReadStream, createWriteStream } = require('fs');
+const { XMLToISitemapOptions, ObjectStreamToJSON } = require('sitemap');
+
+createReadStream('./some/sitemap.xml')
+// turn the xml into sitemap option item options
+.pipe(new XMLToISitemapOptions())
+// convert the object stream to JSON
+.pipe(new ObjectStreamToJSON())
+// write the library compatible options to disk
+.pipe(createWriteStream('./sitemapOptions.json'))
+```
+
+### SitemapIndexStream
+
+Writes a sitemap index when given a stream urls.
+
+```js
+/**
+ * writes the following
+ * <?xml version="1.0" encoding="UTF-8"?>
+   <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+   <sitemap>
+      <loc>https://example.com/</loc>
+   </sitemap>
+   <sitemap>
+      <loc>https://example.com/2</loc>
+   </sitemap>
+ */
+const smis = new SitemapIndexStream({level: 'warn'})
+smis.write({url: 'https://example.com/'})
+smis.write({url: 'https://example.com/2'})
+smis.pipe(writestream)
+smis.end()
+```
 
 ### sitemapAndIndexStream
 
@@ -358,29 +425,6 @@ createSitemapsAndIndex({
 })
 ```
 
-### SitemapIndexStream
-
-Writes a sitemap index when given a stream urls.
-
-```js
-/**
- * writes the following
- * <?xml version="1.0" encoding="UTF-8"?>
-   <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-   <sitemap>
-      <loc>https://example.com/</loc>
-   </sitemap>
-   <sitemap>
-      <loc>https://example.com/2</loc>
-   </sitemap>
- */
-const smis = new SitemapIndexStream({level: 'warn'})
-smis.write({url: 'https://example.com/'})
-smis.write({url: 'https://example.com/2'})
-smis.pipe(writestream)
-smis.end()
-```
-
 ### xmlLint
 
 Resolve or reject depending on whether the passed in xml is a valid sitemap.
@@ -410,45 +454,6 @@ parseSitemap(createReadStream('./example.xml')).then(
   (xmlConfig) => console.log(createSitemap(xmlConfig).toString()),
   (err) => console.log(err)
 )
-```
-
-### SitemapStream
-
-A [Transform](https://nodejs.org/api/stream.html#stream_implementing_a_transform_stream) for turning a [Readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) of either [SitemapItemOptions](#sitemap-item-options) or url strings into a Sitemap. The readable stream it transforms **must** be in object mode.
-
-```javascript
-const { SitemapStream } = require('sitemap')
-const sms = new SitemapStream({
-  hostname: 'https://example.com', // optional only necessary if your paths are relative
-  lastmodDateOnly: false // defaults to false, flip to true for baidu
-  xmlNS: { // XML namespaces to turn on - all by default
-    news: true,
-    xhtml: true,
-    image: true,
-    video: true,
-    // custom: ['xmlns:custom="https://example.com"']
-  }
-})
-const readable = // a readable stream of objects
-readable.pipe(sms).pipe(process.stdout)
-```
-
-### XMLToSitemapOptions
-
-Takes a stream of xml and transforms it into a stream of ISitemapOptions.
-Use this to parse existing sitemaps into config options compatible with this library
-
-```javascript
-const { createReadStream, createWriteStream } = require('fs');
-const { XMLToISitemapOptions, ObjectStreamToJSON } = require('sitemap');
-
-createReadStream('./some/sitemap.xml')
-// turn the xml into sitemap option item options
-.pipe(new XMLToISitemapOptions())
-// convert the object stream to JSON
-.pipe(new ObjectStreamToJSON())
-// write the library compatible options to disk
-.pipe(createWriteStream('./sitemapOptions.json'))
 ```
 
 ### lineSeparatedURLsToSitemapOptions
