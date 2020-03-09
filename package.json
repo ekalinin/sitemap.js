@@ -103,7 +103,22 @@
           "args": "none"
         }
       ]
-    }
+    },
+    "overrides": [
+      {
+        "files": [
+          "*.js"
+        ],
+        "rules": {
+          "@typescript-eslint/explicit-function-return-type": [
+            "off"
+          ],
+          "@typescript-eslint/no-var-requires": [
+            "off"
+          ]
+        }
+      }
+    ]
   },
   "jest": {
     "collectCoverage": true,
@@ -144,7 +159,7 @@
     "concurrently": "^5.1.0",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.10.0",
-    "eslint-plugin-jest": "^23.7.0",
+    "eslint-plugin-jest": "^23.8.0",
     "eslint-plugin-prettier": "^3.1.2",
     "express": "^4.17.1",
     "husky": "^4.2.3",
