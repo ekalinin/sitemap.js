@@ -23,7 +23,6 @@ makes creating [sitemap XML](http://www.sitemaps.org/) files easy. [What is a si
   - [SitemapStream](#sitemapstream)
   - [XMLToSitemapOptions](#XMLToSitemapOptions)
   - [sitemapAndIndexStream](#sitemapandindexstream)
-  - [SitemapIndexStream](#SitemapIndexStream)
   - [createSitemapsAndIndex](#createsitemapsandindex)
   - [SitemapIndexStream](#SitemapIndexStream)
   - [xmlLint](#xmllint)
@@ -354,29 +353,6 @@ createReadStream('./some/sitemap.xml')
 .pipe(new ObjectStreamToJSON())
 // write the library compatible options to disk
 .pipe(createWriteStream('./sitemapOptions.json'))
-```
-
-### SitemapIndexStream
-
-Writes a sitemap index when given a stream urls.
-
-```js
-/**
- * writes the following
- * <?xml version="1.0" encoding="UTF-8"?>
-   <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-   <sitemap>
-      <loc>https://example.com/</loc>
-   </sitemap>
-   <sitemap>
-      <loc>https://example.com/2</loc>
-   </sitemap>
- */
-const smis = new SitemapIndexStream({level: 'warn'})
-smis.write({url: 'https://example.com/'})
-smis.write({url: 'https://example.com/2'})
-smis.pipe(writestream)
-smis.end()
 ```
 
 ### sitemapAndIndexStream
