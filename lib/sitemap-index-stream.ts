@@ -11,7 +11,7 @@ import {
 import { IndexItem, SitemapItemLoose, ErrorLevel } from './types';
 import { UndefinedTargetFolder } from './errors';
 import { chunk } from './utils';
-import { SitemapStream } from './sitemap-stream';
+import { SitemapStream, stylesheetInclude } from './sitemap-stream';
 import { element, otag, ctag } from './sitemap-xml';
 
 export enum IndexTagNames {
@@ -21,22 +21,27 @@ export enum IndexTagNames {
 }
 
 const statPromise = promisify(stat);
-const preamble =
-  '<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+const xmlDec = '<?xml version="1.0" encoding="UTF-8"?>';
+
+const sitemapIndexTagStart =
+  '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 const closetag = '</sitemapindex>';
 
 export interface SitemapIndexStreamOptions extends TransformOptions {
   level?: ErrorLevel;
+  xslUrl?: string;
 }
 const defaultStreamOpts: SitemapIndexStreamOptions = {};
 export class SitemapIndexStream extends Transform {
   level: ErrorLevel;
+  xslUrl?: string;
   private hasHeadOutput: boolean;
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
     this.hasHeadOutput = false;
     this.level = opts.level ?? ErrorLevel.WARN;
+    this.xslUrl = opts.xslUrl;
   }
 
   _transform(
@@ -46,7 +51,11 @@ export class SitemapIndexStream extends Transform {
   ): void {
     if (!this.hasHeadOutput) {
       this.hasHeadOutput = true;
-      this.push(preamble);
+      let stylesheet = '';
+      if (this.xslUrl) {
+        stylesheet = stylesheetInclude(this.xslUrl);
+      }
+      this.push(xmlDec + stylesheet + sitemapIndexTagStart);
     }
     this.push(otag(IndexTagNames.sitemap));
     if (typeof item === 'string') {
@@ -90,6 +99,7 @@ export async function createSitemapsAndIndex({
   sitemapName = 'sitemap',
   sitemapSize = 50000,
   gzip = true,
+  xslUrl,
 }: {
   urls: (string | SitemapItemLoose)[];
   targetFolder: string;
@@ -97,8 +107,9 @@ export async function createSitemapsAndIndex({
   sitemapName?: string;
   sitemapSize?: number;
   gzip?: boolean;
+  xslUrl?: string;
 }): Promise<boolean> {
-  const indexStream = new SitemapIndexStream();
+  const indexStream = new SitemapIndexStream({ xslUrl });
 
   try {
     const stats = await statPromise(targetFolder);
@@ -121,7 +132,7 @@ export async function createSitemapsAndIndex({
         indexStream.write(new URL(filename, hostname).toString());
 
         const ws = createWriteStream(targetFolder + '/' + filename);
-        const sms = new SitemapStream({ hostname });
+        const sms = new SitemapStream({ hostname, xslUrl });
         let pipe: Writable;
         if (gzip) {
           pipe = sms.pipe(createGzip()).pipe(ws);
