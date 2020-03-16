@@ -1,3 +1,4 @@
+// Stream read a json file and print it as xml to the console
 const { parser } = require('stream-json/Parser');
 const { streamArray } = require('stream-json/streamers/StreamArray');
 //const {streamValues } = require('stream-json/streamers/StreamValues');

@@ -68,7 +68,6 @@ export interface SitemapStreamOptions extends TransformOptions {
   lastmodDateOnly?: boolean;
   xmlns?: NSArgs;
   xslUrl?: string;
-  errorHandler?: (error: Error, level: ErrorLevel) => void;
 }
 const defaultXMLNS: NSArgs = {
   news: true,

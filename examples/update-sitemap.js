@@ -1,8 +1,8 @@
-// Slurp in an xml file append to it and pipe it back out
+// Slurp in an xml file, update/append to it and pipe it back out
 const { createReadStream, createWriteStream, copyFile, unlink } = require('fs');
 const { resolve } = require('path');
 const { Transform } = require('stream');
-const { SitemapStream, XMLToSitemapItemStream } = require('../dist/index');
+const { SitemapStream, XMLToSitemapItemStream } = require('../dist/index'); // require('sitemap')
 const { tmpdir } = require('os');
 
 // Sample data that is a list of all dbUpdates.

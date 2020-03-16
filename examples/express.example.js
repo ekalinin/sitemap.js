@@ -5,7 +5,6 @@ const { SitemapStream, streamToPromise } = require('../dist/index');
 // external libs provided as example only
 const { parser } = require('stream-json/Parser');
 const { streamArray } = require('stream-json/streamers/StreamArray');
-const { streamValues } = require('stream-json/streamers/StreamValues');
 const map = require('through2-map');
 const { createGzip } = require('zlib');
 
@@ -23,18 +22,20 @@ app.get('/sitemap.xml', function(req, res) {
   try {
     // this could just as easily be a db response
     const gzippedStream = fs
+      // read our list of urls in
       .createReadStream(
         resolve(__dirname, '..', 'tests', 'mocks', 'perf-data.json')
       )
+      // stream parse the json - this avoids having to pull the entire file into memory
       .pipe(parser())
       .pipe(streamArray()) // replace with streamValues for JSONStream
       .pipe(map.obj(chunk => chunk.value))
       .pipe(new SitemapStream({ hostname: 'https://example.com/' }))
       .pipe(createGzip());
 
-    // cache the response
+    // This takes the result and stores it in memory - > 50mb
     streamToPromise(gzippedStream).then(sm => (sitemap = sm));
-    // stream the response
+    // stream the response to the client at the same time
     gzippedStream.pipe(res).on('error', e => {
       throw e;
     });
