@@ -34,7 +34,7 @@ const argSpec = {
   '--single-line-json': Boolean,
   '--prepend': String,
   '--gzip': Boolean,
-  '--h': '--help',
+  '-h': '--help',
 };
 const argv = arg(argSpec);
 
@@ -56,17 +56,30 @@ if (argv['--version']) {
   console.log(`
 Turn a list of urls into a sitemap xml.
 Options:
-  --help           Print this text
-  --version        Print the version
-  --validate       ensure the passed in file is conforms to the sitemap spec
-  --index          create an index and stream that out, write out sitemaps along the way
-  --index-base-url base url the sitemaps will be hosted eg. https://example.com/sitemaps/
-  --limit=45000    set a custom limit to the items per sitemap
-  --parse          Parse fed xml and spit out config
-  --prepend sitemap.xml < urlsToAdd.json
-  --gzip           compress output
-  --single-line-json         When used with parse, it spits out each entry as json rather
-                   than the whole json.
+  --help                 Print this text
+  --version              Print the version
+  --validate             Ensure the passed in file is conforms to the sitemap spec
+  --index                Create an index and stream that out. Writes out sitemaps along the way.
+  --index-base-url       Base url the sitemaps will be hosted eg. https://example.com/sitemaps/
+  --limit=45000          Set a custom limit to the items per sitemap
+  --parse                Parse fed xml and spit out config
+  --prepend=sitemap.xml  Prepend the streamed in sitemap configs to sitemap.xml
+  --gzip                 Compress output
+  --single-line-json     When used with parse, it spits out each entry as json rather than the whole json.
+
+# examples
+
+Generate a sitemap index file as well as sitemaps
+  npx sitemap --gzip --index --index-base-url https://example.com/path/to/sitemaps/ < listofurls.txt > sitemap-index.xml.gz
+
+Add to a sitemap
+  npx sitemap --prepend sitemap.xml < listofurls.json
+
+Turn an existing sitemap into configuration understood by the sitemap library
+  npx sitemap --parse sitemap.xml
+
+Use XMLLib to validate your sitemap (requires xmllib)
+  npx sitemap --validate sitemap.xml
 `);
 } else if (argv['--parse']) {
   let oStream: ObjectStreamToJSON | Gzip = getStream()

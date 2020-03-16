@@ -1,6 +1,6 @@
 {
   "name": "sitemap",
-  "version": "6.0.0",
+  "version": "6.1.0",
   "description": "Sitemap-generating lib/cli",
   "keywords": [
     "sitemap",
@@ -94,6 +94,7 @@
           "next": "multiline-expression"
         }
       ],
+      "@typescript-eslint/camelcase": "off",
       "@typescript-eslint/explicit-member-accessibility": "off",
       "@typescript-eslint/interface-name-prefix": "off",
       "@typescript-eslint/no-parameter-properties": "off",

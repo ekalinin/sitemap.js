@@ -1,3 +1,4 @@
+import { URL } from 'url';
 import {
   Transform,
   TransformOptions,
@@ -8,8 +9,16 @@ import {
 import { SitemapItemLoose, ErrorLevel } from './types';
 import { validateSMIOptions, normalizeURL } from './utils';
 import { SitemapItemStream } from './sitemap-item-stream';
-const preamble =
-  '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
+
+const xmlDec = '<?xml version="1.0" encoding="UTF-8"?>';
+export const stylesheetInclude = (url: string): string => {
+  // Throws if url is invalid
+  new URL(url);
+
+  return `<?xml-stylesheet type="text/xsl" href="${url}"?>`;
+};
+const urlsetTagStart =
+  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
 
 export interface NSArgs {
   news: boolean;
@@ -18,14 +27,16 @@ export interface NSArgs {
   image: boolean;
   custom?: string[];
 }
-const getURLSetNs: (opts: NSArgs) => string = ({
-  news,
-  video,
-  image,
-  xhtml,
-  custom,
-}) => {
-  let ns = preamble;
+const getURLSetNs: (opts: NSArgs, xslURL?: string) => string = (
+  { news, video, image, xhtml, custom },
+  xslURL
+) => {
+  let ns = xmlDec;
+  if (xslURL) {
+    ns += stylesheetInclude(xslURL);
+  }
+
+  ns += urlsetTagStart;
 
   if (news) {
     ns += ' xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"';
@@ -56,7 +67,7 @@ export interface SitemapStreamOptions extends TransformOptions {
   level?: ErrorLevel;
   lastmodDateOnly?: boolean;
   xmlns?: NSArgs;
-  errorHandler?: (error: Error, level: ErrorLevel) => void;
+  xslUrl?: string;
 }
 const defaultXMLNS: NSArgs = {
   news: true,
@@ -79,6 +90,7 @@ export class SitemapStream extends Transform {
   level: ErrorLevel;
   hasHeadOutput: boolean;
   xmlNS: NSArgs;
+  xslUrl?: string;
   private smiStream: SitemapItemStream;
   lastmodDateOnly: boolean;
   constructor(opts = defaultStreamOpts) {
@@ -91,6 +103,7 @@ export class SitemapStream extends Transform {
     this.smiStream.on('data', data => this.push(data));
     this.lastmodDateOnly = opts.lastmodDateOnly || false;
     this.xmlNS = opts.xmlns || defaultXMLNS;
+    this.xslUrl = opts.xslUrl;
   }
 
   _transform(
@@ -100,7 +113,7 @@ export class SitemapStream extends Transform {
   ): void {
     if (!this.hasHeadOutput) {
       this.hasHeadOutput = true;
-      this.push(getURLSetNs(this.xmlNS));
+      this.push(getURLSetNs(this.xmlNS, this.xslUrl));
     }
     this.smiStream.write(
       validateSMIOptions(

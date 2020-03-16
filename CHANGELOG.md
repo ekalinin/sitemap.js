@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.0
+
+- Added back xslUrl option removed in 5.0.0
+
 ## 6.0.0
 
 - removed xmlbuilder as a dependency
