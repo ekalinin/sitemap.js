@@ -139,15 +139,17 @@ export async function createSitemapsAndIndex({
         } else {
           pipe = sms.pipe(ws);
         }
-        chunk.forEach(smi => sms.write(smi));
+        chunk.forEach((smi) => sms.write(smi));
         sms.end();
         pipe.on('finish', () => resolve(true));
-        pipe.on('error', e => reject(e));
+        pipe.on('error', (e) => reject(e));
       });
     }
   );
-  indexWS.end();
-  return Promise.all(smPromises).then(() => true);
+  return Promise.all(smPromises).then(() => {
+    indexStream.end();
+    return true;
+  });
 }
 
 type getSitemapStream = (i: number) => [IndexItem | string, SitemapStream];

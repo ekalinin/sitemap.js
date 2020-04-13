@@ -282,7 +282,7 @@ export class ReadlineStream extends Readable {
     });
 
     // Every time there's data, push it into the internal buffer.
-    this._source.on('line', chunk => {
+    this._source.on('line', (chunk) => {
       // If push() returns false, then stop reading from source.
       if (!this.push(chunk)) this._source.pause();
     });

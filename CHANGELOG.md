@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.1
+
+- Fix #286 sitemapindex tag not closing for deprecated createSitemapsAndIndex
+
 ## 6.1.0
 
 - Added back xslUrl option removed in 5.0.0
