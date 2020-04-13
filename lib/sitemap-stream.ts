@@ -100,7 +100,7 @@ export class SitemapStream extends Transform {
     this.hostname = opts.hostname;
     this.level = opts.level || ErrorLevel.WARN;
     this.smiStream = new SitemapItemStream({ level: opts.level });
-    this.smiStream.on('data', data => this.push(data));
+    this.smiStream.on('data', (data) => this.push(data));
     this.lastmodDateOnly = opts.lastmodDateOnly || false;
     this.xmlNS = opts.xmlns || defaultXMLNS;
     this.xslUrl = opts.xslUrl;

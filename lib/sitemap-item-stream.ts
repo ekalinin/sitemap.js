@@ -74,7 +74,7 @@ export class SitemapItemStream extends Transform {
       }
     }
 
-    item.video.forEach(video => {
+    item.video.forEach((video) => {
       this.push(otag(TagNames['video:video']));
 
       this.push(element(TagNames['video:thumbnail_loc'], video.thumbnail_loc));
@@ -205,7 +205,7 @@ export class SitemapItemStream extends Transform {
       this.push(ctag(TagNames['video:video']));
     });
 
-    item.links.forEach(link => {
+    item.links.forEach((link) => {
       this.push(
         element(TagNames['xhtml:link'], {
           rel: 'alternate',
