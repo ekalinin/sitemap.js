@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.2
+
+- bump node types resolves #290
+
 ## 6.1.1
 
 - Fix #286 sitemapindex tag not closing for deprecated createSitemapsAndIndex
