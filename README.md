@@ -149,7 +149,7 @@ smStream.write({
 // See [Sitemap Item Options](./api.md#sitemap-item-options) below for details
 smStream.write({
   url: 'http://test.com/page-1/',
-  img: [
+  imgs: [
     {
       url: 'http://test.com/img1.jpg',
       caption: 'An image',
@@ -165,7 +165,7 @@ smStream.write({
       license: 'https://creativecommons.org/licenses/by/4.0/'
     }
   ],
-  video: [
+  videos: [
     {
       thumbnail_loc: 'http://test.com/tmbn1.jpg',
       title: 'A video title',
