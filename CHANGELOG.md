@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.3
+
+- bump node types resolves #293
+
 ## 6.1.2
 
 - bump node types resolves #290
