@@ -4,6 +4,7 @@
 
 - remove stale files from dist #298
 - Correct documentation on renamed XMLToSitemapOptions, XMLToSitemapItemStream #297
+- bump node typedef to 14.0.1
 
 ## 6.1.3
 

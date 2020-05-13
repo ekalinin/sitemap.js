@@ -417,6 +417,10 @@ export class XMLToSitemapItemStream extends Transform {
     encoding: string,
     callback: TransformCallback
   ): void {
+    // correcting the type here can be done without making it a breaking change
+    // TODO fix this
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore
     this.saxStream.write(data, encoding);
     callback();
   }
