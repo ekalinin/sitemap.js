@@ -2,8 +2,8 @@
 
 ## 6.1.4
 
-- remove stale files from dist resolves #298
-- Correct documentation on renamed XMLToSitemapOptions, XMLToSitemapItemStream #298
+- remove stale files from dist #298
+- Correct documentation on renamed XMLToSitemapOptions, XMLToSitemapItemStream #297
 
 ## 6.1.3
 
