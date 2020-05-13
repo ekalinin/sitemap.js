@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.1.4
+
+- remove stale files from dist #298
+- Correct documentation on renamed XMLToSitemapOptions, XMLToSitemapItemStream #297
+- bump node typedef to 14.0.1
+
 ## 6.1.3
 
 - bump node types resolves #293
@@ -94,7 +100,7 @@ Add an xmlparser that will output a config that would generate that same file
   cli:
     use --parser to output the complete config --line-separated to print out line
     separated config compatible with the --json input option for cli
-  
+
   lib: import parseSitemap and pass it a stream
 
 ## 4.0.2
