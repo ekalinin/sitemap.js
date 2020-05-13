@@ -33,7 +33,7 @@ If you are just looking to take a giant list of URLs and turn it into some sitem
 npx sitemap < listofurls.txt # `npx sitemap -h` for more examples and a list of options.
 ```
 
-For programmatic oen time generation of a sitemap try:
+For programmatic one time generation of a sitemap try:
 
 ```js
   const { SitemapStream, streamToPromise } = require( 'sitemap' )
