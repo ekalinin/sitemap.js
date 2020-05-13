@@ -27,11 +27,31 @@ npm install --save sitemap
 
 ## Generate a one time sitemap from a list of urls
 
-If you are just looking to take a giant list of URLs and turn it into some sitemaps,
-try out our CLI. The cli can also parse, update and validate existing sitemaps.
+If you are just looking to take a giant list of URLs and turn it into some sitemaps, try out our CLI. The cli can also parse, update and validate existing sitemaps.
 
 ```sh
 npx sitemap < listofurls.txt # `npx sitemap -h` for more examples and a list of options.
+```
+
+For programmatic oen time generation of a sitemap try:
+
+```js
+  const { SitemapStream, streamToPromise } = require( 'sitemap' )
+
+  // An array with your links
+  const links = [{ url: '/page-1/',  changefreq: 'daily', priority: 0.3  }]
+
+  // Create a stream to write to
+  const stream = new SitemapStream( { hostname: 'https://...' } )
+
+  // Loop over your links and add them to your stream
+  links.map( link => stream.write( link ) )
+
+  // End the stream
+  stream.end()
+
+  // Return a promise that resolves with your XML string
+  return streamToPromise( stream ).then( data => data.toString() )
 ```
 
 ## Serve a sitemap from a server and periodically update it
