@@ -25,7 +25,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "git clean -xdf && npm run test",
+    "prepublishOnly": "rm -rf dist && npm run test",
     "test": "eslint lib/* ./cli.ts && tsc && jest && npm run test:xmllint",
     "test:fast": "eslint lib/* ./cli.ts && tsc && jest ./tests/sitemap*",
     "test:perf": "node ./tests/perf.js",
