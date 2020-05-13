@@ -1,5 +1,5 @@
 const { createWriteStream } = require('fs');
-const { SitemapStream } = require('sitemap');
+const { SitemapStream } = require('../dist/index');
 
 // Creates a sitemap object given the input configuration with URLs
 const sitemap = new SitemapStream({ hostname: 'http://example.com' });

@@ -1,7 +1,7 @@
 # API
 
 - [SitemapStream](#sitemapstream)
-- [XMLToSitemapOptions](#XMLToSitemapOptions)
+- [XMLToSitemapItemStream](#XMLToSitemapItemStream)
 - [sitemapAndIndexStream](#sitemapandindexstream)
 - [createSitemapsAndIndex](#createsitemapsandindex)
 - [SitemapIndexStream](#SitemapIndexStream)
@@ -38,18 +38,18 @@ const readable = // a readable stream of objects
 readable.pipe(sms).pipe(process.stdout)
 ```
 
-### XMLToSitemapOptions
+### XMLToSitemapItemStream
 
 Takes a stream of xml and transforms it into a stream of SitemapOptions.
 Use this to parse existing sitemaps into config options compatible with this library
 
 ```javascript
 const { createReadStream, createWriteStream } = require('fs');
-const { XMLToISitemapOptions, ObjectStreamToJSON } = require('sitemap');
+const { XMLToSitemapItemStream, ObjectStreamToJSON } = require('sitemap');
 
 createReadStream('./some/sitemap.xml')
 // turn the xml into sitemap option item options
-.pipe(new XMLToISitemapOptions())
+.pipe(new XMLToSitemapItemStream())
 // convert the object stream to JSON
 .pipe(new ObjectStreamToJSON())
 // write the library compatible options to disk

@@ -22,7 +22,7 @@ describe('parseSitemap', () => {
   });
 });
 
-describe('XMLToISitemapOptions', () => {
+describe('XMLToSitemapItemStream', () => {
   it('stream parses XML', async () => {
     const sitemap: SitemapStreamOptions[] = [];
     await pipeline(
