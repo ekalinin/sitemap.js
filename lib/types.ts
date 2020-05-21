@@ -27,7 +27,6 @@ export const validators: { [index: string]: RegExp } = {
   platform: /^((web|mobile|tv)( (web|mobile|tv))*)?$/,
   language: /^zh-cn|zh-tw|([a-z]{2,3})$/,
   genres: /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
-  // eslint-disable-next-line @typescript-eslint/camelcase
   stock_tickers: /^(\w+:\w+(, *\w+:\w+){0,4})?$/,
 };
 
@@ -325,7 +324,6 @@ interface SitemapItemBase {
 /**
  * Strict options for individual sitemap entries
  */
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface SitemapItem extends SitemapItemBase {
   img: Img[];
   video: VideoItem[];

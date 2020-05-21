@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import sax, { SAXStream } from 'sax';
 import {
   Readable,
@@ -78,7 +77,7 @@ export class XMLToSitemapItemStream extends Transform {
     super(opts);
     this.saxStream = sax.createStream(true, {
       xmlns: true,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       strictEntities: true,
       trim: true,
@@ -419,7 +418,7 @@ export class XMLToSitemapItemStream extends Transform {
   ): void {
     // correcting the type here can be done without making it a breaking change
     // TODO fix this
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     this.saxStream.write(data, encoding);
     callback();
