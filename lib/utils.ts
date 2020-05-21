@@ -20,6 +20,7 @@ import {
   isAllowDeny,
   isPriceType,
   isResolution,
+  NewsItem,
 } from './types';
 import {
   ChangeFreqInvalidError,
@@ -47,13 +48,13 @@ import {
 import { validators } from './types';
 
 function validate(
-  subject: object,
+  subject: NewsItem | VideoItem | NewsItem['publication'],
   name: string,
   url: string,
   level: ErrorLevel
 ): void {
   Object.keys(subject).forEach((key): void => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const val = subject[key];
     if (validators[key] && !validators[key].test(val)) {
@@ -313,6 +314,7 @@ export function lineSeparatedURLsToSitemapOptions(
   return new ReadlineStream({ input: stream }).pipe(
     new Transform({
       objectMode: true,
+      // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
       transform: (line, encoding, cb): void => {
         if (isJSON || (isJSON === undefined && line[0] === '{')) {
           cb(null, JSON.parse(line));
@@ -434,10 +436,8 @@ export function normalizeURL(
       (video): VideoItem => {
         const nv: VideoItem = {
           ...video,
-          /* eslint-disable-next-line @typescript-eslint/camelcase */
           family_friendly: boolToYESNO(video.family_friendly),
           live: boolToYESNO(video.live),
-          /* eslint-disable-next-line @typescript-eslint/camelcase */
           requires_subscription: boolToYESNO(video.requires_subscription),
           tag: [],
           rating: undefined,
@@ -456,10 +456,8 @@ export function normalizeURL(
         }
 
         if (typeof video.view_count === 'string') {
-          /* eslint-disable-next-line @typescript-eslint/camelcase */
           nv.view_count = parseInt(video.view_count, 10);
         } else if (typeof video.view_count === 'number') {
-          /* eslint-disable-next-line @typescript-eslint/camelcase */
           nv.view_count = video.view_count;
         }
         return nv;

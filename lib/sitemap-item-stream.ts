@@ -7,7 +7,10 @@ export interface StringObj {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [index: string]: any;
 }
-function attrBuilder(conf: StringObj, keys: string | string[]): object {
+function attrBuilder(
+  conf: StringObj,
+  keys: string | string[]
+): Record<string, string> {
   if (typeof keys === 'string') {
     keys = [keys];
   }

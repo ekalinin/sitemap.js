@@ -94,9 +94,19 @@
           "next": "multiline-expression"
         }
       ],
-      "@typescript-eslint/camelcase": "off",
       "@typescript-eslint/explicit-member-accessibility": "off",
-      "@typescript-eslint/interface-name-prefix": "off",
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          "selector": "default",
+          "format": null
+        },
+        {
+          "selector": "interface",
+          "prefix": [],
+          "format": null
+        }
+      ],
       "@typescript-eslint/no-parameter-properties": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
@@ -153,8 +163,8 @@
     "@babel/preset-env": "^7.9.6",
     "@babel/preset-typescript": "^7.9.0",
     "@types/jest": "^25.2.3",
-    "@typescript-eslint/eslint-plugin": "^2.34.0",
-    "@typescript-eslint/parser": "^2.34.0",
+    "@typescript-eslint/eslint-plugin": "^3.0.0",
+    "@typescript-eslint/parser": "^3.0.0",
     "babel-eslint": "^10.1.0",
     "babel-polyfill": "^6.26.0",
     "concurrently": "^5.2.0",
@@ -175,7 +185,7 @@
     "typescript": "^3.9.3"
   },
   "engines": {
-    "node": ">=10.0.0",
+    "node": ">=10.3.0",
     "npm": ">=5.6.0"
   },
   "License": "MIT"
