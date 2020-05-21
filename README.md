@@ -45,7 +45,7 @@ For programmatic one time generation of a sitemap try:
   const stream = new SitemapStream( { hostname: 'https://...' } )
 
   // Loop over your links and add them to your stream
-  links.map( link => stream.write( link ) )
+  links.forEach( link => stream.write( link ) )
 
   // End the stream
   stream.end()
@@ -132,12 +132,21 @@ const sms = new SitemapAndIndexStream({
   },
 });
 
+// when reading from a file
 lineSeparatedURLsToSitemapOptions(
   createReadStream('./your-data.json.txt')
 )
 .pipe(sms)
 .pipe(createGzip())
 .pipe(createWriteStream(resolve('./sitemap-index.xml.gz')));
+
+// or reading straight from an in-memory array
+sms
+.pipe(createGzip())
+.pipe(createWriteStream(resolve('./sitemap-index.xml.gz')));
+
+const arrayOfSitemapItems = [{ url: '/page-1/', changefreq: 'daily'}, ...]
+arrayOfSitemapItems.forEach(item => sms.write(item))
 ```
 
 ### Options you can pass
