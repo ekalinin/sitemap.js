@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.5
+
+- performance improvement for streamToPromise #307
+
 ## 6.1.4
 
 - remove stale files from dist #298

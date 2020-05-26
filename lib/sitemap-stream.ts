@@ -136,21 +136,21 @@ export class SitemapStream extends Transform {
  */
 export function streamToPromise(stream: Readable): Promise<Buffer> {
   return new Promise((resolve, reject): void => {
-    let drain: Buffer;
+    let drain: Buffer[];
     stream
       .pipe(
         new Writable({
           write(chunk, enc, next): void {
             if (!drain) {
-              drain = chunk;
+              drain = [chunk];
             } else {
-              drain = Buffer.concat([drain, chunk]);
+              drain.push(chunk);
             }
             next();
           },
         })
       )
       .on('error', reject)
-      .on('finish', () => resolve(drain));
+      .on('finish', () => resolve(Buffer.concat(drain)));
   });
 }

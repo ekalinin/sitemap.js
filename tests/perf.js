@@ -17,6 +17,7 @@ const {
   lineSeparatedURLsToSitemapOptions,
   SitemapStream,
   ErrorLevel,
+  streamToPromise,
 } = require('../dist/index');
 const finishedP = promisify(finished);
 
@@ -59,7 +60,7 @@ function spinner(i, runNum, duration) {
 }
 
 function delay(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
+  return new Promise((resolve) => setTimeout(resolve, time));
 }
 
 async function batch(durations, runNum, fn) {
@@ -99,6 +100,21 @@ async function run(durations, runNum, fn) {
 async function testPerf(runs, batches, testName) {
   console.log(`runs: ${runs} batches: ${batches} total: ${runs * batches}`);
   switch (testName) {
+    case 'promise':
+      console.log('testing promise');
+      printPerf(
+        'stream',
+        await run([], 0, () => {
+          const rs = createReadStream(
+            resolve(__dirname, 'mocks', 'perf-data.json.txt')
+          );
+          const ehhh = lineSeparatedURLsToSitemapOptions(rs).pipe(
+            new SitemapStream({ level: ErrorLevel.SILENT })
+          );
+          return streamToPromise(ehhh);
+        })
+      );
+      break;
     case 'stream-2':
       console.log('testing lots of data');
       printPerf(
