@@ -209,7 +209,8 @@ smStream.write({
       title: 'A video with an attribute',
       description: 'This is another video',
       'player_loc': 'http://www.example.com/videoplayer.mp4?video=123',
-      'player_loc:autoplay': 'ap=1'
+      'player_loc:autoplay': 'ap=1',
+      'player_loc:allow_embed': 'yes'
     }
   ],
   links: [

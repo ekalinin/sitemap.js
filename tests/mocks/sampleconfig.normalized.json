@@ -11,6 +11,7 @@
           "description": "We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.&><'\"",
           "player_loc": "https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source&><'\"",
           "player_loc:autoplay": "ap=1&><'\"",
+          "player_loc:allow_embed": "yes",
           "thumbnail_loc": "https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg&><'\"",
           "duration": 1208,
           "publication_date": "2018-04-27T17:00:00.000Z",

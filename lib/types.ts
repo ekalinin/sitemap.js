@@ -170,6 +170,10 @@ interface VideoItemBase {
    */
   'player_loc:autoplay'?: string;
   /**
+   * Whether the search engine can embed the video in search results. Allowed values are yes or no.
+   */
+  'player_loc:allow_embed'?: EnumYesNo;
+  /**
    * The length of the video in seconds
    * @example 600
    */

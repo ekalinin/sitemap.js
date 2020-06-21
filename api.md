@@ -251,6 +251,7 @@ Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_top
 |content_loc|string - optional|`"http://streamserver.example.com/video123.mp4"`|A URL pointing to the actual video media file. Should be one of the supported formats. HTML is not a supported format. Flash is allowed, but no longer supported on most mobile platforms, and so may be indexed less well. Must not be the same as the `<loc>` URL.|
 |player_loc|string - optional|`"https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source"`|A URL pointing to a player for a specific video. Usually this is the information in the src element of an `<embed>` tag. Must not be the same as the `<loc>` URL|
 |'player_loc:autoplay'|string - optional|'ap=1'|a string the search engine can append as a query param to enable automatic playback|
+|'player_loc:allow_embed'|boolean - optional|'yes'|Whether the search engine can embed the video in search results. Allowed values are yes or no.|
 |duration|number - optional| 600| duration of video in seconds|
 |expiration_date| string - optional|"2012-07-16T19:20:30+08:00"|The date after which the video will no longer be available|
 |view_count|number - optional|'21000000000'|The number of times the video has been viewed.|

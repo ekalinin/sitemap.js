@@ -92,7 +92,10 @@ export class SitemapItemStream extends Transform {
         this.push(
           element(
             TagNames['video:player_loc'],
-            attrBuilder(video, 'player_loc:autoplay'),
+            attrBuilder(video, [
+              'player_loc:autoplay',
+              'player_loc:allow_embed',
+            ]),
             video.player_loc
           )
         );

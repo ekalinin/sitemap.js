@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.1.6
+
+- support allow_embed #314
+- bump dependencies
+
 ## 6.1.5
 
 - performance improvement for streamToPromise #307
