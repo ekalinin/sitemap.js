@@ -357,6 +357,8 @@ export class XMLToSitemapItemStream extends Transform {
         case TagNames['video:player_loc']:
           if (attr.name === 'autoplay') {
             currentVideo['player_loc:autoplay'] = attr.value;
+          } else if (attr.name === 'allow_embed' && isValidYesNo(attr.value)) {
+            currentVideo['player_loc:allow_embed'] = attr.value;
           } else {
             console.log('unhandled attr for video:player_loc', attr.name);
           }
