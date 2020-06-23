@@ -121,7 +121,7 @@ const sms = new SitemapAndIndexStream({
   // it needs to create a new sitemap file. You merely need to return a stream
   // for it to write the sitemap urls to and the expected url where that sitemap will be hosted
   getSitemapStream: (i) => {
-    const sitemapStream = new SitemapStream();
+    const sitemapStream = new SitemapStream({ hostname: 'https://example.com' });
     const path = `./sitemap-${i}.xml`;
 
     sitemapStream
