@@ -26,8 +26,8 @@
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "rm -rf dist && npm run test",
-    "test": "eslint lib/* ./cli.ts && tsc && jest && npm run test:xmllint",
-    "test:fast": "eslint lib/* ./cli.ts && tsc && jest ./tests/sitemap*",
+    "test": "eslint lib/* ./cli.ts && tsc && jest ./tests/sitemap*",
+    "test:full": "eslint lib/* ./cli.ts && tsc && jest && npm run test:xmllint",
     "test:perf": "node ./tests/perf.js",
     "test:schema": "node tests/alltags.js | xmllint --schema schema/all.xsd --noout -",
     "test:typecheck": "tsc",
@@ -39,7 +39,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged && npm run test:fast"
+      "pre-commit": "lint-staged && npm run test"
     }
   },
   "lint-staged": {
@@ -149,7 +149,7 @@
     }
   },
   "dependencies": {
-    "@types/node": "^14.0.13",
+    "@types/node": "^14.0.14",
     "@types/sax": "^1.2.1",
     "arg": "^4.1.3",
     "sax": "^1.2.4"
@@ -162,19 +162,19 @@
     "@babel/plugin-transform-typescript": "^7.10.3",
     "@babel/preset-env": "^7.10.3",
     "@babel/preset-typescript": "^7.10.1",
-    "@types/jest": "^25.2.3",
-    "@typescript-eslint/eslint-plugin": "^3.3.0",
-    "@typescript-eslint/parser": "^3.3.0",
+    "@types/jest": "^26.0.3",
+    "@typescript-eslint/eslint-plugin": "^3.4.0",
+    "@typescript-eslint/parser": "^3.4.0",
     "babel-eslint": "^10.1.0",
     "babel-polyfill": "^6.26.0",
     "concurrently": "^5.2.0",
-    "eslint": "^7.3.0",
+    "eslint": "^7.3.1",
     "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-jest": "^23.16.0",
+    "eslint-plugin-jest": "^23.17.1",
     "eslint-plugin-prettier": "^3.1.4",
     "express": "^4.17.1",
     "husky": "^4.2.5",
-    "jest": "^26.0.1",
+    "jest": "^26.1.0",
     "lint-staged": "^10.2.11",
     "prettier": "^2.0.5",
     "sort-package-json": "^1.44.0",
