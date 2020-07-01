@@ -9,6 +9,7 @@ import {
 import { SitemapItemLoose, ErrorLevel } from './types';
 import { validateSMIOptions, normalizeURL } from './utils';
 import { SitemapItemStream } from './sitemap-item-stream';
+import { EmptyStream, EmptySitemap } from './errors';
 
 const xmlDec = '<?xml version="1.0" encoding="UTF-8"?>';
 export const stylesheetInclude = (url: string): string => {
@@ -125,8 +126,12 @@ export class SitemapStream extends Transform {
   }
 
   _flush(cb: TransformCallback): void {
-    this.push(closetag);
-    cb();
+    if (!this.hasHeadOutput) {
+      cb(new EmptySitemap());
+    } else {
+      this.push(closetag);
+      cb();
+    }
   }
 }
 
@@ -136,21 +141,23 @@ export class SitemapStream extends Transform {
  */
 export function streamToPromise(stream: Readable): Promise<Buffer> {
   return new Promise((resolve, reject): void => {
-    let drain: Buffer[];
+    const drain: Buffer[] = [];
     stream
       .pipe(
         new Writable({
           write(chunk, enc, next): void {
-            if (!drain) {
-              drain = [chunk];
-            } else {
-              drain.push(chunk);
-            }
+            drain.push(chunk);
             next();
           },
         })
       )
       .on('error', reject)
-      .on('finish', () => resolve(Buffer.concat(drain)));
+      .on('finish', () => {
+        if (!drain.length) {
+          reject(new EmptyStream());
+        } else {
+          resolve(Buffer.concat(drain));
+        }
+      });
   });
 }

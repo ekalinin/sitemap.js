@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.1.7
+
+- Improve documentation and error messaging on ending a stream too early #317
+- bump dependencies
+
 ## 6.1.6
 
 - support allow_embed #314

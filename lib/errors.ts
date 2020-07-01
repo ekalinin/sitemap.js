@@ -252,3 +252,21 @@ export class InvalidVideoPriceCurrency extends Error {
     Error.captureStackTrace(this, InvalidVideoPriceCurrency);
   }
 }
+
+export class EmptyStream extends Error {
+  constructor() {
+    super(
+      'You have ended the stream before anything was written. streamToPromise MUST be called before ending the stream.'
+    );
+    this.name = 'EmptyStream';
+    Error.captureStackTrace(this, EmptyStream);
+  }
+}
+
+export class EmptySitemap extends Error {
+  constructor() {
+    super('You ended the stream without writing anything.');
+    this.name = 'EmptySitemap';
+    Error.captureStackTrace(this, EmptyStream);
+  }
+}
