@@ -190,14 +190,15 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
       this._writeSMI(item);
       super._transform(this.idxItem, encoding, callback);
     } else if (this.i % this.limit === 0) {
-      this.currentSitemap.end();
-      const [idxItem, currentSitemap] = this.getSitemapStream(
-        this.i / this.limit
-      );
-      this.currentSitemap = currentSitemap;
-      this._writeSMI(item);
-      // push to index stream
-      super._transform(idxItem, encoding, callback);
+      this.currentSitemap.end(() => {
+        const [idxItem, currentSitemap] = this.getSitemapStream(
+          this.i / this.limit
+        );
+        this.currentSitemap = currentSitemap;
+        this._writeSMI(item);
+        // push to index stream
+        super._transform(idxItem, encoding, callback);
+      });
     } else {
       this._writeSMI(item);
       callback();
@@ -205,7 +206,6 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
   }
 
   _flush(cb: TransformCallback): void {
-    this.currentSitemap.end();
-    super._flush(cb);
+    this.currentSitemap.end(() => super._flush(cb));
   }
 }

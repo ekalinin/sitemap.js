@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.2.0
+
+- Add simplified interface for creating sitemaps and index
+- fix bug where sitemap and index stream would not properly wait to emit finish event until all sitemaps had been written
+- bump deps
+
 ## 6.1.7
 
 - Improve documentation and error messaging on ending a stream too early #317

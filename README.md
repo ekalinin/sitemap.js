@@ -111,13 +111,40 @@ const { createReadStream, createWriteStream } = require('fs');
 const { resolve } = require('path');
 const { createGzip } = require('zlib')
 const {
+  simpleSitemapAndIndex,
+  lineSeparatedURLsToSitemapOptions
+} = require('sitemap')
+
+// writes sitemaps and index out to the destination you provide
+simpleSitemapAndIndex({
+  hostname: 'https://example.com',
+  destinationDir: './',
+  sourceData: lineSeparatedURLsToSitemapOptions(
+    createReadStream('./your-data.json.txt')
+  ),
+  // or
+  sourceData: [{ url: '/page-1/', changefreq: 'daily'}, ...],
+  // or
+  sourceData: './your-data.json.txt',
+}).then(() => {
+  // Do follow up actions
+})
+```
+
+Want to customize that?
+
+```js
+const { createReadStream, createWriteStream } = require('fs');
+const { resolve } = require('path');
+const { createGzip } = require('zlib')
+const {
   SitemapAndIndexStream,
   SitemapStream,
   lineSeparatedURLsToSitemapOptions
 } = require('sitemap')
 
 const sms = new SitemapAndIndexStream({
-  limit: 10000, // defaults to 45k
+  limit: 50000, // defaults to 45k
   // SitemapAndIndexStream will call this user provided function every time
   // it needs to create a new sitemap file. You merely need to return a stream
   // for it to write the sitemap urls to and the expected url where that sitemap will be hosted
