@@ -15,7 +15,7 @@ import { streamToPromise } from '../dist';
 /* eslint-env jest, jasmine */
 function removeFilesArray(files): void {
   if (files && files.length) {
-    files.forEach(function(file) {
+    files.forEach(function (file) {
       if (existsSync(file)) {
         unlinkSync(file);
       }
@@ -117,7 +117,7 @@ describe('sitemapIndex', () => {
     });
 
     expect(succeeded).toBe(true);
-    expectedFiles.forEach(function(expectedFile) {
+    expectedFiles.forEach(function (expectedFile) {
       expect(existsSync(expectedFile)).toBe(true);
     });
   });
@@ -144,7 +144,7 @@ describe('sitemapIndex', () => {
       urls: [url1, url2],
     });
     expect(succeeded).toBe(true);
-    expectedFiles.forEach(function(expectedFile) {
+    expectedFiles.forEach(function (expectedFile) {
       expect(existsSync(expectedFile)).toBe(true);
     });
   });
