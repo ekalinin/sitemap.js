@@ -5,7 +5,7 @@ const {
   SitemapAndIndexStream,
   SitemapStream,
   // lineSeparatedURLsToSitemapOptions,
-} = require('../dist/index');
+} = require('sitemap');
 
 const sms = new SitemapAndIndexStream({
   limit: 10000, // defaults to 45k

@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 // Slurp in an xml file, update/append to it and pipe it back out
 const { createReadStream, createWriteStream, copyFile, unlink } = require('fs');
 const { resolve } = require('path');
 const { Transform } = require('stream');
-const { SitemapStream, XMLToSitemapItemStream } = require('../dist/index'); // require('sitemap')
+const { SitemapStream, XMLToSitemapItemStream } = require('sitemap');
 const { tmpdir } = require('os');
 
 // Sample data that is a list of all dbUpdates.
@@ -62,12 +63,12 @@ const pipeline = createReadStream(smPath)
   .pipe(createWriteStream(tmpPath));
 pipeline.on('finish', () =>
   // overwrite original with temp file
-  copyFile(tmpPath, smPath, error => {
+  copyFile(tmpPath, smPath, (error) => {
     // delete temp file
     unlink(tmpPath, () => {});
   })
 );
-pipeline.on('error', e => e.code === 'EPIPE' || console.error(e));
+pipeline.on('error', (e) => e.code === 'EPIPE' || console.error(e));
 // Here is where the sitemap items get appended to the stream.
 smStream.write({ url: 'http://example.com/foo/bir' });
 smStream.write({ url: 'http://example.com/foo/bar' });

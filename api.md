@@ -17,7 +17,7 @@
 - [LinkItem](#linkitem)
 - [NewsItem](#newsitem)
 
-### SitemapStream
+## SitemapStream
 
 A [Transform](https://nodejs.org/api/stream.html#stream_implementing_a_transform_stream) for turning a [Readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) of either [SitemapItemOptions](#sitemap-item-options) or url strings into a Sitemap. The readable stream it transforms **must** be in object mode.
 
@@ -38,7 +38,7 @@ const readable = // a readable stream of objects
 readable.pipe(sms).pipe(process.stdout)
 ```
 
-### XMLToSitemapItemStream
+## XMLToSitemapItemStream
 
 Takes a stream of xml and transforms it into a stream of SitemapOptions.
 Use this to parse existing sitemaps into config options compatible with this library
@@ -56,7 +56,7 @@ createReadStream('./some/sitemap.xml')
 .pipe(createWriteStream('./sitemapOptions.json'))
 ```
 
-### sitemapAndIndexStream
+## sitemapAndIndexStream
 
 Use this to take a stream which may go over the max of 50000 items and split it into an index and sitemaps.
 SitemapAndIndexStream consumes a stream of urls and streams out index entries while writing individual urls to the streams you give it.
@@ -97,7 +97,7 @@ lineSeparatedURLsToSitemapOptions(
 .pipe(createWriteStream(resolve('./sitemap-index.xml.gz')));
 ```
 
-### createSitemapsAndIndex
+## createSitemapsAndIndex
 
 Create several sitemaps and an index automatically from a list of urls. __deprecated__
 
@@ -114,7 +114,7 @@ createSitemapsAndIndex({
 })
 ```
 
-### SitemapIndexStream
+## SitemapIndexStream
 
 Writes a sitemap index when given a stream urls.
 
@@ -137,7 +137,7 @@ smis.pipe(writestream)
 smis.end()
 ```
 
-### xmlLint
+## xmlLint
 
 Resolve or reject depending on whether the passed in xml is a valid sitemap.
 This is just a wrapper around the xmlLint command line tool and thus requires
@@ -152,7 +152,7 @@ xmlLint(createReadStream('./example.xml')).then(
 )
 ```
 
-### parseSitemap
+## parseSitemap
 
 Read xml and resolve with the configuration that would produce it or reject with
 an error
@@ -168,11 +168,11 @@ parseSitemap(createReadStream('./example.xml')).then(
 )
 ```
 
-### lineSeparatedURLsToSitemapOptions
+## lineSeparatedURLsToSitemapOptions
 
 Takes a stream of urls or sitemapoptions likely from fs.createReadStream('./path') and returns an object stream of sitemap items.
 
-### streamToPromise
+## streamToPromise
 
 Takes a stream returns a promise that resolves when stream emits finish.
 
@@ -184,7 +184,7 @@ sitemap.end()
 streamToPromise(sitemap).then(buffer => console.log(buffer.toString())) // emits the full sitemap
 ```
 
-### ObjectStreamToJSON
+## ObjectStreamToJSON
 
 A Transform that converts a stream of objects into a JSON Array or a line separated stringified JSON.
 
@@ -198,7 +198,7 @@ stream.end()
 // prints {"a":"b"}
 ```
 
-### SitemapItemStream
+## SitemapItemStream
 
 Takes a stream of SitemapItemOptions and spits out xml for each
 
@@ -211,7 +211,7 @@ smis.write({url: 'https://example.com/2', img: [], video: [], links: []})
 smis.end()
 ```
 
-### Sitemap Item Options
+## Sitemap Item Options
 
 |Option|Type|eg|Description|
 |------|----|--|-----------|
@@ -226,7 +226,7 @@ smis.end()
 |ampLink|string|`http://ampproject.org/article.amp.html`||
 |cdata|boolean|true|wrap url in cdata xml escape|
 
-### SitemapImage
+## SitemapImage
 
 Sitemap image
 <https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190>
@@ -239,7 +239,7 @@ Sitemap image
 |geoLocation|string - optional|'Limerick, Ireland'|The geographic location of the image.|
 |license|string - optional|`http://example.com/license.txt`|A URL to the license of the image.|
 
-### VideoItem
+## VideoItem
 
 Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190>
 
@@ -275,7 +275,7 @@ Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_top
 |requires_subscription|string 'YES'\|'NO' - optional|'YES'|Indicates whether a subscription (either paid or free) is required to view the video. Allowed values are yes or no.|
 |live|string 'YES'\|'NO' - optional|'NO'|Indicates whether the video is a live stream. Supported values are yes or no.|
 
-### ILinkItem
+## ILinkItem
 
 <https://support.google.com/webmasters/answer/189077>
 
@@ -284,7 +284,7 @@ Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_top
 |lang|string|'en'||
 |url|string|`'http://example.com/en/'`||
 
-### NewsItem
+## NewsItem
 
 <https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190>
 

@@ -3,11 +3,6 @@
 **sitemap** is a high-level streaming sitemap-generating library/CLI that
 makes creating [sitemap XML](http://www.sitemaps.org/) files easy. [What is a sitemap?](https://support.google.com/webmasters/answer/156184?hl=en&ref_topic=4581190)
 
-## Maintainers
-
-- [@ekalinin](https://github.com/ekalinin)
-- [@derduher](https://github.com/derduher)
-
 ## Table of Contents
 
 - [Installation](#installation)
@@ -15,8 +10,9 @@ makes creating [sitemap XML](http://www.sitemaps.org/) files easy. [What is a si
 - [Example of using sitemap.js with](#serve-a-sitemap-from-a-server-and-periodically-update-it) [express](https://expressjs.com/)
 - [Generating more than one sitemap](#create-sitemap-and-index-files-from-one-large-list)
 - [Options you can pass](#options-you-can-pass)
-- [More](#more)
+- [Examples](#examples)
 - [API](#api)
+- [Maintainers](#maintainers)
 - [License](#license)
 
 ## Installation
@@ -37,6 +33,7 @@ For programmatic one time generation of a sitemap try:
 
 ```js
   const { SitemapStream, streamToPromise } = require( 'sitemap' )
+  const { Readable } = require( 'stream' )
 
   // An array with your links
   const links = [{ url: '/page-1/',  changefreq: 'daily', priority: 0.3  }]
@@ -44,14 +41,10 @@ For programmatic one time generation of a sitemap try:
   // Create a stream to write to
   const stream = new SitemapStream( { hostname: 'https://...' } )
 
-  // Loop over your links and add them to your stream
-  links.forEach( link => stream.write( link ) )
-
-  // End the stream
-  stream.end()
-
   // Return a promise that resolves with your XML string
-  return streamToPromise( stream ).then( data => data.toString() )
+  return streamToPromise(Readable.from(links).pipe(stream)).then((data) =>
+    data.toString()
+  )
 ```
 
 ## Serve a sitemap from a server and periodically update it
@@ -62,6 +55,7 @@ Use this if you have less than 50 thousand urls. See SitemapAndIndexStream for i
 const express = require('express')
 const { SitemapStream, streamToPromise } = require('sitemap')
 const { createGzip } = require('zlib')
+const { Readable } = require('stream')
 
 const app = express()
 let sitemap
@@ -84,6 +78,10 @@ app.get('/sitemap.xml', function(req, res) {
     smStream.write({ url: '/page-2/',  changefreq: 'monthly',  priority: 0.7 })
     smStream.write({ url: '/page-3/'})    // changefreq: 'weekly',  priority: 0.5
     smStream.write({ url: '/page-4/',   img: "http://urlTest.com" })
+    /* or use
+    Readable.from([{url: '/page-1'}...]).pipe(smStream)
+    if you are looking to avoid writing your own loop.
+    */
 
     // cache the response
     streamToPromise(pipeline).then(sm => sitemap = sm)
@@ -115,14 +113,14 @@ const {
   lineSeparatedURLsToSitemapOptions
 } = require('sitemap')
 
-// writes sitemaps and index out to the destination you provide
+// writes sitemaps and index out to the destination you provide.
 simpleSitemapAndIndex({
   hostname: 'https://example.com',
   destinationDir: './',
   sourceData: lineSeparatedURLsToSitemapOptions(
     createReadStream('./your-data.json.txt')
   ),
-  // or
+  // or (only works with node 10.17 and up)
   sourceData: [{ url: '/page-1/', changefreq: 'daily'}, ...],
   // or
   sourceData: './your-data.json.txt',
@@ -137,6 +135,7 @@ Want to customize that?
 const { createReadStream, createWriteStream } = require('fs');
 const { resolve } = require('path');
 const { createGzip } = require('zlib')
+const { Readable } = require('stream')
 const {
   SitemapAndIndexStream,
   SitemapStream,
@@ -174,8 +173,10 @@ sms
 .pipe(createWriteStream(resolve('./sitemap-index.xml.gz')));
 
 const arrayOfSitemapItems = [{ url: '/page-1/', changefreq: 'daily'}, ...]
+Readable.from(arrayOfSitemapItems).pipe(sms) // available as of node 10.17.0
+// or
 arrayOfSitemapItems.forEach(item => sms.write(item))
-sms.end()
+sms.end() // necessary to let it know you've got nothing else to write
 ```
 
 ### Options you can pass
@@ -263,13 +264,18 @@ smStream.write({
 smStream.end()
 ```
 
-## More
+## Examples
 
 For more examples see the [examples directory](./examples/)
 
 ## API
 
 Full API docs can be found [here](./api.md)
+
+## Maintainers
+
+- [@ekalinin](https://github.com/ekalinin)
+- [@derduher](https://github.com/derduher)
 
 ## License
 
