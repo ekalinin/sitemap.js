@@ -1,5 +1,10 @@
 # Changelog
 
+## next
+
+- simplify chunking utility function (internal)
+- clarify error message for changefreq
+
 ## 6.2.0
 
 - Add simplified interface for creating sitemaps and index
