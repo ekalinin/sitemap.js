@@ -1,5 +1,11 @@
 # Changelog
 
+## next
+
+- breaking - remove deprecated createSitemapsAndIndex
+- simplify chunking utility function (internal)
+- clarify error message for changefreq
+
 ## 6.3.0
 
 - simpleSitemap will create the dest directory if it doesn't exist

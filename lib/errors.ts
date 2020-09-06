@@ -33,7 +33,9 @@ export class NoConfigError extends Error {
  */
 export class ChangeFreqInvalidError extends Error {
   constructor(url: string, changefreq: any) {
-    super(`${url}: changefreq "${changefreq}" is invalid`);
+    super(
+      `${url}: changefreq "${changefreq}" is invalid. Valid values are always | hourly | daily | weekly | monthly | yearly | never`
+    );
     this.name = 'ChangeFreqInvalidError';
     Error.captureStackTrace(this, ChangeFreqInvalidError);
   }

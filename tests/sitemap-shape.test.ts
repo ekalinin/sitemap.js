@@ -1,6 +1,5 @@
 import {
   SitemapIndexStream,
-  createSitemapsAndIndex,
   SitemapAndIndexStream,
   xmlLint,
   parseSitemap,
@@ -32,7 +31,6 @@ describe('sitemap shape', () => {
     expect(InvalidVideoDescription).toBeDefined();
     expect(InvalidAttrValue).toBeDefined();
     expect(SitemapIndexStream).toBeDefined();
-    expect(createSitemapsAndIndex).toBeDefined();
     expect(SitemapAndIndexStream).toBeDefined();
     expect(parseSitemap).toBeDefined();
     expect(xmlLint).toBeDefined();

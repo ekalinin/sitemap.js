@@ -932,14 +932,14 @@ describe('utils', () => {
             },
           ],
         };
-        // @ts-expect-error incomplete for brevity
+        // @ts-expect-error incomplete for test
         expect(normalizeURL(url).video[0]).toHaveProperty('rating', 5);
-        // @ts-expect-error incomplete for brevity
+        // @ts-expect-error incomplete for test
         expect(normalizeURL(url).video[0]).toHaveProperty(
           'view_count',
           10000000000
         );
-        // @ts-expect-error incomplete for brevity
+        // @ts-expect-error incomplete for test
         expect(normalizeURL(url).video[1]).toHaveProperty('rating', 4);
       });
     });
