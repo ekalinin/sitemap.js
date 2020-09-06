@@ -1,4 +1,3 @@
-/* eslint-env jest */
 import { SitemapItemStream, streamToPromise } from '../index';
 import {
   simpleText,

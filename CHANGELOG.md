@@ -6,6 +6,11 @@
 - simplify chunking utility function (internal)
 - clarify error message for changefreq
 
+## 6.3.0
+
+- simpleSitemap will create the dest directory if it doesn't exist
+- allow user to not gzip fixes #322
+
 ## 6.2.0
 
 - Add simplified interface for creating sitemaps and index

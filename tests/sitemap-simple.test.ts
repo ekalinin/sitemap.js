@@ -3,7 +3,6 @@ import { tmpdir } from 'os';
 import { resolve } from 'path';
 import { existsSync, unlinkSync, createReadStream } from 'fs';
 import { createGunzip } from 'zlib';
-/* eslint-env jest, jasmine */
 function removeFilesArray(files): void {
   if (files && files.length) {
     files.forEach(function (file) {
@@ -98,5 +97,64 @@ describe('simpleSitemapAndIndex', () => {
       )
     );
     expect(xml.toString()).toContain('achievement');
+  });
+
+  it("creates the dest dir if it doesn't exist", async () => {
+    const baseURL = 'http://example.com';
+    const destinationDir = `${targetFolder}/non-existent/`;
+    await simpleSitemapAndIndex({
+      hostname: baseURL,
+      sourceData: [
+        'https://1.example.com/a',
+        'https://2.example.com/a',
+        'https://3.example.com/a',
+        'https://4.example.com/a',
+      ],
+      destinationDir,
+    });
+
+    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml.gz`))).toBe(
+      true
+    );
+    const index = (
+      await streamToPromise(
+        createReadStream(
+          resolve(destinationDir, `./sitemap-index.xml.gz`)
+        ).pipe(createGunzip())
+      )
+    ).toString();
+    expect(index).toContain(`${baseURL}/sitemap-0`);
+    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml.gz`))).toBe(
+      true
+    );
+  });
+
+  it('supports not gzipping', async () => {
+    const baseURL = 'http://example.com';
+    const destinationDir = `${targetFolder}/non-existent/`;
+    await simpleSitemapAndIndex({
+      hostname: baseURL,
+      sourceData: [
+        'https://1.example.com/a',
+        'https://2.example.com/a',
+        'https://3.example.com/a',
+        'https://4.example.com/a',
+      ],
+      destinationDir,
+      gzip: false,
+    });
+
+    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    const index = (
+      await streamToPromise(
+        createReadStream(resolve(destinationDir, `./sitemap-index.xml`))
+      )
+    ).toString();
+    expect(index).toContain(`${baseURL}/sitemap-0`);
+    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    const xml = await streamToPromise(
+      createReadStream(resolve(destinationDir, `./sitemap-0.xml`))
+    );
+    expect(xml.toString()).toContain('1.example.com');
   });
 });

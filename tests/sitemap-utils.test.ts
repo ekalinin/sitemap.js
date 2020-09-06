@@ -22,7 +22,6 @@ describe('utils', () => {
 
   describe('validateSMIOptions', () => {
     it('ignores errors if told to do so', () => {
-      /*  eslint-disable no-new */
       expect(() =>
         validateSMIOptions({} as SitemapItem, ErrorLevel.SILENT)
       ).not.toThrow();
@@ -374,7 +373,7 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 price: '1.99',
-                // @ts-expect-errors bad option
+                // @ts-expect-error testing bad option
                 'price:resolution': '1920x1080',
                 tag: [],
               },
@@ -402,7 +401,7 @@ describe('utils', () => {
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 platform: 'tv',
                 price: '',
-                // @ts-expect-errors bad option
+                // @ts-expect-error testing bad option
                 'platform:relationship': 'mother',
                 tag: [],
               },
@@ -429,7 +428,7 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 platform: 'tv',
-                // @ts-expect-errors bad option
+                // @ts-expect-error testing bad option
                 'platform:relationship': 'mother',
                 tag: [],
               },
@@ -456,7 +455,7 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 restriction: 'IE GB US CA',
-                // @ts-expect-errors bad option
+                // @ts-expect-error testing bad option
                 'restriction:relationship': 'father',
                 tag: [],
               },
@@ -536,7 +535,7 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 rating: 5,
-                // @ts-expect-errors bad option
+                // @ts-expect-error testing bad option
                 family_friendly: 'foo',
 
                 tag: [],
