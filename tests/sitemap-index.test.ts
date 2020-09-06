@@ -1,4 +1,4 @@
-import { createSitemapsAndIndex, SitemapStream } from '../index';
+import { SitemapStream } from '../index';
 import { tmpdir } from 'os';
 import { resolve } from 'path';
 import {
@@ -79,74 +79,6 @@ describe('sitemapIndex', () => {
     const result = await streamToPromise(smis);
 
     expect(result.toString()).toBe(expectedResult);
-  });
-
-  it('simple sitemap index', async () => {
-    const targetFolder = tmpdir();
-    const url1 = 'http://ya.ru';
-    const url2 = 'http://ya2.ru';
-    const expectedFiles = [
-      targetFolder + '/sm-test-0.xml',
-      targetFolder + '/sm-test-1.xml',
-      targetFolder + '/sm-test-index.xml',
-    ];
-
-    try {
-      await createSitemapsAndIndex({
-        hostname: 'https://www.sitemap.org',
-        sitemapName: 'sm-test',
-        sitemapSize: 1,
-        targetFolder: '/tmp2',
-        urls: [url1, url2],
-        gzip: false,
-      });
-    } catch (e) {
-      expect(e.message).toMatch(/Target folder must exist/);
-    }
-
-    // Cleanup before run test
-    removeFilesArray(expectedFiles);
-
-    const succeeded = await createSitemapsAndIndex({
-      hostname: 'https://www.sitemap.org',
-      sitemapName: 'sm-test',
-      sitemapSize: 1,
-      targetFolder,
-      urls: [url1, url2],
-      gzip: false,
-    });
-
-    expect(succeeded).toBe(true);
-    expectedFiles.forEach(function (expectedFile) {
-      expect(existsSync(expectedFile)).toBe(true);
-    });
-  });
-
-  it('sitemap with gzip files', async () => {
-    const targetFolder = tmpdir();
-    const url1 = 'http://ya.ru';
-    const url2 = 'http://ya2.ru';
-    const expectedFiles = [
-      targetFolder + '/sm-test-0.xml.gz',
-      targetFolder + '/sm-test-1.xml.gz',
-      targetFolder + '/sm-test-index.xml',
-    ];
-
-    // Cleanup before run test
-    removeFilesArray(expectedFiles);
-
-    const succeeded = await createSitemapsAndIndex({
-      hostname: 'http://www.sitemap.org',
-      sitemapName: 'sm-test',
-      sitemapSize: 1,
-      targetFolder,
-      gzip: true,
-      urls: [url1, url2],
-    });
-    expect(succeeded).toBe(true);
-    expectedFiles.forEach(function (expectedFile) {
-      expect(existsSync(expectedFile)).toBe(true);
-    });
   });
 });
 

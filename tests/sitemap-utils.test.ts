@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import {
   EnumYesNo,
   EnumAllowDeny,
@@ -30,26 +29,23 @@ describe('utils', () => {
     });
 
     it('throws when no config is passed', () => {
-      /* eslint-disable no-new */
-      expect(function() {
+      expect(function () {
         validateSMIOptions(undefined, ErrorLevel.THROW);
       }).toThrowError(/SitemapItem requires a configuration/);
     });
 
     it('throws an error for url absence', () => {
-      /*  eslint-disable no-new */
       expect(() =>
         validateSMIOptions({} as SitemapItem, ErrorLevel.THROW)
       ).toThrowError(/URL is required/);
     });
 
     it('sitemap: invalid changefreq error', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             url: '/',
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-            // @ts-ignore
+            // @ts-expect-error testing bad option
             changefreq: 'allllways',
           },
           ErrorLevel.THROW
@@ -58,7 +54,7 @@ describe('utils', () => {
     });
 
     it('sitemap: invalid priority error', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -141,8 +137,7 @@ describe('utils', () => {
       });
 
       it('will throw if you provide an invalid value for access', () => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore
+        // @ts-expect-error testing bad option
         news.news.access = 'a';
 
         expect(() => {
@@ -201,8 +196,7 @@ describe('utils', () => {
 
         expect(() => {
           const test = Object.assign({}, testvideo);
-          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-          // @ts-ignore
+          // @ts-expect-error testing bad option
           test.video[0] = 'a';
           validateSMIOptions(test, ErrorLevel.THROW);
         }).toThrowError(
@@ -228,7 +222,7 @@ describe('utils', () => {
     });
 
     it('video duration', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -256,7 +250,7 @@ describe('utils', () => {
     });
 
     it('video description limit', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -265,8 +259,6 @@ describe('utils', () => {
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                // @ts-ignore
                 description:
                   'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc, quis gravida magna mi a libero. Fusce vulputate eleifend sapien. Vestibulum purus quam, scelerisque ut, mollis sed, nonummy id, metus. Nullam accumsan lorem in dui. Cras ultricies mi eu turpis hendrerit fringilla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; In ac dui quis mi consectetuer lacinia. Nam pretium turpis et arcu. Duis arcu tortor, suscipit eget, imperdiet nec, imperdiet iaculis, ipsum. Sed aliquam ultrices mauris. Integer ante arcu, accumsan a, consectetuer eget, posuere ut, mauris. Praesent adipiscing. Phasellus ullamcorper ipsum rutrum nunc. Nunc nonummy metus. Vestibulum volutpat pretium libero. Cras id dui. Aenean ut eros et nisl sagittis vestibulum. Nullam nulla.',
                 player_loc:
@@ -286,7 +278,7 @@ describe('utils', () => {
     });
 
     it('video title limit', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -296,8 +288,6 @@ describe('utils', () => {
               {
                 title:
                   "2008:E2 - Burnout Paradise: Millionaire's Clubconsectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc, quis gravida magna mi a libero. Fusce vulputate eleifend sapien. Vestibulum purus quam, scelerisque ut, mollis sed, nonummy id, metus. Nullam accumsan lorem in dui. Cras ultricies mi eu turpis hendrerit fringilla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; In ac dui quis mi consectetuer lacinia. Nam pretium turpis et arcu. Duis arcu tortor, suscipit eget, imperdiet nec, imperdiet iaculis, ipsum. Sed aliquam ultrices mauris. Integer ante arcu, accumsan a, consectetuer eget, posuere ut, mauris. Praesent adipiscing. Phasellus ullamcorper ipsum rutrum nunc. Nunc nonummy metus. Vestibulum volutpat pretium libero. Cras id dui. Aenean ut eros et nisl sagittis vestibulum. Nullam nulla.',",
-                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                // @ts-ignore
                 description: 'Lorem ipsum dolor sit amet, ',
                 player_loc:
                   'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
@@ -316,7 +306,7 @@ describe('utils', () => {
     });
 
     it('video price type', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -331,8 +321,7 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 price: '1.99',
-                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                // @ts-ignore
+                // @ts-expect-error testing bad option
                 'price:type': 'subscription',
                 tag: [],
               },
@@ -344,7 +333,7 @@ describe('utils', () => {
     });
 
     it('video price currency', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -359,8 +348,6 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 price: '1.99',
-                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                // @ts-ignore
                 'price:currency': 'dollar',
                 tag: [],
               },
@@ -372,7 +359,7 @@ describe('utils', () => {
     });
 
     it('video price resolution', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -387,8 +374,7 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 price: '1.99',
-                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                // @ts-ignore
+                // @ts-expect-errors bad option
                 'price:resolution': '1920x1080',
                 tag: [],
               },
@@ -400,14 +386,12 @@ describe('utils', () => {
     });
 
     it('requires video price type when price is not provided', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
             url:
               'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-            // @ts-ignore
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -418,8 +402,7 @@ describe('utils', () => {
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 platform: 'tv',
                 price: '',
-                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                // @ts-ignore
+                // @ts-expect-errors bad option
                 'platform:relationship': 'mother',
                 tag: [],
               },
@@ -431,14 +414,12 @@ describe('utils', () => {
     });
 
     it('video platform relationship', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
             url:
               'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-            // @ts-ignore
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -448,8 +429,7 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 platform: 'tv',
-                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                // @ts-ignore
+                // @ts-expect-errors bad option
                 'platform:relationship': 'mother',
                 tag: [],
               },
@@ -461,7 +441,7 @@ describe('utils', () => {
     });
 
     it('throws without a restriction of allow or deny', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -476,8 +456,7 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 restriction: 'IE GB US CA',
-                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                // @ts-ignore
+                // @ts-expect-errors bad option
                 'restriction:relationship': 'father',
                 tag: [],
               },
@@ -489,7 +468,7 @@ describe('utils', () => {
     });
 
     it('throws if it gets a rating out of bounds', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -515,7 +494,7 @@ describe('utils', () => {
     });
 
     it('throws if it gets an invalid video restriction', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -530,8 +509,6 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 rating: 5,
-                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                // @ts-ignore
                 restriction: 's',
 
                 tag: [],
@@ -544,7 +521,7 @@ describe('utils', () => {
     });
 
     it('throws if it gets an invalid value for family friendly', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -559,8 +536,7 @@ describe('utils', () => {
                 thumbnail_loc:
                   'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
                 rating: 5,
-                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                // @ts-ignore
+                // @ts-expect-errors bad option
                 family_friendly: 'foo',
 
                 tag: [],
@@ -573,7 +549,7 @@ describe('utils', () => {
     });
 
     it('throws if it gets a category that is too long', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -600,7 +576,7 @@ describe('utils', () => {
     });
 
     it('throws if it gets a negative view count', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -627,7 +603,7 @@ describe('utils', () => {
     });
 
     it('throws if it gets more than 32 tags', () => {
-      expect(function() {
+      expect(function () {
         validateSMIOptions(
           {
             ...itemTemplate,
@@ -718,7 +694,7 @@ describe('utils', () => {
     });
 
     it('turns a line-separated stream into a sitemap', async () => {
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         lineSeparatedURLsToSitemapOptions(rs).pipe(ws);
         ws.on('finish', () => resolve());
       });
@@ -729,9 +705,9 @@ describe('utils', () => {
 
     it('turns a line-separated JSON stream into a sitemap', async () => {
       let osampleURLs: { url: string }[];
-      await new Promise(resolve => {
-        osampleURLs = sampleURLs.map(url => ({ url }));
-        content = osampleURLs.map(url => JSON.stringify(url)).join('\n');
+      await new Promise((resolve) => {
+        osampleURLs = sampleURLs.map((url) => ({ url }));
+        content = osampleURLs.map((url) => JSON.stringify(url)).join('\n');
         lineSeparatedURLsToSitemapOptions(rs, { isJSON: true }).pipe(ws);
         ws.on('finish', () => resolve());
       });
@@ -957,17 +933,14 @@ describe('utils', () => {
             },
           ],
         };
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore
+        // @ts-expect-error incomplete for test
         expect(normalizeURL(url).video[0]).toHaveProperty('rating', 5);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore
+        // @ts-expect-error incomplete for test
         expect(normalizeURL(url).video[0]).toHaveProperty(
           'view_count',
           10000000000
         );
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        // @ts-ignore
+        // @ts-expect-error incomplete for test
         expect(normalizeURL(url).video[1]).toHaveProperty('rating', 4);
       });
     });

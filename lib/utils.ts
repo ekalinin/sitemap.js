@@ -326,15 +326,6 @@ export function lineSeparatedURLsToSitemapOptions(
   );
 }
 
-/**
- * Creates an array of elements split into groups the length of size.
- * Based on https://twitter.com/addyosmani/status/1242737991526776832
- */
-export const chunk = <T>(array: T[], size = 1): T[][] =>
-  Array.from({ length: Math.ceil(array.length / size) }, (v, i) =>
-    array.slice(i * size, i * size + size)
-  );
-
 function boolToYESNO(bool?: boolean | EnumYesNo): EnumYesNo | undefined {
   if (bool === undefined) {
     return bool;

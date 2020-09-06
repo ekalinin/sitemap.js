@@ -11,6 +11,23 @@ import { SitemapItemLoose } from './types';
 import { promisify } from 'util';
 import { URL } from 'url';
 
+const isIterable = <T>(thing: unknown): thing is Iterable<T> =>
+  typeof thing === 'object' &&
+  thing !== null &&
+  Symbol.iterator in thing &&
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  typeof thing[Symbol.iterator] === 'function';
+
+const isAsyncIterable = <t>(thing: unknown): thing is AsyncIterable<t> =>
+  typeof thing === 'object' &&
+  thing !== null &&
+  Symbol.asyncIterator in thing &&
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  typeof thing[Symbol.asyncIterator] === 'function';
+
+// TODO explore async iterators
 const pipeline = promisify(pline);
 export const simpleSitemapAndIndex = ({
   hostname,
@@ -24,7 +41,11 @@ export const simpleSitemapAndIndex = ({
 }: {
   hostname: string;
   sitemapHostname?: string;
-  sourceData: SitemapItemLoose | string | Readable | string[];
+  sourceData:
+    | string
+    | Readable
+    | Iterable<string | SitemapItemLoose>
+    | AsyncIterable<string | SitemapItemLoose>;
   destinationDir: string;
   limit?: number;
 }): Promise<void> => {
@@ -48,7 +69,7 @@ export const simpleSitemapAndIndex = ({
     src = lineSeparatedURLsToSitemapOptions(createReadStream(sourceData));
   } else if (sourceData instanceof Readable) {
     src = sourceData;
-  } else if (Array.isArray(sourceData)) {
+  } else if (isIterable(sourceData) || isAsyncIterable(sourceData)) {
     src = Readable.from(sourceData);
   } else {
     throw new Error(

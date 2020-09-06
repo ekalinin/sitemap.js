@@ -75,4 +75,28 @@ describe('simpleSitemapAndIndex', () => {
     );
     expect(xml.toString()).toContain('https://1.example.com/a');
   });
+
+  it('accepts a filepath', async () => {
+    const baseURL = 'http://example.com';
+    await simpleSitemapAndIndex({
+      hostname: baseURL,
+      sourceData: './tests/mocks/cli-urls.txt',
+      destinationDir: targetFolder,
+    });
+    const index = (
+      await streamToPromise(
+        createReadStream(resolve(targetFolder, `./sitemap-index.xml.gz`)).pipe(
+          createGunzip()
+        )
+      )
+    ).toString();
+    expect(index).toContain(`${baseURL}/sitemap-0`);
+    expect(existsSync(resolve(targetFolder, `./sitemap-0.xml.gz`))).toBe(true);
+    const xml = await streamToPromise(
+      createReadStream(resolve(targetFolder, `./sitemap-0.xml.gz`)).pipe(
+        createGunzip()
+      )
+    );
+    expect(xml.toString()).toContain('achievement');
+  });
 });
