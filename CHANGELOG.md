@@ -2,6 +2,7 @@
 
 ## next
 
+- breaking - remove deprecated createSitemapsAndIndex
 - simplify chunking utility function (internal)
 - clarify error message for changefreq
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 /* eslint-env jest */
 import { SitemapItemStream, streamToPromise } from '../index';
 import {
@@ -145,12 +144,11 @@ describe('sitemapItem-stream', () => {
               el('video:category', simpleTextEscaped) +
               el('video:family_friendly', 'no') +
               '<video:restriction relationship="deny">IE GB US CA</video:restriction>' +
-              `<video:gallery_loc title="${simpleText.slice(
-                0,
-                simpleText.length - escapable.length * 2
-              ) +
+              `<video:gallery_loc title="${
+                simpleText.slice(0, simpleText.length - escapable.length * 2) +
                 attrEscaped +
-                attrEscaped}">${simpleURLEscaped}</video:gallery_loc>` +
+                attrEscaped
+              }">${simpleURLEscaped}</video:gallery_loc>` +
               '<video:price resolution="HD" currency="USD" type="rent">1.99</video:price>' +
               el('video:requires_subscription', 'no') +
               el('video:uploader', simpleTextEscaped) +

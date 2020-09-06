@@ -64,7 +64,6 @@ export interface XMLToSitemapItemStreamOptions extends TransformOptions {
 }
 const defaultStreamOpts: XMLToSitemapItemStreamOptions = {};
 
-// TODO does this need to end with `options`
 /**
  * Takes a stream of xml and transforms it into a stream of SitemapItems
  * Use this to parse existing sitemaps into config options compatible with this library
@@ -415,13 +414,9 @@ export class XMLToSitemapItemStream extends Transform {
 
   _transform(
     data: string,
-    encoding: string,
+    encoding: BufferEncoding,
     callback: TransformCallback
   ): void {
-    // correcting the type here can be done without making it a breaking change
-    // TODO fix this
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     this.saxStream.write(data, encoding);
     callback();
   }

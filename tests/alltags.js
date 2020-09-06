@@ -11,7 +11,7 @@ const map = require('through2-map');
 fs.createReadStream(resolve(__dirname, 'mocks', 'sampleconfig.json'))
   .pipe(Pick.withParser({ filter: 'urls' }))
   .pipe(streamArray())
-  .pipe(map.obj(chunk => chunk.value))
+  .pipe(map.obj((chunk) => chunk.value))
   // SitemapStream does the heavy lifting
   // You must provide it with an object stream
   .pipe(new SitemapStream({ hostname: 'https://roosterteeth.com?&><\'"' }))

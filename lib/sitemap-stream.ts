@@ -109,7 +109,7 @@ export class SitemapStream extends Transform {
 
   _transform(
     item: SitemapItemLoose,
-    encoding: string,
+    encoding: BufferEncoding,
     callback: TransformCallback
   ): void {
     if (!this.hasHeadOutput) {
