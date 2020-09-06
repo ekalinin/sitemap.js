@@ -1,5 +1,5 @@
-/* eslint-env jest */
 import { xmlLint } from '../dist/index';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const execFileSync = require('child_process').execFileSync;
 let hasXMLLint = true;
 try {
