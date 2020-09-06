@@ -1,7 +1,9 @@
 import util from 'util';
 import fs from 'fs';
 import path from 'path';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const exec = util.promisify(require('child_process').exec);
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const execFileSync = require('child_process').execFileSync;
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pkg = require('../package.json');
@@ -145,7 +147,7 @@ describe('cli', () => {
     expect(json).toEqual(normalizedSample.urls);
   });
 
-  it('validates xml piped in', done => {
+  it('validates xml piped in', (done) => {
     if (hasXMLLint) {
       exec('node ./dist/cli.js --validate < ./tests/mocks/cli-urls.json.xml', {
         encoding: 'utf8',
@@ -159,7 +161,7 @@ describe('cli', () => {
     }
   }, 60000);
 
-  it('validates xml specified as file', done => {
+  it('validates xml specified as file', (done) => {
     if (hasXMLLint) {
       exec('node ./dist/cli.js --validate ./tests/mocks/cli-urls.json.xml', {
         encoding: 'utf8',

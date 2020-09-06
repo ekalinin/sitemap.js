@@ -4,7 +4,7 @@ import {
   lineSeparatedURLsToSitemapOptions,
 } from '../index';
 import { createGzip } from 'zlib';
-import { createWriteStream, createReadStream } from 'fs';
+import { createWriteStream, createReadStream, promises } from 'fs';
 import { resolve } from 'path';
 import { Readable, pipeline as pline } from 'stream';
 import { SitemapItemLoose } from './types';
@@ -12,7 +12,7 @@ import { promisify } from 'util';
 import { URL } from 'url';
 
 const pipeline = promisify(pline);
-export const simpleSitemapAndIndex = ({
+export const simpleSitemapAndIndex = async ({
   hostname,
   sitemapHostname = hostname, // if different
   /**
@@ -21,13 +21,16 @@ export const simpleSitemapAndIndex = ({
   sourceData,
   destinationDir,
   limit = 50000,
+  gzip = true,
 }: {
   hostname: string;
   sitemapHostname?: string;
   sourceData: SitemapItemLoose | string | Readable | string[];
   destinationDir: string;
   limit?: number;
+  gzip?: boolean;
 }): Promise<void> => {
+  await promises.mkdir(destinationDir, { recursive: true });
   const sitemapAndIndexStream = new SitemapAndIndexStream({
     limit,
     getSitemapStream: (i) => {
@@ -35,10 +38,15 @@ export const simpleSitemapAndIndex = ({
         hostname,
       });
       const path = `./sitemap-${i}.xml`;
+      const writePath = resolve(destinationDir, path + (gzip ? '.gz' : ''));
 
-      sitemapStream
-        .pipe(createGzip()) // compress the output of the sitemap
-        .pipe(createWriteStream(resolve(destinationDir, path + '.gz'))); // write it to sitemap-NUMBER.xml
+      if (gzip) {
+        sitemapStream
+          .pipe(createGzip()) // compress the output of the sitemap
+          .pipe(createWriteStream(writePath)); // write it to sitemap-NUMBER.xml
+      } else {
+        sitemapStream.pipe(createWriteStream(writePath)); // write it to sitemap-NUMBER.xml
+      }
 
       return [new URL(path, sitemapHostname).toString(), sitemapStream];
     },
@@ -55,12 +63,21 @@ export const simpleSitemapAndIndex = ({
       "unhandled source type. You've passed in data that is not supported"
     );
   }
-  return pipeline(
-    src,
-    sitemapAndIndexStream,
-    createGzip(),
-    createWriteStream(resolve(destinationDir, './sitemap-index.xml.gz'))
+
+  const writePath = resolve(
+    destinationDir,
+    `./sitemap-index.xml${gzip ? '.gz' : ''}`
   );
+  if (gzip) {
+    return pipeline(
+      src,
+      sitemapAndIndexStream,
+      createGzip(),
+      createWriteStream(writePath)
+    );
+  } else {
+    return pipeline(src, sitemapAndIndexStream, createWriteStream(writePath));
+  }
 };
 
 export default simpleSitemapAndIndex;
