@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.3.1
+
+- fix #331 incorrect type on sourceData in simpleSitemapAndIndex.
+
 ## 6.3.0
 
 - simpleSitemap will create the dest directory if it doesn't exist

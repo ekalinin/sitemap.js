@@ -25,7 +25,7 @@ export const simpleSitemapAndIndex = async ({
 }: {
   hostname: string;
   sitemapHostname?: string;
-  sourceData: SitemapItemLoose | string | Readable | string[];
+  sourceData: SitemapItemLoose[] | string | Readable | string[];
   destinationDir: string;
   limit?: number;
   gzip?: boolean;
