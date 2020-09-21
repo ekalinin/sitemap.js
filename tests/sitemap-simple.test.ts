@@ -116,6 +116,7 @@ describe('simpleSitemapAndIndex', () => {
       );
       expect(xml.toString()).toContain('https://1.example.com/a');
     } catch (e) {
+      console.error('here2');
       expect(true).toBe(false);
     }
   });
