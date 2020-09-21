@@ -19,6 +19,7 @@ describe('simpleSitemapAndIndex', () => {
   beforeEach(() => {
     targetFolder = tmpdir();
     removeFilesArray([
+      resolve(targetFolder, `./sitemap-index.xml.gz`),
       resolve(targetFolder, `./sitemap-0.xml.gz`),
       resolve(targetFolder, `./sitemap-1.xml.gz`),
       resolve(targetFolder, `./sitemap-2.xml.gz`),
@@ -28,6 +29,7 @@ describe('simpleSitemapAndIndex', () => {
 
   afterEach(() => {
     removeFilesArray([
+      resolve(targetFolder, `./sitemap-index.xml.gz`),
       resolve(targetFolder, `./sitemap-0.xml.gz`),
       resolve(targetFolder, `./sitemap-1.xml.gz`),
       resolve(targetFolder, `./sitemap-2.xml.gz`),
@@ -77,6 +79,7 @@ describe('simpleSitemapAndIndex', () => {
 
   it('accepts sitemapItemLoose as a type', async () => {
     const baseURL = 'https://example.com/sub/';
+    expect.assertions(3);
 
     await simpleSitemapAndIndex({
       hostname: baseURL,
@@ -91,15 +94,15 @@ describe('simpleSitemapAndIndex', () => {
 
     const index = (
       await streamToPromise(
-        createReadStream(resolve(targetFolder, `./sitemap-index.xml.gz`)).pipe(
+        createReadStream(resolve(targetFolder, './sitemap-index.xml.gz')).pipe(
           createGunzip()
         )
       )
     ).toString();
     expect(index).toContain(`${baseURL}sitemap-0`);
-    expect(existsSync(resolve(targetFolder, `./sitemap-0.xml.gz`))).toBe(true);
+    expect(existsSync(resolve(targetFolder, './sitemap-0.xml.gz'))).toBe(true);
     const xml = await streamToPromise(
-      createReadStream(resolve(targetFolder, `./sitemap-0.xml.gz`)).pipe(
+      createReadStream(resolve(targetFolder, './sitemap-0.xml.gz')).pipe(
         createGunzip()
       )
     );

@@ -10,6 +10,7 @@ import { Readable, pipeline as pline } from 'stream';
 import { SitemapItemLoose } from './types';
 import { promisify } from 'util';
 import { URL } from 'url';
+import { WriteStream } from 'fs';
 
 const pipeline = promisify(pline);
 export const simpleSitemapAndIndex = async ({
@@ -40,15 +41,20 @@ export const simpleSitemapAndIndex = async ({
       const path = `./sitemap-${i}.xml`;
       const writePath = resolve(destinationDir, path + (gzip ? '.gz' : ''));
 
+      let pipeline: WriteStream;
       if (gzip) {
-        sitemapStream
+        pipeline = sitemapStream
           .pipe(createGzip()) // compress the output of the sitemap
           .pipe(createWriteStream(writePath)); // write it to sitemap-NUMBER.xml
       } else {
-        sitemapStream.pipe(createWriteStream(writePath)); // write it to sitemap-NUMBER.xml
+        pipeline = sitemapStream.pipe(createWriteStream(writePath)); // write it to sitemap-NUMBER.xml
       }
 
-      return [new URL(path, sitemapHostname).toString(), sitemapStream];
+      return [
+        new URL(path, sitemapHostname).toString(),
+        sitemapStream,
+        pipeline,
+      ];
     },
   });
   let src: Readable;

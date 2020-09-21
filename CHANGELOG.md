@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.3.2
+
+- fix unreported timing issue in SitemapAndIndexStream uncovered in latest unit tests
+
 ## 6.3.1
 
 - fix #331 incorrect type on sourceData in simpleSitemapAndIndex.
