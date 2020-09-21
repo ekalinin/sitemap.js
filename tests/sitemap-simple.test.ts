@@ -92,33 +92,21 @@ describe('simpleSitemapAndIndex', () => {
       destinationDir: targetFolder,
     });
 
-    try {
-      const index = (
-        await streamToPromise(
-          createReadStream(
-            resolve(targetFolder, './sitemap-index.xml.gz')
-          ).pipe(createGunzip())
-        )
-      ).toString();
-      expect(index).toContain(`${baseURL}sitemap-0`);
-    } catch (e) {
-      console.error('here');
-      expect(true).toBe(false);
-    }
-    try {
-      expect(existsSync(resolve(targetFolder, './sitemap-0.xml.gz'))).toBe(
-        true
-      );
-      const xml = await streamToPromise(
-        createReadStream(resolve(targetFolder, './sitemap-0.xml.gz')).pipe(
+    const index = (
+      await streamToPromise(
+        createReadStream(resolve(targetFolder, './sitemap-index.xml.gz')).pipe(
           createGunzip()
         )
-      );
-      expect(xml.toString()).toContain('https://1.example.com/a');
-    } catch (e) {
-      console.error('here2');
-      expect(true).toBe(false);
-    }
+      )
+    ).toString();
+    expect(index).toContain(`${baseURL}sitemap-0`);
+    expect(existsSync(resolve(targetFolder, './sitemap-0.xml.gz'))).toBe(true);
+    const xml = await streamToPromise(
+      createReadStream(resolve(targetFolder, './sitemap-0.xml.gz')).pipe(
+        createGunzip()
+      )
+    );
+    expect(xml.toString()).toContain('https://1.example.com/a');
   });
 
   it('accepts a filepath', async () => {

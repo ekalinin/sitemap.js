@@ -1,6 +1,6 @@
 {
   "name": "sitemap",
-  "version": "6.3.1",
+  "version": "6.3.2",
   "description": "Sitemap-generating lib/cli",
   "keywords": [
     "sitemap",
@@ -27,7 +27,7 @@
     "build": "tsc",
     "prepublishOnly": "rm -rf dist && npm run test",
     "test": "eslint lib/* ./cli.ts && tsc && jest ./tests/sitemap*",
-    "test:full": "eslint lib/* ./cli.ts && tsc && jest --verbose=false && npm run test:xmllint",
+    "test:full": "eslint lib/* ./cli.ts && tsc && jest && npm run test:xmllint",
     "test:perf": "node ./tests/perf.js",
     "test:schema": "node tests/alltags.js | xmllint --schema schema/all.xsd --noout -",
     "test:typecheck": "tsc",

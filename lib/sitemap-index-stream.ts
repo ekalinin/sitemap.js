@@ -155,9 +155,11 @@ export async function createSitemapsAndIndex({
 
 type getSitemapStream = (
   i: number
-) =>
-  | [IndexItem | string, SitemapStream]
-  | [IndexItem | string, SitemapStream, WriteStream];
+) => [IndexItem | string, SitemapStream, WriteStream];
+/** @deprecated */
+type getSitemapStreamDeprecated = (
+  i: number
+) => [IndexItem | string, SitemapStream];
 
 export interface SitemapAndIndexStreamOptions
   extends SitemapIndexStreamOptions {
@@ -165,15 +167,30 @@ export interface SitemapAndIndexStreamOptions
   limit?: number;
   getSitemapStream: getSitemapStream;
 }
+export interface SitemapAndIndexStreamOptionsDeprecated
+  extends SitemapIndexStreamOptions {
+  level?: ErrorLevel;
+  limit?: number;
+  getSitemapStream: getSitemapStreamDeprecated;
+}
 // const defaultSIStreamOpts: SitemapAndIndexStreamOptions = {};
 export class SitemapAndIndexStream extends SitemapIndexStream {
   private i: number;
-  private getSitemapStream: getSitemapStream;
+  private getSitemapStream: getSitemapStream | getSitemapStreamDeprecated;
   private currentSitemap: SitemapStream;
   private currentSitemapPipeline?: WriteStream;
   private idxItem: IndexItem | string;
   private limit: number;
-  constructor(opts: SitemapAndIndexStreamOptions) {
+  /**
+   * @deprecated this version does not properly wait for everything to write before resolving
+   * pass a 3rd param in your return from getSitemapStream that is the writeable stream
+   * to remove this warning
+   */
+  constructor(opts: SitemapAndIndexStreamOptionsDeprecated);
+  constructor(opts: SitemapAndIndexStreamOptions);
+  constructor(
+    opts: SitemapAndIndexStreamOptions | SitemapAndIndexStreamOptionsDeprecated
+  ) {
     opts.objectMode = true;
     super(opts);
     this.i = 0;
