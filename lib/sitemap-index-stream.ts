@@ -13,6 +13,7 @@ import { UndefinedTargetFolder } from './errors';
 import { chunk } from './utils';
 import { SitemapStream, stylesheetInclude } from './sitemap-stream';
 import { element, otag, ctag } from './sitemap-xml';
+import { WriteStream } from 'fs';
 
 export enum IndexTagNames {
   sitemap = 'sitemap',
@@ -152,7 +153,11 @@ export async function createSitemapsAndIndex({
   });
 }
 
-type getSitemapStream = (i: number) => [IndexItem | string, SitemapStream];
+type getSitemapStream = (
+  i: number
+) =>
+  | [IndexItem | string, SitemapStream]
+  | [IndexItem | string, SitemapStream, WriteStream];
 
 export interface SitemapAndIndexStreamOptions
   extends SitemapIndexStreamOptions {
@@ -165,6 +170,7 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
   private i: number;
   private getSitemapStream: getSitemapStream;
   private currentSitemap: SitemapStream;
+  private currentSitemapPipeline?: WriteStream;
   private idxItem: IndexItem | string;
   private limit: number;
   constructor(opts: SitemapAndIndexStreamOptions) {
@@ -172,7 +178,11 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     super(opts);
     this.i = 0;
     this.getSitemapStream = opts.getSitemapStream;
-    [this.idxItem, this.currentSitemap] = this.getSitemapStream(0);
+    [
+      this.idxItem,
+      this.currentSitemap,
+      this.currentSitemapPipeline,
+    ] = this.getSitemapStream(0);
     this.limit = opts.limit ?? 45000;
   }
 
@@ -190,15 +200,22 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
       this._writeSMI(item);
       super._transform(this.idxItem, encoding, callback);
     } else if (this.i % this.limit === 0) {
-      this.currentSitemap.end(() => {
-        const [idxItem, currentSitemap] = this.getSitemapStream(
-          this.i / this.limit
-        );
+      const onFinish = () => {
+        const [
+          idxItem,
+          currentSitemap,
+          currentSitemapPipeline,
+        ] = this.getSitemapStream(this.i / this.limit);
         this.currentSitemap = currentSitemap;
+        this.currentSitemapPipeline = currentSitemapPipeline;
         this._writeSMI(item);
         // push to index stream
         super._transform(idxItem, encoding, callback);
-      });
+      };
+      this.currentSitemapPipeline?.on('finish', onFinish);
+      this.currentSitemap.end(
+        !this.currentSitemapPipeline ? onFinish : undefined
+      );
     } else {
       this._writeSMI(item);
       callback();
@@ -206,6 +223,10 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
   }
 
   _flush(cb: TransformCallback): void {
-    this.currentSitemap.end(() => super._flush(cb));
+    const onFinish = () => super._flush(cb);
+    this.currentSitemapPipeline?.on('finish', onFinish);
+    this.currentSitemap.end(
+      !this.currentSitemapPipeline ? onFinish : undefined
+    );
   }
 }
