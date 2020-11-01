@@ -157,7 +157,7 @@ describe('simpleSitemapAndIndex', () => {
         ).pipe(createGunzip())
       )
     ).toString();
-    expect(index).toContain(`${baseURL}/sitemap-0`);
+    expect(index).toContain(`${baseURL}/sitemap-0.xml.gz`);
     expect(existsSync(resolve(destinationDir, `./sitemap-0.xml.gz`))).toBe(
       true
     );

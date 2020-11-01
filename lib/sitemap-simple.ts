@@ -51,7 +51,7 @@ export const simpleSitemapAndIndex = async ({
       }
 
       return [
-        new URL(path, sitemapHostname).toString(),
+        new URL(`${path}${gzip ? '.gz' : ''}`, sitemapHostname).toString(),
         sitemapStream,
         pipeline,
       ];

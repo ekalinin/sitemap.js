@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.3.3
+
+- bump ts to 4
+- change file reference in sitemap-index to include .gz fixes #334
+
 ## 6.3.2
 
 - fix unreported timing issue in SitemapAndIndexStream uncovered in latest unit tests
