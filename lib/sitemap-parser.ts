@@ -59,10 +59,19 @@ function newsTemplate(): NewsItem {
     title: '',
   };
 }
+
+type Logger = (
+  level: 'warn' | 'error' | 'info' | 'log',
+  ...message: Parameters<Console['log']>[0]
+) => void;
 export interface XMLToSitemapItemStreamOptions extends TransformOptions {
   level?: ErrorLevel;
+  logger?: Logger | false;
 }
-const defaultStreamOpts: XMLToSitemapItemStreamOptions = {};
+const defaultLogger: Logger = (level, ...message) => console[level](...message);
+const defaultStreamOpts: XMLToSitemapItemStreamOptions = {
+  logger: defaultLogger,
+};
 
 // TODO does this need to end with `options`
 /**
@@ -71,6 +80,7 @@ const defaultStreamOpts: XMLToSitemapItemStreamOptions = {};
  */
 export class XMLToSitemapItemStream extends Transform {
   level: ErrorLevel;
+  logger: Logger;
   saxStream: SAXStream;
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
@@ -83,6 +93,11 @@ export class XMLToSitemapItemStream extends Transform {
       trim: true,
     });
     this.level = opts.level || ErrorLevel.WARN;
+    if (this.level !== ErrorLevel.SILENT && opts.logger !== false) {
+      this.logger = opts.logger ?? defaultLogger;
+    } else {
+      this.logger = () => undefined;
+    }
     let currentItem: SitemapItem = tagTemplate();
     let currentTag: string;
     let currentVideo: VideoItem = videoTemplate();
@@ -119,11 +134,11 @@ export class XMLToSitemapItemStream extends Transform {
             dontpushCurrentLink = true;
             currentItem.ampLink = tag.attributes.href.value;
           } else {
-            console.log('unhandled attr for xhtml:link', tag.attributes);
+            this.logger('log', 'unhandled attr for xhtml:link', tag.attributes);
           }
         }
       } else {
-        console.warn('unhandled tag', tag.name);
+        this.logger('warn', 'unhandled tag', tag.name);
       }
     });
 
@@ -284,7 +299,12 @@ export class XMLToSitemapItemStream extends Transform {
           break;
 
         default:
-          console.log('unhandled text for tag:', currentTag, `'${text}'`);
+          this.logger(
+            'log',
+            'unhandled text for tag:',
+            currentTag,
+            `'${text}'`
+          );
           break;
       }
     });
@@ -325,7 +345,7 @@ export class XMLToSitemapItemStream extends Transform {
           break;
 
         default:
-          console.log('unhandled cdata for tag:', currentTag);
+          this.logger('log', 'unhandled cdata for tag:', currentTag);
           break;
       }
     });
@@ -340,7 +360,7 @@ export class XMLToSitemapItemStream extends Transform {
           if (attr.name === 'relationship' && isAllowDeny(attr.value)) {
             currentVideo['restriction:relationship'] = attr.value;
           } else {
-            console.log('unhandled attr', currentTag, attr.name);
+            this.logger('log', 'unhandled attr', currentTag, attr.name);
           }
           break;
         case TagNames['video:price']:
@@ -351,7 +371,7 @@ export class XMLToSitemapItemStream extends Transform {
           } else if (attr.name === 'resolution' && isResolution(attr.value)) {
             currentVideo['price:resolution'] = attr.value;
           } else {
-            console.log('unhandled attr for video:price', attr.name);
+            this.logger('log', 'unhandled attr for video:price', attr.name);
           }
           break;
         case TagNames['video:player_loc']:
@@ -360,14 +380,19 @@ export class XMLToSitemapItemStream extends Transform {
           } else if (attr.name === 'allow_embed' && isValidYesNo(attr.value)) {
             currentVideo['player_loc:allow_embed'] = attr.value;
           } else {
-            console.log('unhandled attr for video:player_loc', attr.name);
+            this.logger(
+              'log',
+              'unhandled attr for video:player_loc',
+              attr.name
+            );
           }
           break;
         case TagNames['video:platform']:
           if (attr.name === 'relationship' && isAllowDeny(attr.value)) {
             currentVideo['platform:relationship'] = attr.value;
           } else {
-            console.log(
+            this.logger(
+              'log',
               'unhandled attr for video:platform',
               attr.name,
               attr.value
@@ -378,11 +403,15 @@ export class XMLToSitemapItemStream extends Transform {
           if (attr.name === 'title') {
             currentVideo['gallery_loc:title'] = attr.value;
           } else {
-            console.log('unhandled attr for video:galler_loc', attr.name);
+            this.logger(
+              'log',
+              'unhandled attr for video:galler_loc',
+              attr.name
+            );
           }
           break;
         default:
-          console.log('unhandled attr', currentTag, attr.name);
+          this.logger('log', 'unhandled attr', currentTag, attr.name);
       }
     });
 
