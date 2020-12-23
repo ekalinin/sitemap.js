@@ -5,9 +5,9 @@ import { XMLLintUnavailable } from './errors';
 /**
  * Verify the passed in xml is valid. Requires xmllib be installed
  * @param xml what you want validated
- * @return {Promise<null>} resolves on valid rejects [error stderr]
+ * @return {Promise<void>} resolves on valid rejects [error stderr]
  */
-export function xmlLint(xml: string | Readable): Promise<null> {
+export function xmlLint(xml: string | Readable): Promise<void> {
   const args = [
     '--schema',
     resolve(__dirname, '..', '..', 'schema', 'all.xsd'),
