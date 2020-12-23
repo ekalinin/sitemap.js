@@ -215,7 +215,7 @@ export class SitemapItemStream extends Transform {
       this.push(
         element(TagNames['xhtml:link'], {
           rel: 'alternate',
-          hreflang: link.lang,
+          hreflang: link.lang || link.hreflang,
           href: link.url,
         })
       );
