@@ -305,6 +305,10 @@ export interface LinkItem {
    * @example 'en'
    */
   lang: string;
+  /**
+   * @example 'en-us'
+   */
+  hreflang?: string;
   url: string;
 }
 

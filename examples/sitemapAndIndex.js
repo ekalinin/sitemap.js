@@ -14,17 +14,19 @@ const sms = new SitemapAndIndexStream({
   // for it to write the sitemap urls to and the expected url where that sitemap will be hosted
   getSitemapStream: (i) => {
     const sitemapStream = new SitemapStream({
-      hostname: 'https://example.com',
+      hostname: 'https://example.ru/',
     });
     const path = `./sitemap-${i}.xml`;
 
+    const ws = createWriteStream(resolve(path + '.gz'));
     sitemapStream
       .pipe(createGzip()) // compress the output of the sitemap
-      .pipe(createWriteStream(resolve(path + '.gz'))); // write it to sitemap-NUMBER.xml
+      .pipe(ws); // write it to sitemap-NUMBER.xml
 
     return [
       new URL(path, 'https://example.com/subdir/').toString(),
       sitemapStream,
+      ws,
     ];
   },
 });
@@ -40,6 +42,15 @@ sms
   .pipe(createGzip())
   .pipe(createWriteStream(resolve('./sitemap-index.xml.gz')));
 
-const arrayOfSitemapItems = [{ url: '/page-1/', changefreq: 'daily' }];
+const arrayOfSitemapItems = [
+  { url: '/page-1/', changefreq: 'daily' },
+  {
+    url: '/docs',
+    links: [
+      { lang: 'ru', url: 'https://example.ru/docs' },
+      { lang: 'en', url: 'https://example.com/docs' },
+    ],
+  },
+];
 arrayOfSitemapItems.forEach((item) => sms.write(item));
 sms.end();

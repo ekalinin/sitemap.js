@@ -5,6 +5,7 @@ import {
   ErrorLevel,
   SitemapItemLoose,
   EnumChangefreq,
+  SitemapStream,
 } from '../index';
 import * as testUtil from './util';
 import {
@@ -13,6 +14,7 @@ import {
   normalizeURL,
 } from '../lib/utils';
 import { Readable, Writable } from 'stream';
+import { streamToPromise } from '../lib/sitemap-stream';
 
 describe('utils', () => {
   let itemTemplate: SitemapItem;
@@ -693,7 +695,7 @@ describe('utils', () => {
     });
 
     it('turns a line-separated stream into a sitemap', async () => {
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         lineSeparatedURLsToSitemapOptions(rs).pipe(ws);
         ws.on('finish', () => resolve());
       });
@@ -704,7 +706,7 @@ describe('utils', () => {
 
     it('turns a line-separated JSON stream into a sitemap', async () => {
       let osampleURLs: { url: string }[];
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         osampleURLs = sampleURLs.map((url) => ({ url }));
         content = osampleURLs.map((url) => JSON.stringify(url)).join('\n');
         lineSeparatedURLsToSitemapOptions(rs, { isJSON: true }).pipe(ws);
@@ -813,6 +815,34 @@ describe('utils', () => {
         links: [{ url: '/lang', lang: 'en-us' }],
       };
       expect(normalizeURL(url, 'http://example.com').links[0]).toHaveProperty(
+        'url',
+        'http://example.com/lang'
+      );
+    });
+
+    it('does not prepend provided hostname to links that already have a hostname', async () => {
+      const sms = new SitemapStream({ hostname: 'https://example.ru/' });
+      sms.write({
+        url: '/docs',
+        links: [
+          { lang: 'ru', url: 'https://example.ru/docs' },
+          { lang: 'en', url: 'https://example.com/docs' },
+        ],
+      });
+      sms.end();
+
+      expect((await streamToPromise(sms)).toString()).toContain(
+        'https://example.com/docs'
+      );
+
+      const url = {
+        url: 'http://example.ru',
+        links: [
+          { url: 'http://example.com/lang', lang: 'en-us' },
+          { url: '/lang', lang: 'en-us' },
+        ],
+      };
+      expect(normalizeURL(url, 'http://example.ru').links[0]).toHaveProperty(
         'url',
         'http://example.com/lang'
       );

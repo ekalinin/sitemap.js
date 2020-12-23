@@ -1,9 +1,10 @@
 # Changelog
 
-## unreleased
+## 6.3.4
 
 - bump dependencies
-- correct return type of xmllint. Was Promise<null> but actually returned Promise<void>
+- correct return type of xmllint. Was `Promise<null>` but actually returned `Promise<void>`
+- add alternate option for lang, hreflang as that is the actual name of the printed attribute
 
 ## 6.3.3
 
