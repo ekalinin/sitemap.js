@@ -1,5 +1,12 @@
 # Changelog
 
+## 6.3.5
+
+- Add option to silence or redirect logs from parse #337
+  - `new XMLToSitemapItemStream({ logger: false })` or 
+  - `new XMLToSitemapItemStream({ level: ErrorLevel.SILENT })` or 
+  - `new XMLToSitemapItemStream({ logger: (level, ...message) => your.custom.logger(...message) })`
+
 ## 6.3.4
 
 - bump dependencies
