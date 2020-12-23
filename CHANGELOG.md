@@ -1,5 +1,10 @@
 # Changelog
 
+## unreleased
+
+- bump dependencies
+- correct return type of xmllint. Was Promise<null> but actually returned Promise<void>
+
 ## 6.3.3
 
 - bump ts to 4
