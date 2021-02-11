@@ -149,7 +149,10 @@ const sms = new SitemapAndIndexStream({
   // for it to write the sitemap urls to and the expected url where that sitemap will be hosted
   getSitemapStream: (i) => {
     const sitemapStream = new SitemapStream({ hostname: 'https://example.com' });
-    const path = `./sitemap-${i}.xml`;
+    // if your server automatically serves sitemap.xml.gz when requesting sitemap.xml leave this line be
+    // otherwise you will need to add .gz here and remove it a couple lines below so that both the index 
+    // and the actual file have a .gz extension
+    const path = `./sitemap-${i}.xml`; 
 
     sitemapStream
       .pipe(createGzip()) // compress the output of the sitemap

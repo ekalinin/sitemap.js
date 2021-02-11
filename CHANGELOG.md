@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.3.6
+
+- bump dependencies
+
 ## 6.3.5
 
 - Add option to silence or redirect logs from parse #337
