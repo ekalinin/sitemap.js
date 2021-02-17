@@ -6,7 +6,7 @@ import {
   Readable,
   Writable,
 } from 'stream';
-import { SitemapItemLoose, ErrorLevel } from './types';
+import { SitemapItemLoose, ErrorLevel, ErrorHandler } from './types';
 import { validateSMIOptions, normalizeURL } from './utils';
 import { SitemapItemStream } from './sitemap-item-stream';
 import { EmptyStream, EmptySitemap } from './errors';
@@ -69,6 +69,7 @@ export interface SitemapStreamOptions extends TransformOptions {
   lastmodDateOnly?: boolean;
   xmlns?: NSArgs;
   xslUrl?: string;
+  errorHandler?: ErrorHandler;
 }
 const defaultXMLNS: NSArgs = {
   news: true,
@@ -92,6 +93,7 @@ export class SitemapStream extends Transform {
   hasHeadOutput: boolean;
   xmlNS: NSArgs;
   xslUrl?: string;
+  errorHandler?: ErrorHandler;
   private smiStream: SitemapItemStream;
   lastmodDateOnly: boolean;
   constructor(opts = defaultStreamOpts) {
@@ -100,6 +102,7 @@ export class SitemapStream extends Transform {
     this.hasHeadOutput = false;
     this.hostname = opts.hostname;
     this.level = opts.level || ErrorLevel.WARN;
+    this.errorHandler = opts.errorHandler;
     this.smiStream = new SitemapItemStream({ level: opts.level });
     this.smiStream.on('data', (data) => this.push(data));
     this.lastmodDateOnly = opts.lastmodDateOnly || false;
@@ -119,7 +122,8 @@ export class SitemapStream extends Transform {
     this.smiStream.write(
       validateSMIOptions(
         normalizeURL(item, this.hostname, this.lastmodDateOnly),
-        this.level
+        this.level,
+        this.errorHandler
       )
     );
     callback();

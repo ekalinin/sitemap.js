@@ -368,6 +368,8 @@ export enum ErrorLevel {
   THROW = 'throw',
 }
 
+export type ErrorHandler = (error: Error, level: ErrorLevel) => void;
+
 export enum TagNames {
   url = 'url',
   loc = 'loc',

@@ -69,4 +69,26 @@ describe('sitemap stream', () => {
         closetag
     );
   });
+
+  it('invokes custom errorHandler', async () => {
+    const source = [
+      { url: '/', changefreq: 'daily' },
+      { url: '/path', changefreq: 'invalid' },
+    ];
+    const errorHandlerMock = jest.fn();
+    const sms = new SitemapStream({
+      hostname: 'https://example.com/',
+      errorHandler: errorHandlerMock,
+    });
+    sms.write(source[0]);
+    sms.write(source[1]);
+    sms.end();
+    expect(errorHandlerMock.mock.calls.length).toBe(1);
+    expect((await streamToPromise(sms)).toString()).toBe(
+      preamble +
+        `<url><loc>https://example.com/</loc><changefreq>daily</changefreq></url>` +
+        `<url><loc>https://example.com/path</loc><changefreq>invalid</changefreq></url>` +
+        closetag
+    );
+  });
 });
