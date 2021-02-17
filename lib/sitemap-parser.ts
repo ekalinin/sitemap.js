@@ -172,6 +172,9 @@ export class XMLToSitemapItemStream extends Transform {
         case TagNames['video:player_loc']:
           currentVideo.player_loc = text;
           break;
+        case TagNames['video:content_loc']:
+          currentVideo.content_loc = text;
+          break;
         case TagNames['video:requires_subscription']:
           if (isValidYesNo(text)) {
             currentVideo.requires_subscription = text;
@@ -408,6 +411,13 @@ export class XMLToSitemapItemStream extends Transform {
               'unhandled attr for video:galler_loc',
               attr.name
             );
+          }
+          break;
+        case TagNames['video:uploader']:
+          if (attr.name === 'info') {
+            currentVideo['uploader:info'] = attr.value;
+          } else {
+            this.logger('log', 'unhandled attr for video:uploader', attr.name);
           }
           break;
         default:

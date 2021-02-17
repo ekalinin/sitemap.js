@@ -208,6 +208,12 @@ interface VideoItemBase {
    */
   'restriction:relationship'?: EnumAllowDeny;
   gallery_loc?: string;
+  /**
+   * [Optional] Specifies the URL of a webpage with additional information about this uploader. This URL must be in the same domain as the <loc> tag.
+   * @see https://developers.google.com/search/docs/advanced/sitemaps/video-sitemaps
+   * @example http://www.example.com/users/grillymcgrillerson
+   */
+  'uploader:info'?: string;
   'gallery_loc:title'?: string;
   /**
    * The price to download or view the video. Omit this tag for free videos.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.4.0
+
+- added support for content_loc parsing #347 and uploader info attr
+- added error handler option to sitemapstream #349 Thanks @marcoreni
+
 ## 6.3.6
 
 - bump dependencies

@@ -44,7 +44,7 @@
       <video:gallery_loc title="awhu series page&amp;>&lt;'&quot;">https://roosterteeth.com/series/awhu&amp;&gt;&lt;'"</video:gallery_loc>
       <video:price resolution="HD" currency="USD" type="rent">1.99</video:price>
       <video:requires_subscription>no</video:requires_subscription>
-      <video:uploader>GrillyMcGrillerson&amp;&gt;&lt;'"</video:uploader>
+      <video:uploader info="http://www.example.com/users/grillymcgrillerson">GrillyMcGrillerson&amp;&gt;&lt;'"</video:uploader>
       <video:platform relationship="allow">tv</video:platform>
       <video:live>no</video:live>
     </video:video>
@@ -62,7 +62,7 @@
       <video:description>
         <![CDATA[Achievement Hunter's House Party quest for some one-night intimacy continues. Can they use Ashley and Madison's sibling rivalry for their own dubious gains?&><'"]]>
       </video:description>
-      <video:player_loc>https://roosterteeth.com/embed/let-s-watch-2018-house-party-part-2&amp;&gt;&lt;'"</video:player_loc>
+      <video:content_loc>http://streamserver.example.com/video123.mp4</video:content_loc>
       <video:duration>2422</video:duration>
       <video:publication_date>2018-04-26T17:00:00.000Z</video:publication_date>
       <video:requires_subscription>no</video:requires_subscription>
