@@ -47,7 +47,7 @@ describe('sitemapItem-stream', () => {
           thumbnail_loc: simpleURL,
           title: simpleText,
           description: simpleText,
-          player_loc: simpleURL,
+          content_loc: simpleURL,
           duration: 3070,
           expiration_date: date,
           rating: 2.5,
@@ -65,6 +65,7 @@ describe('sitemapItem-stream', () => {
           price: '1.99',
           requires_subscription: 'no',
           uploader: simpleText,
+          'uploader:info': simpleURL,
           'platform:relationship': 'allow',
           platform: 'tv',
           live: 'no',
@@ -133,7 +134,7 @@ describe('sitemapItem-stream', () => {
             el('video:thumbnail_loc', simpleURLEscaped) +
               el('video:title', simpleTextEscaped) +
               el('video:description', simpleTextEscaped) +
-              el('video:player_loc', simpleURLEscaped) +
+              el('video:content_loc', simpleURLEscaped) +
               el('video:duration', 3070 + '') +
               el('video:expiration_date', date) +
               el('video:rating', 2.5 + '') +
@@ -150,7 +151,11 @@ describe('sitemapItem-stream', () => {
               }">${simpleURLEscaped}</video:gallery_loc>` +
               '<video:price resolution="HD" currency="USD" type="rent">1.99</video:price>' +
               el('video:requires_subscription', 'no') +
-              el('video:uploader', simpleTextEscaped) +
+              '<video:uploader info="' +
+              simpleURLEscaped +
+              '">' +
+              simpleTextEscaped +
+              '</video:uploader>' +
               '<video:platform relationship="allow">tv</video:platform>' +
               el('video:live', 'no')
           ) +

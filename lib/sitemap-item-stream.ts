@@ -187,7 +187,13 @@ export class SitemapItemStream extends Transform {
       }
 
       if (video.uploader) {
-        this.push(element(TagNames['video:uploader'], video.uploader));
+        this.push(
+          element(
+            TagNames['video:uploader'],
+            attrBuilder(video, 'uploader:info'),
+            video.uploader
+          )
+        );
       }
 
       if (video.platform) {

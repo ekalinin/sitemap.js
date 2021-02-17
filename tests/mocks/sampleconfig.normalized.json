@@ -46,6 +46,7 @@
           "restriction": "IE GB US CA",
           "restriction:relationship": "deny",
           "uploader": "GrillyMcGrillerson&><'\"",
+          "uploader:info": "http://www.example.com/users/grillymcgrillerson",
           "category": "Baking&><'\"",
           "live": "no",
           "expiration_date": "2012-07-16T19:20:30+08:00",
@@ -83,7 +84,7 @@
         {
           "title": "2018:E10 - House Party - Part 2 (Uncensored)&><'\"",
           "description": "Achievement Hunter's House Party quest for some one-night intimacy continues. Can they use Ashley and Madison's sibling rivalry for their own dubious gains?&><'\"",
-          "player_loc": "https://roosterteeth.com/embed/let-s-watch-2018-house-party-part-2&><'\"",
+          "content_loc": "http://streamserver.example.com/video123.mp4",
           "thumbnail_loc": "https://rtv3-img-roosterteeth.akamaized.net/store/9dd9681a-0557-45fe-86b3-b662c91bbae7.jpg/sm/thumblwhouseparty2v4.jpg&><'\"",
           "duration": 2422,
           "publication_date": "2018-04-26T17:00:00.000Z",

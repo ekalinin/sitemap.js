@@ -1,119 +1,145 @@
 {
   "hostname": "https://roosterteeth.com?&><'\"",
-  "urls": [{
-    "url": "https://roosterteeth.com/episode/rouletsplay-2018-goldeneye-source&><'\"",
-    "changefreq": "weekly",
-    "video": [{
-      "id": "http://example.com/url&><'\"",
-      "title": "2018:E6 - GoldenEye: Source&><'\"",
-      "description": "We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.&><'\"",
-      "player_loc": "https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source&><'\"",
-      "player_loc:autoplay": "ap=1&><'\"",
-      "player_loc:allow_embed": "yes",
-      "thumbnail_loc": "https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg&><'\"",
-      "duration": 1208,
-      "publication_date": "2018-04-27T17:00:00.000Z",
-      "requires_subscription": "YES",
-      "tag": ["fruit&><'\"", "flies&><'\""]
-    }]
-  }, {
-    "url": "https://roosterteeth.com/episode/let-s-play-2018-minecraft-episode-310&><'\"",
-    "changefreq": "weekly",
-    "video": [{
-      "title": "2018:E90 - Minecraft - Episode 310 - Chomping List&><'\"",
-      "description": "Now that the gang's a bit more settled into Achievement Cove, it's time for a competition. Whoever collects the most unique food items by the end of the episode wins. The winner may even receive a certain golden tower.&><'\"",
-      "player_loc": "https://roosterteeth.com/embed/let-s-play-2018-minecraft-episode-310&><'\"",
-      "thumbnail_loc": "https://rtv3-img-roosterteeth.akamaized.net/store/f255cd83-3d69-4ee8-959a-ac01817fa204.jpg/sm/thumblpchompinglistv2.jpg&><'\"",
-      "duration": 3070,
-      "publication_date": "2018-04-27T14:00:00.000Z",
-      "requires_subscription": false,
-      "price": "1.99",
-      "price:type": "rent",
-      "price:currency": "USD",
-      "price:resolution": "HD",
-      "platform": "tv",
-      "platform:relationship": "allow",
-      "restriction": "IE GB US CA",
-      "restriction:relationship": "deny",
-      "uploader": "GrillyMcGrillerson&><'\"",
-      "category": "Baking&><'\"",
-      "live": "no",
-      "expiration_date": "2012-07-16T19:20:30+08:00",
-      "rating": 2.5,
-      "view_count": 1000,
-      "family_friendly": "no",
-      "tag": "steak&><'\"",
-      "gallery_loc": "https://roosterteeth.com/series/awhu&><'\"",
-      "gallery_loc:title": "awhu series page&><'\""
-    }]
-  }, {
-    "url": "/episode/let-s-watch-2018-house-party-part-2",
-    "changefreq": "daily",
-    "priority": 0.6,
-    "links": [
-            { "lang": "en", "url": "http://test.com/page-1/&><'\"" },
-            { "lang": "ja", "url": "http://test.com/page-1/ja/&><'\"" }
-
-    ],
-    "lastmod": "2016-09-12",
-    "androidLink": "android-app://com.company.test/page-1/&><'\"",
-    "ampLink": "http://ampproject.org/article.amp.html&><'\"",
-    "video": [{
-      "title": "2018:E10 - House Party - Part 2 (Uncensored)&><'\"",
-      "description": "Achievement Hunter's House Party quest for some one-night intimacy continues. Can they use Ashley and Madison's sibling rivalry for their own dubious gains?&><'\"",
-      "player_loc": "https://roosterteeth.com/embed/let-s-watch-2018-house-party-part-2&><'\"",
-      "thumbnail_loc": "https://rtv3-img-roosterteeth.akamaized.net/store/9dd9681a-0557-45fe-86b3-b662c91bbae7.jpg/sm/thumblwhouseparty2v4.jpg&><'\"",
-      "duration": 2422,
-      "publication_date": "2018-04-26T17:00:00.000Z",
-      "requires_subscription": false
-    }]
-  }, {
-  "url": "http://www.example.org/business/article55.html&><'\"",
-  "lastmodISO": "2015-06-27T15:30:00.000Z",
-  "news": {
-    "access": "Registration",
-    "publication": {
-      "name": "The Example Times&><'\"",
-      "language": "en"
+  "urls": [
+    {
+      "url": "https://roosterteeth.com/episode/rouletsplay-2018-goldeneye-source&><'\"",
+      "changefreq": "weekly",
+      "video": [
+        {
+          "id": "http://example.com/url&><'\"",
+          "title": "2018:E6 - GoldenEye: Source&><'\"",
+          "description": "We play gun game in GoldenEye: Source with a good friend of ours. His name is Gruchy. Dan Gruchy.&><'\"",
+          "player_loc": "https://roosterteeth.com/embed/rouletsplay-2018-goldeneye-source&><'\"",
+          "player_loc:autoplay": "ap=1&><'\"",
+          "player_loc:allow_embed": "yes",
+          "thumbnail_loc": "https://rtv3-img-roosterteeth.akamaized.net/store/0e841100-289b-4184-ae30-b6a16736960a.jpg/sm/thumb3.jpg&><'\"",
+          "duration": 1208,
+          "publication_date": "2018-04-27T17:00:00.000Z",
+          "requires_subscription": "YES",
+          "tag": [
+            "fruit&><'\"",
+            "flies&><'\""
+          ]
+        }
+      ]
     },
-    "genres": "PressRelease, Blog",
-    "publication_date": "2008-12-23",
-    "title": "Companies A, B in Merger Talks&><'\"",
-    "keywords": "business, merger, acquisition, A, B&><'\"",
-    "stock_tickers": "NASDAQ:A, NASDAQ:B"
-  }
-  }, {
-    "url": "http://example.com/2&><'\"",
-    "img": [
-      {
-        "url": "http://test.com/img1.jpg&><'\"",
-        "caption": "An image&><'\"",
-        "title": "The Title of Image One&><'\"",
-        "geoLocation": "London, United Kingdom&><'\"",
-        "license": "https://creativecommons.org/licenses/by/4.0/&><'\""
-      },
-      {
-        "url": "http://test.com/img2.jpg&><'\"",
-        "caption": "Another image&><'\"",
-        "title": "The Title of Image Two&><'\"",
-        "geoLocation": "London, United Kingdom&><'\"",
-        "license": "https://creativecommons.org/licenses/by/4.0/&><'\""
+    {
+      "url": "https://roosterteeth.com/episode/let-s-play-2018-minecraft-episode-310&><'\"",
+      "changefreq": "weekly",
+      "video": [
+        {
+          "title": "2018:E90 - Minecraft - Episode 310 - Chomping List&><'\"",
+          "description": "Now that the gang's a bit more settled into Achievement Cove, it's time for a competition. Whoever collects the most unique food items by the end of the episode wins. The winner may even receive a certain golden tower.&><'\"",
+          "player_loc": "https://roosterteeth.com/embed/let-s-play-2018-minecraft-episode-310&><'\"",
+          "thumbnail_loc": "https://rtv3-img-roosterteeth.akamaized.net/store/f255cd83-3d69-4ee8-959a-ac01817fa204.jpg/sm/thumblpchompinglistv2.jpg&><'\"",
+          "duration": 3070,
+          "publication_date": "2018-04-27T14:00:00.000Z",
+          "requires_subscription": false,
+          "price": "1.99",
+          "price:type": "rent",
+          "price:currency": "USD",
+          "price:resolution": "HD",
+          "platform": "tv",
+          "platform:relationship": "allow",
+          "restriction": "IE GB US CA",
+          "restriction:relationship": "deny",
+          "uploader": "GrillyMcGrillerson&><'\"",
+          "uploader:info": "http://www.example.com/users/grillymcgrillerson",
+          "category": "Baking&><'\"",
+          "live": "no",
+          "expiration_date": "2012-07-16T19:20:30+08:00",
+          "rating": 2.5,
+          "view_count": 1000,
+          "family_friendly": "no",
+          "tag": "steak&><'\"",
+          "gallery_loc": "https://roosterteeth.com/series/awhu&><'\"",
+          "gallery_loc:title": "awhu series page&><'\""
+        }
+      ]
+    },
+    {
+      "url": "/episode/let-s-watch-2018-house-party-part-2",
+      "changefreq": "daily",
+      "priority": 0.6,
+      "links": [
+        {
+          "lang": "en",
+          "url": "http://test.com/page-1/&><'\""
+        },
+        {
+          "lang": "ja",
+          "url": "http://test.com/page-1/ja/&><'\""
+        }
+      ],
+      "lastmod": "2016-09-12",
+      "androidLink": "android-app://com.company.test/page-1/&><'\"",
+      "ampLink": "http://ampproject.org/article.amp.html&><'\"",
+      "video": [
+        {
+          "title": "2018:E10 - House Party - Part 2 (Uncensored)&><'\"",
+          "description": "Achievement Hunter's House Party quest for some one-night intimacy continues. Can they use Ashley and Madison's sibling rivalry for their own dubious gains?&><'\"",
+          "content_loc": "http://streamserver.example.com/video123.mp4",
+          "thumbnail_loc": "https://rtv3-img-roosterteeth.akamaized.net/store/9dd9681a-0557-45fe-86b3-b662c91bbae7.jpg/sm/thumblwhouseparty2v4.jpg&><'\"",
+          "duration": 2422,
+          "publication_date": "2018-04-26T17:00:00.000Z",
+          "requires_subscription": false
+        }
+      ]
+    },
+    {
+      "url": "http://www.example.org/business/article55.html&><'\"",
+      "lastmodISO": "2015-06-27T15:30:00.000Z",
+      "news": {
+        "access": "Registration",
+        "publication": {
+          "name": "The Example Times&><'\"",
+          "language": "en"
+        },
+        "genres": "PressRelease, Blog",
+        "publication_date": "2008-12-23",
+        "title": "Companies A, B in Merger Talks&><'\"",
+        "keywords": "business, merger, acquisition, A, B&><'\"",
+        "stock_tickers": "NASDAQ:A, NASDAQ:B"
       }
-    ],
-    "lastmod": "2011-06-27",
-    "changefreq": "always",
-    "priority": 0.9
-  }, {
-    "url": "http://example.com/1&><'\"",
-    "img": ["http://urlTest.com&><'\"", "http://example.com/img.jpg&><'\""],
-    "lastmod": "2011-06-27",
-    "changefreq": "always",
-    "priority": 0.9
-  }, {
-    "url": "http://example.com&><'\"",
-    "img": "http://urlTest.com&><'\"",
-    "lastmod": "2011-06-27",
-    "changefreq": "always",
-    "priority": 0.9
-  }]
+    },
+    {
+      "url": "http://example.com/2&><'\"",
+      "img": [
+        {
+          "url": "http://test.com/img1.jpg&><'\"",
+          "caption": "An image&><'\"",
+          "title": "The Title of Image One&><'\"",
+          "geoLocation": "London, United Kingdom&><'\"",
+          "license": "https://creativecommons.org/licenses/by/4.0/&><'\""
+        },
+        {
+          "url": "http://test.com/img2.jpg&><'\"",
+          "caption": "Another image&><'\"",
+          "title": "The Title of Image Two&><'\"",
+          "geoLocation": "London, United Kingdom&><'\"",
+          "license": "https://creativecommons.org/licenses/by/4.0/&><'\""
+        }
+      ],
+      "lastmod": "2011-06-27",
+      "changefreq": "always",
+      "priority": 0.9
+    },
+    {
+      "url": "http://example.com/1&><'\"",
+      "img": [
+        "http://urlTest.com&><'\"",
+        "http://example.com/img.jpg&><'\""
+      ],
+      "lastmod": "2011-06-27",
+      "changefreq": "always",
+      "priority": 0.9
+    },
+    {
+      "url": "http://example.com&><'\"",
+      "img": "http://urlTest.com&><'\"",
+      "lastmod": "2011-06-27",
+      "changefreq": "always",
+      "priority": 0.9
+    }
+  ]
 }
