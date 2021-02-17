@@ -1,21 +1,22 @@
 # API
 
-- [SitemapStream](#sitemapstream)
-- [XMLToSitemapItemStream](#XMLToSitemapItemStream)
-- [sitemapAndIndexStream](#sitemapandindexstream)
-- [createSitemapsAndIndex](#createsitemapsandindex)
-- [SitemapIndexStream](#SitemapIndexStream)
-- [xmlLint](#xmllint)
-- [parseSitemap](#parsesitemap)
-- [lineSeparatedURLsToSitemapOptions](#lineseparatedurlstositemapoptions)
-- [streamToPromise](#streamtopromise)
-- [ObjectStreamToJSON](#objectstreamtojson)
-- [SitemapItemStream](#SitemapItemStream)
-- [Sitemap Item Options](#sitemap-item-options)
-- [SitemapImage](#sitemapimage)
-- [VideoItem](#videoitem)
-- [LinkItem](#linkitem)
-- [NewsItem](#newsitem)
+- [API](#api)
+  - [SitemapStream](#sitemapstream)
+  - [XMLToSitemapItemStream](#xmltositemapitemstream)
+  - [sitemapAndIndexStream](#sitemapandindexstream)
+  - [createSitemapsAndIndex](#createsitemapsandindex)
+  - [SitemapIndexStream](#sitemapindexstream)
+  - [xmlLint](#xmllint)
+  - [parseSitemap](#parsesitemap)
+  - [lineSeparatedURLsToSitemapOptions](#lineseparatedurlstositemapoptions)
+  - [streamToPromise](#streamtopromise)
+  - [ObjectStreamToJSON](#objectstreamtojson)
+  - [SitemapItemStream](#sitemapitemstream)
+  - [Sitemap Item Options](#sitemap-item-options)
+  - [SitemapImage](#sitemapimage)
+  - [VideoItem](#videoitem)
+  - [ILinkItem](#ilinkitem)
+  - [NewsItem](#newsitem)
 
 ## SitemapStream
 
@@ -32,7 +33,8 @@ const sms = new SitemapStream({
     image: true,
     video: true,
     // custom: ['xmlns:custom="https://example.com"']
-  }
+  },
+  errorHandler: undefined // defaults to a standard errorLogger that logs to console or throws if the errorLevel is set to throw
 })
 const readable = // a readable stream of objects
 readable.pipe(sms).pipe(process.stdout)

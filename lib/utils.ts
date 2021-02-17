@@ -21,6 +21,7 @@ import {
   isPriceType,
   isResolution,
   NewsItem,
+  ErrorHandler,
 } from './types';
 import {
   ChangeFreqInvalidError,
@@ -83,7 +84,7 @@ function handleError(error: Error, level: ErrorLevel): void {
 export function validateSMIOptions(
   conf: SitemapItem,
   level = ErrorLevel.WARN,
-  errorHandler = handleError
+  errorHandler: ErrorHandler = handleError
 ): SitemapItem {
   if (!conf) {
     throw new NoConfigError();
