@@ -191,4 +191,116 @@ describe('simpleSitemapAndIndex', () => {
     );
     expect(xml.toString()).toContain('1.example.com');
   });
+
+  it('throws on bad data', async () => {
+    const baseURL = 'http://example.com';
+    const destinationDir = `${targetFolder}/non-existent/`;
+    await expect(
+      simpleSitemapAndIndex({
+        hostname: baseURL,
+        sourceData: {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
+          src: [
+            'https://1.example.com/a',
+            'https://2.example.com/a',
+            'https://3.example.com/a',
+            'https://4.example.com/a',
+          ],
+        },
+        destinationDir,
+        gzip: false,
+      })
+    ).rejects.toThrow();
+  });
+
+  it('supports non-root-based sitemap urls', async () => {
+    const baseURL = 'http://example.com';
+    const destinationDir = `${targetFolder}/non-existent/`;
+    await simpleSitemapAndIndex({
+      hostname: baseURL,
+      sourceData: [
+        'https://1.example.com/a',
+        'https://2.example.com/a',
+        'https://3.example.com/a',
+        'https://4.example.com/a',
+      ],
+      destinationDir,
+      publicBasePath: '/foo/bar/',
+      gzip: false,
+    });
+
+    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    const index = (
+      await streamToPromise(
+        createReadStream(resolve(destinationDir, `./sitemap-index.xml`))
+      )
+    ).toString();
+    expect(index).toContain(`${baseURL}/foo/bar/sitemap-0`);
+    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    const xml = await streamToPromise(
+      createReadStream(resolve(destinationDir, `./sitemap-0.xml`))
+    );
+    expect(xml.toString()).toContain('1.example.com');
+  });
+
+  it('supports non-root-based sitemap urls not ending in a /', async () => {
+    const baseURL = 'http://example.com';
+    const destinationDir = `${targetFolder}/non-existent/`;
+    await simpleSitemapAndIndex({
+      hostname: baseURL,
+      sourceData: [
+        'https://1.example.com/a',
+        'https://2.example.com/a',
+        'https://3.example.com/a',
+        'https://4.example.com/a',
+      ],
+      destinationDir,
+      publicBasePath: '/foo/bar',
+      gzip: false,
+    });
+
+    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    const index = (
+      await streamToPromise(
+        createReadStream(resolve(destinationDir, `./sitemap-index.xml`))
+      )
+    ).toString();
+    expect(index).toContain(`${baseURL}/foo/bar/sitemap-0`);
+    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    const xml = await streamToPromise(
+      createReadStream(resolve(destinationDir, `./sitemap-0.xml`))
+    );
+    expect(xml.toString()).toContain('1.example.com');
+  });
+
+  it('supports relative non-root-based sitemap urls', async () => {
+    const baseURL = 'http://example.com/buzz/';
+    const destinationDir = `${targetFolder}/non-existent/`;
+    await simpleSitemapAndIndex({
+      hostname: baseURL,
+      sourceData: [
+        'https://1.example.com/a',
+        'https://2.example.com/a',
+        'https://3.example.com/a',
+        'https://4.example.com/a',
+      ],
+      destinationDir,
+      publicBasePath: '/foo/bar/',
+      gzip: false,
+    });
+
+    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    const index = (
+      await streamToPromise(
+        createReadStream(resolve(destinationDir, `./sitemap-index.xml`))
+      )
+    ).toString();
+    expect(index).toContain(`http://example.com/foo/bar/sitemap-0`);
+    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    const xml = await streamToPromise(
+      createReadStream(resolve(destinationDir, `./sitemap-0.xml`))
+    );
+    expect(xml.toString()).toContain('1.example.com');
+  });
 });

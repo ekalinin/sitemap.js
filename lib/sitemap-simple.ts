@@ -5,7 +5,7 @@ import {
 } from '../index';
 import { createGzip } from 'zlib';
 import { createWriteStream, createReadStream, promises } from 'fs';
-import { resolve } from 'path';
+import { normalize, resolve } from 'path';
 import { Readable, pipeline as pline } from 'stream';
 import { SitemapItemLoose } from './types';
 import { promisify } from 'util';
@@ -13,6 +13,18 @@ import { URL } from 'url';
 import { WriteStream } from 'fs';
 
 const pipeline = promisify(pline);
+/**
+ *
+ * @param {object} options -
+ * @param {string} options.hostname - The hostname for all URLs
+ * @param {string} [options.sitemapHostname] - The hostname for the sitemaps if different than hostname
+ * @param {SitemapItemLoose[] | string | Readable | string[]} options.sourceData - The urls you want to make a sitemap out of.
+ * @param {string} options.destinationDir - where to write the sitemaps and index
+ * @param {string} [options.publicBasePath] - where the sitemaps are relative to the hostname. Defaults to root.
+ * @param {number} [options.limit] - how many URLs to write before switching to a new file. Defaults to 50k
+ * @param {boolean} [options.gzip] - whether to compress the written files. Defaults to true
+ * @returns {Promise<void>} an empty promise that resolves when everything is done
+ */
 export const simpleSitemapAndIndex = async ({
   hostname,
   sitemapHostname = hostname, // if different
@@ -23,11 +35,13 @@ export const simpleSitemapAndIndex = async ({
   destinationDir,
   limit = 50000,
   gzip = true,
+  publicBasePath = './',
 }: {
   hostname: string;
   sitemapHostname?: string;
   sourceData: SitemapItemLoose[] | string | Readable | string[];
   destinationDir: string;
+  publicBasePath?: string;
   limit?: number;
   gzip?: boolean;
 }): Promise<void> => {
@@ -40,6 +54,10 @@ export const simpleSitemapAndIndex = async ({
       });
       const path = `./sitemap-${i}.xml`;
       const writePath = resolve(destinationDir, path + (gzip ? '.gz' : ''));
+      if (!publicBasePath.endsWith('/')) {
+        publicBasePath += '/';
+      }
+      const publicPath = normalize(publicBasePath + path);
 
       let pipeline: WriteStream;
       if (gzip) {
@@ -51,7 +69,10 @@ export const simpleSitemapAndIndex = async ({
       }
 
       return [
-        new URL(`${path}${gzip ? '.gz' : ''}`, sitemapHostname).toString(),
+        new URL(
+          `${publicPath}${gzip ? '.gz' : ''}`,
+          sitemapHostname
+        ).toString(),
         sitemapStream,
         pipeline,
       ];

@@ -1,5 +1,19 @@
 # Changelog
 
+## 7.0.0
+
+### [BREAKING]
+
+- dropped support for Node 10, added support for Node 16
+- removed deprecated createSitemapsAndIndex. use SitemapAndIndexStream or simpleSitemapAndIndex
+- dropped deprecated `getSitemapStream` option for SitemapAndIndexStream that does not return a write stream
+- fixed invalid documentation for #357
+
+### non-breaking
+
+- Added option to simplesitemap `publicBasePath`: allows the user to set the location of sitemap files hosted on the site fixes [#359]
+- bumped dependencies
+
 ## 6.4.0
 
 - added support for content_loc parsing #347 and uploader info attr

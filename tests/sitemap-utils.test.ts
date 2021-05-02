@@ -147,6 +147,14 @@ describe('utils', () => {
           /News access "a" must be either Registration, Subscription or not be present/
         );
       });
+
+      it('will not throw if everythign is valid', () => {
+        news.news.access = 'Registration';
+
+        expect(() => {
+          validateSMIOptions(news, ErrorLevel.THROW);
+        }).not.toThrowError();
+      });
     });
 
     describe('video', () => {

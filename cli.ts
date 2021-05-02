@@ -12,6 +12,7 @@ import { SitemapStream } from './lib/sitemap-stream';
 import { SitemapAndIndexStream } from './lib/sitemap-index-stream';
 import { URL } from 'url';
 import { createGzip, Gzip } from 'zlib';
+import { WriteStream } from 'node:fs';
 /* eslint-disable-next-line @typescript-eslint/no-var-requires */
 const arg = require('arg');
 
@@ -112,16 +113,17 @@ Use XMLLib to validate your sitemap (requires xmllib)
   }
   const sms = new SitemapAndIndexStream({
     limit,
-    getSitemapStream: (i: number): [string, SitemapStream] => {
+    getSitemapStream: (i: number): [string, SitemapStream, WriteStream] => {
       const sm = new SitemapStream();
       const path = `./sitemap-${i}.xml`;
 
+      let ws: WriteStream;
       if (argv['--gzip']) {
-        sm.pipe(createGzip()).pipe(createWriteStream(path));
+        ws = sm.pipe(createGzip()).pipe(createWriteStream(path));
       } else {
-        sm.pipe(createWriteStream(path));
+        ws = sm.pipe(createWriteStream(path));
       }
-      return [new URL(path, baseURL).toString(), sm];
+      return [new URL(path, baseURL).toString(), sm, ws];
     },
   });
   let oStream: SitemapAndIndexStream | Gzip = lineSeparatedURLsToSitemapOptions(
