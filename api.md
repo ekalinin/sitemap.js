@@ -87,11 +87,11 @@ const sms = new SitemapAndIndexStream({
     const sitemapStream = new SitemapStream();
     const path = `./sitemap-${i}.xml`;
 
-    sitemapStream
+    const ws = sitemapStream
       .pipe(createGzip()) // compress the output of the sitemap
       .pipe(createWriteStream(resolve(path + '.gz'))); // write it to sitemap-NUMBER.xml
 
-    return [new URL(path, 'https://example.com/subdir/').toString(), sitemapStream];
+    return [new URL(path, 'https://example.com/subdir/').toString(), sitemapStream, ws];
   },
 });
 
@@ -101,23 +101,6 @@ lineSeparatedURLsToSitemapOptions(
 .pipe(sms)
 .pipe(createGzip())
 .pipe(createWriteStream(resolve('./sitemap-index.xml.gz')));
-```
-
-## createSitemapsAndIndex
-
-Create several sitemaps and an index automatically from a list of urls. __deprecated__
-
-```js
-const { createSitemapsAndIndex } = require('sitemap')
-createSitemapsAndIndex({
-  urls: [/* list of urls */],
-  targetFolder: 'absolute path to target folder',
-  hostname: 'http://example.com',
-  cacheTime: 600,
-  sitemapName: 'sitemap',
-  sitemapSize: 50000, // number of urls to allow in each sitemap
-  gzip: true, // whether to gzip the files
-})
 ```
 
 ## SitemapIndexStream

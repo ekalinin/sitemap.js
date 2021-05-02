@@ -11,7 +11,6 @@ export {
   IndexTagNames,
   SitemapIndexStream,
   SitemapIndexStreamOptions,
-  createSitemapsAndIndex,
   SitemapAndIndexStream,
   SitemapAndIndexStreamOptions,
 } from './lib/sitemap-index-stream';

@@ -1,4 +1,4 @@
-import { createSitemapsAndIndex, SitemapStream } from '../index';
+import { SitemapStream } from '../index';
 import { tmpdir } from 'os';
 import { resolve } from 'path';
 import {
@@ -12,6 +12,7 @@ import {
   SitemapAndIndexStream,
 } from '../lib/sitemap-index-stream';
 import { streamToPromise } from '../dist';
+import { WriteStream } from 'node:fs';
 /* eslint-env jest, jasmine */
 function removeFilesArray(files): void {
   if (files && files.length) {
@@ -80,74 +81,6 @@ describe('sitemapIndex', () => {
 
     expect(result.toString()).toBe(expectedResult);
   });
-
-  it('simple sitemap index', async () => {
-    const targetFolder = tmpdir();
-    const url1 = 'http://ya.ru';
-    const url2 = 'http://ya2.ru';
-    const expectedFiles = [
-      targetFolder + '/sm-test-0.xml',
-      targetFolder + '/sm-test-1.xml',
-      targetFolder + '/sm-test-index.xml',
-    ];
-
-    try {
-      await createSitemapsAndIndex({
-        hostname: 'https://www.sitemap.org',
-        sitemapName: 'sm-test',
-        sitemapSize: 1,
-        targetFolder: '/tmp2',
-        urls: [url1, url2],
-        gzip: false,
-      });
-    } catch (e) {
-      expect(e.message).toMatch(/Target folder must exist/);
-    }
-
-    // Cleanup before run test
-    removeFilesArray(expectedFiles);
-
-    const succeeded = await createSitemapsAndIndex({
-      hostname: 'https://www.sitemap.org',
-      sitemapName: 'sm-test',
-      sitemapSize: 1,
-      targetFolder,
-      urls: [url1, url2],
-      gzip: false,
-    });
-
-    expect(succeeded).toBe(true);
-    expectedFiles.forEach(function (expectedFile) {
-      expect(existsSync(expectedFile)).toBe(true);
-    });
-  });
-
-  it('sitemap with gzip files', async () => {
-    const targetFolder = tmpdir();
-    const url1 = 'http://ya.ru';
-    const url2 = 'http://ya2.ru';
-    const expectedFiles = [
-      targetFolder + '/sm-test-0.xml.gz',
-      targetFolder + '/sm-test-1.xml.gz',
-      targetFolder + '/sm-test-index.xml',
-    ];
-
-    // Cleanup before run test
-    removeFilesArray(expectedFiles);
-
-    const succeeded = await createSitemapsAndIndex({
-      hostname: 'http://www.sitemap.org',
-      sitemapName: 'sm-test',
-      sitemapSize: 1,
-      targetFolder,
-      gzip: true,
-      urls: [url1, url2],
-    });
-    expect(succeeded).toBe(true);
-    expectedFiles.forEach(function (expectedFile) {
-      expect(existsSync(expectedFile)).toBe(true);
-    });
-  });
 });
 
 describe('sitemapAndIndex', () => {
@@ -177,12 +110,12 @@ describe('sitemapAndIndex', () => {
 
     const sms = new SitemapAndIndexStream({
       limit: 1,
-      getSitemapStream: (i: number): [string, SitemapStream] => {
+      getSitemapStream: (i: number): [string, SitemapStream, WriteStream] => {
         const sm = new SitemapStream();
         const path = `./sitemap-${i}.xml`;
 
-        sm.pipe(createWriteStream(resolve(targetFolder, path)));
-        return [new URL(path, baseURL).toString(), sm];
+        const ws = sm.pipe(createWriteStream(resolve(targetFolder, path)));
+        return [new URL(path, baseURL).toString(), sm, ws];
       },
     });
     sms.write('https://1.example.com/a');
