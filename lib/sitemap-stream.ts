@@ -1,4 +1,3 @@
-import { URL } from 'url';
 import {
   Transform,
   TransformOptions,
@@ -13,9 +12,6 @@ import { EmptyStream, EmptySitemap } from './errors';
 
 const xmlDec = '<?xml version="1.0" encoding="UTF-8"?>';
 export const stylesheetInclude = (url: string): string => {
-  // Throws if url is invalid
-  new URL(url);
-
   return `<?xml-stylesheet type="text/xsl" href="${url}"?>`;
 };
 const urlsetTagStart =
