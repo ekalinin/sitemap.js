@@ -69,7 +69,7 @@ export class SitemapItemStream extends Transform {
       this.push(element(TagNames.changefreq, item.changefreq));
     }
 
-    if (item.priority !== undefined) {
+    if (item.priority !== undefined && item.priority !== null) {
       if (item.fullPrecisionPriority) {
         this.push(element(TagNames.priority, item.priority.toString()));
       } else {
