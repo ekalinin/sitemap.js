@@ -4,7 +4,13 @@
  * MIT Licensed
  */
 import { statSync } from 'fs';
-import { Readable, Transform, PassThrough, ReadableOptions } from 'stream';
+import {
+  Readable,
+  Transform,
+  PassThrough,
+  ReadableOptions,
+  TransformOptions,
+} from 'stream';
 import { createInterface, Interface } from 'readline';
 import { URL } from 'url';
 import {
@@ -251,8 +257,11 @@ export function validateSMIOptions(
  * Combines multiple streams into one
  * @param streams the streams to combine
  */
-export function mergeStreams(streams: Readable[]): Readable {
-  let pass = new PassThrough();
+export function mergeStreams(
+  streams: Readable[],
+  options?: TransformOptions
+): Readable {
+  let pass = new PassThrough(options);
   let waiting = streams.length;
   for (const stream of streams) {
     pass = stream.pipe(pass, { end: false });
