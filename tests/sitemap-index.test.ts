@@ -81,6 +81,42 @@ describe('sitemapIndex', () => {
 
     expect(result.toString()).toBe(expectedResult);
   });
+
+  it('build sitemap index with lastmodDateOnly', async () => {
+    const expectedResult =
+      xmlDef +
+      '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
+      '<sitemap>' +
+      '<loc>https://test.com/s1.xml</loc>' +
+      '<lastmod>2018-11-26</lastmod>' +
+      '</sitemap>' +
+      '<sitemap>' +
+      '<loc>https://test.com/s2.xml</loc>' +
+      '<lastmod>2018-11-27</lastmod>' +
+      '</sitemap>' +
+      '<sitemap>' +
+      '<loc>https://test.com/s3.xml</loc>' +
+      '</sitemap>' +
+      '</sitemapindex>';
+    const smis = new SitemapIndexStream({ lastmodDateOnly: true });
+    smis.write({
+      url: 'https://test.com/s1.xml',
+      lastmod: '2018-11-26T00:00:00.000Z',
+    });
+
+    smis.write({
+      url: 'https://test.com/s2.xml',
+      lastmod: '2018-11-27T00:00:00.000Z',
+    });
+
+    smis.write({
+      url: 'https://test.com/s3.xml',
+    });
+    smis.end();
+    const result = await streamToPromise(smis);
+
+    expect(result.toString()).toBe(expectedResult);
+  });
 });
 
 describe('sitemapAndIndex', () => {

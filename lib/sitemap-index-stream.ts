@@ -17,11 +17,13 @@ const sitemapIndexTagStart =
 const closetag = '</sitemapindex>';
 
 export interface SitemapIndexStreamOptions extends TransformOptions {
+  lastmodDateOnly?: boolean;
   level?: ErrorLevel;
   xslUrl?: string;
 }
 const defaultStreamOpts: SitemapIndexStreamOptions = {};
 export class SitemapIndexStream extends Transform {
+  lastmodDateOnly: boolean;
   level: ErrorLevel;
   xslUrl?: string;
   private hasHeadOutput: boolean;
@@ -29,6 +31,7 @@ export class SitemapIndexStream extends Transform {
     opts.objectMode = true;
     super(opts);
     this.hasHeadOutput = false;
+    this.lastmodDateOnly = opts.lastmodDateOnly || false;
     this.level = opts.level ?? ErrorLevel.WARN;
     this.xslUrl = opts.xslUrl;
   }
@@ -52,8 +55,12 @@ export class SitemapIndexStream extends Transform {
     } else {
       this.push(element(IndexTagNames.loc, item.url));
       if (item.lastmod) {
+        const lastmod: string = new Date(item.lastmod).toISOString();
         this.push(
-          element(IndexTagNames.lastmod, new Date(item.lastmod).toISOString())
+          element(
+            IndexTagNames.lastmod,
+            this.lastmodDateOnly ? lastmod.slice(0, 10) : lastmod
+          )
         );
       }
     }
