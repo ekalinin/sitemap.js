@@ -13,6 +13,7 @@ const { clearLine, cursorTo } = require('readline');
 const { finished, Readable } = require('stream');
 const { promisify } = require('util');
 const { createGunzip } = require('zlib');
+const MemoryStream = require('memorystream');
 const {
   lineSeparatedURLsToSitemapOptions,
   SitemapStream,
@@ -20,6 +21,7 @@ const {
   streamToPromise,
   XMLToSitemapItemStream,
   parseSitemap,
+  mergeStreams,
 } = require('../dist/index');
 const finishedP = promisify(finished);
 
@@ -230,6 +232,41 @@ async function testPerf(runs, batches, testName) {
 
           // End the input stream
           sms.end();
+          return finishedP(ws);
+        })
+      );
+      break;
+    case 'parseSitemapWithMerge':
+      console.log(
+        'testing XML ingest with parseSitemap / load into SitemapStream memory / merge with another input'
+      );
+
+      printPerf(
+        testName,
+        await run([], 0, async () => {
+          const rs = createReadStream(
+            resolve(__dirname, 'mocks', 'perf-data.json.txt')
+          );
+          const rsItems = lineSeparatedURLsToSitemapOptions(rs);
+          const ws = createWriteStream('/dev/null');
+          const moreItemsStream = new MemoryStream(undefined, {
+            objectMode: true,
+          });
+          const sms = new SitemapStream({ level: ErrorLevel.SILENT });
+          mergeStreams([rsItems, moreItemsStream], { objectMode: true })
+            .pipe(sms)
+            .pipe(ws);
+
+          // Write another item to the memorystream, which should get piped into the SitemapStream
+          moreItemsStream.write(
+            {
+              url: 'https://roosterteeth.com/some/fake/path',
+            },
+            () => {
+              moreItemsStream.end();
+            }
+          );
+
           return finishedP(ws);
         })
       );

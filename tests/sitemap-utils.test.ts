@@ -12,9 +12,13 @@ import {
   validateSMIOptions,
   lineSeparatedURLsToSitemapOptions,
   normalizeURL,
+  mergeStreams,
 } from '../lib/utils';
-import { Readable, Writable } from 'stream';
+import MemoryStream from 'memorystream';
+import { promisify } from 'util';
+import { Readable, Writable, finished } from 'stream';
 import { streamToPromise } from '../lib/sitemap-stream';
+const finishedP = promisify(finished);
 
 describe('utils', () => {
   let itemTemplate: SitemapItem;
@@ -1043,6 +1047,69 @@ describe('utils', () => {
 
         expect(smcfg).toHaveProperty('lastmod', lastmod);
       });
+    });
+  });
+
+  describe('mergeStreams', () => {
+    it('works without options passed', async () => {
+      const in1 = Readable.from(['a', 'b']);
+      const in2 = Readable.from(['c', 'd']);
+      const memStream = new MemoryStream();
+      const in1Done = finishedP(in1);
+      const in2Done = finishedP(in2);
+      const mergeStream = mergeStreams([in1, in2]);
+
+      mergeStream.pipe(memStream);
+
+      // Wait for the two inputs to be done being read
+      await Promise.all([in1Done, in2Done]);
+
+      const buff = Buffer.from(memStream.read());
+      const str = buff.toString();
+
+      expect(str).toContain('a');
+      expect(str).toContain('b');
+      expect(str).toContain('c');
+      expect(str).toContain('d');
+      expect(str).not.toContain('e');
+    });
+
+    it('works in objectMode', async () => {
+      const in1 = Readable.from([{ value: 'a' }, { value: 'b' }], {
+        objectMode: true,
+      });
+      const in2 = Readable.from([{ value: 'c' }, { value: 'd' }], {
+        objectMode: true,
+      });
+      // @ts-expect-error MemoryStream *does* actually support and behave differently when objectMode is passed
+      const memStream = new MemoryStream(undefined, { objectMode: true });
+      const in1Done = finishedP(in1);
+      const in2Done = finishedP(in2);
+      const mergeStream = mergeStreams([in1, in2], { objectMode: true });
+
+      mergeStream.pipe(memStream);
+
+      // Wait for the two inputs to be done being read
+      await Promise.all([in1Done, in2Done]);
+
+      const items: { value: string }[] = [];
+      let str = '';
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const item: { value: string } = memStream.read();
+        if (item === null) {
+          break;
+        }
+        items.push(item);
+        str += item.value;
+      }
+
+      expect(str.length).toBe(4);
+      expect(str).toContain('a');
+      expect(str).toContain('b');
+      expect(str).toContain('c');
+      expect(str).toContain('d');
+      expect(str).not.toContain('e');
     });
   });
 });
