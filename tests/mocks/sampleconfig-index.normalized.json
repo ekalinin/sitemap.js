@@ -1,0 +1,12 @@
+{
+  "sitemaps": [
+    {
+      "lastmod": "2004-10-01T18:23:17+00:00",
+      "url": "https://www.example.com/sitemap1.xml.gz"
+    },
+    {
+      "lastmod": "2005-01-01",
+      "url": "https://www.example.com/sitemap2.xml.gz"
+    }
+  ]
+}

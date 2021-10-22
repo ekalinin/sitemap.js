@@ -425,3 +425,10 @@ export enum TagNames {
   'xhtml:link' = 'xhtml:link',
   'expires' = 'expires',
 }
+
+export enum IndexTagNames {
+  sitemap = 'sitemap',
+  sitemapindex = 'sitemapindex',
+  loc = 'loc',
+  lastmod = 'lastmod',
+}

@@ -8,7 +8,7 @@ import {
   ObjectStreamToJSON,
 } from '../lib/sitemap-parser';
 import { SitemapStreamOptions } from '../dist';
-import { ErrorLevel } from '../lib/types';
+import { ErrorLevel, SitemapItem } from '../lib/types';
 const pipeline = promisify(pipe);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const normalizedSample = require('./mocks/sampleconfig.normalized.json');
@@ -25,7 +25,7 @@ describe('parseSitemap', () => {
 
 describe('XMLToSitemapItemStream', () => {
   it('stream parses XML', async () => {
-    const sitemap: SitemapStreamOptions[] = [];
+    const sitemap: SitemapItem[] = [];
     await pipeline(
       createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
@@ -62,7 +62,11 @@ describe('XMLToSitemapItemStream', () => {
     expect(logger.mock.calls.length).toBe(2);
     expect(logger.mock.calls[0][1]).toBe('unhandled tag');
     expect(logger.mock.calls[0][2]).toBe('foo');
+  });
 
+  it('stream parses bad XML - silently', async () => {
+    const sitemap: SitemapStreamOptions[] = [];
+    const logger = jest.fn();
     await pipeline(
       createReadStream(resolve(__dirname, './mocks/bad-tag-sitemap.xml'), {
         encoding: 'utf8',
@@ -76,7 +80,8 @@ describe('XMLToSitemapItemStream', () => {
         },
       })
     );
-    expect(logger.mock.calls.length).toBe(2);
+    expect(sitemap).toEqual(normalizedSample.urls);
+    expect(logger.mock.calls.length).toBe(0);
   });
 
   it('stream parses XML with cdata', async () => {
