@@ -17,7 +17,7 @@ export enum EnumChangefreq {
 }
 
 const allowDeny = /^(?:allow|deny)$/;
-export const validators: { [index: string]: RegExp } = {
+export const validators: { [index: string]: RegExp; } = {
   'price:currency': /^[A-Z]{3}$/,
   'price:type': /^(?:rent|purchase|RENT|PURCHASE)$/,
   'price:resolution': /^(?:HD|hd|sd|SD)$/,
@@ -325,7 +325,7 @@ export interface IndexItem {
 
 interface SitemapItemBase {
   lastmod?: string;
-  changefreq?: EnumChangefreq;
+  changefreq?: EnumChangefreq | 'daily' | 'monthly' | 'always' | 'hourly' | 'weekly' | 'yearly' | 'never';
   fullPrecisionPriority?: boolean;
   priority?: number;
   news?: NewsItem;
