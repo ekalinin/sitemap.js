@@ -155,11 +155,11 @@ const sms = new SitemapAndIndexStream({
     // and the actual file have a .gz extension
     const path = `./sitemap-${i}.xml`; 
 
-    sitemapStream
+    const ws = sitemapStream
       .pipe(createGzip()) // compress the output of the sitemap
       .pipe(createWriteStream(resolve(path + '.gz'))); // write it to sitemap-NUMBER.xml
 
-    return [new URL(path, 'https://example.com/subdir/').toString(), sitemapStream];
+    return [new URL(path, 'https://example.com/subdir/').toString(), sitemapStream, ws];
   },
 });
 
