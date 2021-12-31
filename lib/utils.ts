@@ -431,48 +431,44 @@ export function normalizeURL(
   if (smiLoose.links) {
     links = smiLoose.links;
   }
-  smi.links = links.map(
-    (link): LinkItem => {
-      return { ...link, url: new URL(link.url, hostname).toString() };
-    }
-  );
+  smi.links = links.map((link): LinkItem => {
+    return { ...link, url: new URL(link.url, hostname).toString() };
+  });
 
   if (smiLoose.video) {
     if (!Array.isArray(smiLoose.video)) {
       // make it an array
       smiLoose.video = [smiLoose.video];
     }
-    smi.video = smiLoose.video.map(
-      (video): VideoItem => {
-        const nv: VideoItem = {
-          ...video,
-          family_friendly: boolToYESNO(video.family_friendly),
-          live: boolToYESNO(video.live),
-          requires_subscription: boolToYESNO(video.requires_subscription),
-          tag: [],
-          rating: undefined,
-        };
+    smi.video = smiLoose.video.map((video): VideoItem => {
+      const nv: VideoItem = {
+        ...video,
+        family_friendly: boolToYESNO(video.family_friendly),
+        live: boolToYESNO(video.live),
+        requires_subscription: boolToYESNO(video.requires_subscription),
+        tag: [],
+        rating: undefined,
+      };
 
-        if (video.tag !== undefined) {
-          nv.tag = !Array.isArray(video.tag) ? [video.tag] : video.tag;
-        }
-
-        if (video.rating !== undefined) {
-          if (typeof video.rating === 'string') {
-            nv.rating = parseFloat(video.rating);
-          } else {
-            nv.rating = video.rating;
-          }
-        }
-
-        if (typeof video.view_count === 'string') {
-          nv.view_count = parseInt(video.view_count, 10);
-        } else if (typeof video.view_count === 'number') {
-          nv.view_count = video.view_count;
-        }
-        return nv;
+      if (video.tag !== undefined) {
+        nv.tag = !Array.isArray(video.tag) ? [video.tag] : video.tag;
       }
-    );
+
+      if (video.rating !== undefined) {
+        if (typeof video.rating === 'string') {
+          nv.rating = parseFloat(video.rating);
+        } else {
+          nv.rating = video.rating;
+        }
+      }
+
+      if (typeof video.view_count === 'string') {
+        nv.view_count = parseInt(video.view_count, 10);
+      } else if (typeof video.view_count === 'number') {
+        nv.view_count = video.view_count;
+      }
+      return nv;
+    });
   }
 
   // If given a file to use for last modified date

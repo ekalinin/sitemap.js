@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.1.0
+
+- bumped types dependency for node
+- bumped all dev dependencies - includes some prettier changes
+- package-lock updated to version 2
+
 ## 7.0.0
 
 ### [BREAKING]
