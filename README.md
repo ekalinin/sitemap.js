@@ -144,6 +144,7 @@ const {
 
 const sms = new SitemapAndIndexStream({
   limit: 50000, // defaults to 45k
+  lastmodDateOnly: false, // print date not time
   // SitemapAndIndexStream will call this user provided function every time
   // it needs to create a new sitemap file. You merely need to return a stream
   // for it to write the sitemap urls to and the expected url where that sitemap will be hosted
