@@ -90,11 +90,8 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     super(opts);
     this.i = 0;
     this.getSitemapStream = opts.getSitemapStream;
-    [
-      this.idxItem,
-      this.currentSitemap,
-      this.currentSitemapPipeline,
-    ] = this.getSitemapStream(0);
+    [this.idxItem, this.currentSitemap, this.currentSitemapPipeline] =
+      this.getSitemapStream(0);
     this.limit = opts.limit ?? 45000;
   }
 
@@ -113,11 +110,8 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
       super._transform(this.idxItem, encoding, callback);
     } else if (this.i % this.limit === 0) {
       const onFinish = () => {
-        const [
-          idxItem,
-          currentSitemap,
-          currentSitemapPipeline,
-        ] = this.getSitemapStream(this.i / this.limit);
+        const [idxItem, currentSitemap, currentSitemapPipeline] =
+          this.getSitemapStream(this.i / this.limit);
         this.currentSitemap = currentSitemap;
         this.currentSitemapPipeline = currentSitemapPipeline;
         this._writeSMI(item);

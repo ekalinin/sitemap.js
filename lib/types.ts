@@ -26,7 +26,8 @@ export const validators: { [index: string]: RegExp } = {
   restriction: /^([A-Z]{2}( +[A-Z]{2})*)?$/,
   platform: /^((web|mobile|tv)( (web|mobile|tv))*)?$/,
   language: /^zh-cn|zh-tw|([a-z]{2,3})$/,
-  genres: /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
+  genres:
+    /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
   stock_tickers: /^(\w+:\w+(, *\w+:\w+){0,4})?$/,
 };
 
