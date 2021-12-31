@@ -10,7 +10,7 @@
 const { resolve } = require('path');
 const { createReadStream, createWriteStream } = require('fs');
 const { clearLine, cursorTo } = require('readline');
-const { finished } = require('stream');
+const { finished, Readable } = require('stream');
 const { promisify } = require('util');
 const { createGunzip } = require('zlib');
 const MemoryStream = require('memorystream');
@@ -19,6 +19,8 @@ const {
   SitemapStream,
   ErrorLevel,
   streamToPromise,
+  XMLToSitemapItemStream,
+  parseSitemap,
   mergeStreams,
 } = require('../dist/index');
 const finishedP = promisify(finished);
@@ -68,7 +70,11 @@ function delay(time) {
 async function batch(durations, runNum, fn) {
   for (let i = 0; i < batchSize; i++) {
     const start = process.resourceUsage().userCPUTime;
-    await fn();
+    try {
+      await fn();
+    } catch (error) {
+      console.error(error);
+    }
     let duration;
     if (measureMemory) {
       duration = (process.resourceUsage().maxRSS / 1024 ** 2) | 0;
@@ -82,7 +88,11 @@ async function batch(durations, runNum, fn) {
 
 async function run(durations, runNum, fn) {
   if (runNum < runs) {
-    await batch(durations, ++runNum, fn);
+    try {
+      await batch(durations, ++runNum, fn);
+    } catch (error) {
+      console.error(error);
+    }
     resetLine();
     const batchStart = (runNum - 1) * batchSize;
     process.stdout.write(
@@ -103,25 +113,24 @@ async function testPerf(runs, batches, testName) {
   console.log(`runs: ${runs} batches: ${batches} total: ${runs * batches}`);
   switch (testName) {
     case 'promise':
-      console.log('testing promise');
+      console.log('testing promise JSON read');
       printPerf(
-        'stream',
-        await run([], 0, () => {
+        testName,
+        await run([], 0, async () => {
           const rs = createReadStream(
             resolve(__dirname, 'mocks', 'perf-data.json.txt')
           );
-          const ehhh = lineSeparatedURLsToSitemapOptions(rs).pipe(
-            new SitemapStream({ level: ErrorLevel.SILENT })
-          );
-          return streamToPromise(ehhh);
+          const ws = new SitemapStream({ level: ErrorLevel.SILENT });
+          lineSeparatedURLsToSitemapOptions(rs).pipe(ws);
+          return streamToPromise(ws);
         })
       );
       break;
     case 'stream-2':
       console.log('testing lots of data');
       printPerf(
-        'stream',
-        await run([], 0, () => {
+        testName,
+        await run([], 0, async () => {
           const ws = createWriteStream('/dev/null');
           const rs = createReadStream(
             resolve(__dirname, 'mocks', 'long-list.txt.gz')
@@ -129,7 +138,101 @@ async function testPerf(runs, batches, testName) {
           lineSeparatedURLsToSitemapOptions(rs.pipe(createGunzip()))
             .pipe(new SitemapStream({ level: ErrorLevel.SILENT }))
             .pipe(ws);
-          return finishedP(rs);
+          return finishedP(ws);
+        })
+      );
+      break;
+    case 'xmlstream':
+      console.log('testing XML ingest stream');
+      printPerf(
+        testName,
+        await run([], 0, async () => {
+          const sms = new SitemapStream({ level: ErrorLevel.SILENT });
+          const ws = createWriteStream('/dev/null');
+          const rs = createReadStream(
+            resolve(__dirname, 'mocks', 'perf-data.xml')
+          );
+          rs.pipe(new XMLToSitemapItemStream({ level: ErrorLevel.SILENT }))
+            .pipe(sms)
+            .pipe(ws);
+          return finishedP(ws);
+        })
+      );
+      break;
+    case 'parseSitemap':
+      console.log(
+        'testing XML ingest with parseSitemap / load into SitemapStream memory'
+      );
+
+      printPerf(
+        testName,
+        await run([], 0, async () => {
+          const rs = createReadStream(
+            resolve(__dirname, 'mocks', 'perf-data.xml')
+          );
+          const items = await parseSitemap(rs);
+          const sms = new SitemapStream({ level: ErrorLevel.SILENT });
+          const rsItems = Readable.from(items, { objectMode: true });
+          rsItems.pipe(sms);
+          return streamToPromise(sms);
+        })
+      );
+      break;
+    case 'parseSitemapStreamWrite':
+      console.log(
+        'testing XML ingest with parseSitemap / writing to /dev/null with stream'
+      );
+
+      printPerf(
+        testName,
+        await run([], 0, async () => {
+          const rs = createReadStream(
+            resolve(__dirname, 'mocks', 'perf-data.xml')
+          );
+          const ws = createWriteStream('/dev/null');
+          const items = await parseSitemap(rs);
+
+          const sms = new SitemapStream({ level: ErrorLevel.SILENT });
+          const rsItems = Readable.from(items, { objectMode: true });
+          rsItems.pipe(sms).pipe(ws);
+
+          return finishedP(ws);
+        })
+      );
+      break;
+    case 'parseSitemapLoopWrite':
+      console.log(
+        'testing XML ingest with parseSitemap / writing to /dev/null with await loop'
+      );
+
+      printPerf(
+        testName,
+        await run([], 0, async () => {
+          const sms = new SitemapStream({ level: ErrorLevel.SILENT });
+          const ws = createWriteStream('/dev/null');
+          const rs = createReadStream(
+            resolve(__dirname, 'mocks', 'perf-data.xml')
+          );
+          const items = await parseSitemap(rs);
+
+          sms.pipe(ws);
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            await (async () =>
+              new Promise((resolve, reject) => {
+                sms.write(item, (error) => {
+                  if (error !== undefined && error !== null) {
+                    reject(error);
+                  } else {
+                    resolve();
+                  }
+                });
+              }))();
+          }
+
+          // End the input stream
+          sms.end();
+          return finishedP(ws);
         })
       );
       break;
@@ -172,8 +275,9 @@ async function testPerf(runs, batches, testName) {
     default:
       console.log('testing stream');
       printPerf(
+        // Hard-code the test label for the default case only
         'stream',
-        await run([], 0, () => {
+        await run([], 0, async () => {
           const ws = createWriteStream('/dev/null');
           const rs = createReadStream(
             resolve(__dirname, 'mocks', 'perf-data.json.txt')
@@ -181,7 +285,7 @@ async function testPerf(runs, batches, testName) {
           lineSeparatedURLsToSitemapOptions(rs)
             .pipe(new SitemapStream({ level: ErrorLevel.SILENT }))
             .pipe(ws);
-          return finishedP(rs);
+          await finishedP(ws);
         })
       );
   }
