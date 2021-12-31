@@ -465,7 +465,7 @@ export class XMLToSitemapItemStream extends Transform {
       this.saxStream.write(data, encoding);
       callback();
     } catch (error) {
-      callback(error);
+      callback(error as Error);
     }
   }
 }
