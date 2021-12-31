@@ -20,6 +20,16 @@ describe('parseSitemapIndex', () => {
     );
     expect(urls).toEqual(normalizedSample.sitemaps);
   });
+
+  it('rejects malformed file', async () => {
+    await expect(async () =>
+      parseSitemapIndex(
+        createReadStream(resolve(__dirname, './mocks/index-unescaped-lt.xml'), {
+          encoding: 'utf8',
+        })
+      )
+    ).rejects.toThrow();
+  });
 });
 
 describe('XMLToSitemapIndexItemStream', () => {
