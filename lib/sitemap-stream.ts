@@ -7,7 +7,7 @@ import {
 } from 'stream';
 import { SitemapItemLoose, ErrorLevel, ErrorHandler } from './types';
 import { validateSMIOptions, normalizeURL } from './utils';
-import { SitemapItemStream } from './sitemap-item-stream';
+import { SitemapItemToXMLString } from './sitemap-item-stream';
 import { EmptyStream, EmptySitemap } from './errors';
 
 const xmlDec = '<?xml version="1.0" encoding="UTF-8"?>';
@@ -60,6 +60,26 @@ const getURLSetNs: (opts: NSArgs, xslURL?: string) => string = (
 
 export const closetag = '</urlset>';
 export interface SitemapStreamOptions extends TransformOptions {
+  /**
+   * Byte limit to allow in the sitemap
+   *
+   * Sitemaps are supposed to be 50 MB or less in total size
+   *
+   * Writing throws if count would be exceeded by the write
+   *
+   * @default unlimited
+   */
+  byteLimit?: number;
+  /**
+   * Count of items to allow in the sitemap
+   *
+   * Sitemaps are supposed to have 50,000 or less items
+   *
+   * Writing throws if count would be exceeded by the write
+   *
+   * @default unlimited
+   */
+  countLimit?: number;
   hostname?: string;
   level?: ErrorLevel;
   lastmodDateOnly?: boolean;
@@ -84,14 +104,19 @@ const defaultStreamOpts: SitemapStreamOptions = {
  * Sitemap. The readable stream it transforms **must** be in object mode.
  */
 export class SitemapStream extends Transform {
-  hostname?: string;
-  level: ErrorLevel;
-  hasHeadOutput: boolean;
-  xmlNS: NSArgs;
-  xslUrl?: string;
-  errorHandler?: ErrorHandler;
-  private smiStream: SitemapItemStream;
-  lastmodDateOnly: boolean;
+  private byteLimit?: number;
+  private countLimit?: number;
+  private hostname?: string;
+  private level: ErrorLevel;
+  private hasHeadOutput: boolean;
+  private xmlNS: NSArgs;
+  private xslUrl?: string;
+  private errorHandler?: ErrorHandler;
+  private lastmodDateOnly: boolean;
+  private _itemCount: number;
+  private _byteCount: number;
+  private _wroteCloseTag: boolean;
+
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
@@ -99,11 +124,26 @@ export class SitemapStream extends Transform {
     this.hostname = opts.hostname;
     this.level = opts.level || ErrorLevel.WARN;
     this.errorHandler = opts.errorHandler;
-    this.smiStream = new SitemapItemStream({ level: opts.level });
-    this.smiStream.on('data', (data) => this.push(data));
     this.lastmodDateOnly = opts.lastmodDateOnly || false;
     this.xmlNS = opts.xmlns || defaultXMLNS;
     this.xslUrl = opts.xslUrl;
+    this.byteLimit = opts.byteLimit;
+    this.countLimit = opts.countLimit;
+    this._byteCount = 0;
+    this._itemCount = 0;
+    this._wroteCloseTag = false;
+  }
+
+  public get byteCount(): number {
+    return this._byteCount;
+  }
+
+  public get itemCount(): number {
+    return this._itemCount;
+  }
+
+  public get wroteCloseTag(): boolean {
+    return this._wroteCloseTag;
   }
 
   _transform(
@@ -112,23 +152,67 @@ export class SitemapStream extends Transform {
     callback: TransformCallback
   ): void {
     if (!this.hasHeadOutput) {
+      // Add the opening tag size and closing tag size (since we have to close)
       this.hasHeadOutput = true;
-      this.push(getURLSetNs(this.xmlNS, this.xslUrl));
+      const headOutput = getURLSetNs(this.xmlNS, this.xslUrl);
+      this._byteCount += headOutput.length + closetag.length;
+      this.push(headOutput);
     }
-    this.smiStream.write(
+
+    // Reject if item limit would be exceeded
+    if (this.countLimit !== undefined && this._itemCount === this.countLimit) {
+      // Write the close tag as the stream will be ended by raising an error
+      this.push(closetag);
+      this._wroteCloseTag = true;
+
+      callback(
+        new Error(
+          'Item count limit would be exceeded, not writing, stream will close'
+        )
+      );
+      return;
+    }
+
+    const itemOutput = SitemapItemToXMLString(
       validateSMIOptions(
         normalizeURL(item, this.hostname, this.lastmodDateOnly),
         this.level,
         this.errorHandler
       )
     );
+
+    // Check if the size would be exceeded by the new item
+    // and throw if it would exceed (when size limit enabled)
+    if (this.byteLimit !== undefined) {
+      if (this._byteCount + itemOutput.length > this.byteLimit) {
+        // Write the close tag as the stream will be ended by raising an error
+        this.push(closetag);
+        this._wroteCloseTag = true;
+
+        callback(
+          new Error(
+            'Byte count limit would be exceeded, not writing, stream will close'
+          )
+        );
+        return;
+      }
+    }
+
+    this.push(itemOutput);
+    this._byteCount += itemOutput.length;
+    this._itemCount += 1;
+
     callback();
   }
 
   _flush(cb: TransformCallback): void {
-    if (!this.hasHeadOutput) {
+    if (this._wroteCloseTag) {
+      cb();
+    } else if (!this.hasHeadOutput) {
+      this._wroteCloseTag = true;
       cb(new EmptySitemap());
     } else {
+      this._wroteCloseTag = true;
       this.push(closetag);
       cb();
     }
@@ -151,7 +235,7 @@ export function streamToPromise(stream: Readable): Promise<Buffer> {
           },
         })
       )
-      .on('error', reject)
+      .on('error', () => reject)
       .on('finish', () => {
         if (!drain.length) {
           reject(new EmptyStream());
