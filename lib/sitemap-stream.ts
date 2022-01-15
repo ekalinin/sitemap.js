@@ -10,6 +10,28 @@ import { validateSMIOptions, normalizeURL } from './utils';
 import { SitemapItemToXMLString } from './sitemap-item-stream';
 import { EmptyStream, EmptySitemap } from './errors';
 
+export class ByteLimitExceededError extends Error {
+  constructor(m: string) {
+    super(m);
+
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, ByteLimitExceededError.prototype);
+  }
+
+  public readonly name: string = 'ByteLimitExceededError';
+}
+
+export class CountLimitExceededError extends Error {
+  constructor(m: string) {
+    super(m);
+
+    // Set the prototype explicitly.
+    Object.setPrototypeOf(this, CountLimitExceededError.prototype);
+  }
+
+  public readonly name: string = 'CountLimitExceededError';
+}
+
 const xmlDec = '<?xml version="1.0" encoding="UTF-8"?>';
 export const stylesheetInclude = (url: string): string => {
   return `<?xml-stylesheet type="text/xsl" href="${url}"?>`;
@@ -166,7 +188,7 @@ export class SitemapStream extends Transform {
       this._wroteCloseTag = true;
 
       callback(
-        new Error(
+        new CountLimitExceededError(
           'Item count limit would be exceeded, not writing, stream will close'
         )
       );
@@ -190,7 +212,7 @@ export class SitemapStream extends Transform {
         this._wroteCloseTag = true;
 
         callback(
-          new Error(
+          new ByteLimitExceededError(
             'Byte count limit would be exceeded, not writing, stream will close'
           )
         );
