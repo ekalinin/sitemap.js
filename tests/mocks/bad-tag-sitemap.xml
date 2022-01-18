@@ -105,19 +105,19 @@
     <changefreq>always</changefreq>
     <priority>0.9</priority>
     <image:image>
-      <image:loc>http://urltest.com&amp;&gt;&lt;'"/</image:loc>
+      <image:loc>http://urltest.com/&amp;&gt;&lt;'"/</image:loc>
     </image:image>
     <image:image>
       <image:loc>http://example.com/img.jpg&amp;%3E%3C'%22</image:loc>
     </image:image>
   </url>
   <url>
-    <loc>http://example.com&amp;&gt;&lt;'"/</loc>
+    <loc>http://example.com/&amp;&gt;&lt;'"/</loc>
     <lastmod>2011-06-27T00:00:00.000Z</lastmod>
     <changefreq>always</changefreq>
     <priority>0.9</priority>
     <image:image>
-      <image:loc>http://urltest.com&amp;&gt;&lt;'"/</image:loc>
+      <image:loc>http://urltest.com/&amp;&gt;&lt;'"/</image:loc>
     </image:image>
   </url>
 </urlset>

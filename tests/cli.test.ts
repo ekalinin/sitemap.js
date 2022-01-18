@@ -115,9 +115,7 @@ describe('cli', () => {
     let json;
     let threw = false;
     try {
-      const {
-        stdout,
-      } = await exec(
+      const { stdout } = await exec(
         'node ./dist/cli.js --parse --single-line-json < ./tests/mocks/alltags.xml',
         { encoding: 'utf8' }
       );
@@ -133,9 +131,7 @@ describe('cli', () => {
     let threw = false;
     let json;
     try {
-      const {
-        stdout,
-      } = await exec(
+      const { stdout } = await exec(
         'node ./dist/cli.js --parse --single-line-json ./tests/mocks/alltags.xml',
         { encoding: 'utf8' }
       );
@@ -145,6 +141,22 @@ describe('cli', () => {
     }
     expect(threw).toBe(false);
     expect(json).toEqual(normalizedSample.urls);
+  });
+
+  it('exits with an error while parsing a bad xml file', async () => {
+    let threw = false;
+    let json;
+    try {
+      const { stdout } = await exec(
+        'node ./dist/cli.js --parse --single-line-json ./tests/mocks/bad-tag-sitemap.xml',
+        { encoding: 'utf8' }
+      );
+      json = JSON.parse(stdout);
+    } catch (e) {
+      threw = true;
+    }
+    expect(threw).toBe(true);
+    expect(json).toBeUndefined();
   });
 
   it('validates xml piped in', (done) => {

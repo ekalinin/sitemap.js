@@ -6,16 +6,23 @@ const { SitemapStream } = require('../dist/index');
 const Pick = require('stream-json/filters/Pick');
 const { streamArray } = require('stream-json/streamers/StreamArray');
 const map = require('through2-map');
+const { pipeline } = require('stream/promises');
 
-// parsing JSON file
-fs.createReadStream(resolve(__dirname, 'mocks', 'sampleconfig.json'))
-  .pipe(Pick.withParser({ filter: 'urls' }))
-  .pipe(streamArray())
-  .pipe(map.obj((chunk) => chunk.value))
-  // SitemapStream does the heavy lifting
-  // You must provide it with an object stream
-  .pipe(new SitemapStream({ hostname: 'https://roosterteeth.com?&><\'"' }))
-  .pipe(process.stdout);
+async function run() {
+  // parsing JSON file
+
+  await pipeline(
+    fs.createReadStream(resolve(__dirname, 'mocks', 'sampleconfig.json')),
+    Pick.withParser({ filter: 'urls' }),
+    streamArray(),
+    map.obj((chunk) => chunk.value),
+    // SitemapStream does the heavy lifting
+    // You must provide it with an object stream
+    new SitemapStream({ hostname: 'https://roosterteeth.com?&><\'"' }),
+    process.stdout
+  );
+}
+run();
 /*
 let urls = []
 config.urls.forEach((smi) => {
