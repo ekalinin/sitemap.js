@@ -141,7 +141,7 @@
       "url": "http://example.com/1&%3E%3C'%22",
       "img": [
         {
-          "url": "http://urltest.com&><'\"/"
+          "url": "http://urltest.com/&><'\"/"
         },
         {
           "url": "http://example.com/img.jpg&%3E%3C'%22"
@@ -154,10 +154,10 @@
       "links": []
     },
     {
-      "url": "http://example.com&><'\"/",
+      "url": "http://example.com/&><'\"/",
       "img": [
         {
-          "url": "http://urltest.com&><'\"/"
+          "url": "http://urltest.com/&><'\"/"
         }
       ],
       "lastmod": "2011-06-27T00:00:00.000Z",

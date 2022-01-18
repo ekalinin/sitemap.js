@@ -81,10 +81,13 @@ const defaultStreamOpts: XMLToSitemapItemStreamOptions = {
 export class XMLToSitemapItemStream extends Transform {
   level: ErrorLevel;
   logger: Logger;
+  error: Error | null;
   saxStream: SAXStream;
+
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
+    this.error = null;
     this.saxStream = sax.createStream(true, {
       xmlns: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -135,10 +138,12 @@ export class XMLToSitemapItemStream extends Transform {
             currentItem.ampLink = tag.attributes.href.value;
           } else {
             this.logger('log', 'unhandled attr for xhtml:link', tag.attributes);
+            this.err(`unhandled attr for xhtml:link ${tag.attributes}`);
           }
         }
       } else {
         this.logger('warn', 'unhandled tag', tag.name);
+        this.err(`unhandled tag: ${tag.name}`);
       }
     });
 
@@ -308,6 +313,8 @@ export class XMLToSitemapItemStream extends Transform {
             currentTag,
             `'${text}'`
           );
+
+          this.err(`unhandled text for tag: ${currentTag} '${text}'`);
           break;
       }
     });
@@ -349,6 +356,7 @@ export class XMLToSitemapItemStream extends Transform {
 
         default:
           this.logger('log', 'unhandled cdata for tag:', currentTag);
+          this.err(`unhandled cdata for tag: ${currentTag}`);
           break;
       }
     });
@@ -364,6 +372,7 @@ export class XMLToSitemapItemStream extends Transform {
             currentVideo['restriction:relationship'] = attr.value;
           } else {
             this.logger('log', 'unhandled attr', currentTag, attr.name);
+            this.err(`unhandled attr: ${currentTag} ${attr.name}`);
           }
           break;
         case TagNames['video:price']:
@@ -375,6 +384,7 @@ export class XMLToSitemapItemStream extends Transform {
             currentVideo['price:resolution'] = attr.value;
           } else {
             this.logger('log', 'unhandled attr for video:price', attr.name);
+            this.err(`unhandled attr: ${currentTag} ${attr.name}`);
           }
           break;
         case TagNames['video:player_loc']:
@@ -388,6 +398,8 @@ export class XMLToSitemapItemStream extends Transform {
               'unhandled attr for video:player_loc',
               attr.name
             );
+
+            this.err(`unhandled attr: ${currentTag} ${attr.name}`);
           }
           break;
         case TagNames['video:platform']:
@@ -400,6 +412,10 @@ export class XMLToSitemapItemStream extends Transform {
               attr.name,
               attr.value
             );
+
+            this.err(
+              `unhandled attr: ${currentTag} ${attr.name} ${attr.value}`
+            );
           }
           break;
         case TagNames['video:gallery_loc']:
@@ -411,6 +427,8 @@ export class XMLToSitemapItemStream extends Transform {
               'unhandled attr for video:galler_loc',
               attr.name
             );
+
+            this.err(`unhandled attr: ${currentTag} ${attr.name}`);
           }
           break;
         case TagNames['video:uploader']:
@@ -418,10 +436,14 @@ export class XMLToSitemapItemStream extends Transform {
             currentVideo['uploader:info'] = attr.value;
           } else {
             this.logger('log', 'unhandled attr for video:uploader', attr.name);
+
+            this.err(`unhandled attr: ${currentTag} ${attr.name}`);
           }
           break;
         default:
           this.logger('log', 'unhandled attr', currentTag, attr.name);
+
+          this.err(`unhandled attr: ${currentTag} ${attr.name}`);
       }
     });
 
@@ -463,10 +485,14 @@ export class XMLToSitemapItemStream extends Transform {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this.saxStream.write(data, encoding);
-      callback();
+      callback(this.level === ErrorLevel.THROW ? this.error : null);
     } catch (error) {
       callback(error as Error);
     }
+  }
+
+  private err(msg: string) {
+    if (!this.error) this.error = new Error(msg);
   }
 }
 

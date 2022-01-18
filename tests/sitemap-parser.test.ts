@@ -94,6 +94,43 @@ describe('XMLToSitemapItemStream', () => {
     expect(logger.mock.calls.length).toBe(0);
   });
 
+  it('stream parses good XML - at a noisy setting without throwing', async () => {
+    const sitemap: SitemapStreamOptions[] = [];
+    await pipeline(
+      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+        encoding: 'utf8',
+      }),
+      new XMLToSitemapItemStream({ level: ErrorLevel.THROW }),
+      new Writable({
+        objectMode: true,
+        write(chunk, a, cb): void {
+          sitemap.push(chunk);
+          cb();
+        },
+      })
+    );
+    expect(sitemap).toEqual(normalizedSample.urls);
+  });
+
+  it('stream parses bad XML - noisily', async () => {
+    const sitemap: SitemapStreamOptions[] = [];
+    expect(() =>
+      pipeline(
+        createReadStream(resolve(__dirname, './mocks/bad-tag-sitemap.xml'), {
+          encoding: 'utf8',
+        }),
+        new XMLToSitemapItemStream({ level: ErrorLevel.THROW }),
+        new Writable({
+          objectMode: true,
+          write(chunk, a, cb): void {
+            sitemap.push(chunk);
+            cb();
+          },
+        })
+      )
+    ).rejects.toThrow();
+  });
+
   it('stream parses XML with cdata', async () => {
     const sitemap: SitemapStreamOptions[] = [];
     await pipeline(
