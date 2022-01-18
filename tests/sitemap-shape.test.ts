@@ -16,6 +16,9 @@ import {
   normalizeURL,
   SitemapStream,
   SitemapItemStream,
+  parseSitemapIndex,
+  XMLToSitemapIndexStream,
+  IndexObjectStreamToJSON,
 } from '../index';
 
 describe('sitemap shape', () => {
@@ -37,5 +40,8 @@ describe('sitemap shape', () => {
     expect(normalizeURL).toBeDefined();
     expect(SitemapStream).toBeDefined();
     expect(SitemapItemStream).toBeDefined();
+    expect(parseSitemapIndex).toBeDefined();
+    expect(XMLToSitemapIndexStream).toBeDefined();
+    expect(IndexObjectStreamToJSON).toBeDefined();
   });
 });
