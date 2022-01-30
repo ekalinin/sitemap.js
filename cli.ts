@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Readable } from 'stream';
-import { createReadStream, createWriteStream } from 'fs';
+import { createReadStream, createWriteStream, WriteStream } from 'fs';
 import { xmlLint } from './lib/xmllint';
 import { XMLLintUnavailable } from './lib/errors';
 import {
@@ -12,7 +12,7 @@ import { SitemapStream } from './lib/sitemap-stream';
 import { SitemapAndIndexStream } from './lib/sitemap-index-stream';
 import { URL } from 'url';
 import { createGzip, Gzip } from 'zlib';
-import { WriteStream } from 'node:fs';
+import { ErrorLevel } from './lib/types';
 /* eslint-disable-next-line @typescript-eslint/no-var-requires */
 const arg = require('arg');
 
@@ -84,7 +84,7 @@ Use XMLLib to validate your sitemap (requires xmllib)
 `);
 } else if (argv['--parse']) {
   let oStream: ObjectStreamToJSON | Gzip = getStream()
-    .pipe(new XMLToSitemapItemStream())
+    .pipe(new XMLToSitemapItemStream({ level: ErrorLevel.THROW }))
     .pipe(
       new ObjectStreamToJSON({ lineSeparated: !argv['--single-line-json'] })
     );

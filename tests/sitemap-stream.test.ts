@@ -214,6 +214,7 @@ describe('sitemap stream', () => {
     sms.write(source[0]);
     sms.write(source[1]);
     sms.end();
+    await new Promise((resolve) => sms.on('finish', resolve));
     expect(errorHandlerMock.mock.calls.length).toBe(1);
     expect((await streamToPromise(sms)).toString()).toBe(
       preamble +

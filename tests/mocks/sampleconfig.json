@@ -127,7 +127,7 @@
     {
       "url": "http://example.com/1&><'\"",
       "img": [
-        "http://urlTest.com&><'\"",
+        "http://urlTest.com/&><'\"",
         "http://example.com/img.jpg&><'\""
       ],
       "lastmod": "2011-06-27",
@@ -135,8 +135,8 @@
       "priority": 0.9
     },
     {
-      "url": "http://example.com&><'\"",
-      "img": "http://urlTest.com&><'\"",
+      "url": "http://example.com/&><'\"",
+      "img": "http://urlTest.com/&><'\"",
       "lastmod": "2011-06-27",
       "changefreq": "always",
       "priority": 0.9

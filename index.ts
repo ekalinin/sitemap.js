@@ -38,5 +38,12 @@ export {
   ObjectStreamToJSON,
   ObjectStreamToJSONOptions,
 } from './lib/sitemap-parser';
+export {
+  parseSitemapIndex,
+  XMLToSitemapIndexStream,
+  XMLToSitemapIndexItemStreamOptions,
+  IndexObjectStreamToJSON,
+  IndexObjectStreamToJSONOptions,
+} from './lib/sitemap-index-parser';
 
 export { simpleSitemapAndIndex } from './lib/sitemap-simple';
