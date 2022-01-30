@@ -115,14 +115,19 @@ export class SitemapStream extends Transform {
       this.hasHeadOutput = true;
       this.push(getURLSetNs(this.xmlNS, this.xslUrl));
     }
-    this.smiStream.write(
-      validateSMIOptions(
-        normalizeURL(item, this.hostname, this.lastmodDateOnly),
-        this.level,
-        this.errorHandler
+    if (
+      !this.smiStream.write(
+        validateSMIOptions(
+          normalizeURL(item, this.hostname, this.lastmodDateOnly),
+          this.level,
+          this.errorHandler
+        )
       )
-    );
-    callback();
+    ) {
+      this.smiStream.once('drain', callback);
+    } else {
+      process.nextTick(callback);
+    }
   }
 
   _flush(cb: TransformCallback): void {
