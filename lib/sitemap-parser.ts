@@ -480,12 +480,17 @@ export class XMLToSitemapItemStream extends Transform {
     callback: TransformCallback
   ): void {
     try {
+      const cb = () =>
+        callback(this.level === ErrorLevel.THROW ? this.error : null);
       // correcting the type here can be done without making it a breaking change
       // TODO fix this
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      this.saxStream.write(data, encoding);
-      callback(this.level === ErrorLevel.THROW ? this.error : null);
+      if (!this.saxStream.write(data, encoding)) {
+        this.saxStream.once('drain', cb);
+      } else {
+        process.nextTick(cb);
+      }
     } catch (error) {
       callback(error as Error);
     }

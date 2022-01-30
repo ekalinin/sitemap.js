@@ -102,9 +102,13 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     this.limit = opts.limit ?? 45000;
   }
 
-  _writeSMI(item: SitemapItemLoose): void {
-    this.currentSitemap.write(item);
+  _writeSMI(item: SitemapItemLoose, callback: () => void): void {
     this.i++;
+    if (!this.currentSitemap.write(item)) {
+      this.currentSitemap.once('drain', callback);
+    } else {
+      process.nextTick(callback);
+    }
   }
 
   _transform(
@@ -113,25 +117,27 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     callback: TransformCallback
   ): void {
     if (this.i === 0) {
-      this._writeSMI(item);
-      super._transform(this.idxItem, encoding, callback);
+      this._writeSMI(item, () =>
+        super._transform(this.idxItem, encoding, callback)
+      );
     } else if (this.i % this.limit === 0) {
       const onFinish = () => {
         const [idxItem, currentSitemap, currentSitemapPipeline] =
           this.getSitemapStream(this.i / this.limit);
         this.currentSitemap = currentSitemap;
         this.currentSitemapPipeline = currentSitemapPipeline;
-        this._writeSMI(item);
         // push to index stream
-        super._transform(idxItem, encoding, callback);
+        this._writeSMI(item, () =>
+          // push to index stream
+          super._transform(idxItem, encoding, callback)
+        );
       };
       this.currentSitemapPipeline?.on('finish', onFinish);
       this.currentSitemap.end(
         !this.currentSitemapPipeline ? onFinish : undefined
       );
     } else {
-      this._writeSMI(item);
-      callback();
+      this._writeSMI(item, callback);
     }
   }
 
