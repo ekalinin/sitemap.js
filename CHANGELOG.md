@@ -1,11 +1,18 @@
 # Changelog
 
+## 7.1.1
+
+- fix #378 exit code not set on parse failure. A proper error will be set on the stream now.
+- fix #384 thanks @tomcek112 parseSitemapIndex not included in 7.1.0 release
+- fix #356 thanks @vandres - SitemapIndexStream now has lastmodDateOnly
+- Fix #375 thanks @huntharo parseSitemap and parseSitemapIndex uncatchable errors 
+- Filter out null as well when writing XML thanks @huntharo #376
+
 ## 7.1.0
 
 - bumped types dependency for node
 - bumped all dev dependencies - includes some prettier changes
 - package-lock updated to version 2
-- fix #378 exit code not set on parse failure. A proper error will be set on the stream now.
 
 ## 7.0.0
 
