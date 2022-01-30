@@ -83,12 +83,13 @@ describe('sitemap stream', () => {
     sms.write(source[0]);
     sms.write(source[1]);
     sms.end();
+    await new Promise((resolve) => sms.on('finish', resolve));
+    expect(errorHandlerMock.mock.calls.length).toBe(1);
     expect((await streamToPromise(sms)).toString()).toBe(
       preamble +
         `<url><loc>https://example.com/</loc><changefreq>daily</changefreq></url>` +
         `<url><loc>https://example.com/path</loc><changefreq>invalid</changefreq></url>` +
         closetag
     );
-    expect(errorHandlerMock.mock.calls.length).toBe(1);
   });
 });
