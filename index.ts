@@ -6,6 +6,7 @@
 export {
   SitemapItemStream,
   SitemapItemStreamOptions,
+  SitemapItemToXMLString,
 } from './lib/sitemap-item-stream';
 export {
   IndexTagNames,
