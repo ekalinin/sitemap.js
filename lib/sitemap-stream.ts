@@ -81,7 +81,7 @@ const getURLSetNs: (opts: NSArgs, xslURL?: string) => string = (
 };
 
 export const closetag = '</urlset>';
-const closetagLen = Buffer.byteLength('</urlset>');
+const closetagLen = Buffer.byteLength(closetag);
 export interface SitemapStreamOptions extends TransformOptions {
   /**
    * Byte limit to allow in the sitemap
@@ -178,7 +178,7 @@ export class SitemapStream extends Transform {
       // Add the opening tag size and closing tag size (since we have to close)
       this.hasHeadOutput = true;
       const headOutput = getURLSetNs(this.xmlNS, this.xslUrl);
-      this._byteCount += headOutput.length + closetag.length;
+      this._byteCount += Buffer.byteLength(headOutput) + closetagLen;
       this.push(headOutput);
     }
 
@@ -207,10 +207,7 @@ export class SitemapStream extends Transform {
     // Check if the size would be exceeded by the new item
     // and throw if it would exceed (when size limit enabled)
     if (this.byteLimit !== undefined) {
-      if (
-        this._byteCount + Buffer.byteLength(itemOutput) >
-        this.byteLimit - closetagLen
-      ) {
+      if (this._byteCount + Buffer.byteLength(itemOutput) > this.byteLimit) {
         // Write the close tag as the stream will be ended by raising an error
         this.push(closetag);
         this._wroteCloseTag = true;
