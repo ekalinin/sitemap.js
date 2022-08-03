@@ -37,6 +37,16 @@ describe('simpleSitemapAndIndex', () => {
     ]);
   });
 
+  afterEach(() => {
+    removeFilesArray([
+      resolve(targetFolder, `./sitemap-index.xml.gz`),
+      resolve(targetFolder, `./0.xml`),
+      resolve(targetFolder, `./1.xml`),
+      resolve(targetFolder, `./2.xml`),
+      resolve(targetFolder, `./3.xml`),
+    ]);
+  });
+
   it('writes both a sitemap and index', async () => {
     const baseURL = 'https://example.com/sub/';
 
@@ -302,5 +312,43 @@ describe('simpleSitemapAndIndex', () => {
       createReadStream(resolve(destinationDir, `./sitemap-0.xml`))
     );
     expect(xml.toString()).toContain('1.example.com');
+  });
+
+  it('able to generate sitemap names with provided generator', async () => {
+    const baseURL = 'https://example.com/sub/';
+
+    await simpleSitemapAndIndex({
+      hostname: baseURL,
+      sourceData: [
+        'https://1.example.com/a',
+        'https://2.example.com/a',
+        'https://3.example.com/a',
+        'https://4.example.com/a',
+      ],
+      destinationDir: targetFolder,
+      limit: 1,
+      nameGenerator: (index) => `${index}.xml`,
+      gzip: false,
+    });
+
+    const index = (
+      await streamToPromise(
+        createReadStream(resolve(targetFolder, `./sitemap-index.xml`))
+      )
+    ).toString();
+    expect(index).toContain(`${baseURL}0`);
+    expect(index).toContain(`${baseURL}1`);
+    expect(index).toContain(`${baseURL}2`);
+    expect(index).toContain(`${baseURL}3`);
+    expect(index).not.toContain(`${baseURL}4`);
+    expect(existsSync(resolve(targetFolder, './0.xml'))).toBe(true);
+    expect(existsSync(resolve(targetFolder, './1.xml'))).toBe(true);
+    expect(existsSync(resolve(targetFolder, './2.xml'))).toBe(true);
+    expect(existsSync(resolve(targetFolder, './3.xml'))).toBe(true);
+    expect(existsSync(resolve(targetFolder, './4.xml'))).toBe(false);
+    const xml = await streamToPromise(
+      createReadStream(resolve(targetFolder, './0.xml'))
+    );
+    expect(xml.toString()).toContain('https://1.example.com/a');
   });
 });
