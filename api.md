@@ -255,6 +255,7 @@ Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_top
 |price:currency| string - optional|"USD"|currency [Required] Specifies the currency in ISO 4217 format.|
 |price:type|string - optional|"rent"|type [Optional] Specifies the purchase option. Supported values are rent and own. |
 |uploader|string - optional|"GrillyMcGrillerson"|The video uploader's name. Only one <video:uploader> is allowed per video. String value, max 255 characters.|
+|uploader:info|string - optional|"https://example.com/about"|Specifies the URL of a webpage with additional information about this uploader. This URL must be in the same domain as the `<loc>` tag.
 |platform|string - optional|"tv"|Whether to show or hide your video in search results on specified platform types. This is a list of space-delimited platform types. See <https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190> for more detail|
 |platform:relationship|string 'Allow'\|'Deny' - optional|'Allow'||
 |id|string - optional|||
