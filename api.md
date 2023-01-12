@@ -53,7 +53,7 @@ createReadStream('./some/sitemap.xml')
 // turn the xml into sitemap option item options
 .pipe(new XMLToSitemapItemStream({
   // optional
-  level: ErrorLevel.Warn // default is WARN pass Silent to silence
+  level: ErrorLevel.WARN, // default is WARN pass Silent to silence
   logger: false // default is console log, pass false as another way to silence or your own custom logger
 }))
 // convert the object stream to JSON
