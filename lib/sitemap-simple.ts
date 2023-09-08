@@ -1,8 +1,6 @@
-import {
-  SitemapAndIndexStream,
-  SitemapStream,
-  lineSeparatedURLsToSitemapOptions,
-} from '../index';
+import { SitemapAndIndexStream } from './sitemap-index-stream';
+import { SitemapStream } from './sitemap-stream';
+import { lineSeparatedURLsToSitemapOptions } from './utils';
 import { createGzip } from 'zlib';
 import { createWriteStream, createReadStream, promises } from 'fs';
 import { normalize, resolve } from 'path';
