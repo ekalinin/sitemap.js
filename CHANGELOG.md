@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.1.2
+
+- fix #425 via #426 update streamToPromise to bubble up errors + jsDoc
+- non-breaking updates of dependent packages
+
 ## 7.1.1
 
 - fix #378 exit code not set on parse failure. A proper error will be set on the stream now.
