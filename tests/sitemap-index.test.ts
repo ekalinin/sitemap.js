@@ -193,6 +193,12 @@ describe('sitemapAndIndex', () => {
           resolve(join(targetFolder, 'does', 'not', 'exist'), path)
         );
 
+        // Streams do not automatically propagate errors
+        // We must propagate this up to the SitemapStream
+        outputStream.on('error', (err) => {
+          sm.emit('error', err);
+        });
+
         const ws = sm.pipe(outputStream);
         return [new URL(path, baseURL).toString(), sm, ws];
       },
@@ -202,7 +208,10 @@ describe('sitemapAndIndex', () => {
     sms.write('https://3.example.com/a');
     sms.write('https://4.example.com/a');
     sms.end();
-    await finished(sms);
+    await expect(finished(sms)).rejects.toThrow(
+      'ENOENT: no such file or directory, open'
+    );
+
     expect(
       existsSync(
         resolve(join(targetFolder, 'does', 'not', 'exist'), `./sitemap-0.xml`)

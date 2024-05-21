@@ -99,6 +99,7 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     this.getSitemapStream = opts.getSitemapStream;
     [this.idxItem, this.currentSitemap, this.currentSitemapPipeline] =
       this.getSitemapStream(0);
+    this.currentSitemap.on('error', (err) => this.emit('error', err));
     this.limit = opts.limit ?? 45000;
   }
 
@@ -124,6 +125,7 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
       const onFinish = () => {
         const [idxItem, currentSitemap, currentSitemapPipeline] =
           this.getSitemapStream(this.i / this.limit);
+        currentSitemap.on('error', (err) => this.emit('error', err));
         this.currentSitemap = currentSitemap;
         this.currentSitemapPipeline = currentSitemapPipeline;
         // push to index stream
