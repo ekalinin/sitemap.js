@@ -1,6 +1,6 @@
 import { SitemapStream } from '../index';
 import { tmpdir } from 'os';
-import { resolve } from 'path';
+import { resolve, join } from 'path';
 import {
   existsSync,
   unlinkSync,
@@ -12,6 +12,7 @@ import {
   SitemapAndIndexStream,
 } from '../lib/sitemap-index-stream';
 import { streamToPromise } from '../dist';
+import { finished } from 'node:stream/promises';
 import { WriteStream } from 'node:fs';
 /* eslint-env jest, jasmine */
 function removeFilesArray(files): void {
@@ -174,5 +175,38 @@ describe('sitemapAndIndex', () => {
       createReadStream(resolve(targetFolder, `./sitemap-0.xml`))
     );
     expect(xml.toString()).toContain('https://1.example.com/a');
+  });
+
+  it('propagates error from sitemap stream that cannot be written', async () => {
+    const baseURL = 'https://example.com/sub/';
+
+    const sms = new SitemapAndIndexStream({
+      limit: 1,
+      getSitemapStream: (i: number): [string, SitemapStream, WriteStream] => {
+        const sm = new SitemapStream();
+        const path = `./sitemap-${i}.xml`;
+
+        // This will not throw even though it will fail
+        // `outputStream.writable === true`
+        // `outputStream.closed === false`
+        const outputStream = createWriteStream(
+          resolve(join(targetFolder, 'does', 'not', 'exist'), path)
+        );
+
+        const ws = sm.pipe(outputStream);
+        return [new URL(path, baseURL).toString(), sm, ws];
+      },
+    });
+    sms.write('https://1.example.com/a');
+    sms.write('https://2.example.com/a');
+    sms.write('https://3.example.com/a');
+    sms.write('https://4.example.com/a');
+    sms.end();
+    await finished(sms);
+    expect(
+      existsSync(
+        resolve(join(targetFolder, 'does', 'not', 'exist'), `./sitemap-0.xml`)
+      )
+    ).toBe(false);
   });
 });
