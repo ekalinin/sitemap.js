@@ -1,11 +1,13 @@
+import { createReadStream } from 'fs';
 import { tmpdir } from 'os';
+import { resolve } from 'path';
+import { Readable } from 'stream';
+import { EmptyStream } from '../lib/errors';
 import {
   SitemapStream,
   closetag,
   streamToPromise,
 } from '../lib/sitemap-stream';
-import { createReadStream } from 'fs';
-import { resolve } from 'path';
 
 const minimumns =
   '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
@@ -102,5 +104,25 @@ describe('sitemap stream', () => {
         createReadStream(resolve(tmpdir(), `./does-not-exist-sitemap.xml`))
       )
     ).rejects.toThrow('ENOENT');
+  });
+
+  it('streamToPromise throws EmptyStream error on empty stream', async () => {
+    const emptyStream = new Readable();
+    emptyStream.push(null); // This makes the stream "empty"
+
+    await expect(streamToPromise(emptyStream)).rejects.toThrow(EmptyStream);
+  });
+
+  it('streamToPromise returns concatenated data', async () => {
+    const stream = new Readable();
+    stream.push('Hello');
+    stream.push(' ');
+    stream.push('World');
+    stream.push('!');
+    stream.push(null); // Close the stream
+
+    await expect(streamToPromise(stream)).resolves.toEqual(
+      Buffer.from('Hello World!', 'utf-8')
+    );
   });
 });
