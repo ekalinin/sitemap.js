@@ -2,7 +2,8 @@
 
 ## 7.1.2
 
-- fix #425 via #426 update streamToPromise to bubble up errors + jsDoc
+- fix #425 via #426 thanks to @huntharo update streamToPromise to bubble up errors + jsDoc
+- fix #415 thanks to @mohd-akram Fix circular dependency breaking Node.js 20.6
 - non-breaking updates of dependent packages
 
 ## 7.1.1
