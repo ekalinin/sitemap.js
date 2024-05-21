@@ -141,13 +141,23 @@ export class SitemapStream extends Transform {
 }
 
 /**
- * Takes a stream returns a promise that resolves when stream emits finish
- * @param stream what you want wrapped in a promise
+ * Converts a readable stream into a promise that resolves with the concatenated data from the stream.
+ *
+ * The function listens for 'data' events from the stream, and when the stream ends, it resolves the promise with the concatenated data. If an error occurs while reading from the stream, the promise is rejected with the error.
+ *
+ * ⚠️ CAUTION: This function should not generally be used in production / when writing to files as it holds a copy of the entire file contents in memory until finished.
+ *
+ * @param {Readable} stream - The readable stream to convert to a promise.
+ * @returns {Promise<Buffer>} A promise that resolves with the concatenated data from the stream as a Buffer, or rejects with an error if one occurred while reading from the stream. If the stream is empty, the promise is rejected with an EmptyStream error.
+ * @throws {EmptyStream} If the stream is empty.
  */
 export function streamToPromise(stream: Readable): Promise<Buffer> {
   return new Promise((resolve, reject): void => {
     const drain: Buffer[] = [];
     stream
+      // Error propagation is not automatic
+      // Bubble up errors on the read stream
+      .on('error', reject)
       .pipe(
         new Writable({
           write(chunk, enc, next): void {
@@ -156,6 +166,8 @@ export function streamToPromise(stream: Readable): Promise<Buffer> {
           },
         })
       )
+      // This bubbles up errors when writing to the internal buffer
+      // This is unlikely to happen, but we have this for completeness
       .on('error', reject)
       .on('finish', () => {
         if (!drain.length) {
