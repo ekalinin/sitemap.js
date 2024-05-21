@@ -12,8 +12,12 @@ import {
   SitemapAndIndexStream,
 } from '../lib/sitemap-index-stream';
 import { streamToPromise } from '../dist';
-import { finished } from 'node:stream/promises';
+import { finished as finishedCallback } from 'stream';
 import { WriteStream } from 'node:fs';
+import { promisify } from 'util';
+
+const finished = promisify(finishedCallback);
+
 /* eslint-env jest, jasmine */
 function removeFilesArray(files): void {
   if (files && files.length) {
