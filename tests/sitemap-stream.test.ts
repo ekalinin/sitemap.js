@@ -1,8 +1,11 @@
+import { tmpdir } from 'os';
 import {
   SitemapStream,
   closetag,
   streamToPromise,
 } from '../lib/sitemap-stream';
+import { createReadStream } from 'fs';
+import { resolve } from 'path';
 
 const minimumns =
   '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
@@ -91,5 +94,13 @@ describe('sitemap stream', () => {
         `<url><loc>https://example.com/path</loc><changefreq>invalid</changefreq></url>` +
         closetag
     );
+  });
+
+  it('streamToPromise propagates error on read stream', async () => {
+    await expect(
+      streamToPromise(
+        createReadStream(resolve(tmpdir(), `./does-not-exist-sitemap.xml`))
+      )
+    ).rejects.toThrow('ENOENT');
   });
 });
