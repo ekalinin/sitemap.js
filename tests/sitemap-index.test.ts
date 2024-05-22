@@ -373,9 +373,6 @@ describe('sitemapAndIndex', () => {
         const sm = new SitemapStream();
         const path = `./sitemap-${i}.xml`;
 
-        // This will not throw even though it will fail
-        // `outputStream.writable === true`
-        // `outputStream.closed === false`
         const outputStream = createWriteStream(resolve(targetFolder, path));
 
         // Streams do not automatically propagate errors
@@ -459,7 +456,7 @@ describe('sitemapAndIndex', () => {
     expect(indexText).not.toContain(`${baseURL}sitemap-3`);
   });
 
-  it('works if no items written at all', async () => {
+  it('writes index if no items written at all', async () => {
     const baseURL = 'https://example.com/sub/';
 
     const sms = new SitemapAndIndexStream({
@@ -468,9 +465,6 @@ describe('sitemapAndIndex', () => {
         const sm = new SitemapStream();
         const path = `./sitemap-${i}.xml`;
 
-        // This will not throw even though it will fail
-        // `outputStream.writable === true`
-        // `outputStream.closed === false`
         const outputStream = createWriteStream(resolve(targetFolder, path));
 
         // Streams do not automatically propagate errors
@@ -503,14 +497,17 @@ describe('sitemapAndIndex', () => {
       'utf-8'
     );
     expect(indexText).toContain(`<sitemapindex `);
-    expect(indexText).toContain(`${baseURL}sitemap-0`);
-    expect(indexText).toContain(`${baseURL}sitemap-1`);
+    expect(indexText).not.toContain(`${baseURL}sitemap-0`);
+    expect(indexText).not.toContain(`${baseURL}sitemap-1`);
     expect(indexText).toContain(`</sitemapindex>`);
     expect(indexText).not.toContain(`${baseURL}sitemap-2`);
   });
 });
 
-function writeData(sms: SitemapStream, data: any): Promise<void> {
+function writeData(
+  sms: SitemapStream | SitemapAndIndexStream,
+  data: any
+): Promise<void> {
   if (!sms.write(data)) {
     return new Promise((resolve) => {
       sms.once('drain', resolve);
