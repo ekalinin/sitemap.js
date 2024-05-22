@@ -3,6 +3,7 @@
 env/
 node_modules/
 dist
+docs/
 
 # editors
 .idea/
