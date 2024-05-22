@@ -1,5 +1,11 @@
 # Changelog
 
+## 8.0.0
+
+### [BREAKING - 8]
+
+- dropped support for all node versions less than 18
+
 ## 7.1.2
 
 - fix #425 via #426 thanks to @huntharo update streamToPromise to bubble up errors + jsDoc
