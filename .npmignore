@@ -69,3 +69,4 @@ stream-write.js
 toflat.js
 *.map
 examples/
+sitemap.code-workspace
