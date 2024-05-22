@@ -25,6 +25,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:docs": "typedoc ./index.ts",
     "prepare": "husky",
     "prepublishOnly": "rm -rf dist && npm run test",
     "test": "eslint lib/* ./cli.ts && tsc && jest ./tests/sitemap*",
@@ -75,6 +76,7 @@
     "stats-lite": "^2.2.0",
     "stream-json": "^1.7.1",
     "through2-map": "^4.0.0",
+    "typedoc": "0.25.13",
     "typescript": "^5.4.5"
   },
   "engines": {
