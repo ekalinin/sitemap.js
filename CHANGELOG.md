@@ -1,5 +1,9 @@
 # Changelog
 
+## 8.0.0
+
+- drop node 12 support
+
 ## 7.1.2
 
 - fix #425 via #426 thanks to @huntharo update streamToPromise to bubble up errors + jsDoc
