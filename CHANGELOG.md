@@ -6,6 +6,7 @@
 
 ## 8.0.0
 
+- fix #423 via #424 thanks @huntharo - Propagate errors in SitemapAndIndexStream
 - drop node 12 support
 
 ## 7.1.2
