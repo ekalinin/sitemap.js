@@ -389,107 +389,92 @@ export function normalizeURL(
 ): SitemapItem {
   // SitemapItem
   // create object with url property
-  let smi: SitemapItem = {
+  const smi: SitemapItem = {
     img: [],
     video: [],
     links: [],
     url: '',
   };
-  let smiLoose: SitemapItemLoose;
+
   if (typeof elem === 'string') {
-    smi.url = elem;
-    smiLoose = { url: elem };
-  } else {
-    smiLoose = elem;
+    smi.url = new URL(elem, hostname).toString();
+    return smi;
   }
 
-  smi.url = new URL(smiLoose.url, hostname).toString();
+  const { url, img, links, video, lastmodfile, lastmodISO, lastmod, ...other } =
+    elem;
 
-  let img: Img[] = [];
-  if (smiLoose.img) {
-    if (typeof smiLoose.img === 'string') {
-      // string -> array of objects
-      smiLoose.img = [{ url: smiLoose.img }];
-    } else if (!Array.isArray(smiLoose.img)) {
-      // object -> array of objects
-      smiLoose.img = [smiLoose.img];
-    }
+  Object.assign(smi, other);
 
-    img = smiLoose.img.map(
-      (el): Img => (typeof el === 'string' ? { url: el } : el)
+  smi.url = new URL(url, hostname).toString();
+
+  if (img) {
+    // prepend hostname to all image urls
+    smi.img = (Array.isArray(img) ? img : [img]).map(
+      (el): Img =>
+        typeof el === 'string'
+          ? { url: new URL(el, hostname).toString() }
+          : { ...el, url: new URL(el.url, hostname).toString() }
     );
   }
-  // prepend hostname to all image urls
-  smi.img = img.map(
-    (el: Img): Img => ({
-      ...el,
-      url: new URL(el.url, hostname).toString(),
-    })
-  );
 
-  let links: LinkItem[] = [];
-  if (smiLoose.links) {
-    links = smiLoose.links;
+  if (links) {
+    smi.links = links.map((link: LinkItem) => ({
+      ...link,
+      url: new URL(link.url, hostname).toString(),
+    }));
   }
-  smi.links = links.map((link): LinkItem => {
-    return { ...link, url: new URL(link.url, hostname).toString() };
-  });
 
-  if (smiLoose.video) {
-    if (!Array.isArray(smiLoose.video)) {
-      // make it an array
-      smiLoose.video = [smiLoose.video];
-    }
-    smi.video = smiLoose.video.map((video): VideoItem => {
-      const nv: VideoItem = {
-        ...video,
-        family_friendly: boolToYESNO(video.family_friendly),
-        live: boolToYESNO(video.live),
-        requires_subscription: boolToYESNO(video.requires_subscription),
-        tag: [],
-        rating: undefined,
-      };
+  if (video) {
+    smi.video = (Array.isArray(video) ? video : [video]).map(
+      (video): VideoItem => {
+        const nv: VideoItem = {
+          ...video,
+          family_friendly: boolToYESNO(video.family_friendly),
+          live: boolToYESNO(video.live),
+          requires_subscription: boolToYESNO(video.requires_subscription),
+          tag: [],
+          rating: undefined,
+        };
 
-      if (video.tag !== undefined) {
-        nv.tag = !Array.isArray(video.tag) ? [video.tag] : video.tag;
-      }
-
-      if (video.rating !== undefined) {
-        if (typeof video.rating === 'string') {
-          nv.rating = parseFloat(video.rating);
-        } else {
-          nv.rating = video.rating;
+        if (video.tag !== undefined) {
+          nv.tag = !Array.isArray(video.tag) ? [video.tag] : video.tag;
         }
-      }
 
-      if (typeof video.view_count === 'string') {
-        nv.view_count = parseInt(video.view_count, 10);
-      } else if (typeof video.view_count === 'number') {
-        nv.view_count = video.view_count;
+        if (video.rating !== undefined) {
+          if (typeof video.rating === 'string') {
+            nv.rating = parseFloat(video.rating);
+          } else {
+            nv.rating = video.rating;
+          }
+        }
+
+        if (typeof video.view_count === 'string') {
+          nv.view_count = parseInt(video.view_count, 10);
+        } else if (typeof video.view_count === 'number') {
+          nv.view_count = video.view_count;
+        }
+        return nv;
       }
-      return nv;
-    });
+    );
   }
 
   // If given a file to use for last modified date
-  if (smiLoose.lastmodfile) {
-    const { mtime } = statSync(smiLoose.lastmodfile);
+  if (lastmodfile) {
+    const { mtime } = statSync(lastmodfile);
 
     smi.lastmod = new Date(mtime).toISOString();
 
     // The date of last modification (YYYY-MM-DD)
-  } else if (smiLoose.lastmodISO) {
-    smi.lastmod = new Date(smiLoose.lastmodISO).toISOString();
-  } else if (smiLoose.lastmod) {
-    smi.lastmod = new Date(smiLoose.lastmod).toISOString();
+  } else if (lastmodISO) {
+    smi.lastmod = new Date(lastmodISO).toISOString();
+  } else if (lastmod) {
+    smi.lastmod = new Date(lastmod).toISOString();
   }
 
   if (lastmodDateOnly && smi.lastmod) {
     smi.lastmod = smi.lastmod.slice(0, 10);
   }
-  delete smiLoose.lastmodfile;
-  delete smiLoose.lastmodISO;
 
-  smi = { ...smiLoose, ...smi };
   return smi;
 }
