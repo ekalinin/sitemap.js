@@ -506,7 +506,7 @@ describe('sitemapAndIndex', () => {
 
 function writeData(
   sms: SitemapStream | SitemapAndIndexStream,
-  data: any
+  data
 ): Promise<void> {
   if (!sms.write(data)) {
     return new Promise((resolve) => {
