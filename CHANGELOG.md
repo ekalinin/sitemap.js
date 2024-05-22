@@ -1,10 +1,12 @@
 # Changelog
 
-## 8.0.0
-
-### [BREAKING - 8]
+## 9.0.0
 
 - dropped support for all node versions less than 18
+
+## 8.0.0
+
+- drop node 12 support
 
 ## 7.1.2
 

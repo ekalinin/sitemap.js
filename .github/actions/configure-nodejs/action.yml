@@ -1,0 +1,34 @@
+name: 'Configure Node.js'
+description: 'Install Node.js and install Node.js modules or restore cache'
+
+inputs:
+  node-version:
+    description: 'NodeJS Version'
+    default: '18'
+  lookup-only:
+    description: 'If true, only checks if cache entry exists and skips download. Does not change save cache behavior. Does not install node on a hit (used primarily for install deps jobs).'
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Restore Node Modules from Cache
+      id: cache-node-modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          node_modules
+          packages/**/node_modules
+          !node_modules/.cache
+        key: node-modules-v2-${{ inputs.node-version }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'package-lock.json') }}
+        lookup-only: ${{ inputs.lookup-only }}
+
+    - uses: actions/setup-node@v4
+      if: inputs.lookup-only == 'false' || steps.cache-node-modules.outputs.cache-hit != 'true'
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install dependencies
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm ci
