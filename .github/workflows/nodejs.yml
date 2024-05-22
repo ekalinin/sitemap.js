@@ -3,21 +3,23 @@ name: Node CI
 on: [push, pull_request]
 
 jobs:
-  install-deps:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [12.x, 14.x, 16.x]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/configure-nodejs
-        with:
-          node-version: ${{ matrix.node-version }}
-          lookup-only: 'true' # We only want to lookup from the cache - if a hit, this job does nothing
+  # We do not strictly need an install-deps job
+  # because we do not kick of multiple jobs in parallel
+  # that would all try to install deps when the key changes.
+  # Skipping this saves a few seconds until the point where we need it.
+  # install-deps:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       node-version: [12.x, 14.x, 16.x]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: ./.github/actions/configure-nodejs
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         lookup-only: 'true' # We only want to lookup from the cache - if a hit, this job does nothing
 
   build:
-    needs:
-      - install-deps
     runs-on: ubuntu-latest
     strategy:
       matrix:
