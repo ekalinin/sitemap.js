@@ -13,7 +13,7 @@ import {
 } from '../lib/sitemap-index-stream';
 import { streamToPromise } from '../lib/sitemap-stream';
 import { finished as finishedCallback } from 'stream';
-import { readFileSync, WriteStream } from 'node:fs';
+import { readFileSync, WriteStream } from 'fs';
 import { promisify } from 'util';
 
 const finished = promisify(finishedCallback);

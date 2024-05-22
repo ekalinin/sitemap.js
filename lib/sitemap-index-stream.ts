@@ -16,17 +16,57 @@ const sitemapIndexTagStart =
   '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 const closetag = '</sitemapindex>';
 
+/**
+ * Options for the SitemapIndexStream
+ */
 export interface SitemapIndexStreamOptions extends TransformOptions {
+  /**
+   * Whether to output the lastmod date only (no time)
+   *
+   * @default false
+   */
   lastmodDateOnly?: boolean;
+
+  /**
+   * How to handle errors in passed in urls
+   *
+   * @default ErrorLevel.WARN
+   */
   level?: ErrorLevel;
+
+  /**
+   * URL to an XSL stylesheet to include in the XML
+   */
   xslUrl?: string;
 }
 const defaultStreamOpts: SitemapIndexStreamOptions = {};
+
+/**
+ * `SitemapIndexStream` is a Transform stream that takes `IndexItem`s or sitemap URL strings and outputs a stream of sitemap index XML.
+ *
+ * It automatically handles the XML declaration and the opening and closing tags for the sitemap index.
+ *
+ * ⚠️ CAUTION: This object is `readable` and must be read (e.g. piped to a file or to /dev/null)
+ * before `finish` will be emitted. Failure to read the stream will result in hangs.
+ *
+ * @extends {Transform}
+ */
 export class SitemapIndexStream extends Transform {
   lastmodDateOnly: boolean;
   level: ErrorLevel;
   xslUrl?: string;
   private hasHeadOutput: boolean;
+
+  /**
+   * `SitemapIndexStream` is a Transform stream that takes `IndexItem`s or sitemap URL strings and outputs a stream of sitemap index XML.
+   *
+   * It automatically handles the XML declaration and the opening and closing tags for the sitemap index.
+   *
+   * ⚠️ CAUTION: This object is `readable` and must be read (e.g. piped to a file or to /dev/null)
+   * before `finish` will be emitted. Failure to read the stream will result in hangs.
+   *
+   * @param {SitemapIndexStreamOptions} [opts=defaultStreamOpts] - Stream options.
+   */
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
@@ -82,38 +122,82 @@ export class SitemapIndexStream extends Transform {
   }
 }
 
-/**
- * Callback for SitemapIndexAndStream that creates a new sitemap stream for a given sitemap index.
- *
- * Called when a new sitemap file is needed.
- *
- * The write stream is the destination where the sitemap was piped.
- * SitemapAndIndexStream will wait for the `finish` event on each sitemap's
- * write stream before moving on to the next sitemap. This ensures that the
- * contents of the write stream will be fully written before being used
- * by any following operations (e.g. uploading, reading contents for unit tests).
- *
- * @param i - The index of the sitemap file
- * @returns A tuple containing the index item to be written into the sitemap index, the sitemap stream, and the write stream for the sitemap pipe destination
- */
-type getSitemapStream = (
+type getSitemapStreamFunc = (
   i: number
 ) => [IndexItem | string, SitemapStream, WriteStream];
 
+/**
+ * Options for the SitemapAndIndexStream
+ *
+ * @extends {SitemapIndexStreamOptions}
+ */
 export interface SitemapAndIndexStreamOptions
   extends SitemapIndexStreamOptions {
-  level?: ErrorLevel;
+  /**
+   * Max number of items in each sitemap XML file.
+   *
+   * When the limit is reached the current sitemap file will be closed,
+   * a wait for `finish` on the target write stream will happen,
+   * and a new sitemap file will be created.
+   *
+   * Range: 1 - 50,000
+   *
+   * @default 45000
+   */
   limit?: number;
-  getSitemapStream: getSitemapStream;
+
+  /**
+   * Callback for SitemapIndexAndStream that creates a new sitemap stream for a given sitemap index.
+   *
+   * Called when a new sitemap file is needed.
+   *
+   * The write stream is the destination where the sitemap was piped.
+   * SitemapAndIndexStream will wait for the `finish` event on each sitemap's
+   * write stream before moving on to the next sitemap. This ensures that the
+   * contents of the write stream will be fully written before being used
+   * by any following operations (e.g. uploading, reading contents for unit tests).
+   *
+   * @param i - The index of the sitemap file
+   * @returns A tuple containing the index item to be written into the sitemap index, the sitemap stream, and the write stream for the sitemap pipe destination
+   */
+  getSitemapStream: getSitemapStreamFunc;
 }
 
+/**
+ * `SitemapAndIndexStream` is a Transform stream that takes in sitemap items,
+ * writes them to sitemap files, adds the sitemap files to a sitemap index,
+ * and creates new sitemap files when the count limit is reached.
+ *
+ * It waits for the target stream of the current sitemap file to finish before
+ * moving on to the next if the target stream is returned by the `getSitemapStream`
+ * callback in the 3rd position of the tuple.
+ *
+ * ⚠️ CAUTION: This object is `readable` and must be read (e.g. piped to a file or to /dev/null)
+ * before `finish` will be emitted. Failure to read the stream will result in hangs.
+ *
+ * @extends {SitemapIndexStream}
+ */
 export class SitemapAndIndexStream extends SitemapIndexStream {
   private itemsWritten: number;
-  private getSitemapStream: getSitemapStream;
+  private getSitemapStream: getSitemapStreamFunc;
   private currentSitemap?: SitemapStream;
   private limit: number;
   private currentSitemapPipeline?: WriteStream;
 
+  /**
+   * `SitemapAndIndexStream` is a Transform stream that takes in sitemap items,
+   * writes them to sitemap files, adds the sitemap files to a sitemap index,
+   * and creates new sitemap files when the count limit is reached.
+   *
+   * It waits for the target stream of the current sitemap file to finish before
+   * moving on to the next if the target stream is returned by the `getSitemapStream`
+   * callback in the 3rd position of the tuple.
+   *
+   * ⚠️ CAUTION: This object is `readable` and must be read (e.g. piped to a file or to /dev/null)
+   * before `finish` will be emitted. Failure to read the stream will result in hangs.
+   *
+   * @param {SitemapAndIndexStreamOptions} opts - Stream options.
+   */
   constructor(opts: SitemapAndIndexStreamOptions) {
     opts.objectMode = true;
     super(opts);
@@ -213,7 +297,7 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
   private createSitemap(encoding: string): void {
     const [idxItem, currentSitemap, currentSitemapPipeline] =
       this.getSitemapStream(this.itemsWritten / this.limit);
-    currentSitemap.on('error', (err: any) => this.emit('error', err));
+    currentSitemap.on('error', (err) => this.emit('error', err));
     this.currentSitemap = currentSitemap;
     this.currentSitemapPipeline = currentSitemapPipeline;
     super._transform(idxItem, encoding, () => {
