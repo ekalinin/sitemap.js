@@ -67,6 +67,16 @@ function delay(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
+function normalizedRss() {
+  const nodeVersion = Number(process.version.match(/^v(\d+\.\d+)/)[1]);
+  const isMac = process.platform === 'darwin';
+  // Node 20.3.0 included libuv 1.45.0, which fixes
+  // Mac reporting of `maxRSS` to be `KB` insteead of `bytes`.
+  // All other platforms were returning `KB` before.
+  const divisor = isMac && nodeVersion < 20.3 ? 1024 ** 2 : 1024;
+  return process.resourceUsage().maxRSS / divisor;
+}
+
 async function batch(durations, runNum, fn) {
   for (let i = 0; i < batchSize; i++) {
     const start = process.resourceUsage().userCPUTime;
@@ -77,7 +87,7 @@ async function batch(durations, runNum, fn) {
     }
     let duration;
     if (measureMemory) {
-      duration = (process.resourceUsage().maxRSS / 1024 ** 2) | 0;
+      duration = normalizedRss() | 0;
     } else {
       duration = ((process.resourceUsage().userCPUTime - start) / 1e3) | 0;
     }
