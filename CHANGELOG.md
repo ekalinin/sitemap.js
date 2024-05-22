@@ -1,5 +1,9 @@
 # Changelog
 
+## 9.0.0
+
+- dropped support for all node versions less than 18
+
 ## 8.0.0
 
 - fix #423 via #424 thanks @huntharo - Propagate errors in SitemapAndIndexStream
