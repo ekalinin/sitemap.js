@@ -1,6 +1,6 @@
 {
   "name": "sitemap",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "description": "Sitemap-generating lib/cli",
   "keywords": [
     "sitemap",
@@ -79,6 +79,6 @@
   },
   "engines": {
     "node": ">=18.20.3",
-    "npm": ">=10.7.0"
+    "npm": ">=10.5.0"
   }
 }
