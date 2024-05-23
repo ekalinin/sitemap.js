@@ -1,0 +1,29 @@
+name: Publish Docs
+
+on:
+  release:
+    types: [published]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/configure-nodejs
+
+      - name: Build Docs
+        run: npm run build:docs
+
+      # On Settings -> Pages, select:
+      # - Source -> Deploy from Branch
+      # - Branch: gh-pages, Folder: / (root)
+      # - Enforce HTTPS
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
