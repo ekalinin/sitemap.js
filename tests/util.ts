@@ -10,7 +10,7 @@ export function truncateSync(file: string): fs.Stats {
   return stat;
 }
 
-export function createCache(): { cacheFile: string, stat: fs.Stats } {
+export function createCache(): { cacheFile: string; stat: fs.Stats } {
   const stat = truncateSync(CACHE_FILE);
   return {
     cacheFile: CACHE_FILE,

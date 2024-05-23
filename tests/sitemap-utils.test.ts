@@ -197,8 +197,7 @@ describe('utils', () => {
       beforeEach(() => {
         testvideo = {
           ...itemTemplate,
-          url:
-            'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+          url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
           video: [
             {
               id: 'http://example.com/url',
@@ -271,8 +270,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -299,8 +297,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -327,8 +324,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title:
@@ -355,8 +351,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -382,8 +377,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -408,8 +402,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -435,8 +428,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -463,8 +455,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -490,8 +481,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -517,8 +507,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -543,8 +532,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -570,8 +558,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -598,8 +585,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -625,8 +611,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -652,8 +637,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",

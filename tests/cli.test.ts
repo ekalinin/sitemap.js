@@ -8,7 +8,6 @@ import normalizedSample from './mocks/sampleconfig.normalized.json';
 const exec = util.promisify(execCb);
 const execFileSync = execFileSyncCb;
 
-
 let hasXMLLint = true;
 try {
   execFileSync('which', ['xmllint']);
