@@ -1,7 +1,27 @@
+import { existsSync } from 'fs';
 import { Readable } from 'stream';
 import { resolve } from 'path';
 import { execFile } from 'child_process';
 import { XMLLintUnavailable } from './errors';
+
+/**
+ * Finds the `schema` directory since we may be located in
+ * `lib` or `dist/lib` when this is called.
+ *
+ * @throws {Error} if the schema directory is not found
+ * @returns {string} the path to the schema directory
+ */
+function findSchemaDir(): string {
+  const paths = ['.', '..', '../..'];
+  for (const p of paths) {
+    const schemaPath = resolve(p, 'schema');
+    if (existsSync(schemaPath)) {
+      return schemaPath;
+    }
+  }
+  throw new Error('Schema directory not found');
+}
+
 /**
  * Verify the passed in xml is valid. Requires xmllib be installed
  * @param xml what you want validated
@@ -10,7 +30,7 @@ import { XMLLintUnavailable } from './errors';
 export function xmlLint(xml: string | Readable): Promise<void> {
   const args = [
     '--schema',
-    resolve(__dirname, '..', '..', 'schema', 'all.xsd'),
+    resolve(findSchemaDir(), 'all.xsd'),
     '--noout',
     '-',
   ];

@@ -1,4 +1,4 @@
-import { xmlLint } from '../dist/index';
+import { xmlLint } from '../lib/xmllint';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const execFileSync = require('child_process').execFileSync;
 let hasXMLLint = true;
