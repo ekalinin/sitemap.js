@@ -3,9 +3,9 @@ import { tmpdir } from 'os';
 import { resolve } from 'path';
 import { existsSync, unlinkSync, createReadStream } from 'fs';
 import { createGunzip } from 'zlib';
-function removeFilesArray(files): void {
+function removeFilesArray(files: string[]): void {
   if (files && files.length) {
-    files.forEach(function (file) {
+    files.forEach(function (file: string) {
       if (existsSync(file)) {
         unlinkSync(file);
       }

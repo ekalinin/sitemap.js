@@ -29,5 +29,7 @@ jobs:
     - uses: ./.github/actions/configure-nodejs
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm run build --if-present
-    - run: npm run test:full
+    - run: npm run build
+    - run: npm run lint
+    - run: npm run test
+    - run: npm run test:xmllint

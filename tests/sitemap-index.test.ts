@@ -19,7 +19,7 @@ import { promisify } from 'util';
 const finished = promisify(finishedCallback);
 
 /* eslint-env jest, jasmine */
-function removeFilesArray(files): void {
+function removeFilesArray(files: string[]): void {
   if (files && files.length) {
     files.forEach(function (file) {
       if (existsSync(file)) {
