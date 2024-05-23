@@ -29,7 +29,13 @@ jobs:
     - uses: ./.github/actions/configure-nodejs
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm run build
-    - run: npm run lint
-    - run: npm run test
-    - run: npm run test:xmllint
+    - name: Lint
+      run: npm run lint
+    - name: Check Formatting with Prettier
+      run: npm run prettier
+    - name: Build TypeScript
+      run: npm run build
+    - name: Unit Tests
+      run: npm run test
+    - name: XML Lint Test
+      run: npm run test:xmllint

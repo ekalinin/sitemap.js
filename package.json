@@ -25,9 +25,12 @@
   },
   "scripts": {
     "build": "tsc",
+    "lint": "eslint \"{lib,tests}/**/*.ts\" ./cli.ts",
+    "lint:fix": "eslint --fix \"{lib,tests}/**/*.ts\" ./cli.ts",
     "prepare": "husky",
-    "lint": "eslint lib/* ./cli.ts",
     "prepublishOnly": "rm -rf dist && npm run test",
+    "prettier": "npx prettier --check \"{lib,tests}/**/*.ts\" ./cli.ts",
+    "prettier:fix": "npx prettier --write \"{lib,tests}/**/*.ts\" ./cli.ts",
     "test": "jest",
     "test:full": "npm run lint && tsc && jest && npm run test:xmllint",
     "test:perf": "node ./tests/perf.js",
