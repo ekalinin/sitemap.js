@@ -7,7 +7,7 @@ import {
   XMLToSitemapItemStream,
   ObjectStreamToJSON,
 } from '../lib/sitemap-parser';
-import { SitemapStreamOptions } from '../dist';
+import { SitemapStreamOptions } from '../lib/sitemap-stream';
 import { ErrorLevel, SitemapItem } from '../lib/types';
 const pipeline = promisify(pipe);
 // eslint-disable-next-line @typescript-eslint/no-var-requires

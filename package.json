@@ -25,10 +25,14 @@
   },
   "scripts": {
     "build": "tsc",
+    "lint": "eslint \"{lib,tests}/**/*.ts\" ./cli.ts",
+    "lint:fix": "eslint --fix \"{lib,tests}/**/*.ts\" ./cli.ts",
     "prepare": "husky",
     "prepublishOnly": "rm -rf dist && npm run test",
-    "test": "eslint lib/* ./cli.ts && tsc && jest ./tests/sitemap*",
-    "test:full": "eslint lib/* ./cli.ts && tsc && jest && npm run test:xmllint",
+    "prettier": "npx prettier --check \"{lib,tests}/**/*.ts\" ./cli.ts",
+    "prettier:fix": "npx prettier --write \"{lib,tests}/**/*.ts\" ./cli.ts",
+    "test": "jest",
+    "test:full": "npm run lint && tsc && jest && npm run test:xmllint",
     "test:perf": "node ./tests/perf.js",
     "test:schema": "node tests/alltags.js | xmllint --schema schema/all.xsd --noout -",
     "test:typecheck": "tsc",
@@ -50,16 +54,10 @@
     "sax": "^1.2.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.14.0",
-    "@babel/plugin-transform-typescript": "^7.13.0",
-    "@babel/preset-env": "^7.14.0",
-    "@babel/preset-typescript": "^7.13.0",
     "@types/jest": "^29.5.12",
     "@types/memorystream": "^0.3.0",
     "@typescript-eslint/eslint-plugin": "^7.10.0",
     "@typescript-eslint/parser": "^7.10.0",
-    "babel-eslint": "^10.1.0",
-    "babel-polyfill": "^6.26.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jest": "^28.5.0",
@@ -75,6 +73,7 @@
     "stats-lite": "^2.2.0",
     "stream-json": "^1.7.1",
     "through2-map": "^4.0.0",
+    "ts-jest": "^29.1.3",
     "typescript": "^5.4.5"
   },
   "engines": {

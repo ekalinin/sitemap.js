@@ -63,7 +63,6 @@ webpack.*.config.ts
 karma.conf.js
 /_config.yml
 intellij-style-guide.xml
-babel.config.js
 urls.txt
 stream-write.js
 toflat.js

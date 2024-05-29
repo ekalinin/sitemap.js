@@ -59,8 +59,11 @@ describe('text function', () => {
     ['\u{FFFFF}', 'Hello \u{FFFFF} World', 'Hello  World'],
     ['\u{10FFFE}', 'Hello \u{10FFFE} World', 'Hello  World'],
     ['\u{10FFFF}', 'Hello \u{10FFFF} World', 'Hello  World'],
-  ])('should remove invalid XML unicode character %s', (char, input, expected) => {
-    const output = text(input);
-    expect(output).toBe(expected);
-  });
+  ])(
+    'should remove invalid XML unicode character %s',
+    (char, input, expected) => {
+      const output = text(input);
+      expect(output).toBe(expected);
+    }
+  );
 });

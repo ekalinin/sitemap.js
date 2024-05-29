@@ -1,14 +1,13 @@
 import util from 'util';
 import fs from 'fs';
 import path from 'path';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const exec = util.promisify(require('child_process').exec);
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const execFileSync = require('child_process').execFileSync;
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pkg = require('../package.json');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const normalizedSample = require('./mocks/sampleconfig.normalized.json');
+import { exec as execCb, execFileSync as execFileSyncCb } from 'child_process';
+import pkg from '../package.json';
+import normalizedSample from './mocks/sampleconfig.normalized.json';
+
+const exec = util.promisify(execCb);
+const execFileSync = execFileSyncCb;
+
 let hasXMLLint = true;
 try {
   execFileSync('which', ['xmllint']);

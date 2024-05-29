@@ -9,7 +9,8 @@
     "target": "ES2022",
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "lib": ["es2022"]
+    "lib": ["es2022"],
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["index.ts", "cli.ts"],
   "exclude": ["node_modules"]

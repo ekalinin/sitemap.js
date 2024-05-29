@@ -1,5 +1,15 @@
 /** @type {import('jest').Config} */
 const config = {
+  preset: 'ts-jest',
+  rootDir: 'tests/',
+  transform: {
+    "^.+\\.ts?$": [
+      "ts-jest",
+      {
+        tsconfig: "tsconfig.jest.json",
+      },
+    ],
+  },
   collectCoverage: true,
   collectCoverageFrom: [
     'lib/**/*.ts',

@@ -35,14 +35,15 @@ describe('utils', () => {
 
     it('throws when no config is passed', () => {
       expect(function () {
+        // @ts-expect-error testing bad option
         validateSMIOptions(undefined, ErrorLevel.THROW);
-      }).toThrowError(/SitemapItem requires a configuration/);
+      }).toThrow(/SitemapItem requires a configuration/);
     });
 
     it('throws an error for url absence', () => {
       expect(() =>
         validateSMIOptions({} as SitemapItem, ErrorLevel.THROW)
-      ).toThrowError(/URL is required/);
+      ).toThrow(/URL is required/);
     });
 
     it('sitemap: invalid changefreq error', () => {
@@ -55,7 +56,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         ).toString();
-      }).toThrowError(/changefreq "allllways" is invalid/);
+      }).toThrow(/changefreq "allllways" is invalid/);
     });
 
     it('sitemap: invalid priority error', () => {
@@ -68,7 +69,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         ).toString();
-      }).toThrowError(/priority "1.1" must be a number between/);
+      }).toThrow(/priority "1.1" must be a number between/);
     });
 
     describe('news', () => {
@@ -92,51 +93,81 @@ describe('utils', () => {
       });
 
       it('will throw if you dont provide required attr publication', () => {
-        delete news.news.publication;
+        expect(news.news).toBeDefined();
+        if (!news.news) {
+          throw new Error('news.news is undefined');
+        }
+        delete (news.news as Partial<typeof news.news>).publication;
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
-        }).toThrowError(
+        }).toThrow(
           /must include publication, publication name, publication language, title, and publication_date for news/
         );
       });
 
       it('will throw if you dont provide required attr publication name', () => {
-        delete news.news.publication.name;
+        expect(news.news).toBeDefined();
+        if (!news.news) {
+          throw new Error('news.news is undefined');
+        }
+        expect(news.news.publication).toBeDefined();
+        if (!news.news.publication) {
+          throw new Error('news.news.publication is undefined');
+        }
+        delete (news.news.publication as Partial<typeof news.news.publication>)
+          .name;
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
-        }).toThrowError(
+        }).toThrow(
           /must include publication, publication name, publication language, title, and publication_date for news/
         );
       });
 
       it('will throw if you dont provide required attr publication language', () => {
-        delete news.news.publication.language;
+        expect(news.news).toBeDefined();
+        if (!news.news) {
+          throw new Error('news.news is undefined');
+        }
+        expect(news.news.publication).toBeDefined();
+        if (!news.news.publication) {
+          throw new Error('news.news.publication is undefined');
+        }
+        delete (news.news.publication as Partial<typeof news.news.publication>)
+          .language;
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
-        }).toThrowError(
+        }).toThrow(
           /must include publication, publication name, publication language, title, and publication_date for news/
         );
       });
 
       it('will throw if you dont provide required attr title', () => {
-        delete news.news.title;
+        expect(news.news).toBeDefined();
+        if (!news.news) {
+          throw new Error('news.news is undefined');
+        }
+        delete (news.news as Partial<typeof news.news>).title;
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
-        }).toThrowError(
+        }).toThrow(
           /must include publication, publication name, publication language, title, and publication_date for news/
         );
       });
 
       it('will throw if you dont provide required attr publication_date', () => {
-        delete news.news.publication_date;
+        expect(news.news).toBeDefined();
+        if (!news.news) {
+          throw new Error('news.news is undefined');
+        }
+        delete (news.news as Partial<typeof news.news>).publication_date;
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
-        }).toThrowError(
+        }).toThrow(
           /must include publication, publication name, publication language, title, and publication_date for news/
         );
       });
@@ -147,17 +178,17 @@ describe('utils', () => {
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
-        }).toThrowError(
+        }).toThrow(
           /News access "a" must be either Registration, Subscription or not be present/
         );
       });
 
       it('will not throw if everythign is valid', () => {
-        news.news.access = 'Registration';
+        news.news!.access = 'Registration';
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
-        }).not.toThrowError();
+        }).not.toThrow();
       });
     });
 
@@ -166,8 +197,7 @@ describe('utils', () => {
       beforeEach(() => {
         testvideo = {
           ...itemTemplate,
-          url:
-            'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+          url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
           video: [
             {
               id: 'http://example.com/url',
@@ -201,9 +231,9 @@ describe('utils', () => {
       it('throws if a required attr is not provided', () => {
         expect(() => {
           const test = Object.assign({}, testvideo);
-          delete test.video[0].title;
+          delete (test.video[0] as Partial<(typeof test.video)[0]>).title;
           validateSMIOptions(test, ErrorLevel.THROW);
-        }).toThrowError(
+        }).toThrow(
           /must include thumbnail_loc, title and description fields for videos/
         );
 
@@ -212,23 +242,24 @@ describe('utils', () => {
           // @ts-expect-error testing bad option
           test.video[0] = 'a';
           validateSMIOptions(test, ErrorLevel.THROW);
-        }).toThrowError(
+        }).toThrow(
           /must include thumbnail_loc, title and description fields for videos/
         );
 
         expect(() => {
           const test = Object.assign({}, testvideo);
-          delete test.video[0].thumbnail_loc;
+          delete (test.video[0] as Partial<(typeof test.video)[0]>)
+            .thumbnail_loc;
           validateSMIOptions(test, ErrorLevel.THROW);
-        }).toThrowError(
+        }).toThrow(
           /must include thumbnail_loc, title and description fields for videos/
         );
 
         expect(() => {
           const test = Object.assign({}, testvideo);
-          delete test.video[0].description;
+          delete (test.video[0] as Partial<(typeof test.video)[0]>).description;
           validateSMIOptions(test, ErrorLevel.THROW);
-        }).toThrowError(
+        }).toThrow(
           /must include thumbnail_loc, title and description fields for videos/
         );
       });
@@ -239,8 +270,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -259,7 +289,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/must be an integer of seconds/);
+      }).toThrow(/must be an integer of seconds/);
     });
 
     it('video description limit', () => {
@@ -267,8 +297,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -287,7 +316,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/long 2100 vs limit of 2048/);
+      }).toThrow(/long 2100 vs limit of 2048/);
     });
 
     it('video title limit', () => {
@@ -295,8 +324,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title:
@@ -315,7 +343,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/long 2120 vs 100/);
+      }).toThrow(/long 2120 vs 100/);
     });
 
     it('video price type', () => {
@@ -323,8 +351,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -342,7 +369,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/is not "rent" or "purchase"/);
+      }).toThrow(/is not "rent" or "purchase"/);
     });
 
     it('video price currency', () => {
@@ -350,8 +377,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -368,7 +394,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/abbrieviation for the country currency/);
+      }).toThrow(/abbrieviation for the country currency/);
     });
 
     it('video price resolution', () => {
@@ -376,8 +402,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -395,7 +420,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/is not hd or sd/);
+      }).toThrow(/is not hd or sd/);
     });
 
     it('requires video price type when price is not provided', () => {
@@ -403,8 +428,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -423,7 +447,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/priceType is required when price is not provided/);
+      }).toThrow(/priceType is required when price is not provided/);
     });
 
     it('video platform relationship', () => {
@@ -431,8 +455,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -450,7 +473,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/is not a valid value for attr: "platform:relationship"/);
+      }).toThrow(/is not a valid value for attr: "platform:relationship"/);
     });
 
     it('throws without a restriction of allow or deny', () => {
@@ -458,8 +481,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -477,7 +499,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/must be either allow or deny/);
+      }).toThrow(/must be either allow or deny/);
     });
 
     it('throws if it gets a rating out of bounds', () => {
@@ -485,8 +507,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -503,7 +524,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/0 and 5/);
+      }).toThrow(/0 and 5/);
     });
 
     it('throws if it gets an invalid video restriction', () => {
@@ -511,8 +532,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -530,7 +550,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/country codes/);
+      }).toThrow(/country codes/);
     });
 
     it('throws if it gets an invalid value for family friendly', () => {
@@ -538,8 +558,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -558,7 +577,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/family friendly/);
+      }).toThrow(/family friendly/);
     });
 
     it('throws if it gets a category that is too long', () => {
@@ -566,8 +585,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -585,7 +603,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/video category can only be 256/);
+      }).toThrow(/video category can only be 256/);
     });
 
     it('throws if it gets a negative view count', () => {
@@ -593,8 +611,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -612,7 +629,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/positive/);
+      }).toThrow(/positive/);
     });
 
     it('throws if it gets more than 32 tags', () => {
@@ -620,8 +637,7 @@ describe('utils', () => {
         validateSMIOptions(
           {
             ...itemTemplate,
-            url:
-              'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
             video: [
               {
                 title: "2008:E2 - Burnout Paradise: Millionaire's Club",
@@ -672,7 +688,7 @@ describe('utils', () => {
           },
           ErrorLevel.THROW
         );
-      }).toThrowError(/32 tags/);
+      }).toThrow(/32 tags/);
     });
   });
 
@@ -717,9 +733,8 @@ describe('utils', () => {
     });
 
     it('turns a line-separated JSON stream into a sitemap', async () => {
-      let osampleURLs: { url: string }[];
+      const osampleURLs: { url: string }[] = sampleURLs.map((url) => ({ url }));
       await new Promise<void>((resolve) => {
-        osampleURLs = sampleURLs.map((url) => ({ url }));
         content = osampleURLs.map((url) => JSON.stringify(url)).join('\n');
         lineSeparatedURLsToSitemapOptions(rs, { isJSON: true }).pipe(ws);
         ws.on('finish', () => resolve());
