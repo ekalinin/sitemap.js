@@ -17,7 +17,6 @@ function attrBuilder(
 
   const iv: StringObj = {};
   return keys.reduce((attrs, key): StringObj => {
-    // eslint-disable-next-line
     if (conf[key] !== undefined) {
       const keyAr = key.split(':');
       if (keyAr.length !== 2) {

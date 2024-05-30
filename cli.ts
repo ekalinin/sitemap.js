@@ -13,8 +13,7 @@ import { SitemapAndIndexStream } from './lib/sitemap-index-stream';
 import { URL } from 'url';
 import { createGzip, Gzip } from 'zlib';
 import { ErrorLevel } from './lib/types';
-/* eslint-disable-next-line @typescript-eslint/no-var-requires */
-const arg = require('arg');
+import arg from 'arg';
 
 const pickStreamOrArg = (argv: { _: string[] }): Readable => {
   if (!argv._.length) {
@@ -50,9 +49,9 @@ function getStream(): Readable {
   }
 }
 if (argv['--version']) {
-  /* eslint-disable-next-line @typescript-eslint/no-var-requires */
-  const packagejson = require('../package.json');
-  console.log(packagejson.version);
+  import('./package.json').then(({ default: packagejson }) => {
+    console.log(packagejson.version);
+  });
 } else if (argv['--help']) {
   console.log(`
 Turn a list of urls into a sitemap xml.
@@ -104,8 +103,8 @@ Use XMLLib to validate your sitemap (requires xmllib)
       }
     });
 } else if (argv['--index']) {
-  const limit: number = argv['--limit'];
-  const baseURL: string = argv['--index-base-url'];
+  const limit: number | undefined = argv['--limit'];
+  const baseURL: string | undefined = argv['--index-base-url'];
   if (!baseURL) {
     throw new Error(
       "You must specify where the sitemaps will be hosted. use --index-base-url 'https://example.com/path'"
