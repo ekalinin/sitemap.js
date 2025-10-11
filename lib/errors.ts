@@ -102,6 +102,7 @@ export class InvalidVideoRating extends Error {
 }
 
 export class InvalidAttrValue extends Error {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(key: string, val: any, validator: RegExp) {
     super(
       '"' +

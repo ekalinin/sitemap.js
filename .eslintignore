@@ -1,0 +1,15 @@
+
+
+/test/
+__test__
+__tests__
+node_modules
+/node_modules/
+**/node_modules/
+.idea
+.nyc_output
+coverage
+
+*.d.ts
+
+bin/**/*

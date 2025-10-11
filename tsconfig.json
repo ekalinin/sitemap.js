@@ -8,7 +8,6 @@
     "module": "CommonJS",
     "target": "ES2022",
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
     "lib": ["es2022"],
     "forceConsistentCasingInFileNames": true,

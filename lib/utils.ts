@@ -367,7 +367,7 @@ export function chunk(array: any[], size = 1): any[] {
 
 function boolToYESNO(bool?: boolean | EnumYesNo): EnumYesNo | undefined {
   if (bool === undefined) {
-    return undefined;
+    return bool;
   }
   if (typeof bool === 'boolean') {
     return bool ? EnumYesNo.yes : EnumYesNo.no;
