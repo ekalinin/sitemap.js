@@ -1,4 +1,5 @@
-import sax, { SAXStream } from 'sax';
+import * as sax from 'sax';
+import { SAXStream } from 'sax';
 import {
   Readable,
   Transform,

@@ -62,11 +62,7 @@ describe('utils', () => {
     it('sitemap: invalid priority error', () => {
       expect(function () {
         validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: '/',
-            priority: 1.1,
-          },
+          { ...itemTemplate, url: '/', priority: 1.1 },
           ErrorLevel.THROW
         ).toString();
       }).toThrow(/priority "1.1" must be a number between/);
@@ -79,10 +75,7 @@ describe('utils', () => {
           ...itemTemplate,
           url: 'http://www.example.org/business/article55.html',
           news: {
-            publication: {
-              name: 'The Example Times',
-              language: 'en',
-            },
+            publication: { name: 'The Example Times', language: 'en' },
             genres: 'PressRelease, Blog',
             publication_date: '2008-12-23',
             title: 'Companies A, B in Merger Talks',
@@ -239,7 +232,7 @@ describe('utils', () => {
 
         expect(() => {
           const test = Object.assign({}, testvideo);
-          // @ts-expect-error testing bad option
+          // @ts-expect-error - Testing invalid video type
           test.video[0] = 'a';
           validateSMIOptions(test, ErrorLevel.THROW);
         }).toThrow(
@@ -761,10 +754,7 @@ describe('utils', () => {
     });
 
     it('turns img prop provided as string into array of object', () => {
-      const url = {
-        url: 'http://example.com',
-        img: 'http://example.com/img',
-      };
+      const url = { url: 'http://example.com', img: 'http://example.com/img' };
       expect(normalizeURL(url).img[0]).toHaveProperty(
         'url',
         'http://example.com/img'
@@ -824,9 +814,7 @@ describe('utils', () => {
     });
 
     it('ensures img is always an array', () => {
-      const url = {
-        url: 'http://example.com',
-      };
+      const url = { url: 'http://example.com' };
       expect(Array.isArray(normalizeURL(url).img)).toBeTruthy();
     });
 
@@ -952,18 +940,8 @@ describe('utils', () => {
         url = {
           url: 'http://example.com',
           video: [
-            {
-              thumbnail_loc: 'foo',
-              title: '',
-              description: '',
-              tag: 'fizz',
-            },
-            {
-              thumbnail_loc: 'foo',
-              title: '',
-              description: '',
-              tag: ['bazz'],
-            },
+            { thumbnail_loc: 'foo', title: '', description: '', tag: 'fizz' },
+            { thumbnail_loc: 'foo', title: '', description: '', tag: ['bazz'] },
           ],
         };
         expect(normalizeURL(url).video[0]).toHaveProperty('tag', ['fizz']);
@@ -981,22 +959,17 @@ describe('utils', () => {
               rating: '5',
               view_count: '10000000000',
             },
-            {
-              thumbnail_loc: 'foo',
-              title: '',
-              description: '',
-              rating: 4,
-            },
+            { thumbnail_loc: 'foo', title: '', description: '', rating: 4 },
           ],
         };
-        // @ts-expect-error incomplete for brevity
+        // @ts-expect-error - Incomplete video for brevity
         expect(normalizeURL(url).video[0]).toHaveProperty('rating', 5);
-        // @ts-expect-error incomplete for brevity
+        // @ts-expect-error - Incomplete video for brevity
         expect(normalizeURL(url).video[0]).toHaveProperty(
           'view_count',
           10000000000
         );
-        // @ts-expect-error incomplete for brevity
+        // @ts-expect-error - Incomplete video for brevity
         expect(normalizeURL(url).video[1]).toHaveProperty('rating', 4);
       });
     });
@@ -1024,10 +997,7 @@ describe('utils', () => {
       it('date-only', () => {
         expect(
           normalizeURL(
-            {
-              url: 'http://example.com',
-              lastmod: '2019-01-01',
-            },
+            { url: 'http://example.com', lastmod: '2019-01-01' },
             undefined,
             true
           )
@@ -1035,10 +1005,7 @@ describe('utils', () => {
 
         expect(
           normalizeURL(
-            {
-              url: 'http://example.com',
-              lastmod: '2019-01-01T00:00:00.000Z',
-            },
+            { url: 'http://example.com', lastmod: '2019-01-01T00:00:00.000Z' },
             undefined,
             true
           )
@@ -1096,7 +1063,7 @@ describe('utils', () => {
       const in2 = Readable.from([{ value: 'c' }, { value: 'd' }], {
         objectMode: true,
       });
-      // @ts-expect-error MemoryStream *does* actually support and behave differently when objectMode is passed
+      // @ts-expect-error - MemoryStream actually supports objectMode despite type definition
       const memStream = new MemoryStream(undefined, { objectMode: true });
       const in1Done = finishedP(in1);
       const in2Done = finishedP(in2);
@@ -1109,7 +1076,7 @@ describe('utils', () => {
 
       const items: { value: string }[] = [];
       let str = '';
-      // eslint-disable-next-line no-constant-condition
+
       while (true) {
         const item: { value: string } = memStream.read();
         if (item === null) {

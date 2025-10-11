@@ -40,9 +40,7 @@ describe('cli', () => {
   it('accepts line separated urls', async () => {
     const { stdout } = await exec(
       'node ./dist/cli.js < ./tests/mocks/cli-urls.txt',
-      {
-        encoding: 'utf8',
-      }
+      { encoding: 'utf8' }
     );
     expect(stdout).toBe(txtxml);
   });
@@ -53,7 +51,7 @@ describe('cli', () => {
       await exec(
         'echo "https://example.com/asdr32/" | node ./dist/cli.js --prepend ./tests/mocks/cli-urls.json.xml|grep \'https://example.com/asdr32/\''
       );
-    } catch (e) {
+    } catch {
       threw = true;
     }
     expect(threw).toBe(false);
@@ -62,9 +60,7 @@ describe('cli', () => {
   it('accepts line separated urls as file', async () => {
     const { stdout } = await exec(
       'node ./dist/cli.js ./tests/mocks/cli-urls.txt',
-      {
-        encoding: 'utf8',
-      }
+      { encoding: 'utf8' }
     );
     expect(stdout).toBe(txtxml);
   });
@@ -72,9 +68,7 @@ describe('cli', () => {
   it('streams a index file and writes sitemaps', async () => {
     const { stdout } = await exec(
       'cat ./tests/mocks/short-list.txt | node ./dist/cli.js --index --limit 250 --index-base-url https://example.com/path/',
-      {
-        encoding: 'utf8',
-      }
+      { encoding: 'utf8' }
     );
     expect(stdout).toContain('https://example.com/path/sitemap-0.xml');
     expect(stdout).toContain('https://example.com/path/sitemap-1.xml');
@@ -103,9 +97,7 @@ describe('cli', () => {
   it('accepts json line separated urls', async () => {
     const { stdout } = await exec(
       'node ./dist/cli.js < ./tests/mocks/cli-urls.json.txt',
-      {
-        encoding: 'utf8',
-      }
+      { encoding: 'utf8' }
     );
     expect(stdout + '\n').toBe(jsonxml);
   });
@@ -119,7 +111,7 @@ describe('cli', () => {
         { encoding: 'utf8' }
       );
       json = JSON.parse(stdout);
-    } catch (e) {
+    } catch {
       threw = true;
     }
     expect(threw).toBe(false);
@@ -135,7 +127,7 @@ describe('cli', () => {
         { encoding: 'utf8' }
       );
       json = JSON.parse(stdout);
-    } catch (e) {
+    } catch {
       threw = true;
     }
     expect(threw).toBe(false);
@@ -151,7 +143,7 @@ describe('cli', () => {
         { encoding: 'utf8' }
       );
       json = JSON.parse(stdout);
-    } catch (e) {
+    } catch {
       threw = true;
     }
     expect(threw).toBe(true);
