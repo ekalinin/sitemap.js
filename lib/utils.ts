@@ -324,7 +324,6 @@ export function lineSeparatedURLsToSitemapOptions(
   return new ReadlineStream({ input: stream }).pipe(
     new Transform({
       objectMode: true,
-      // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
       transform: (line, encoding, cb): void => {
         if (isJSON || (isJSON === undefined && line[0] === '{')) {
           cb(null, JSON.parse(line));
@@ -368,7 +367,7 @@ export function chunk(array: any[], size = 1): any[] {
 
 function boolToYESNO(bool?: boolean | EnumYesNo): EnumYesNo | undefined {
   if (bool === undefined) {
-    return bool;
+    return undefined;
   }
   if (typeof bool === 'boolean') {
     return bool ? EnumYesNo.yes : EnumYesNo.no;
