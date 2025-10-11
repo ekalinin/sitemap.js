@@ -49,10 +49,9 @@ function getStream(): Readable {
   }
 }
 if (argv['--version']) {
-  // Using dynamic import with require for package.json in CommonJS context
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const packagejson = require('../package.json');
-  console.log(packagejson.version);
+  import('./package.json').then(({ default: packagejson }) => {
+    console.log(packagejson.version);
+  });
 } else if (argv['--help']) {
   console.log(`
 Turn a list of urls into a sitemap xml.

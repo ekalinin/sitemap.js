@@ -1,14 +1,13 @@
 import util from 'util';
 import fs from 'fs';
 import path from 'path';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const exec = util.promisify(require('child_process').exec);
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const execFileSync = require('child_process').execFileSync;
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pkg = require('../package.json');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const normalizedSample = require('./mocks/sampleconfig.normalized.json');
+import { exec as execCb, execFileSync as execFileSyncCb } from 'child_process';
+import pkg from '../package.json';
+import normalizedSample from './mocks/sampleconfig.normalized.json';
+
+const exec = util.promisify(execCb);
+const execFileSync = execFileSyncCb;
+
 let hasXMLLint = true;
 try {
   execFileSync('which', ['xmllint']);
@@ -41,9 +40,7 @@ describe('cli', () => {
   it('accepts line separated urls', async () => {
     const { stdout } = await exec(
       'node ./dist/cli.js < ./tests/mocks/cli-urls.txt',
-      {
-        encoding: 'utf8',
-      }
+      { encoding: 'utf8' }
     );
     expect(stdout).toBe(txtxml);
   });
@@ -54,7 +51,7 @@ describe('cli', () => {
       await exec(
         'echo "https://example.com/asdr32/" | node ./dist/cli.js --prepend ./tests/mocks/cli-urls.json.xml|grep \'https://example.com/asdr32/\''
       );
-    } catch (e) {
+    } catch {
       threw = true;
     }
     expect(threw).toBe(false);
@@ -63,9 +60,7 @@ describe('cli', () => {
   it('accepts line separated urls as file', async () => {
     const { stdout } = await exec(
       'node ./dist/cli.js ./tests/mocks/cli-urls.txt',
-      {
-        encoding: 'utf8',
-      }
+      { encoding: 'utf8' }
     );
     expect(stdout).toBe(txtxml);
   });
@@ -73,9 +68,7 @@ describe('cli', () => {
   it('streams a index file and writes sitemaps', async () => {
     const { stdout } = await exec(
       'cat ./tests/mocks/short-list.txt | node ./dist/cli.js --index --limit 250 --index-base-url https://example.com/path/',
-      {
-        encoding: 'utf8',
-      }
+      { encoding: 'utf8' }
     );
     expect(stdout).toContain('https://example.com/path/sitemap-0.xml');
     expect(stdout).toContain('https://example.com/path/sitemap-1.xml');
@@ -104,9 +97,7 @@ describe('cli', () => {
   it('accepts json line separated urls', async () => {
     const { stdout } = await exec(
       'node ./dist/cli.js < ./tests/mocks/cli-urls.json.txt',
-      {
-        encoding: 'utf8',
-      }
+      { encoding: 'utf8' }
     );
     expect(stdout + '\n').toBe(jsonxml);
   });
@@ -120,7 +111,7 @@ describe('cli', () => {
         { encoding: 'utf8' }
       );
       json = JSON.parse(stdout);
-    } catch (e) {
+    } catch {
       threw = true;
     }
     expect(threw).toBe(false);
@@ -136,7 +127,7 @@ describe('cli', () => {
         { encoding: 'utf8' }
       );
       json = JSON.parse(stdout);
-    } catch (e) {
+    } catch {
       threw = true;
     }
     expect(threw).toBe(false);
@@ -152,7 +143,7 @@ describe('cli', () => {
         { encoding: 'utf8' }
       );
       json = JSON.parse(stdout);
-    } catch (e) {
+    } catch {
       threw = true;
     }
     expect(threw).toBe(true);

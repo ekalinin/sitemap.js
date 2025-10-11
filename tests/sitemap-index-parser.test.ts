@@ -9,8 +9,8 @@ import {
 } from '../lib/sitemap-index-parser';
 import { ErrorLevel, IndexItem } from '../lib/types';
 const pipeline = promisify(pipe);
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const normalizedSample = require('./mocks/sampleconfig-index.normalized.json');
+import normalizedSample from './mocks/sampleconfig-index.normalized.json';
+
 describe('parseSitemapIndex', () => {
   it('parses xml into index-items', async () => {
     const urls = await parseSitemapIndex(

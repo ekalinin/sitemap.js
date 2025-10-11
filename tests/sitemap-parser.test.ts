@@ -7,11 +7,11 @@ import {
   XMLToSitemapItemStream,
   ObjectStreamToJSON,
 } from '../lib/sitemap-parser';
-import { SitemapStreamOptions } from '../dist';
+import { SitemapStreamOptions } from '../lib/sitemap-stream';
 import { ErrorLevel, SitemapItem } from '../lib/types';
 const pipeline = promisify(pipe);
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const normalizedSample = require('./mocks/sampleconfig.normalized.json');
+import normalizedSample from './mocks/sampleconfig.normalized.json';
+
 describe('parseSitemap', () => {
   it('parses xml into sitemap-items', async () => {
     const urls = await parseSitemap(

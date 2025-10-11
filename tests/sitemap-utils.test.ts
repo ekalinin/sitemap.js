@@ -35,7 +35,7 @@ describe('utils', () => {
 
     it('throws when no config is passed', () => {
       expect(function () {
-        // @ts-expect-error - Testing invalid undefined argument
+        // @ts-expect-error testing bad option
         validateSMIOptions(undefined, ErrorLevel.THROW);
       }).toThrow(/SitemapItem requires a configuration/);
     });
@@ -86,8 +86,11 @@ describe('utils', () => {
       });
 
       it('will throw if you dont provide required attr publication', () => {
-        // @ts-expect-error - Testing missing required publication field
-        delete news.news?.publication;
+        expect(news.news).toBeDefined();
+        if (!news.news) {
+          throw new Error('news.news is undefined');
+        }
+        delete (news.news as Partial<typeof news.news>).publication;
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
@@ -97,8 +100,16 @@ describe('utils', () => {
       });
 
       it('will throw if you dont provide required attr publication name', () => {
-        // @ts-expect-error - Testing missing required publication name field
-        delete news.news?.publication.name;
+        expect(news.news).toBeDefined();
+        if (!news.news) {
+          throw new Error('news.news is undefined');
+        }
+        expect(news.news.publication).toBeDefined();
+        if (!news.news.publication) {
+          throw new Error('news.news.publication is undefined');
+        }
+        delete (news.news.publication as Partial<typeof news.news.publication>)
+          .name;
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
@@ -108,8 +119,16 @@ describe('utils', () => {
       });
 
       it('will throw if you dont provide required attr publication language', () => {
-        // @ts-expect-error - Testing missing required publication language field
-        delete news.news?.publication.language;
+        expect(news.news).toBeDefined();
+        if (!news.news) {
+          throw new Error('news.news is undefined');
+        }
+        expect(news.news.publication).toBeDefined();
+        if (!news.news.publication) {
+          throw new Error('news.news.publication is undefined');
+        }
+        delete (news.news.publication as Partial<typeof news.news.publication>)
+          .language;
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
@@ -119,8 +138,11 @@ describe('utils', () => {
       });
 
       it('will throw if you dont provide required attr title', () => {
-        // @ts-expect-error - Testing missing required title field
-        delete news.news?.title;
+        expect(news.news).toBeDefined();
+        if (!news.news) {
+          throw new Error('news.news is undefined');
+        }
+        delete (news.news as Partial<typeof news.news>).title;
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
@@ -130,8 +152,11 @@ describe('utils', () => {
       });
 
       it('will throw if you dont provide required attr publication_date', () => {
-        // @ts-expect-error - Testing missing required publication_date field
-        delete news.news?.publication_date;
+        expect(news.news).toBeDefined();
+        if (!news.news) {
+          throw new Error('news.news is undefined');
+        }
+        delete (news.news as Partial<typeof news.news>).publication_date;
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
@@ -152,8 +177,7 @@ describe('utils', () => {
       });
 
       it('will not throw if everythign is valid', () => {
-        // @ts-expect-error - Testing valid string access value
-        news.news.access = 'Registration';
+        news.news!.access = 'Registration';
 
         expect(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
@@ -200,8 +224,7 @@ describe('utils', () => {
       it('throws if a required attr is not provided', () => {
         expect(() => {
           const test = Object.assign({}, testvideo);
-          // @ts-expect-error - Testing missing required title field
-          delete test.video[0].title;
+          delete (test.video[0] as Partial<(typeof test.video)[0]>).title;
           validateSMIOptions(test, ErrorLevel.THROW);
         }).toThrow(
           /must include thumbnail_loc, title and description fields for videos/
@@ -218,8 +241,8 @@ describe('utils', () => {
 
         expect(() => {
           const test = Object.assign({}, testvideo);
-          // @ts-expect-error - Testing missing required thumbnail_loc field
-          delete test.video[0].thumbnail_loc;
+          delete (test.video[0] as Partial<(typeof test.video)[0]>)
+            .thumbnail_loc;
           validateSMIOptions(test, ErrorLevel.THROW);
         }).toThrow(
           /must include thumbnail_loc, title and description fields for videos/
@@ -227,8 +250,7 @@ describe('utils', () => {
 
         expect(() => {
           const test = Object.assign({}, testvideo);
-          // @ts-expect-error - Testing missing required description field
-          delete test.video[0].description;
+          delete (test.video[0] as Partial<(typeof test.video)[0]>).description;
           validateSMIOptions(test, ErrorLevel.THROW);
         }).toThrow(
           /must include thumbnail_loc, title and description fields for videos/
@@ -704,9 +726,8 @@ describe('utils', () => {
     });
 
     it('turns a line-separated JSON stream into a sitemap', async () => {
-      let osampleURLs: { url: string }[] = [];
+      const osampleURLs: { url: string }[] = sampleURLs.map((url) => ({ url }));
       await new Promise<void>((resolve) => {
-        osampleURLs = sampleURLs.map((url) => ({ url }));
         content = osampleURLs.map((url) => JSON.stringify(url)).join('\n');
         lineSeparatedURLsToSitemapOptions(rs, { isJSON: true }).pipe(ws);
         ws.on('finish', () => resolve());

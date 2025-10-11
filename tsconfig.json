@@ -10,7 +10,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
-    "lib": ["es2022"]
+    "lib": ["es2022"],
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
   },
   "include": ["index.ts", "cli.ts"],
   "exclude": ["node_modules"]

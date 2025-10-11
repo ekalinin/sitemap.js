@@ -11,7 +11,7 @@ dist
 *~
 
 # code coverage
-coverage/*
+coverage/
 .nyc_output/
 
 /yarn.lock
