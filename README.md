@@ -139,7 +139,6 @@ simpleSitemapAndIndex({
   sourceData: lineSeparatedURLsToSitemapOptions(
     createReadStream('./your-data.json.txt')
   ),
-  // or (only works with node 20.19.5 and up)
   sourceData: [{ url: '/page-1/', changefreq: 'daily'}, ...],
   // or
   sourceData: './your-data.json.txt',
@@ -204,7 +203,7 @@ sms
 .pipe(createWriteStream(resolve('./sitemap-index.xml.gz')));
 
 const arrayOfSitemapItems = [{ url: '/page-1/', changefreq: 'daily'}, ...]
-Readable.from(arrayOfSitemapItems).pipe(sms) // available as of node 20.19.5
+Readable.from(arrayOfSitemapItems).pipe(sms)
 // or
 arrayOfSitemapItems.forEach(item => sms.write(item))
 sms.end() // necessary to let it know you've got nothing else to write
