@@ -10,15 +10,17 @@ sitemap.js is a TypeScript library and CLI tool for generating sitemap XML files
 
 ### Building
 ```bash
-npm run build                 # Compile TypeScript to dist/
+npm run build                 # Compile TypeScript to dist/esm/ and dist/cjs/
+npm run build:esm             # Build ESM only (dist/esm/)
+npm run build:cjs             # Build CJS only (dist/cjs/)
 ```
 
 ### Testing
 ```bash
-npm test                      # Run linter, type check, and core sitemap tests
-npm run test:full             # Run all tests including xmllint validation
+npm test                      # Run Jest tests with coverage
+npm run test:full             # Run lint, build, Jest, and xmllint validation
 npm run test:typecheck        # Type check only (tsc)
-npm run test:perf             # Run performance tests
+npm run test:perf             # Run performance tests (tests/perf.mjs)
 npm run test:xmllint          # Validate XML schema (requires xmllint)
 ```
 
@@ -30,8 +32,9 @@ npx eslint lib/* ./cli.ts --fix  # Auto-fix linting issues
 
 ### Running CLI Locally
 ```bash
-node dist/cli.js < urls.txt   # Run CLI from built dist
-npx ts-node cli.ts < urls.txt # Run CLI from source
+node dist/esm/cli.js < urls.txt   # Run CLI from built dist
+./dist/esm/cli.js --version       # Run directly (has shebang)
+npm link && sitemap --version     # Link and test as global command
 ```
 
 ## Code Architecture
@@ -116,7 +119,7 @@ Tests are in [tests/](tests/) directory with Jest:
 - `sitemap-simple.test.ts`: High-level API
 - `cli.test.ts`: CLI argument parsing
 
-Coverage requirements (jest.config.js):
+Coverage requirements (jest.config.cjs):
 - Branches: 80%
 - Functions: 90%
 - Lines: 90%
@@ -124,7 +127,19 @@ Coverage requirements (jest.config.js):
 
 ## TypeScript Configuration
 
-Compiles to CommonJS (ES2022 target) with strict null checks enabled. Output goes to `dist/`. Only [index.ts](index.ts) and [cli.ts](cli.ts) are included in compilation (they import from `lib/`).
+The project uses a dual-build setup for ESM and CommonJS:
+
+- **[tsconfig.json](tsconfig.json)**: ESM build (`module: "NodeNext"`, `moduleResolution: "NodeNext"`)
+  - Outputs to `dist/esm/`
+  - Includes both [index.ts](index.ts) and [cli.ts](cli.ts)
+  - ES2023 target with strict null checks enabled
+
+- **[tsconfig.cjs.json](tsconfig.cjs.json)**: CommonJS build (`module: "CommonJS"`)
+  - Outputs to `dist/cjs/`
+  - Excludes [cli.ts](cli.ts) (CLI is ESM-only)
+  - Only includes [index.ts](index.ts) for library exports
+
+**Important**: All relative imports must include `.js` extensions for ESM compatibility (e.g., `import { foo } from './types.js'`)
 
 ## Key Patterns
 
@@ -157,10 +172,37 @@ Control validation strictness with `ErrorLevel`:
 
 ## Package Distribution
 
-- **Main**: `dist/index.js` (CommonJS)
-- **Types**: `dist/index.d.ts`
-- **Binary**: `dist/cli.js` (executable via `npx sitemap`)
-- **Engines**: Node.js >=22.0.0, npm >=10.5.0
+The package is distributed as a dual ESM/CommonJS package with `"type": "module"` in package.json:
+
+- **ESM**: `dist/esm/index.js` (ES modules)
+- **CJS**: `dist/cjs/index.js` (CommonJS, via conditional exports)
+- **Types**: `dist/esm/index.d.ts` (TypeScript definitions)
+- **Binary**: `dist/esm/cli.js` (ESM-only CLI, executable via `npx sitemap`)
+- **Engines**: Node.js >=20.19.5, npm >=10.8.2
+
+### Dual Package Exports
+
+The `exports` field in package.json provides conditional exports:
+
+```json
+{
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  }
+}
+```
+
+This allows both:
+```javascript
+// ESM
+import { SitemapStream } from 'sitemap'
+
+// CommonJS
+const { SitemapStream } = require('sitemap')
+```
 
 ## Git Hooks
 

@@ -6,18 +6,18 @@ import {
   SitemapItemLoose,
   EnumChangefreq,
   SitemapStream,
-} from '../index';
-import * as testUtil from './util';
+} from '../index.js';
+import * as testUtil from './util.js';
 import {
   validateSMIOptions,
   lineSeparatedURLsToSitemapOptions,
   normalizeURL,
   mergeStreams,
-} from '../lib/utils';
+} from '../lib/utils.js';
 import MemoryStream from 'memorystream';
-import { promisify } from 'util';
-import { Readable, Writable, finished } from 'stream';
-import { streamToPromise } from '../lib/sitemap-stream';
+import { promisify } from 'node:util';
+import { Readable, Writable, finished } from 'node:stream';
+import { streamToPromise } from '../lib/sitemap-stream.js';
 const finishedP = promisify(finished);
 
 describe('utils', () => {

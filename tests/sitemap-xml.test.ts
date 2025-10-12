@@ -1,4 +1,4 @@
-import { text } from '../lib/sitemap-xml';
+import { text } from '../lib/sitemap-xml.js';
 
 describe('text function', () => {
   it('should replace ampersand with &amp;', () => {

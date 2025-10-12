@@ -32,19 +32,24 @@ npx sitemap < listofurls.txt # `npx sitemap -h` for more examples and a list of 
 For programmatic one time generation of a sitemap try:
 
 ```js
-  const { SitemapStream, streamToPromise } = require( 'sitemap' )
-  const { Readable } = require( 'stream' )
+// ESM
+import { SitemapStream, streamToPromise } from 'sitemap'
+import { Readable } from 'stream'
 
-  // An array with your links
-  const links = [{ url: '/page-1/',  changefreq: 'daily', priority: 0.3  }]
+// CommonJS
+const { SitemapStream, streamToPromise } = require('sitemap')
+const { Readable } = require('stream')
 
-  // Create a stream to write to
-  const stream = new SitemapStream( { hostname: 'https://...' } )
+// An array with your links
+const links = [{ url: '/page-1/',  changefreq: 'daily', priority: 0.3  }]
 
-  // Return a promise that resolves with your XML string
-  return streamToPromise(Readable.from(links).pipe(stream)).then((data) =>
-    data.toString()
-  )
+// Create a stream to write to
+const stream = new SitemapStream( { hostname: 'https://...' } )
+
+// Return a promise that resolves with your XML string
+return streamToPromise(Readable.from(links).pipe(stream)).then((data) =>
+  data.toString()
+)
 ```
 
 ## Serve a sitemap from a server and periodically update it
@@ -52,6 +57,13 @@ For programmatic one time generation of a sitemap try:
 Use this if you have less than 50 thousand urls. See SitemapAndIndexStream for if you have more.
 
 ```js
+// ESM
+import express from 'express'
+import { SitemapStream, streamToPromise } from 'sitemap'
+import { createGzip } from 'zlib'
+import { Readable } from 'stream'
+
+// CommonJS
 const express = require('express')
 const { SitemapStream, streamToPromise } = require('sitemap')
 const { createGzip } = require('zlib')
@@ -105,8 +117,15 @@ app.listen(3000, () => {
 If you know you are definitely going to have more than 50,000 urls in your sitemap, you can use this slightly more complex interface to create a new sitemap every 45,000 entries and add that file to a sitemap index.
 
 ```js
-const { createReadStream, createWriteStream } = require('fs');
-const { resolve } = require('path');
+// ESM
+import { createReadStream, createWriteStream } from 'fs'
+import { resolve } from 'path'
+import { createGzip } from 'zlib'
+import { simpleSitemapAndIndex, lineSeparatedURLsToSitemapOptions } from 'sitemap'
+
+// CommonJS
+const { createReadStream, createWriteStream } = require('fs')
+const { resolve } = require('path')
 const { createGzip } = require('zlib')
 const {
   simpleSitemapAndIndex,
@@ -132,8 +151,16 @@ simpleSitemapAndIndex({
 Want to customize that?
 
 ```js
-const { createReadStream, createWriteStream } = require('fs');
-const { resolve } = require('path');
+// ESM
+import { createReadStream, createWriteStream } from 'fs'
+import { resolve } from 'path'
+import { createGzip } from 'zlib'
+import { Readable } from 'stream'
+import { SitemapAndIndexStream, SitemapStream, lineSeparatedURLsToSitemapOptions } from 'sitemap'
+
+// CommonJS
+const { createReadStream, createWriteStream } = require('fs')
+const { resolve } = require('path')
 const { createGzip } = require('zlib')
 const { Readable } = require('stream')
 const {
@@ -186,7 +213,12 @@ sms.end() // necessary to let it know you've got nothing else to write
 ### Options you can pass
 
 ```js
-const { SitemapStream, streamToPromise } = require('sitemap');
+// ESM
+import { SitemapStream, streamToPromise } from 'sitemap'
+
+// CommonJS
+const { SitemapStream, streamToPromise } = require('sitemap')
+
 const smStream = new SitemapStream({
   hostname: 'http://www.mywebsite.com',
   xslUrl: "https://example.com/style.xsl",

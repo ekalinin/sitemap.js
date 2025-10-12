@@ -1,14 +1,14 @@
-import { createReadStream } from 'fs';
-import { resolve } from 'path';
-import { promisify } from 'util';
-import { pipeline as pipe, Writable, Readable } from 'stream';
+import { createReadStream } from 'node:fs';
+import { resolve } from 'node:path';
+import { promisify } from 'node:util';
+import { pipeline as pipe, Writable, Readable } from 'node:stream';
 import {
   parseSitemap,
   XMLToSitemapItemStream,
   ObjectStreamToJSON,
-} from '../lib/sitemap-parser';
-import { SitemapStreamOptions } from '../lib/sitemap-stream';
-import { ErrorLevel, SitemapItem } from '../lib/types';
+} from '../lib/sitemap-parser.js';
+import { SitemapStreamOptions } from '../lib/sitemap-stream.js';
+import { ErrorLevel, SitemapItem } from '../lib/types.js';
 const pipeline = promisify(pipe);
 import normalizedSample from './mocks/sampleconfig.normalized.json';
 

@@ -16,15 +16,33 @@
   },
   "license": "MIT",
   "author": "Eugene Kalinin <e.v.kalinin@gmail.com>",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "bin": "./dist/cli.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "bin": "./dist/esm/cli.js",
   "directories": {
     "lib": "lib",
     "test": "tests"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build:esm && npm run build:cjs-package && npm run build:cjs",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:cjs-package": "mkdir -p dist/cjs && echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
+    "build:esm": "tsc",
     "lint": "eslint \"{lib,tests}/**/*.ts\" ./cli.ts",
     "lint:fix": "eslint --fix \"{lib,tests}/**/*.ts\" ./cli.ts",
     "prepare": "husky",
@@ -32,9 +50,9 @@
     "prettier": "npx prettier --check \"{lib,tests}/**/*.ts\" ./cli.ts",
     "prettier:fix": "npx prettier --write \"{lib,tests}/**/*.ts\" ./cli.ts",
     "test": "jest",
-    "test:full": "npm run lint && tsc && jest && npm run test:xmllint",
-    "test:perf": "node ./tests/perf.js",
-    "test:schema": "node tests/alltags.js | xmllint --schema schema/all.xsd --noout -",
+    "test:full": "npm run lint && npm run build && jest && npm run test:xmllint",
+    "test:perf": "node ./tests/perf.mjs",
+    "test:schema": "node tests/alltags.mjs | xmllint --schema schema/all.xsd --noout -",
     "test:typecheck": "tsc",
     "test:xmllint": "if which xmllint; then npm run test:schema; else echo 'skipping xml tests. xmllint not installed'; fi"
   },

@@ -1,13 +1,13 @@
-import { createReadStream } from 'fs';
-import { tmpdir } from 'os';
-import { resolve } from 'path';
-import { Readable } from 'stream';
-import { EmptyStream } from '../lib/errors';
+import { createReadStream } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { Readable } from 'node:stream';
+import { EmptyStream } from '../lib/errors.js';
 import {
   SitemapStream,
   closetag,
   streamToPromise,
-} from '../lib/sitemap-stream';
+} from '../lib/sitemap-stream.js';
 
 const minimumns =
   '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';

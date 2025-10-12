@@ -28,7 +28,7 @@ import {
   isResolution,
   NewsItem,
   ErrorHandler,
-} from './types';
+} from './types.js';
 import {
   ChangeFreqInvalidError,
   InvalidAttrValue,
@@ -51,8 +51,8 @@ import {
   InvalidVideoPriceType,
   InvalidVideoResolution,
   InvalidVideoPriceCurrency,
-} from './errors';
-import { validators } from './types';
+} from './errors.js';
+import { validators } from './types.js';
 
 function validate(
   subject: NewsItem | VideoItem | NewsItem['publication'],

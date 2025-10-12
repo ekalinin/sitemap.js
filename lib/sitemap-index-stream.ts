@@ -1,8 +1,8 @@
 import { WriteStream } from 'node:fs';
 import { Transform, TransformOptions, TransformCallback } from 'node:stream';
-import { IndexItem, SitemapItemLoose, ErrorLevel } from './types';
-import { SitemapStream, stylesheetInclude } from './sitemap-stream';
-import { element, otag, ctag } from './sitemap-xml';
+import { IndexItem, SitemapItemLoose, ErrorLevel } from './types.js';
+import { SitemapStream, stylesheetInclude } from './sitemap-stream.js';
+import { element, otag, ctag } from './sitemap-xml.js';
 
 export enum IndexTagNames {
   sitemap = 'sitemap',

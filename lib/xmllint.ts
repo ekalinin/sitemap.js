@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { Readable } from 'node:stream';
 import { resolve } from 'node:path';
 import { execFile } from 'node:child_process';
-import { XMLLintUnavailable } from './errors';
+import { XMLLintUnavailable } from './errors.js';
 
 /**
  * Finds the `schema` directory since we may be located in

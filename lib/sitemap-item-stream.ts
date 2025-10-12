@@ -1,7 +1,7 @@
 import { Transform, TransformOptions, TransformCallback } from 'node:stream';
-import { InvalidAttr } from './errors';
-import { SitemapItem, ErrorLevel, TagNames } from './types';
-import { element, otag, ctag } from './sitemap-xml';
+import { InvalidAttr } from './errors.js';
+import { SitemapItem, ErrorLevel, TagNames } from './types.js';
+import { element, otag, ctag } from './sitemap-xml.js';
 
 export interface StringObj {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

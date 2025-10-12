@@ -6,21 +6,21 @@
 export {
   SitemapItemStream,
   SitemapItemStreamOptions,
-} from './lib/sitemap-item-stream';
+} from './lib/sitemap-item-stream.js';
 export {
   IndexTagNames,
   SitemapIndexStream,
   SitemapIndexStreamOptions,
   SitemapAndIndexStream,
   SitemapAndIndexStreamOptions,
-} from './lib/sitemap-index-stream';
+} from './lib/sitemap-index-stream.js';
 export {
   streamToPromise,
   SitemapStream,
   SitemapStreamOptions,
-} from './lib/sitemap-stream';
-export * from './lib/errors';
-export * from './lib/types';
+} from './lib/sitemap-stream.js';
+export * from './lib/errors.js';
+export * from './lib/types.js';
 export {
   lineSeparatedURLsToSitemapOptions,
   mergeStreams,
@@ -28,21 +28,21 @@ export {
   normalizeURL,
   ReadlineStream,
   ReadlineStreamOptions,
-} from './lib/utils';
-export { xmlLint } from './lib/xmllint';
+} from './lib/utils.js';
+export { xmlLint } from './lib/xmllint.js';
 export {
   parseSitemap,
   XMLToSitemapItemStream,
   XMLToSitemapItemStreamOptions,
   ObjectStreamToJSON,
   ObjectStreamToJSONOptions,
-} from './lib/sitemap-parser';
+} from './lib/sitemap-parser.js';
 export {
   parseSitemapIndex,
   XMLToSitemapIndexStream,
   XMLToSitemapIndexItemStreamOptions,
   IndexObjectStreamToJSON,
   IndexObjectStreamToJSONOptions,
-} from './lib/sitemap-index-parser';
+} from './lib/sitemap-index-parser.js';
 
-export { simpleSitemapAndIndex } from './lib/sitemap-simple';
+export { simpleSitemapAndIndex } from './lib/sitemap-simple.js';

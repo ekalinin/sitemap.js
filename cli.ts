@@ -1,19 +1,37 @@
 #!/usr/bin/env node
 import { Readable } from 'node:stream';
 import { createReadStream, createWriteStream, WriteStream } from 'node:fs';
-import { xmlLint } from './lib/xmllint';
-import { XMLLintUnavailable } from './lib/errors';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { xmlLint } from './lib/xmllint.js';
+import { XMLLintUnavailable } from './lib/errors.js';
 import {
   ObjectStreamToJSON,
   XMLToSitemapItemStream,
-} from './lib/sitemap-parser';
-import { lineSeparatedURLsToSitemapOptions } from './lib/utils';
-import { SitemapStream } from './lib/sitemap-stream';
-import { SitemapAndIndexStream } from './lib/sitemap-index-stream';
+} from './lib/sitemap-parser.js';
+import { lineSeparatedURLsToSitemapOptions } from './lib/utils.js';
+import { SitemapStream } from './lib/sitemap-stream.js';
+import { SitemapAndIndexStream } from './lib/sitemap-index-stream.js';
 import { URL } from 'node:url';
 import { createGzip, Gzip } from 'node:zlib';
-import { ErrorLevel } from './lib/types';
+import { ErrorLevel } from './lib/types.js';
 import arg from 'arg';
+
+// Read package.json from the project root (one level up from dist/esm or dist/cjs)
+// In ESM, __dirname is not defined, so we use import.meta.url
+// In CJS, __dirname is defined and import.meta is not available
+let currentDir: string;
+try {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore - __dirname may not be defined in ESM
+  currentDir = __dirname;
+} catch {
+  // ESM fallback using import.meta.url
+  currentDir = new URL('.', import.meta.url).pathname;
+}
+const packageJson = JSON.parse(
+  readFileSync(resolve(currentDir, '../../package.json'), 'utf8')
+);
 
 const pickStreamOrArg = (argv: { _: string[] }): Readable => {
   if (!argv._.length) {
@@ -49,9 +67,7 @@ function getStream(): Readable {
   }
 }
 if (argv['--version']) {
-  import('./package.json').then(({ default: packagejson }) => {
-    console.log(packagejson.version);
-  });
+  console.log(packageJson.version);
 } else if (argv['--help']) {
   console.log(`
 Turn a list of urls into a sitemap xml.

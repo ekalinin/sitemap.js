@@ -1,20 +1,20 @@
-import { SitemapStream } from '../index';
-import { tmpdir } from 'os';
-import { join, resolve } from 'path';
+import { SitemapStream } from '../index.js';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import {
   existsSync,
   unlinkSync,
   createWriteStream,
   createReadStream,
-} from 'fs';
+} from 'node:fs';
 import {
   SitemapIndexStream,
   SitemapAndIndexStream,
-} from '../lib/sitemap-index-stream';
-import { streamToPromise } from '../lib/sitemap-stream';
-import { finished as finishedCallback } from 'stream';
-import { readFileSync, WriteStream } from 'fs';
-import { promisify } from 'util';
+} from '../lib/sitemap-index-stream.js';
+import { streamToPromise } from '../lib/sitemap-stream.js';
+import { finished as finishedCallback } from 'node:stream';
+import { readFileSync, WriteStream } from 'node:fs';
+import { promisify } from 'node:util';
 
 const finished = promisify(finishedCallback);
 

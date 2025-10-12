@@ -1,7 +1,10 @@
-import util from 'util';
-import fs from 'fs';
-import path from 'path';
-import { exec as execCb, execFileSync as execFileSyncCb } from 'child_process';
+import util from 'node:util';
+import fs from 'node:fs';
+import path from 'node:path';
+import {
+  exec as execCb,
+  execFileSync as execFileSyncCb,
+} from 'node:child_process';
 import pkg from '../package.json';
 import normalizedSample from './mocks/sampleconfig.normalized.json';
 
@@ -24,14 +27,14 @@ const jsonxml = fs.readFileSync(
 /* eslint-env jest, jasmine */
 describe('cli', () => {
   it('prints its version when asked', async () => {
-    const { stdout } = await exec('node ./dist/cli.js --version', {
+    const { stdout } = await exec('node ./dist/esm/cli.js --version', {
       encoding: 'utf8',
     });
     expect(stdout).toBe(pkg.version + '\n');
   });
 
   it('prints a help doc when asked', async () => {
-    const { stdout } = await exec('node ./dist/cli.js --help', {
+    const { stdout } = await exec('node ./dist/esm/cli.js --help', {
       encoding: 'utf8',
     });
     expect(stdout.length).toBeGreaterThan(1);
@@ -39,7 +42,7 @@ describe('cli', () => {
 
   it('accepts line separated urls', async () => {
     const { stdout } = await exec(
-      'node ./dist/cli.js < ./tests/mocks/cli-urls.txt',
+      'node ./dist/esm/cli.js < ./tests/mocks/cli-urls.txt',
       { encoding: 'utf8' }
     );
     expect(stdout).toBe(txtxml);
@@ -49,7 +52,7 @@ describe('cli', () => {
     let threw = false;
     try {
       await exec(
-        'echo "https://example.com/asdr32/" | node ./dist/cli.js --prepend ./tests/mocks/cli-urls.json.xml|grep \'https://example.com/asdr32/\''
+        'echo "https://example.com/asdr32/" | node ./dist/esm/cli.js --prepend ./tests/mocks/cli-urls.json.xml|grep \'https://example.com/asdr32/\''
       );
     } catch {
       threw = true;
@@ -59,7 +62,7 @@ describe('cli', () => {
 
   it('accepts line separated urls as file', async () => {
     const { stdout } = await exec(
-      'node ./dist/cli.js ./tests/mocks/cli-urls.txt',
+      'node ./dist/esm/cli.js ./tests/mocks/cli-urls.txt',
       { encoding: 'utf8' }
     );
     expect(stdout).toBe(txtxml);
@@ -67,7 +70,7 @@ describe('cli', () => {
 
   it('streams a index file and writes sitemaps', async () => {
     const { stdout } = await exec(
-      'cat ./tests/mocks/short-list.txt | node ./dist/cli.js --index --limit 250 --index-base-url https://example.com/path/',
+      'cat ./tests/mocks/short-list.txt | node ./dist/esm/cli.js --index --limit 250 --index-base-url https://example.com/path/',
       { encoding: 'utf8' }
     );
     expect(stdout).toContain('https://example.com/path/sitemap-0.xml');
@@ -96,7 +99,7 @@ describe('cli', () => {
 
   it('accepts json line separated urls', async () => {
     const { stdout } = await exec(
-      'node ./dist/cli.js < ./tests/mocks/cli-urls.json.txt',
+      'node ./dist/esm/cli.js < ./tests/mocks/cli-urls.json.txt',
       { encoding: 'utf8' }
     );
     expect(stdout + '\n').toBe(jsonxml);
@@ -107,7 +110,7 @@ describe('cli', () => {
     let threw = false;
     try {
       const { stdout } = await exec(
-        'node ./dist/cli.js --parse --single-line-json < ./tests/mocks/alltags.xml',
+        'node ./dist/esm/cli.js --parse --single-line-json < ./tests/mocks/alltags.xml',
         { encoding: 'utf8' }
       );
       json = JSON.parse(stdout);
@@ -123,7 +126,7 @@ describe('cli', () => {
     let json;
     try {
       const { stdout } = await exec(
-        'node ./dist/cli.js --parse --single-line-json ./tests/mocks/alltags.xml',
+        'node ./dist/esm/cli.js --parse --single-line-json ./tests/mocks/alltags.xml',
         { encoding: 'utf8' }
       );
       json = JSON.parse(stdout);
@@ -139,7 +142,7 @@ describe('cli', () => {
     let json;
     try {
       const { stdout } = await exec(
-        'node ./dist/cli.js --parse --single-line-json ./tests/mocks/bad-tag-sitemap.xml',
+        'node ./dist/esm/cli.js --parse --single-line-json ./tests/mocks/bad-tag-sitemap.xml',
         { encoding: 'utf8' }
       );
       json = JSON.parse(stdout);
@@ -152,9 +155,12 @@ describe('cli', () => {
 
   it('validates xml piped in', (done) => {
     if (hasXMLLint) {
-      exec('node ./dist/cli.js --validate < ./tests/mocks/cli-urls.json.xml', {
-        encoding: 'utf8',
-      }).then(({ stdout, stderr }) => {
+      exec(
+        'node ./dist/esm/cli.js --validate < ./tests/mocks/cli-urls.json.xml',
+        {
+          encoding: 'utf8',
+        }
+      ).then(({ stdout, stderr }) => {
         expect(stdout).toBe('valid\n');
         done();
       });
@@ -166,9 +172,12 @@ describe('cli', () => {
 
   it('validates xml specified as file', (done) => {
     if (hasXMLLint) {
-      exec('node ./dist/cli.js --validate ./tests/mocks/cli-urls.json.xml', {
-        encoding: 'utf8',
-      })
+      exec(
+        'node ./dist/esm/cli.js --validate ./tests/mocks/cli-urls.json.xml',
+        {
+          encoding: 'utf8',
+        }
+      )
         .then(
           ({ stdout, stderr }) => {
             expect(stdout).toBe('valid\n');
