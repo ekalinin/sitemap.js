@@ -21,7 +21,7 @@ function tagTemplate(): IndexItem {
 
 type Logger = (
   level: 'warn' | 'error' | 'info' | 'log',
-  ...message: Parameters<Console['log']>[0]
+  ...message: Parameters<Console['log']>
 ) => void;
 export interface XMLToSitemapIndexItemStreamOptions extends TransformOptions {
   level?: ErrorLevel;
@@ -32,7 +32,6 @@ const defaultStreamOpts: XMLToSitemapIndexItemStreamOptions = {
   logger: defaultLogger,
 };
 
-// TODO does this need to end with `options`
 /**
  * Takes a stream of xml and transforms it into a stream of IndexItems
  * Use this to parse existing sitemap indices into config options compatible with this library
@@ -40,14 +39,16 @@ const defaultStreamOpts: XMLToSitemapIndexItemStreamOptions = {
 export class XMLToSitemapIndexStream extends Transform {
   level: ErrorLevel;
   logger: Logger;
+  error: Error | null;
   saxStream: SAXStream;
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
+    this.error = null;
     this.saxStream = sax.createStream(true, {
       xmlns: true,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+
+      // @ts-expect-error - SAX types don't include strictEntities option
       strictEntities: true,
       trim: true,
     });
@@ -66,6 +67,7 @@ export class XMLToSitemapIndexStream extends Transform {
     this.saxStream.on('opentag', (tag): void => {
       if (!isValidTagName(tag.name)) {
         this.logger('warn', 'unhandled tag', tag.name);
+        this.err(`unhandled tag: ${tag.name}`);
       }
     });
 
@@ -84,14 +86,22 @@ export class XMLToSitemapIndexStream extends Transform {
             currentTag,
             `'${text}'`
           );
+          this.err(`unhandled text for tag: ${currentTag} '${text}'`);
           break;
       }
     });
 
-    this.saxStream.on('cdata', (_text): void => {
+    this.saxStream.on('cdata', (text): void => {
       switch (currentTag) {
+        case IndexTagNames.loc:
+          currentItem.url = text;
+          break;
+        case IndexTagNames.lastmod:
+          currentItem.lastmod = text;
+          break;
         default:
           this.logger('log', 'unhandled cdata for tag:', currentTag);
+          this.err(`unhandled cdata for tag: ${currentTag}`);
           break;
       }
     });
@@ -102,6 +112,7 @@ export class XMLToSitemapIndexStream extends Transform {
           break;
         default:
           this.logger('log', 'unhandled attr', currentTag, attr.name);
+          this.err(`unhandled attr: ${currentTag} ${attr.name}`);
       }
     });
 
@@ -124,15 +135,24 @@ export class XMLToSitemapIndexStream extends Transform {
     callback: TransformCallback
   ): void {
     try {
+      const cb = () =>
+        callback(this.level === ErrorLevel.THROW ? this.error : null);
       // correcting the type here can be done without making it a breaking change
       // TODO fix this
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      this.saxStream.write(data, encoding);
-      callback();
+      if (!this.saxStream.write(data, encoding)) {
+        this.saxStream.once('drain', cb);
+      } else {
+        process.nextTick(cb);
+      }
     } catch (error) {
       callback(error as Error);
     }
+  }
+
+  private err(msg: string) {
+    if (!this.error) this.error = new Error(msg);
   }
 }
 
