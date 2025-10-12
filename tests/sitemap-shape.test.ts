@@ -19,7 +19,7 @@ import {
   parseSitemapIndex,
   XMLToSitemapIndexStream,
   IndexObjectStreamToJSON,
-} from '../index';
+} from '../index.js';
 
 describe('sitemap shape', () => {
   it('exports individually as well', () => {

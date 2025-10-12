@@ -1,13 +1,13 @@
-import { createReadStream } from 'fs';
-import { resolve } from 'path';
-import { promisify } from 'util';
-import { pipeline as pipe, Writable, Readable } from 'stream';
+import { createReadStream } from 'node:fs';
+import { resolve } from 'node:path';
+import { promisify } from 'node:util';
+import { pipeline as pipe, Writable, Readable } from 'node:stream';
 import {
   parseSitemapIndex,
   XMLToSitemapIndexStream,
   IndexObjectStreamToJSON,
-} from '../lib/sitemap-index-parser';
-import { ErrorLevel, IndexItem } from '../lib/types';
+} from '../lib/sitemap-index-parser.js';
+import { ErrorLevel, IndexItem } from '../lib/types.js';
 const pipeline = promisify(pipe);
 import normalizedSample from './mocks/sampleconfig-index.normalized.json';
 

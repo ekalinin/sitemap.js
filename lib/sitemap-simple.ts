@@ -1,6 +1,6 @@
-import { SitemapAndIndexStream } from './sitemap-index-stream';
-import { SitemapStream } from './sitemap-stream';
-import { lineSeparatedURLsToSitemapOptions } from './utils';
+import { SitemapAndIndexStream } from './sitemap-index-stream.js';
+import { SitemapStream } from './sitemap-stream.js';
+import { lineSeparatedURLsToSitemapOptions } from './utils.js';
 import { createGzip } from 'node:zlib';
 import {
   createWriteStream,
@@ -11,7 +11,7 @@ import {
 import { normalize, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { SitemapItemLoose } from './types';
+import { SitemapItemLoose } from './types.js';
 import { URL } from 'node:url';
 /**
  *

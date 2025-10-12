@@ -1,6 +1,6 @@
-import { TagNames } from './types';
-import { StringObj } from './sitemap-item-stream';
-import { IndexTagNames } from './sitemap-index-stream';
+import { TagNames } from './types.js';
+import { StringObj } from './sitemap-item-stream.js';
+import { IndexTagNames } from './sitemap-index-stream.js';
 
 const invalidXMLUnicodeRegex =
   // eslint-disable-next-line no-control-regex

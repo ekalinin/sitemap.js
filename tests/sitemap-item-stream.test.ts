@@ -1,4 +1,4 @@
-import { SitemapItemStream, streamToPromise } from '../index';
+import { SitemapItemStream, streamToPromise } from '../index.js';
 import {
   simpleText,
   simpleURL,
@@ -8,7 +8,7 @@ import {
   simpleTextEscaped,
   escapable,
   attrEscaped,
-} from './mocks/generator';
+} from './mocks/generator.js';
 
 describe('sitemapItem-stream', () => {
   it('full options', async () => {

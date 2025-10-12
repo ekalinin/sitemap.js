@@ -1,12 +1,12 @@
-import * as sax from 'sax';
-import { SAXStream } from 'sax';
+import sax from 'sax';
+import type { SAXStream } from 'sax';
 import {
   Readable,
   Transform,
   TransformOptions,
   TransformCallback,
 } from 'node:stream';
-import { IndexItem, ErrorLevel, IndexTagNames } from './types';
+import { IndexItem, ErrorLevel, IndexTagNames } from './types.js';
 
 function isValidTagName(tagName: string): tagName is IndexTagNames {
   // This only works because the enum name and value are the same

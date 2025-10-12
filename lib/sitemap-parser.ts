@@ -1,5 +1,5 @@
-import * as sax from 'sax';
-import { SAXStream } from 'sax';
+import sax from 'sax';
+import type { SAXStream } from 'sax';
 import {
   Readable,
   Transform,
@@ -19,7 +19,7 @@ import {
   isPriceType,
   isResolution,
   TagNames,
-} from './types';
+} from './types.js';
 
 function isValidTagName(tagName: string): tagName is TagNames {
   // This only works because the enum name and value are the same

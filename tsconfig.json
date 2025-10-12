@@ -1,15 +1,15 @@
 {
   "compilerOptions": {
     "sourceMap": false,
-    "outDir": "./dist/",
+    "outDir": "./dist/esm/",
     "strictNullChecks": true,
     "strict": true,
     "declaration": true,
-    "module": "CommonJS",
+    "module": "NodeNext",
     "target": "ES2023",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node10",
+    "moduleResolution": "NodeNext",
     "lib": ["es2023"],
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true

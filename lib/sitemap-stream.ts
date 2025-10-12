@@ -5,10 +5,10 @@ import {
   Readable,
   Writable,
 } from 'node:stream';
-import { SitemapItemLoose, ErrorLevel, ErrorHandler } from './types';
-import { validateSMIOptions, normalizeURL } from './utils';
-import { SitemapItemStream } from './sitemap-item-stream';
-import { EmptyStream, EmptySitemap } from './errors';
+import { SitemapItemLoose, ErrorLevel, ErrorHandler } from './types.js';
+import { validateSMIOptions, normalizeURL } from './utils.js';
+import { SitemapItemStream } from './sitemap-item-stream.js';
+import { EmptyStream, EmptySitemap } from './errors.js';
 
 const xmlDec = '<?xml version="1.0" encoding="UTF-8"?>';
 export const stylesheetInclude = (url: string): string => {

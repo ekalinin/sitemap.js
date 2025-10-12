@@ -1,5 +1,5 @@
-import { xmlLint } from '../lib/xmllint';
-import { execFileSync } from 'child_process';
+import { xmlLint } from '../lib/xmllint.js';
+import { execFileSync } from 'node:child_process';
 
 let hasXMLLint = true;
 try {

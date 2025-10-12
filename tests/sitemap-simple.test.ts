@@ -1,8 +1,8 @@
-import { simpleSitemapAndIndex, streamToPromise } from '../index';
-import { tmpdir } from 'os';
-import { resolve } from 'path';
-import { existsSync, unlinkSync, createReadStream } from 'fs';
-import { createGunzip } from 'zlib';
+import { simpleSitemapAndIndex, streamToPromise } from '../index.js';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { existsSync, unlinkSync, createReadStream } from 'node:fs';
+import { createGunzip } from 'node:zlib';
 function removeFilesArray(files: string[]): void {
   if (files && files.length) {
     files.forEach(function (file: string) {
