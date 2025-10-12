@@ -1,4 +1,4 @@
-import { Transform, TransformOptions, TransformCallback } from 'stream';
+import { Transform, TransformOptions, TransformCallback } from 'node:stream';
 import { InvalidAttr } from './errors';
 import { SitemapItem, ErrorLevel, TagNames } from './types';
 import { element, otag, ctag } from './sitemap-xml';

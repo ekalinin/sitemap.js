@@ -1,5 +1,5 @@
-import { WriteStream } from 'fs';
-import { Transform, TransformOptions, TransformCallback } from 'stream';
+import { WriteStream } from 'node:fs';
+import { Transform, TransformOptions, TransformCallback } from 'node:stream';
 import { IndexItem, SitemapItemLoose, ErrorLevel } from './types';
 import { SitemapStream, stylesheetInclude } from './sitemap-stream';
 import { element, otag, ctag } from './sitemap-xml';

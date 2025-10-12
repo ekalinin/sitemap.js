@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { Readable } from 'stream';
-import { createReadStream, createWriteStream, WriteStream } from 'fs';
+import { Readable } from 'node:stream';
+import { createReadStream, createWriteStream, WriteStream } from 'node:fs';
 import { xmlLint } from './lib/xmllint';
 import { XMLLintUnavailable } from './lib/errors';
 import {
@@ -10,8 +10,8 @@ import {
 import { lineSeparatedURLsToSitemapOptions } from './lib/utils';
 import { SitemapStream } from './lib/sitemap-stream';
 import { SitemapAndIndexStream } from './lib/sitemap-index-stream';
-import { URL } from 'url';
-import { createGzip, Gzip } from 'zlib';
+import { URL } from 'node:url';
+import { createGzip, Gzip } from 'node:zlib';
 import { ErrorLevel } from './lib/types';
 import arg from 'arg';
 
