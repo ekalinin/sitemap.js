@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 // Slurp in an xml file, update/append to it and pipe it back out
-const { createReadStream, createWriteStream, copyFile, unlink } = require('fs');
-const { resolve } = require('path');
-const { Transform } = require('stream');
-const { SitemapStream, XMLToSitemapItemStream } = require('sitemap');
-const { tmpdir } = require('os');
+import { createReadStream, createWriteStream, copyFile, unlink } from 'fs';
+import { resolve } from 'path';
+import { Transform } from 'stream';
+import { SitemapStream, XMLToSitemapItemStream } from 'sitemap';
+import { tmpdir } from 'os';
 
 // Sample data that is a list of all dbUpdates.
 // we'll use this to update data as it passes through the stream.

@@ -1,8 +1,8 @@
-const { createReadStream } = require('fs');
-const {
+import { createReadStream } from 'fs';
+import {
   simpleSitemapAndIndex,
   lineSeparatedURLsToSitemapOptions,
-} = require('../dist/index');
+} from 'sitemap';
 
 // writes sitemaps and index out to the destination you provide.
 simpleSitemapAndIndex({

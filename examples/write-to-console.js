@@ -1,4 +1,4 @@
-const { SitemapStream, streamToPromise } = require('sitemap');
+import { SitemapStream, streamToPromise } from 'sitemap';
 // Creates a sitemap object given the input configuration with URLs
 const sitemap = new SitemapStream({ hostname: 'http://example.com' });
 sitemap.write({ url: '/page-1/', changefreq: 'daily', priority: 0.3 });

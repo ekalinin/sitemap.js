@@ -1,11 +1,11 @@
-const { /* createReadStream, */ createWriteStream } = require('fs');
-const { resolve } = require('path');
-const { createGzip } = require('zlib');
-const {
+import { /* createReadStream, */ createWriteStream } from 'fs';
+import { resolve } from 'path';
+import { createGzip } from 'zlib';
+import {
   SitemapAndIndexStream,
   SitemapStream,
   // lineSeparatedURLsToSitemapOptions,
-} = require('sitemap');
+} from 'sitemap';
 
 const sms = new SitemapAndIndexStream({
   limit: 10000, // defaults to 45k
