@@ -11,6 +11,11 @@ import { URL } from 'url';
 import { WriteStream } from 'fs';
 
 const pipeline = promisify(pline);
+
+function defaultNameGenerator(index: number) {
+  return `./sitemap-${index}.xml`;
+}
+
 /**
  *
  * @param {object} options -
@@ -34,6 +39,7 @@ export const simpleSitemapAndIndex = async ({
   limit = 50000,
   gzip = true,
   publicBasePath = './',
+  nameGenerator = defaultNameGenerator,
 }: {
   hostname: string;
   sitemapHostname?: string;
@@ -42,6 +48,7 @@ export const simpleSitemapAndIndex = async ({
   publicBasePath?: string;
   limit?: number;
   gzip?: boolean;
+  nameGenerator?: (index: number) => string;
 }): Promise<void> => {
   await promises.mkdir(destinationDir, { recursive: true });
   const sitemapAndIndexStream = new SitemapAndIndexStream({
@@ -50,7 +57,7 @@ export const simpleSitemapAndIndex = async ({
       const sitemapStream = new SitemapStream({
         hostname,
       });
-      const path = `./sitemap-${i}.xml`;
+      const path = nameGenerator(i);
       const writePath = resolve(destinationDir, path + (gzip ? '.gz' : ''));
       if (!publicBasePath.endsWith('/')) {
         publicBasePath += '/';
