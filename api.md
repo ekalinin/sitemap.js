@@ -3,8 +3,8 @@
 - [API](#api)
   - [SitemapStream](#sitemapstream)
   - [XMLToSitemapItemStream](#xmltositemapitemstream)
-  - [sitemapAndIndexStream](#sitemapandindexstream)
-  - [createSitemapsAndIndex](#createsitemapsandindex)
+  - [SitemapAndIndexStream](#sitemapandindexstream)
+  - [simpleSitemapAndIndex](#simplesitemapandindex)
   - [SitemapIndexStream](#sitemapindexstream)
   - [xmlLint](#xmllint)
   - [parseSitemap](#parsesitemap)
@@ -15,7 +15,7 @@
   - [Sitemap Item Options](#sitemap-item-options)
   - [SitemapImage](#sitemapimage)
   - [VideoItem](#videoitem)
-  - [ILinkItem](#ilinkitem)
+  - [LinkItem](#linkitem)
   - [NewsItem](#newsitem)
 
 ## SitemapStream
@@ -23,7 +23,12 @@
 A [Transform](https://nodejs.org/api/stream.html#stream_implementing_a_transform_stream) for turning a [Readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) of either [SitemapItemOptions](#sitemap-item-options) or url strings into a Sitemap. The readable stream it transforms **must** be in object mode.
 
 ```javascript
+// ESM
+import { SitemapStream } from 'sitemap'
+
+// CommonJS
 const { SitemapStream } = require('sitemap')
+
 const sms = new SitemapStream({
   hostname: 'https://example.com', // optional only necessary if your paths are relative
   lastmodDateOnly: false // defaults to false, flip to true for baidu
@@ -46,14 +51,19 @@ Takes a stream of xml and transforms it into a stream of SitemapOptions.
 Use this to parse existing sitemaps into config options compatible with this library
 
 ```javascript
+// ESM
+import { createReadStream, createWriteStream } from 'fs';
+import { XMLToSitemapItemStream, ObjectStreamToJSON, ErrorLevel } from 'sitemap';
+
+// CommonJS
 const { createReadStream, createWriteStream } = require('fs');
-const { XMLToSitemapItemStream, ObjectStreamToJSON } = require('sitemap');
+const { XMLToSitemapItemStream, ObjectStreamToJSON, ErrorLevel } = require('sitemap');
 
 createReadStream('./some/sitemap.xml')
 // turn the xml into sitemap option item options
 .pipe(new XMLToSitemapItemStream({
   // optional
-  level: ErrorLevel.Warn // default is WARN pass Silent to silence
+  level: ErrorLevel.WARN // default is WARN pass SILENT to silence
   logger: false // default is console log, pass false as another way to silence or your own custom logger
 }))
 // convert the object stream to JSON
@@ -62,21 +72,32 @@ createReadStream('./some/sitemap.xml')
 .pipe(createWriteStream('./sitemapOptions.json'))
 ```
 
-## sitemapAndIndexStream
+## SitemapAndIndexStream
 
 Use this to take a stream which may go over the max of 50000 items and split it into an index and sitemaps.
 SitemapAndIndexStream consumes a stream of urls and streams out index entries while writing individual urls to the streams you give it.
 Provide it with a function which when provided with a index returns a url where the sitemap will ultimately be hosted and a stream to write the current sitemap to. This function will be called everytime the next item in the stream would exceed the provided limit.
 
 ```js
+// ESM
+import { createReadStream, createWriteStream } from 'fs';
+import { resolve } from 'path';
+import { createGzip } from 'zlib';
+import {
+  SitemapAndIndexStream,
+  SitemapStream,
+  lineSeparatedURLsToSitemapOptions
+} from 'sitemap';
+
+// CommonJS
 const { createReadStream, createWriteStream } = require('fs');
 const { resolve } = require('path');
-const { createGzip } = require('zlib')
+const { createGzip } = require('zlib');
 const {
   SitemapAndIndexStream,
   SitemapStream,
   lineSeparatedURLsToSitemapOptions
-} = require('sitemap')
+} = require('sitemap');
 
 const sms = new SitemapAndIndexStream({
   limit: 10000, // defaults to 45k
@@ -103,11 +124,44 @@ lineSeparatedURLsToSitemapOptions(
 .pipe(createWriteStream(resolve('./sitemap-index.xml.gz')));
 ```
 
+## simpleSitemapAndIndex
+
+A simpler interface for creating sitemaps and indexes. Automatically handles splitting large datasets into multiple sitemap files.
+
+```js
+// ESM
+import { simpleSitemapAndIndex } from 'sitemap';
+
+// CommonJS
+const { simpleSitemapAndIndex } = require('sitemap');
+
+// writes sitemaps and index out to the destination you provide.
+await simpleSitemapAndIndex({
+  hostname: 'https://example.com',
+  destinationDir: './',
+  sourceData: [
+    { url: '/page-1/', changefreq: 'daily', priority: 0.3 },
+    { url: '/page-2/', changefreq: 'weekly', priority: 0.7 },
+    // ... more URLs
+  ],
+  // or read from a file
+  // sourceData: lineSeparatedURLsToSitemapOptions(createReadStream('./urls.txt')),
+  // or
+  // sourceData: './urls.txt',
+});
+```
+
 ## SitemapIndexStream
 
 Writes a sitemap index when given a stream urls.
 
 ```js
+// ESM
+import { SitemapIndexStream } from 'sitemap';
+
+// CommonJS
+const { SitemapIndexStream } = require('sitemap');
+
 /**
  * writes the following
  * <?xml version="1.0" encoding="UTF-8"?>
@@ -133,8 +187,14 @@ This is just a wrapper around the xmlLint command line tool and thus requires
 xmlLint.
 
 ```js
-const { createReadStream } = require('fs')
-const { xmlLint } = require('sitemap')
+// ESM
+import { createReadStream } from 'fs';
+import { xmlLint } from 'sitemap';
+
+// CommonJS
+const { createReadStream } = require('fs');
+const { xmlLint } = require('sitemap');
+
 xmlLint(createReadStream('./example.xml')).then(
   () => console.log('xml is valid'),
   ([err, stderr]) => console.error('xml is invalid', stderr)
@@ -143,16 +203,22 @@ xmlLint(createReadStream('./example.xml')).then(
 
 ## parseSitemap
 
-Read xml and resolve with the configuration that would produce it or reject with
-an error
+Read xml and resolve with an array of sitemap items or reject with an error
 
 ```js
-const { createReadStream } = require('fs')
-const { parseSitemap, createSitemap } = require('sitemap')
+// ESM
+import { createReadStream } from 'fs';
+import { parseSitemap } from 'sitemap';
+
+// CommonJS
+const { createReadStream } = require('fs');
+const { parseSitemap } = require('sitemap');
+
 parseSitemap(createReadStream('./example.xml')).then(
-  // produces the same xml
-  // you can, of course, more practically modify it or store it
-  (xmlConfig) => console.log(createSitemap(xmlConfig).toString()),
+  (items) => {
+    // items is an array of sitemap items
+    console.log(items);
+  },
   (err) => console.log(err)
 )
 ```
@@ -166,7 +232,12 @@ Takes a stream of urls or sitemapoptions likely from fs.createReadStream('./path
 Takes a stream returns a promise that resolves when stream emits finish.
 
 ```javascript
-const { streamToPromise, SitemapStream } = require('sitemap')
+// ESM
+import { streamToPromise, SitemapStream } from 'sitemap';
+
+// CommonJS
+const { streamToPromise, SitemapStream } = require('sitemap');
+
 const sitemap = new SitemapStream({ hostname: 'http://example.com' });
 sitemap.write({ url: '/page-1/', changefreq: 'daily', priority: 0.3 })
 sitemap.end()
@@ -180,6 +251,14 @@ A Transform that converts a stream of objects into a JSON Array or a line separa
 - @param [lineSeparated=false] whether to separate entries by a new line or comma
 
 ```javascript
+// ESM
+import { Readable } from 'stream';
+import { ObjectStreamToJSON } from 'sitemap';
+
+// CommonJS
+const { Readable } = require('stream');
+const { ObjectStreamToJSON } = require('sitemap');
+
 const stream = Readable.from([{a: 'b'}])
   .pipe(new ObjectStreamToJSON())
   .pipe(process.stdout)
@@ -192,6 +271,12 @@ stream.end()
 Takes a stream of SitemapItemOptions and spits out xml for each
 
 ```js
+// ESM
+import { SitemapItemStream } from 'sitemap';
+
+// CommonJS
+const { SitemapItemStream } = require('sitemap');
+
 // writes <url><loc>https://example.com</loc><url><url><loc>https://example.com/2</loc><url>
 const smis = new SitemapItemStream({level: 'warn'})
 smis.pipe(writestream)
@@ -208,10 +293,10 @@ smis.end()
 |lastmod|string|'2019-07-29' or '2019-07-22T05:58:37.037Z'|When the page we as last modified use the W3C Datetime ISO8601 subset <https://www.sitemaps.org/protocol.html#xmlTagDefinitions>|
 |changefreq|string|'weekly'|How frequently the page is likely to change. This value provides general information to search engines and may not correlate exactly to how often they crawl the page. Please note that the value of this tag is considered a hint and not a command. See <https://www.sitemaps.org/protocol.html#xmlTagDefinitions> for the acceptable values|
 |priority|number|0.6|The priority of this URL relative to other URLs on your site. Valid values range from 0.0 to 1.0. This value does not affect how your pages are compared to pages on other sites—it only lets the search engines know which pages you deem most important for the crawlers. The default priority of a page is 0.5. <https://www.sitemaps.org/protocol.html#xmlTagDefinitions>|
-|img|object[]|see [#ISitemapImage](#ISitemapImage)|<https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190>|
-|video|object[]|see [#IVideoItem](#IVideoItem)|<https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190>|
-|links|object[]|see [#ILinkItem](#ILinkItem)|Tell search engines about localized versions <https://support.google.com/webmasters/answer/189077>|
-|news|object|see [#INewsItem](#INewsItem)|<https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190>|
+|img|object[]|see [#SitemapImage](#sitemapimage)|<https://support.google.com/webmasters/answer/178636?hl=en&ref_topic=4581190>|
+|video|object[]|see [#VideoItem](#videoitem)|<https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190>|
+|links|object[]|see [#LinkItem](#linkitem)|Tell search engines about localized versions <https://support.google.com/webmasters/answer/189077>|
+|news|object|see [#NewsItem](#newsitem)|<https://support.google.com/webmasters/answer/74288?hl=en&ref_topic=4581190>|
 |ampLink|string|`http://ampproject.org/article.amp.html`||
 |cdata|boolean|true|wrap url in cdata xml escape|
 
@@ -265,7 +350,7 @@ Sitemap video. <https://support.google.com/webmasters/answer/80471?hl=en&ref_top
 |requires_subscription|string 'YES'\|'NO' - optional|'YES'|Indicates whether a subscription (either paid or free) is required to view the video. Allowed values are yes or no.|
 |live|string 'YES'\|'NO' - optional|'NO'|Indicates whether the video is a live stream. Supported values are yes or no.|
 
-## ILinkItem
+## LinkItem
 
 <https://support.google.com/webmasters/answer/189077>
 

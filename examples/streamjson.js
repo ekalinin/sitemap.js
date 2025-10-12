@@ -1,10 +1,10 @@
 // Stream read a json file and print it as xml to the console
-const { parser } = require('stream-json/Parser');
-const { streamArray } = require('stream-json/streamers/StreamArray');
-//const {streamValues } = require('stream-json/streamers/StreamValues');
-const fs = require('fs');
-const map = require('through2-map');
-const { SitemapStream } = require('sitemap');
+import { parser } from 'stream-json/Parser';
+import { streamArray } from 'stream-json/streamers/StreamArray';
+//import { streamValues } from 'stream-json/streamers/StreamValues';
+import fs from 'fs';
+import map from 'through2-map';
+import { SitemapStream } from 'sitemap';
 
 // our data stream:
 // {total: 123456789, meta: {...}, data: [...]}

@@ -1,4 +1,4 @@
-# sitemap ![MIT License](https://img.shields.io/npm/l/sitemap)[![Build Status](https://travis-ci.org/ekalinin/sitemap.js.svg?branch=master)](https://travis-ci.org/ekalinin/sitemap.js)![Monthly Downloads](https://img.shields.io/npm/dm/sitemap)
+# sitemap ![MIT License](https://img.shields.io/npm/l/sitemap)[![Build Status](https://github.com/ekalinin/sitemap.js/workflows/Node%20CI/badge.svg)](https://github.com/ekalinin/sitemap.js/actions)![Monthly Downloads](https://img.shields.io/npm/dm/sitemap)
 
 **sitemap** is a high-level streaming sitemap-generating library/CLI that
 makes creating [sitemap XML](http://www.sitemaps.org/) files easy. [What is a sitemap?](https://support.google.com/webmasters/answer/156184?hl=en&ref_topic=4581190)
@@ -139,7 +139,6 @@ simpleSitemapAndIndex({
   sourceData: lineSeparatedURLsToSitemapOptions(
     createReadStream('./your-data.json.txt')
   ),
-  // or (only works with node 10.17 and up)
   sourceData: [{ url: '/page-1/', changefreq: 'daily'}, ...],
   // or
   sourceData: './your-data.json.txt',
@@ -204,7 +203,7 @@ sms
 .pipe(createWriteStream(resolve('./sitemap-index.xml.gz')));
 
 const arrayOfSitemapItems = [{ url: '/page-1/', changefreq: 'daily'}, ...]
-Readable.from(arrayOfSitemapItems).pipe(sms) // available as of node 10.17.0
+Readable.from(arrayOfSitemapItems).pipe(sms)
 // or
 arrayOfSitemapItems.forEach(item => sms.write(item))
 sms.end() // necessary to let it know you've got nothing else to write

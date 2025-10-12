@@ -1,12 +1,12 @@
-const express = require('express');
-const fs = require('fs');
-const { resolve } = require('path');
-const { SitemapStream, streamToPromise } = require('sitemap');
+import express from 'express';
+import fs from 'fs';
+import { resolve } from 'path';
+import { SitemapStream, streamToPromise } from 'sitemap';
 // external libs provided as example only
-const { parser } = require('stream-json/Parser');
-const { streamArray } = require('stream-json/streamers/StreamArray');
-const map = require('through2-map');
-const { createGzip } = require('zlib');
+import { parser } from 'stream-json/Parser';
+import { streamArray } from 'stream-json/streamers/StreamArray';
+import map from 'through2-map';
+import { createGzip } from 'zlib';
 
 const app = express();
 let sitemap;

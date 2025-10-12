@@ -1,9 +1,9 @@
-const { createReadStream, createWriteStream } = require('fs');
-const {
+import { createReadStream, createWriteStream } from 'fs';
+import {
   XMLToSitemapItemStream,
   ObjectStreamToJSON,
   ErrorLevel,
-} = require('sitemap');
+} from 'sitemap';
 
 createReadStream('./sitemap.xml')
   // turn the xml into sitemap option item options
