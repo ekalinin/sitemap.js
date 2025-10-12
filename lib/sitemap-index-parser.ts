@@ -5,7 +5,7 @@ import {
   Transform,
   TransformOptions,
   TransformCallback,
-} from 'stream';
+} from 'node:stream';
 import { IndexItem, ErrorLevel, IndexTagNames } from './types';
 
 function isValidTagName(tagName: string): tagName is IndexTagNames {

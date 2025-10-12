@@ -3,16 +3,16 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-import { statSync } from 'fs';
+import { statSync } from 'node:fs';
 import {
   Readable,
   Transform,
   PassThrough,
   ReadableOptions,
   TransformOptions,
-} from 'stream';
-import { createInterface, Interface } from 'readline';
-import { URL } from 'url';
+} from 'node:stream';
+import { createInterface, Interface } from 'node:readline';
+import { URL } from 'node:url';
 import {
   SitemapItem,
   ErrorLevel,

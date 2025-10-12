@@ -1,7 +1,7 @@
-import { existsSync } from 'fs';
-import { Readable } from 'stream';
-import { resolve } from 'path';
-import { execFile } from 'child_process';
+import { existsSync } from 'node:fs';
+import { Readable } from 'node:stream';
+import { resolve } from 'node:path';
+import { execFile } from 'node:child_process';
 import { XMLLintUnavailable } from './errors';
 
 /**

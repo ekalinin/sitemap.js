@@ -1,16 +1,18 @@
 import { SitemapAndIndexStream } from './sitemap-index-stream';
 import { SitemapStream } from './sitemap-stream';
 import { lineSeparatedURLsToSitemapOptions } from './utils';
-import { createGzip } from 'zlib';
-import { createWriteStream, createReadStream, promises } from 'fs';
-import { normalize, resolve } from 'path';
-import { Readable, pipeline as pline } from 'stream';
+import { createGzip } from 'node:zlib';
+import {
+  createWriteStream,
+  createReadStream,
+  promises,
+  WriteStream,
+} from 'node:fs';
+import { normalize, resolve } from 'node:path';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { SitemapItemLoose } from './types';
-import { promisify } from 'util';
-import { URL } from 'url';
-import { WriteStream } from 'fs';
-
-const pipeline = promisify(pline);
+import { URL } from 'node:url';
 /**
  *
  * @param {object} options -

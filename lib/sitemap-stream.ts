@@ -4,7 +4,7 @@ import {
   TransformCallback,
   Readable,
   Writable,
-} from 'stream';
+} from 'node:stream';
 import { SitemapItemLoose, ErrorLevel, ErrorHandler } from './types';
 import { validateSMIOptions, normalizeURL } from './utils';
 import { SitemapItemStream } from './sitemap-item-stream';

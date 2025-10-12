@@ -5,7 +5,7 @@ import {
   Transform,
   TransformOptions,
   TransformCallback,
-} from 'stream';
+} from 'node:stream';
 import {
   SitemapItem,
   isValidChangeFreq,
