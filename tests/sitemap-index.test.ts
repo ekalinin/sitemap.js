@@ -31,6 +31,109 @@ function removeFilesArray(files: string[]): void {
 
 const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>';
 describe('sitemapIndex', () => {
+  describe('validation', () => {
+    it('should reject invalid URL in THROW mode', async () => {
+      const { ErrorLevel } = await import('../lib/types');
+      const smis = new SitemapIndexStream({ level: ErrorLevel.THROW });
+      smis.write('not a url');
+      smis.end();
+      await expect(streamToPromise(smis)).rejects.toThrow(
+        'Invalid URL in sitemap index'
+      );
+    });
+
+    it('should skip invalid URL in WARN mode', async () => {
+      const { ErrorLevel } = await import('../lib/types');
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const smis = new SitemapIndexStream({ level: ErrorLevel.WARN });
+      smis.write('not a url');
+      smis.write('https://test.com/valid.xml');
+      smis.end();
+      const result = await streamToPromise(smis);
+      expect(result.toString()).toContain('https://test.com/valid.xml');
+      expect(result.toString()).not.toContain('not a url');
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Invalid URL')
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it('should skip invalid URL in SILENT mode', async () => {
+      const { ErrorLevel } = await import('../lib/types');
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const smis = new SitemapIndexStream({ level: ErrorLevel.SILENT });
+      smis.write('not a url');
+      smis.write('https://test.com/valid.xml');
+      smis.end();
+      const result = await streamToPromise(smis);
+      expect(result.toString()).toContain('https://test.com/valid.xml');
+      expect(result.toString()).not.toContain('not a url');
+      expect(consoleSpy).not.toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it('should reject empty URL in THROW mode', async () => {
+      const { ErrorLevel } = await import('../lib/types');
+      const smis = new SitemapIndexStream({ level: ErrorLevel.THROW });
+      smis.write({ url: '' });
+      smis.end();
+      await expect(streamToPromise(smis)).rejects.toThrow(
+        'URL must be a non-empty string'
+      );
+    });
+
+    it('should reject null URL in THROW mode', async () => {
+      const { ErrorLevel } = await import('../lib/types');
+      const smis = new SitemapIndexStream({ level: ErrorLevel.THROW });
+      smis.write({ url: null as unknown as string });
+      smis.end();
+      await expect(streamToPromise(smis)).rejects.toThrow(
+        'URL must be a non-empty string'
+      );
+    });
+
+    it('should reject invalid lastmod date in THROW mode', async () => {
+      const { ErrorLevel } = await import('../lib/types');
+      const smis = new SitemapIndexStream({ level: ErrorLevel.THROW });
+      smis.write({ url: 'https://test.com/s1.xml', lastmod: 'invalid-date' });
+      smis.end();
+      await expect(streamToPromise(smis)).rejects.toThrow(
+        'Invalid lastmod date'
+      );
+    });
+
+    it('should skip invalid lastmod date in WARN mode and continue', async () => {
+      const { ErrorLevel } = await import('../lib/types');
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const smis = new SitemapIndexStream({ level: ErrorLevel.WARN });
+      smis.write({ url: 'https://test.com/s1.xml', lastmod: 'invalid-date' });
+      smis.write({ url: 'https://test.com/s2.xml', lastmod: '2018-11-26' });
+      smis.end();
+      const result = await streamToPromise(smis);
+      expect(result.toString()).toContain('https://test.com/s1.xml');
+      expect(result.toString()).toContain('https://test.com/s2.xml');
+      expect(result.toString()).toContain('2018-11-26');
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Invalid lastmod date')
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it('should skip invalid lastmod date in SILENT mode without warning', async () => {
+      const { ErrorLevel } = await import('../lib/types');
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const smis = new SitemapIndexStream({ level: ErrorLevel.SILENT });
+      smis.write({ url: 'https://test.com/s1.xml', lastmod: 'invalid-date' });
+      smis.write({ url: 'https://test.com/s2.xml' });
+      smis.end();
+      const result = await streamToPromise(smis);
+      expect(result.toString()).toContain('https://test.com/s1.xml');
+      expect(result.toString()).toContain('https://test.com/s2.xml');
+      expect(consoleSpy).not.toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+  });
+
   it('build sitemap index', async () => {
     const expectedResult =
       xmlDef +
@@ -125,6 +228,189 @@ describe('sitemapIndex', () => {
 });
 
 describe('sitemapAndIndex', () => {
+  describe('validation', () => {
+    it('should throw error if limit is below minimum', () => {
+      expect(() => {
+        new SitemapAndIndexStream({
+          limit: 0,
+          getSitemapStream: () => {
+            const sm = new SitemapStream();
+            const ws = createWriteStream('/dev/null');
+            sm.pipe(ws);
+            return ['https://example.com/sitemap.xml', sm, ws];
+          },
+        });
+      }).toThrow('limit must be between 1 and 50000');
+    });
+
+    it('should throw error if limit is above maximum', () => {
+      expect(() => {
+        new SitemapAndIndexStream({
+          limit: 50001,
+          getSitemapStream: () => {
+            const sm = new SitemapStream();
+            const ws = createWriteStream('/dev/null');
+            sm.pipe(ws);
+            return ['https://example.com/sitemap.xml', sm, ws];
+          },
+        });
+      }).toThrow('limit must be between 1 and 50000');
+    });
+
+    it('should emit error if getSitemapStream returns non-array', async () => {
+      const sms = new SitemapAndIndexStream({
+        limit: 1,
+        getSitemapStream: () => {
+          return 'not an array' as unknown as [
+            string,
+            SitemapStream,
+            WriteStream,
+          ];
+        },
+      });
+
+      const errorPromise = new Promise((resolve) => {
+        sms.on('error', resolve);
+      });
+
+      sms.write('https://1.example.com/a');
+      sms.end();
+
+      const error = await errorPromise;
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toContain(
+        'must return a 3-element array'
+      );
+    });
+
+    it('should emit error if getSitemapStream returns wrong array length', async () => {
+      const sms = new SitemapAndIndexStream({
+        limit: 1,
+        getSitemapStream: () => {
+          return [
+            'https://example.com/sitemap.xml',
+            new SitemapStream(),
+          ] as unknown as [string, SitemapStream, WriteStream];
+        },
+      });
+
+      const errorPromise = new Promise((resolve) => {
+        sms.on('error', resolve);
+      });
+
+      sms.write('https://1.example.com/a');
+      sms.end();
+
+      const error = await errorPromise;
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toContain(
+        'must return a 3-element array'
+      );
+    });
+
+    it('should emit error if getSitemapStream returns invalid IndexItem', async () => {
+      const sms = new SitemapAndIndexStream({
+        limit: 1,
+        getSitemapStream: () => {
+          const sm = new SitemapStream();
+          const ws = createWriteStream('/dev/null');
+          sm.pipe(ws);
+          return [null as unknown as string, sm, ws];
+        },
+      });
+
+      const errorPromise = new Promise((resolve) => {
+        sms.on('error', resolve);
+      });
+
+      sms.write('https://1.example.com/a');
+      sms.end();
+
+      const error = await errorPromise;
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toContain(
+        'IndexItem or string as the first element'
+      );
+    });
+
+    it('should emit error if getSitemapStream returns invalid SitemapStream', async () => {
+      const sms = new SitemapAndIndexStream({
+        limit: 1,
+        getSitemapStream: () => {
+          const ws = createWriteStream('/dev/null');
+          return [
+            'https://example.com/sitemap.xml',
+            null as unknown as SitemapStream,
+            ws,
+          ];
+        },
+      });
+
+      const errorPromise = new Promise((resolve) => {
+        sms.on('error', resolve);
+      });
+
+      sms.write('https://1.example.com/a');
+      sms.end();
+
+      const error = await errorPromise;
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toContain(
+        'SitemapStream as the second element'
+      );
+    });
+
+    it('should emit error if getSitemapStream returns invalid WriteStream', async () => {
+      const sms = new SitemapAndIndexStream({
+        limit: 1,
+        getSitemapStream: () => {
+          const sm = new SitemapStream();
+          return [
+            'https://example.com/sitemap.xml',
+            sm,
+            'not a stream' as unknown as WriteStream,
+          ];
+        },
+      });
+
+      const errorPromise = new Promise((resolve) => {
+        sms.on('error', resolve);
+      });
+
+      sms.write('https://1.example.com/a');
+      sms.end();
+
+      const error = await errorPromise;
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toContain(
+        'WriteStream or undefined as the third element'
+      );
+    });
+
+    it('should emit error if getSitemapStream throws', async () => {
+      const sms = new SitemapAndIndexStream({
+        limit: 1,
+        getSitemapStream: () => {
+          throw new Error('callback error');
+        },
+      });
+
+      const errorPromise = new Promise((resolve) => {
+        sms.on('error', resolve);
+      });
+
+      sms.write('https://1.example.com/a');
+      sms.end();
+
+      const error = await errorPromise;
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toContain(
+        'getSitemapStream callback threw an error'
+      );
+      expect((error as Error).message).toContain('callback error');
+    });
+  });
+
   let targetFolder: string;
 
   beforeEach(() => {
