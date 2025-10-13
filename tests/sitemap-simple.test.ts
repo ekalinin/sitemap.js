@@ -1,40 +1,22 @@
 import { simpleSitemapAndIndex, streamToPromise } from '../index.js';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { existsSync, unlinkSync, createReadStream } from 'node:fs';
+import { existsSync, createReadStream, mkdtempSync, rmSync } from 'node:fs';
 import { createGunzip } from 'node:zlib';
-function removeFilesArray(files: string[]): void {
-  if (files && files.length) {
-    files.forEach(function (file: string) {
-      if (existsSync(file)) {
-        unlinkSync(file);
-      }
-    });
-  }
-}
 
 describe('simpleSitemapAndIndex', () => {
   let targetFolder: string;
 
   beforeEach(() => {
-    targetFolder = tmpdir();
-    removeFilesArray([
-      resolve(targetFolder, `./sitemap-index.xml.gz`),
-      resolve(targetFolder, `./sitemap-0.xml.gz`),
-      resolve(targetFolder, `./sitemap-1.xml.gz`),
-      resolve(targetFolder, `./sitemap-2.xml.gz`),
-      resolve(targetFolder, `./sitemap-3.xml.gz`),
-    ]);
+    // Create unique temp directory for each test to avoid conflicts
+    targetFolder = mkdtempSync(resolve(tmpdir(), 'sitemap-test-'));
   });
 
   afterEach(() => {
-    removeFilesArray([
-      resolve(targetFolder, `./sitemap-index.xml.gz`),
-      resolve(targetFolder, `./sitemap-0.xml.gz`),
-      resolve(targetFolder, `./sitemap-1.xml.gz`),
-      resolve(targetFolder, `./sitemap-2.xml.gz`),
-      resolve(targetFolder, `./sitemap-3.xml.gz`),
-    ]);
+    // Clean up the entire temp directory
+    if (targetFolder && existsSync(targetFolder)) {
+      rmSync(targetFolder, { recursive: true, force: true });
+    }
   });
 
   it('writes both a sitemap and index', async () => {

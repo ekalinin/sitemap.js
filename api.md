@@ -144,12 +144,54 @@ await simpleSitemapAndIndex({
     { url: '/page-2/', changefreq: 'weekly', priority: 0.7 },
     // ... more URLs
   ],
+  // optional: limit URLs per sitemap (default: 50000, must be 1-50000)
+  limit: 45000,
+  // optional: gzip the output files (default: true)
+  gzip: true,
+  // optional: public base path for sitemap URLs (default: './')
+  publicBasePath: '/sitemaps/',
+  // optional: XSL stylesheet URL for XML display
+  xslUrl: 'https://example.com/sitemap.xsl',
   // or read from a file
   // sourceData: lineSeparatedURLsToSitemapOptions(createReadStream('./urls.txt')),
   // or
   // sourceData: './urls.txt',
 });
 ```
+
+### Options
+
+- **hostname** (required): The base URL for all sitemap entries. Must be a valid `http://` or `https://` URL.
+- **sitemapHostname** (optional): The base URL for sitemap index entries if different from `hostname`. Must be a valid `http://` or `https://` URL.
+- **destinationDir** (required): Directory where sitemaps and index will be written. Can be relative or absolute, but must not contain path traversal sequences (`..`).
+- **sourceData** (required): URL source data. Can be:
+  - Array of strings (URLs)
+  - Array of `SitemapItemLoose` objects
+  - String (file path to line-separated URLs)
+  - Readable stream
+- **limit** (optional): Maximum URLs per sitemap file. Must be between 1 and 50,000 per [sitemaps.org spec](https://www.sitemaps.org/protocol.html). Default: 50000
+- **gzip** (optional): Whether to gzip compress the output files. Default: true
+- **publicBasePath** (optional): Base path for sitemap URLs in the index. Must not contain path traversal sequences. Default: './'
+- **xslUrl** (optional): URL to an XSL stylesheet for XML display. Must be a valid `http://` or `https://` URL.
+
+### Security
+
+All inputs are validated for security:
+- URLs must use `http://` or `https://` protocols (max 2048 chars)
+- Paths are checked for traversal sequences (`..`) and null bytes
+- Limit is validated against spec requirements (1-50,000)
+- XSL URLs are validated and checked for malicious content
+
+### Errors
+
+May throw:
+
+- `InvalidHostnameError`: Invalid or malformed hostname/sitemapHostname
+- `InvalidPathError`: destinationDir contains path traversal or invalid characters
+- `InvalidPublicBasePathError`: publicBasePath contains path traversal or invalid characters
+- `InvalidLimitError`: limit is out of range (not 1-50,000)
+- `InvalidXSLUrlError`: xslUrl is invalid or potentially malicious
+- `Error`: Invalid sourceData type or file system errors
 
 ## SitemapIndexStream
 

@@ -139,9 +139,14 @@ simpleSitemapAndIndex({
   sourceData: lineSeparatedURLsToSitemapOptions(
     createReadStream('./your-data.json.txt')
   ),
-  sourceData: [{ url: '/page-1/', changefreq: 'daily'}, ...],
+  // sourceData can also be:
+  // sourceData: [{ url: '/page-1/', changefreq: 'daily'}, ...],
   // or
-  sourceData: './your-data.json.txt',
+  // sourceData: './your-data.json.txt',
+  limit: 45000, // optional, default: 50000
+  gzip: true, // optional, default: true
+  publicBasePath: '/sitemaps/', // optional, default: './'
+  xslUrl: 'https://example.com/sitemap.xsl', // optional XSL stylesheet
 }).then(() => {
   // Do follow up actions
 })

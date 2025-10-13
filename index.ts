@@ -45,4 +45,15 @@ export {
   IndexObjectStreamToJSONOptions,
 } from './lib/sitemap-index-parser.js';
 
-export { simpleSitemapAndIndex } from './lib/sitemap-simple.js';
+export {
+  simpleSitemapAndIndex,
+  SimpleSitemapAndIndexOptions,
+} from './lib/sitemap-simple.js';
+
+export {
+  validateURL,
+  validatePath,
+  validateLimit,
+  validatePublicBasePath,
+  validateXSLUrl,
+} from './lib/validation.js';

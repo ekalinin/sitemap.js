@@ -13,81 +13,162 @@ import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { SitemapItemLoose } from './types.js';
 import { URL } from 'node:url';
+import {
+  validateURL,
+  validatePath,
+  validateLimit,
+  validatePublicBasePath,
+  validateXSLUrl,
+} from './validation.js';
 /**
+ * Options for the simpleSitemapAndIndex function
+ */
+export interface SimpleSitemapAndIndexOptions {
+  /**
+   * The hostname for all URLs
+   * Must be a valid http:// or https:// URL
+   */
+  hostname: string;
+  /**
+   * The hostname for the sitemaps if different than hostname
+   * Must be a valid http:// or https:// URL
+   */
+  sitemapHostname?: string;
+  /**
+   * The urls you want to make a sitemap out of.
+   * Can be an array of items, a file path string, a Readable stream, or an array of strings
+   */
+  sourceData: SitemapItemLoose[] | string | Readable | string[];
+  /**
+   * Where to write the sitemaps and index
+   * Must be a relative path without path traversal sequences
+   */
+  destinationDir: string;
+  /**
+   * Where the sitemaps are relative to the hostname. Defaults to root.
+   * Must not contain path traversal sequences
+   */
+  publicBasePath?: string;
+  /**
+   * How many URLs to write before switching to a new file
+   * Must be between 1 and 50,000 per sitemaps.org spec
+   * @default 50000
+   */
+  limit?: number;
+  /**
+   * Whether to compress the written files
+   * @default true
+   */
+  gzip?: boolean;
+  /**
+   * Optional URL to an XSL stylesheet
+   * Must be a valid http:// or https:// URL
+   */
+  xslUrl?: string;
+}
+
+/**
+ * A simpler interface for creating sitemaps and indexes.
+ * Automatically handles splitting large datasets into multiple sitemap files.
  *
- * @param {object} options -
- * @param {string} options.hostname - The hostname for all URLs
- * @param {string} [options.sitemapHostname] - The hostname for the sitemaps if different than hostname
- * @param {SitemapItemLoose[] | string | Readable | string[]} options.sourceData - The urls you want to make a sitemap out of.
- * @param {string} options.destinationDir - where to write the sitemaps and index
- * @param {string} [options.publicBasePath] - where the sitemaps are relative to the hostname. Defaults to root.
- * @param {number} [options.limit] - how many URLs to write before switching to a new file. Defaults to 50k
- * @param {boolean} [options.gzip] - whether to compress the written files. Defaults to true
- * @returns {Promise<void>} an empty promise that resolves when everything is done
+ * @param options - Configuration options
+ * @returns A promise that resolves when all sitemaps and the index are written
+ * @throws {InvalidHostnameError} If hostname or sitemapHostname is invalid
+ * @throws {InvalidPathError} If destinationDir contains path traversal
+ * @throws {InvalidPublicBasePathError} If publicBasePath is invalid
+ * @throws {InvalidLimitError} If limit is out of range
+ * @throws {InvalidXSLUrlError} If xslUrl is invalid
+ * @throws {Error} If sourceData type is not supported
  */
 export const simpleSitemapAndIndex = async ({
   hostname,
   sitemapHostname = hostname, // if different
-  /**
-   * Pass a line separated list of sitemap items or a stream or an array
-   */
   sourceData,
   destinationDir,
   limit = 50000,
   gzip = true,
   publicBasePath = './',
-}: {
-  hostname: string;
-  sitemapHostname?: string;
-  sourceData: SitemapItemLoose[] | string | Readable | string[];
-  destinationDir: string;
-  publicBasePath?: string;
-  limit?: number;
-  gzip?: boolean;
-}): Promise<void> => {
-  await promises.mkdir(destinationDir, { recursive: true });
+  xslUrl,
+}: SimpleSitemapAndIndexOptions): Promise<void> => {
+  // Validate all inputs upfront
+  validateURL(hostname, 'hostname');
+  validateURL(sitemapHostname, 'sitemapHostname');
+  validatePath(destinationDir, 'destinationDir');
+  validateLimit(limit);
+  validatePublicBasePath(publicBasePath);
+  if (xslUrl) {
+    validateXSLUrl(xslUrl);
+  }
+
+  // Create destination directory with error context
+  try {
+    await promises.mkdir(destinationDir, { recursive: true });
+  } catch (err) {
+    throw new Error(
+      `Failed to create destination directory "${destinationDir}": ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+
+  // Normalize publicBasePath (don't mutate the parameter)
+  const normalizedPublicBasePath = publicBasePath.endsWith('/')
+    ? publicBasePath
+    : publicBasePath + '/';
+
   const sitemapAndIndexStream = new SitemapAndIndexStream({
     limit,
     getSitemapStream: (i) => {
       const sitemapStream = new SitemapStream({
         hostname,
+        xslUrl,
       });
       const path = `./sitemap-${i}.xml`;
       const writePath = resolve(destinationDir, path + (gzip ? '.gz' : ''));
-      if (!publicBasePath.endsWith('/')) {
-        publicBasePath += '/';
-      }
-      const publicPath = normalize(publicBasePath + path);
 
-      let pipeline: WriteStream;
+      // Construct public path for the sitemap index
+      const publicPath = normalize(normalizedPublicBasePath + path);
+
+      // Construct the URL with proper error handling
+      let sitemapUrl: string;
+      try {
+        sitemapUrl = new URL(
+          `${publicPath}${gzip ? '.gz' : ''}`,
+          sitemapHostname
+        ).toString();
+      } catch (err) {
+        throw new Error(
+          `Failed to construct sitemap URL for index ${i}: ${err instanceof Error ? err.message : String(err)}`
+        );
+      }
+
+      let writeStream: WriteStream;
       if (gzip) {
-        pipeline = sitemapStream
+        writeStream = sitemapStream
           .pipe(createGzip()) // compress the output of the sitemap
           .pipe(createWriteStream(writePath)); // write it to sitemap-NUMBER.xml
       } else {
-        pipeline = sitemapStream.pipe(createWriteStream(writePath)); // write it to sitemap-NUMBER.xml
+        writeStream = sitemapStream.pipe(createWriteStream(writePath)); // write it to sitemap-NUMBER.xml
       }
 
-      return [
-        new URL(
-          `${publicPath}${gzip ? '.gz' : ''}`,
-          sitemapHostname
-        ).toString(),
-        sitemapStream,
-        pipeline,
-      ];
+      return [sitemapUrl, sitemapStream, writeStream];
     },
   });
+  // Handle different sourceData types with proper error handling
   let src: Readable;
   if (typeof sourceData === 'string') {
-    src = lineSeparatedURLsToSitemapOptions(createReadStream(sourceData));
+    try {
+      src = lineSeparatedURLsToSitemapOptions(createReadStream(sourceData));
+    } catch (err) {
+      throw new Error(
+        `Failed to read sourceData file "${sourceData}": ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
   } else if (sourceData instanceof Readable) {
     src = sourceData;
   } else if (Array.isArray(sourceData)) {
     src = Readable.from(sourceData);
   } else {
     throw new Error(
-      "unhandled source type. You've passed in data that is not supported"
+      `Invalid sourceData type: expected array, string (file path), or Readable stream, got ${typeof sourceData}`
     );
   }
 
@@ -95,15 +176,26 @@ export const simpleSitemapAndIndex = async ({
     destinationDir,
     `./sitemap-index.xml${gzip ? '.gz' : ''}`
   );
-  if (gzip) {
-    return pipeline(
-      src,
-      sitemapAndIndexStream,
-      createGzip(),
-      createWriteStream(writePath)
+
+  try {
+    if (gzip) {
+      return await pipeline(
+        src,
+        sitemapAndIndexStream,
+        createGzip(),
+        createWriteStream(writePath)
+      );
+    } else {
+      return await pipeline(
+        src,
+        sitemapAndIndexStream,
+        createWriteStream(writePath)
+      );
+    }
+  } catch (err) {
+    throw new Error(
+      `Failed to write sitemap files: ${err instanceof Error ? err.message : String(err)}`
     );
-  } else {
-    return pipeline(src, sitemapAndIndexStream, createWriteStream(writePath));
   }
 };
 
