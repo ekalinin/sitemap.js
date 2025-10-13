@@ -292,7 +292,7 @@ describe('simpleSitemapAndIndex - Security Tests', () => {
       ).rejects.toThrow(/must use http:\/\/ or https:\/\/ protocol/);
     });
 
-    it('throws on xslUrl with script tag', async () => {
+    it('throws on xslUrl with script tag (lowercase)', async () => {
       await expect(
         simpleSitemapAndIndex({
           hostname: 'https://example.com',
@@ -303,7 +303,40 @@ describe('simpleSitemapAndIndex - Security Tests', () => {
       ).rejects.toThrow(/contains potentially malicious content/);
     });
 
-    it('throws on xslUrl with javascript:', async () => {
+    it('throws on xslUrl with script tag (mixed case)', async () => {
+      await expect(
+        simpleSitemapAndIndex({
+          hostname: 'https://example.com',
+          destinationDir: targetFolder,
+          sourceData: ['https://1.example.com/a'],
+          xslUrl: 'https://example.com/<ScRiPt>alert(1)</ScRiPt>',
+        })
+      ).rejects.toThrow(/contains potentially malicious content/);
+    });
+
+    it('throws on xslUrl with script tag (uppercase)', async () => {
+      await expect(
+        simpleSitemapAndIndex({
+          hostname: 'https://example.com',
+          destinationDir: targetFolder,
+          sourceData: ['https://1.example.com/a'],
+          xslUrl: 'https://example.com/<SCRIPT>alert(1)</SCRIPT>',
+        })
+      ).rejects.toThrow(/contains potentially malicious content/);
+    });
+
+    it('throws on xslUrl with URL-encoded script tag', async () => {
+      await expect(
+        simpleSitemapAndIndex({
+          hostname: 'https://example.com',
+          destinationDir: targetFolder,
+          sourceData: ['https://1.example.com/a'],
+          xslUrl: 'https://example.com/%3cscript%3ealert(1)%3c/script%3e',
+        })
+      ).rejects.toThrow(/contains URL-encoded malicious content/);
+    });
+
+    it('throws on xslUrl with javascript: protocol (lowercase)', async () => {
       await expect(
         simpleSitemapAndIndex({
           hostname: 'https://example.com',
@@ -312,6 +345,39 @@ describe('simpleSitemapAndIndex - Security Tests', () => {
           xslUrl: 'javascript:alert(1)',
         })
       ).rejects.toThrow(/must use http:\/\/ or https:\/\/ protocol/);
+    });
+
+    it('throws on xslUrl with javascript: protocol (mixed case)', async () => {
+      await expect(
+        simpleSitemapAndIndex({
+          hostname: 'https://example.com',
+          destinationDir: targetFolder,
+          sourceData: ['https://1.example.com/a'],
+          xslUrl: 'JaVaScRiPt:alert(1)',
+        })
+      ).rejects.toThrow(/must use http:\/\/ or https:\/\/ protocol/);
+    });
+
+    it('throws on xslUrl with data: protocol', async () => {
+      await expect(
+        simpleSitemapAndIndex({
+          hostname: 'https://example.com',
+          destinationDir: targetFolder,
+          sourceData: ['https://1.example.com/a'],
+          xslUrl: 'https://example.com/data:text/html,alert(1)',
+        })
+      ).rejects.toThrow(/contains dangerous protocol: data:/);
+    });
+
+    it('throws on xslUrl with vbscript: protocol', async () => {
+      await expect(
+        simpleSitemapAndIndex({
+          hostname: 'https://example.com',
+          destinationDir: targetFolder,
+          sourceData: ['https://1.example.com/a'],
+          xslUrl: 'https://example.com/vbscript:msgbox(1)',
+        })
+      ).rejects.toThrow(/contains dangerous protocol: vbscript:/);
     });
 
     it('throws on xslUrl exceeding max length', async () => {

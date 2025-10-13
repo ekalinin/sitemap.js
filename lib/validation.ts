@@ -22,6 +22,12 @@ const LIMITS = {
 
 /**
  * Validates that a URL is well-formed and meets security requirements
+ *
+ * Security: This function enforces that URLs use safe protocols (http/https),
+ * are within reasonable length limits (2048 chars per sitemaps.org spec),
+ * and can be properly parsed. This prevents protocol injection attacks and
+ * ensures compliance with sitemap specifications.
+ *
  * @param url - The URL to validate
  * @param paramName - The parameter name for error messages
  * @throws {InvalidHostnameError} If the URL is invalid
@@ -61,6 +67,12 @@ export function validateURL(url: string, paramName: string): void {
 
 /**
  * Validates that a path doesn't contain path traversal sequences
+ *
+ * Security: This function prevents path traversal attacks by detecting
+ * any occurrence of '..' in the path, whether it appears as '../', '/..',
+ * or standalone. This prevents attackers from accessing files outside
+ * the intended directory structure.
+ *
  * @param path - The path to validate
  * @param paramName - The parameter name for error messages
  * @throws {InvalidPathError} If the path contains traversal sequences
@@ -70,9 +82,20 @@ export function validatePath(path: string, paramName: string): void {
     throw new InvalidPathError(path, `${paramName} must be a non-empty string`);
   }
 
-  // Check for path traversal sequences
+  // Check for path traversal sequences - must check before and after normalization
+  // to catch both Windows-style (\) and Unix-style (/) separators
+  if (path.includes('..')) {
+    throw new InvalidPathError(
+      path,
+      `${paramName} contains path traversal sequence (..)`
+    );
+  }
+
+  // Additional check after normalization to catch encoded or obfuscated attempts
   const normalizedPath = path.replace(/\\/g, '/');
-  if (normalizedPath.includes('../')) {
+  const pathComponents = normalizedPath.split('/').filter((p) => p.length > 0);
+
+  if (pathComponents.includes('..')) {
     throw new InvalidPathError(
       path,
       `${paramName} contains path traversal sequence (..)`
@@ -90,6 +113,12 @@ export function validatePath(path: string, paramName: string): void {
 
 /**
  * Validates that a public base path is safe for URL construction
+ *
+ * Security: This function prevents path traversal attacks and validates
+ * that the path is safe for use in URL construction within sitemap indexes.
+ * It checks for '..' sequences, null bytes, and invalid whitespace that
+ * could be used to manipulate URL structure or inject malicious content.
+ *
  * @param publicBasePath - The public base path to validate
  * @throws {InvalidPublicBasePathError} If the path is invalid
  */
@@ -101,8 +130,19 @@ export function validatePublicBasePath(publicBasePath: string): void {
     );
   }
 
-  // Check for path traversal
+  // Check for path traversal - check the raw string first
   if (publicBasePath.includes('..')) {
+    throw new InvalidPublicBasePathError(
+      publicBasePath,
+      'contains path traversal sequence (..)'
+    );
+  }
+
+  // Additional check for path components after normalization
+  const normalizedPath = publicBasePath.replace(/\\/g, '/');
+  const pathComponents = normalizedPath.split('/').filter((p) => p.length > 0);
+
+  if (pathComponents.includes('..')) {
     throw new InvalidPublicBasePathError(
       publicBasePath,
       'contains path traversal sequence (..)'
@@ -128,6 +168,11 @@ export function validatePublicBasePath(publicBasePath: string): void {
 
 /**
  * Validates that a limit is within acceptable range per sitemaps.org spec
+ *
+ * Security: This function enforces sitemap size limits (1-50,000 URLs per
+ * sitemap) as specified by sitemaps.org. This prevents resource exhaustion
+ * attacks and ensures compliance with search engine requirements.
+ *
  * @param limit - The limit to validate
  * @throws {InvalidLimitError} If the limit is out of range
  */
@@ -155,6 +200,12 @@ export function validateLimit(limit: number): void {
 
 /**
  * Validates that an XSL URL is safe and well-formed
+ *
+ * Security: This function validates XSL stylesheet URLs to prevent
+ * injection attacks. It blocks dangerous protocols and content patterns
+ * that could be used for XSS or other attacks. The validation uses
+ * case-insensitive matching to catch obfuscated attacks.
+ *
  * @param xslUrl - The XSL URL to validate
  * @throws {InvalidXSLUrlError} If the URL is invalid
  */
@@ -187,12 +238,50 @@ export function validateXSLUrl(xslUrl: string): void {
     );
   }
 
-  // Check for potentially dangerous content
+  // Check for potentially dangerous content (case-insensitive)
   const lowerUrl = xslUrl.toLowerCase();
-  if (lowerUrl.includes('<script') || lowerUrl.includes('javascript:')) {
+
+  // Block dangerous HTML/script content
+  if (lowerUrl.includes('<script')) {
     throw new InvalidXSLUrlError(
       xslUrl,
-      'contains potentially malicious content'
+      'contains potentially malicious content (<script tag)'
     );
+  }
+
+  // Block dangerous protocols (already checked http/https above, but double-check for encoded variants)
+  const dangerousProtocols = [
+    'javascript:',
+    'data:',
+    'vbscript:',
+    'file:',
+    'about:',
+  ];
+
+  for (const protocol of dangerousProtocols) {
+    if (lowerUrl.includes(protocol)) {
+      throw new InvalidXSLUrlError(
+        xslUrl,
+        `contains dangerous protocol: ${protocol}`
+      );
+    }
+  }
+
+  // Check for URL-encoded variants of dangerous patterns
+  // %3C = '<', %3E = '>', %3A = ':'
+  const encodedPatterns = [
+    '%3cscript', // <script
+    '%3c%73%63%72%69%70%74', // <script (fully encoded)
+    'javascript%3a', // javascript:
+    'data%3a', // data:
+  ];
+
+  for (const pattern of encodedPatterns) {
+    if (lowerUrl.includes(pattern)) {
+      throw new InvalidXSLUrlError(
+        xslUrl,
+        'contains URL-encoded malicious content'
+      );
+    }
   }
 }

@@ -25,7 +25,8 @@ export const validators: { [index: string]: RegExp } = {
   'restriction:relationship': allowDeny,
   restriction: /^([A-Z]{2}( +[A-Z]{2})*)?$/,
   platform: /^((web|mobile|tv)( (web|mobile|tv))*)?$/,
-  language: /^zh-cn|zh-tw|([a-z]{2,3})$/,
+  // Language codes: zh-cn, zh-tw, or ISO 639 2-3 letter codes
+  language: /^(zh-cn|zh-tw|[a-z]{2,3})$/,
   genres:
     /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
   stock_tickers: /^(\w+:\w+(, *\w+:\w+){0,4})?$/,
@@ -251,7 +252,18 @@ interface VideoItemBase {
   'platform:relationship'?: EnumAllowDeny;
 }
 
+/**
+ * Video price type - supports both lowercase and uppercase variants
+ * as allowed by the Google Video Sitemap specification
+ * @see https://developers.google.com/search/docs/advanced/sitemaps/video-sitemaps
+ */
 export type PriceType = 'rent' | 'purchase' | 'RENT' | 'PURCHASE';
+
+/**
+ * Video resolution - supports both lowercase and uppercase variants
+ * as allowed by the Google Video Sitemap specification
+ * @see https://developers.google.com/search/docs/advanced/sitemaps/video-sitemaps
+ */
 export type Resolution = 'HD' | 'hd' | 'sd' | 'SD';
 
 /**
