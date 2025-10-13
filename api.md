@@ -176,11 +176,35 @@ await simpleSitemapAndIndex({
 
 ### Security
 
-All inputs are validated for security:
-- URLs must use `http://` or `https://` protocols (max 2048 chars)
-- Paths are checked for traversal sequences (`..`) and null bytes
-- Limit is validated against spec requirements (1-50,000)
-- XSL URLs are validated and checked for malicious content
+`simpleSitemapAndIndex` includes comprehensive security validation to protect against common attacks:
+
+**URL Validation:**
+- All URLs (hostname, sitemapHostname) must use `http://` or `https://` protocols only
+- Maximum URL length enforced at 2048 characters per sitemaps.org specification
+- URLs are parsed and validated to ensure they are well-formed
+
+**Path Traversal Protection:**
+- `destinationDir` and `publicBasePath` are checked for path traversal sequences (`..`)
+- Validation detects `..` in all positions (beginning, middle, end, standalone)
+- Both Unix-style (`/`) and Windows-style (`\`) path separators are normalized and checked
+- Null bytes (`\0`) are rejected to prevent path manipulation attacks
+
+**XSL Stylesheet Security:**
+- XSL URLs must use `http://` or `https://` protocols
+- Case-insensitive checks block dangerous content patterns:
+  - Script tags: `<script`, `<ScRiPt`, `<SCRIPT>`, etc.
+  - Dangerous protocols: `javascript:`, `data:`, `vbscript:`, `file:`, `about:`
+  - URL-encoded attacks: `%3cscript`, `javascript%3a`, etc.
+- Maximum URL length enforced at 2048 characters
+
+**Resource Limits:**
+- Limit validated to be an integer between 1 and 50,000 per sitemaps.org specification
+- Prevents resource exhaustion attacks and ensures search engine compatibility
+
+**Data Validation:**
+- Video ratings are validated to be valid numbers between 0 and 5
+- Video view counts are validated to be non-negative integers
+- Date values (lastmod, lastmodISO) are validated to be parseable dates
 
 ### Errors
 
@@ -226,18 +250,30 @@ smis.end()
 
 Resolve or reject depending on whether the passed in xml is a valid sitemap.
 This is just a wrapper around the xmlLint command line tool and thus requires
-xmlLint.
+xmlLint to be installed on the system.
+
+**Security Note:** This function accepts XML content as a string or Readable stream
+and always pipes it via stdin to xmllint. It does NOT accept file paths to prevent
+command injection vulnerabilities.
 
 ```js
 // ESM
-import { createReadStream } from 'fs';
+import { createReadStream, readFileSync } from 'fs';
 import { xmlLint } from 'sitemap';
 
 // CommonJS
-const { createReadStream } = require('fs');
+const { createReadStream, readFileSync } = require('fs');
 const { xmlLint } = require('sitemap');
 
+// Validate using a stream
 xmlLint(createReadStream('./example.xml')).then(
+  () => console.log('xml is valid'),
+  ([err, stderr]) => console.error('xml is invalid', stderr)
+)
+
+// Validate using a string
+const xmlContent = readFileSync('./example.xml', 'utf8');
+xmlLint(xmlContent).then(
   () => console.log('xml is valid'),
   ([err, stderr]) => console.error('xml is invalid', stderr)
 )

@@ -442,14 +442,33 @@ export function normalizeURL(
 
         if (video.rating !== undefined) {
           if (typeof video.rating === 'string') {
-            nv.rating = parseFloat(video.rating);
+            const parsedRating = parseFloat(video.rating);
+            // Validate parsed rating is a valid number
+            if (Number.isNaN(parsedRating)) {
+              throw new Error(
+                `Invalid video rating "${video.rating}" for URL "${elem.url}": must be a valid number`
+              );
+            }
+            nv.rating = parsedRating;
           } else {
             nv.rating = video.rating;
           }
         }
 
         if (typeof video.view_count === 'string') {
-          nv.view_count = parseInt(video.view_count, 10);
+          const parsedViewCount = parseInt(video.view_count, 10);
+          // Validate parsed view count is a valid non-negative integer
+          if (Number.isNaN(parsedViewCount)) {
+            throw new Error(
+              `Invalid video view_count "${video.view_count}" for URL "${elem.url}": must be a valid number`
+            );
+          }
+          if (parsedViewCount < 0) {
+            throw new Error(
+              `Invalid video view_count "${video.view_count}" for URL "${elem.url}": cannot be negative`
+            );
+          }
+          nv.view_count = parsedViewCount;
         } else if (typeof video.view_count === 'number') {
           nv.view_count = video.view_count;
         }
@@ -461,14 +480,40 @@ export function normalizeURL(
   // If given a file to use for last modified date
   if (lastmodfile) {
     const { mtime } = statSync(lastmodfile);
+    const lastmodDate = new Date(mtime);
 
-    smi.lastmod = new Date(mtime).toISOString();
+    // Validate date is valid
+    if (Number.isNaN(lastmodDate.getTime())) {
+      throw new Error(
+        `Invalid date from file stats for URL "${smi.url}": file modification time is invalid`
+      );
+    }
+
+    smi.lastmod = lastmodDate.toISOString();
 
     // The date of last modification (YYYY-MM-DD)
   } else if (lastmodISO) {
-    smi.lastmod = new Date(lastmodISO).toISOString();
+    const lastmodDate = new Date(lastmodISO);
+
+    // Validate date is valid
+    if (Number.isNaN(lastmodDate.getTime())) {
+      throw new Error(
+        `Invalid lastmodISO "${lastmodISO}" for URL "${smi.url}": must be a valid date string`
+      );
+    }
+
+    smi.lastmod = lastmodDate.toISOString();
   } else if (lastmod) {
-    smi.lastmod = new Date(lastmod).toISOString();
+    const lastmodDate = new Date(lastmod);
+
+    // Validate date is valid
+    if (Number.isNaN(lastmodDate.getTime())) {
+      throw new Error(
+        `Invalid lastmod "${lastmod}" for URL "${smi.url}": must be a valid date string`
+      );
+    }
+
+    smi.lastmod = lastmodDate.toISOString();
   }
 
   if (lastmodDateOnly && smi.lastmod) {
