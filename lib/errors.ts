@@ -310,3 +310,13 @@ export class InvalidXSLUrlError extends Error {
     Error.captureStackTrace(this, InvalidXSLUrlError);
   }
 }
+
+export class InvalidXMLAttributeNameError extends Error {
+  constructor(attributeName: string) {
+    super(
+      `Invalid XML attribute name "${attributeName}": must contain only alphanumeric characters, hyphens, underscores, and colons`
+    );
+    this.name = 'InvalidXMLAttributeNameError';
+    Error.captureStackTrace(this, InvalidXMLAttributeNameError);
+  }
+}
