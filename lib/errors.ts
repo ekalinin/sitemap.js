@@ -268,3 +268,45 @@ export class EmptySitemap extends Error {
     Error.captureStackTrace(this, EmptyStream);
   }
 }
+
+export class InvalidPathError extends Error {
+  constructor(path: string, reason: string) {
+    super(`Invalid path "${path}": ${reason}`);
+    this.name = 'InvalidPathError';
+    Error.captureStackTrace(this, InvalidPathError);
+  }
+}
+
+export class InvalidHostnameError extends Error {
+  constructor(hostname: string, reason: string) {
+    super(`Invalid hostname "${hostname}": ${reason}`);
+    this.name = 'InvalidHostnameError';
+    Error.captureStackTrace(this, InvalidHostnameError);
+  }
+}
+
+export class InvalidLimitError extends Error {
+  constructor(limit: any) {
+    super(
+      `Invalid limit "${limit}": must be a number between 1 and 50000 (per sitemaps.org spec)`
+    );
+    this.name = 'InvalidLimitError';
+    Error.captureStackTrace(this, InvalidLimitError);
+  }
+}
+
+export class InvalidPublicBasePathError extends Error {
+  constructor(publicBasePath: string, reason: string) {
+    super(`Invalid publicBasePath "${publicBasePath}": ${reason}`);
+    this.name = 'InvalidPublicBasePathError';
+    Error.captureStackTrace(this, InvalidPublicBasePathError);
+  }
+}
+
+export class InvalidXSLUrlError extends Error {
+  constructor(xslUrl: string, reason: string) {
+    super(`Invalid xslUrl "${xslUrl}": ${reason}`);
+    this.name = 'InvalidXSLUrlError';
+    Error.captureStackTrace(this, InvalidXSLUrlError);
+  }
+}
