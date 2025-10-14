@@ -1,39 +1,23 @@
 import { WriteStream } from 'node:fs';
 import { Transform, TransformOptions, TransformCallback } from 'node:stream';
-import { IndexItem, SitemapItemLoose, ErrorLevel } from './types.js';
+import {
+  IndexItem,
+  SitemapItemLoose,
+  ErrorLevel,
+  IndexTagNames,
+} from './types.js';
 import { SitemapStream, stylesheetInclude } from './sitemap-stream.js';
 import { element, otag, ctag } from './sitemap-xml.js';
+import { LIMITS, DEFAULT_SITEMAP_ITEM_LIMIT } from './constants.js';
 
-export enum IndexTagNames {
-  sitemap = 'sitemap',
-  loc = 'loc',
-  lastmod = 'lastmod',
-}
+// Re-export IndexTagNames for backward compatibility
+export { IndexTagNames };
 
 const xmlDec = '<?xml version="1.0" encoding="UTF-8"?>';
 
 const sitemapIndexTagStart =
   '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 const closetag = '</sitemapindex>';
-
-/**
- * Default maximum number of items in each sitemap XML file.
- * Set below the max to leave room for URLs added during processing.
- * Range: 1 - 50,000 per sitemaps.org spec
- * @see https://www.sitemaps.org/protocol.html#index
- */
-const DEFAULT_SITEMAP_ITEM_LIMIT = 45000;
-
-/**
- * Minimum allowed items per sitemap file per sitemaps.org spec
- */
-const MIN_SITEMAP_ITEM_LIMIT = 1;
-
-/**
- * Maximum allowed items per sitemap file per sitemaps.org spec
- * @see https://www.sitemaps.org/protocol.html#index
- */
-const MAX_SITEMAP_ITEM_LIMIT = 50000;
 
 /**
  * Options for the SitemapIndexStream
@@ -310,11 +294,11 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     // Validate limit is within acceptable range per sitemaps.org spec
     // See: https://www.sitemaps.org/protocol.html#index
     if (
-      this.limit < MIN_SITEMAP_ITEM_LIMIT ||
-      this.limit > MAX_SITEMAP_ITEM_LIMIT
+      this.limit < LIMITS.MIN_SITEMAP_ITEM_LIMIT ||
+      this.limit > LIMITS.MAX_SITEMAP_ITEM_LIMIT
     ) {
       throw new Error(
-        `limit must be between ${MIN_SITEMAP_ITEM_LIMIT} and ${MAX_SITEMAP_ITEM_LIMIT} per sitemaps.org spec, got ${this.limit}`
+        `limit must be between ${LIMITS.MIN_SITEMAP_ITEM_LIMIT} and ${LIMITS.MAX_SITEMAP_ITEM_LIMIT} per sitemaps.org spec, got ${this.limit}`
       );
     }
   }

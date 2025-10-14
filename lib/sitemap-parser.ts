@@ -8,39 +8,21 @@ import {
 } from 'node:stream';
 import {
   SitemapItem,
-  isValidChangeFreq,
-  isValidYesNo,
   VideoItem,
   Img,
   LinkItem,
   NewsItem,
   ErrorLevel,
+  TagNames,
+} from './types.js';
+import {
+  isValidChangeFreq,
+  isValidYesNo,
   isAllowDeny,
   isPriceType,
   isResolution,
-  TagNames,
-} from './types.js';
-
-// Security limits for parsing untrusted XML
-const LIMITS = {
-  MAX_URL_LENGTH: 2048,
-  MAX_VIDEO_TITLE_LENGTH: 100,
-  MAX_VIDEO_DESCRIPTION_LENGTH: 2048,
-  MAX_NEWS_TITLE_LENGTH: 200,
-  MAX_NEWS_NAME_LENGTH: 256,
-  MAX_IMAGE_CAPTION_LENGTH: 512,
-  MAX_IMAGE_TITLE_LENGTH: 512,
-  MAX_IMAGES_PER_URL: 1000,
-  MAX_VIDEOS_PER_URL: 100,
-  MAX_LINKS_PER_URL: 100,
-  MAX_TAGS_PER_VIDEO: 32,
-  MAX_URL_ENTRIES: 50000,
-  // Date validation regex - basic ISO 8601 / W3C format check
-  ISO_DATE_REGEX:
-    /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?([+-]\d{2}:\d{2}|Z)?)?$/,
-  // URL validation - must be http/https
-  URL_PROTOCOL_REGEX: /^https?:\/\//i,
-};
+} from './validation.js';
+import { LIMITS } from './constants.js';
 
 function isValidTagName(tagName: string): tagName is TagNames {
   // This only works because the enum name and value are the same

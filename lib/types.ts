@@ -16,35 +16,6 @@ export enum EnumChangefreq {
   NEVER = 'never',
 }
 
-const allowDeny = /^(?:allow|deny)$/;
-export const validators: { [index: string]: RegExp } = {
-  'price:currency': /^[A-Z]{3}$/,
-  'price:type': /^(?:rent|purchase|RENT|PURCHASE)$/,
-  'price:resolution': /^(?:HD|hd|sd|SD)$/,
-  'platform:relationship': allowDeny,
-  'restriction:relationship': allowDeny,
-  restriction: /^([A-Z]{2}( +[A-Z]{2})*)?$/,
-  platform: /^((web|mobile|tv)( (web|mobile|tv))*)?$/,
-  // Language codes: zh-cn, zh-tw, or ISO 639 2-3 letter codes
-  language: /^(zh-cn|zh-tw|[a-z]{2,3})$/,
-  genres:
-    /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
-  stock_tickers: /^(\w+:\w+(, *\w+:\w+){0,4})?$/,
-};
-
-export function isPriceType(pt: string | PriceType): pt is PriceType {
-  return validators['price:type'].test(pt);
-}
-
-export function isResolution(res: string): res is Resolution {
-  return validators['price:resolution'].test(res);
-}
-
-export const CHANGEFREQ = Object.values(EnumChangefreq);
-export function isValidChangeFreq(freq: string): freq is EnumChangefreq {
-  return CHANGEFREQ.includes(freq as EnumChangefreq);
-}
-
 export enum EnumYesNo {
   YES = 'YES',
   NO = 'NO',
@@ -54,17 +25,9 @@ export enum EnumYesNo {
   no = 'no',
 }
 
-export function isValidYesNo(yn: string): yn is EnumYesNo {
-  return /^YES|NO|[Yy]es|[Nn]o$/.test(yn);
-}
-
 export enum EnumAllowDeny {
   ALLOW = 'allow',
   DENY = 'deny',
-}
-
-export function isAllowDeny(ad: string): ad is EnumAllowDeny {
-  return allowDeny.test(ad);
 }
 
 /**
@@ -444,4 +407,13 @@ export enum IndexTagNames {
   sitemapindex = 'sitemapindex',
   loc = 'loc',
   lastmod = 'lastmod',
+}
+
+/**
+ * Generic object with string keys and any values
+ * Used for XML attribute building and other flexible data structures
+ */
+export interface StringObj {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [index: string]: any;
 }

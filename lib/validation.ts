@@ -10,15 +10,96 @@ import {
   InvalidLimitError,
   InvalidPublicBasePathError,
   InvalidXSLUrlError,
+  ChangeFreqInvalidError,
+  InvalidAttrValue,
+  InvalidNewsAccessValue,
+  InvalidNewsFormat,
+  InvalidVideoDescription,
+  InvalidVideoDuration,
+  InvalidVideoFormat,
+  InvalidVideoRating,
+  NoURLError,
+  NoConfigError,
+  PriorityInvalidError,
+  InvalidVideoTitle,
+  InvalidVideoViewCount,
+  InvalidVideoTagCount,
+  InvalidVideoCategory,
+  InvalidVideoFamilyFriendly,
+  InvalidVideoRestriction,
+  InvalidVideoRestrictionRelationship,
+  InvalidVideoPriceType,
+  InvalidVideoResolution,
+  InvalidVideoPriceCurrency,
 } from './errors.js';
+import {
+  SitemapItem,
+  ErrorLevel,
+  EnumChangefreq,
+  EnumYesNo,
+  EnumAllowDeny,
+  PriceType,
+  Resolution,
+  NewsItem,
+  VideoItem,
+  ErrorHandler,
+} from './types.js';
+import { LIMITS } from './constants.js';
 
-// Security limits matching those in sitemap-parser.ts
-const LIMITS = {
-  MAX_URL_LENGTH: 2048,
-  MIN_SITEMAP_ITEM_LIMIT: 1,
-  MAX_SITEMAP_ITEM_LIMIT: 50000,
-  URL_PROTOCOL_REGEX: /^https?:\/\//i,
+/**
+ * Validator regular expressions for various sitemap fields
+ */
+const allowDeny = /^(?:allow|deny)$/;
+export const validators: { [index: string]: RegExp } = {
+  'price:currency': /^[A-Z]{3}$/,
+  'price:type': /^(?:rent|purchase|RENT|PURCHASE)$/,
+  'price:resolution': /^(?:HD|hd|sd|SD)$/,
+  'platform:relationship': allowDeny,
+  'restriction:relationship': allowDeny,
+  restriction: /^([A-Z]{2}( +[A-Z]{2})*)?$/,
+  platform: /^((web|mobile|tv)( (web|mobile|tv))*)?$/,
+  // Language codes: zh-cn, zh-tw, or ISO 639 2-3 letter codes
+  language: /^(zh-cn|zh-tw|[a-z]{2,3})$/,
+  genres:
+    /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
+  stock_tickers: /^(\w+:\w+(, *\w+:\w+){0,4})?$/,
 };
+
+/**
+ * Type guard to check if a string is a valid price type
+ */
+export function isPriceType(pt: string | PriceType): pt is PriceType {
+  return validators['price:type'].test(pt);
+}
+
+/**
+ * Type guard to check if a string is a valid resolution
+ */
+export function isResolution(res: string): res is Resolution {
+  return validators['price:resolution'].test(res);
+}
+
+/**
+ * Type guard to check if a string is a valid changefreq value
+ */
+const CHANGEFREQ = Object.values(EnumChangefreq);
+export function isValidChangeFreq(freq: string): freq is EnumChangefreq {
+  return CHANGEFREQ.includes(freq as EnumChangefreq);
+}
+
+/**
+ * Type guard to check if a string is a valid yes/no value
+ */
+export function isValidYesNo(yn: string): yn is EnumYesNo {
+  return /^YES|NO|[Yy]es|[Nn]o$/.test(yn);
+}
+
+/**
+ * Type guard to check if a string is a valid allow/deny value
+ */
+export function isAllowDeny(ad: string): ad is EnumAllowDeny {
+  return allowDeny.test(ad);
+}
 
 /**
  * Validates that a URL is well-formed and meets security requirements
@@ -284,4 +365,210 @@ export function validateXSLUrl(xslUrl: string): void {
       );
     }
   }
+}
+
+/**
+ * Internal helper to validate fields against their validators
+ */
+function validate(
+  subject: NewsItem | VideoItem | NewsItem['publication'],
+  name: string,
+  url: string,
+  level: ErrorLevel
+): void {
+  Object.keys(subject).forEach((key): void => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const val = subject[key];
+    if (validators[key] && !validators[key].test(val)) {
+      if (level === ErrorLevel.THROW) {
+        throw new InvalidAttrValue(key, val, validators[key]);
+      } else {
+        console.warn(`${url}: ${name} key ${key} has invalid value: ${val}`);
+      }
+    }
+  });
+}
+
+/**
+ * Internal helper to handle errors based on error level
+ */
+function handleError(error: Error, level: ErrorLevel): void {
+  if (level === ErrorLevel.THROW) {
+    throw error;
+  } else if (level === ErrorLevel.WARN) {
+    console.warn(error.name, error.message);
+  }
+}
+
+/**
+ * Verifies all data passed in will comply with sitemap spec.
+ * @param conf Options to validate
+ * @param level logging level
+ * @param errorHandler error handling func
+ */
+export function validateSMIOptions(
+  conf: SitemapItem,
+  level = ErrorLevel.WARN,
+  errorHandler: ErrorHandler = handleError
+): SitemapItem {
+  if (!conf) {
+    throw new NoConfigError();
+  }
+
+  if (level === ErrorLevel.SILENT) {
+    return conf;
+  }
+
+  const { url, changefreq, priority, news, video } = conf;
+
+  if (!url) {
+    errorHandler(new NoURLError(), level);
+  }
+
+  if (changefreq) {
+    if (!isValidChangeFreq(changefreq)) {
+      errorHandler(new ChangeFreqInvalidError(url, changefreq), level);
+    }
+  }
+
+  if (priority) {
+    if (!(priority >= 0.0 && priority <= 1.0)) {
+      errorHandler(new PriorityInvalidError(url, priority), level);
+    }
+  }
+
+  if (news) {
+    if (
+      news.access &&
+      news.access !== 'Registration' &&
+      news.access !== 'Subscription'
+    ) {
+      errorHandler(new InvalidNewsAccessValue(url, news.access), level);
+    }
+
+    if (
+      !news.publication ||
+      !news.publication.name ||
+      !news.publication.language ||
+      !news.publication_date ||
+      !news.title
+    ) {
+      errorHandler(new InvalidNewsFormat(url), level);
+    }
+
+    validate(news, 'news', url, level);
+    validate(news.publication, 'publication', url, level);
+  }
+
+  if (video) {
+    video.forEach((vid): void => {
+      if (vid.duration !== undefined) {
+        if (vid.duration < 0 || vid.duration > 28800) {
+          errorHandler(new InvalidVideoDuration(url, vid.duration), level);
+        }
+      }
+      if (vid.rating !== undefined && (vid.rating < 0 || vid.rating > 5)) {
+        errorHandler(new InvalidVideoRating(url, vid.title, vid.rating), level);
+      }
+
+      if (
+        typeof vid !== 'object' ||
+        !vid.thumbnail_loc ||
+        !vid.title ||
+        !vid.description
+      ) {
+        // has to be an object and include required categories https://support.google.com/webmasters/answer/80471?hl=en&ref_topic=4581190
+        errorHandler(new InvalidVideoFormat(url), level);
+      }
+
+      if (vid.title.length > 100) {
+        errorHandler(new InvalidVideoTitle(url, vid.title.length), level);
+      }
+
+      if (vid.description.length > 2048) {
+        errorHandler(
+          new InvalidVideoDescription(url, vid.description.length),
+          level
+        );
+      }
+
+      if (vid.view_count !== undefined && vid.view_count < 0) {
+        errorHandler(new InvalidVideoViewCount(url, vid.view_count), level);
+      }
+
+      if (vid.tag.length > 32) {
+        errorHandler(new InvalidVideoTagCount(url, vid.tag.length), level);
+      }
+
+      if (vid.category !== undefined && vid.category?.length > 256) {
+        errorHandler(new InvalidVideoCategory(url, vid.category.length), level);
+      }
+
+      if (
+        vid.family_friendly !== undefined &&
+        !isValidYesNo(vid.family_friendly)
+      ) {
+        errorHandler(
+          new InvalidVideoFamilyFriendly(url, vid.family_friendly),
+          level
+        );
+      }
+
+      if (vid.restriction) {
+        if (!validators.restriction.test(vid.restriction)) {
+          errorHandler(
+            new InvalidVideoRestriction(url, vid.restriction),
+            level
+          );
+        }
+        if (
+          !vid['restriction:relationship'] ||
+          !isAllowDeny(vid['restriction:relationship'])
+        ) {
+          errorHandler(
+            new InvalidVideoRestrictionRelationship(
+              url,
+              vid['restriction:relationship']
+            ),
+            level
+          );
+        }
+      }
+
+      // TODO price element should be unbounded
+      if (
+        (vid.price === '' && vid['price:type'] === undefined) ||
+        (vid['price:type'] !== undefined && !isPriceType(vid['price:type']))
+      ) {
+        errorHandler(
+          new InvalidVideoPriceType(url, vid['price:type'], vid.price),
+          level
+        );
+      }
+      if (
+        vid['price:resolution'] !== undefined &&
+        !isResolution(vid['price:resolution'])
+      ) {
+        errorHandler(
+          new InvalidVideoResolution(url, vid['price:resolution']),
+          level
+        );
+      }
+
+      if (
+        vid['price:currency'] !== undefined &&
+        !validators['price:currency'].test(vid['price:currency'])
+      ) {
+        errorHandler(
+          new InvalidVideoPriceCurrency(url, vid['price:currency']),
+          level
+        );
+      }
+
+      validate(vid, 'video', url, level);
+    });
+  }
+
+  return conf;
 }

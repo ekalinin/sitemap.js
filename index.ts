@@ -56,4 +56,12 @@ export {
   validateLimit,
   validatePublicBasePath,
   validateXSLUrl,
+  validators,
+  isPriceType,
+  isResolution,
+  isValidChangeFreq,
+  isValidYesNo,
+  isAllowDeny,
 } from './lib/validation.js';
+
+export { LIMITS, DEFAULT_SITEMAP_ITEM_LIMIT } from './lib/constants.js';
