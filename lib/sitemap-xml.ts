@@ -4,9 +4,7 @@
  * MIT Licensed
  */
 
-import { TagNames } from './types.js';
-import { StringObj } from './sitemap-item-stream.js';
-import { IndexTagNames } from './sitemap-index-stream.js';
+import { TagNames, IndexTagNames, StringObj } from './types.js';
 import { InvalidXMLAttributeNameError } from './errors.js';
 
 /**

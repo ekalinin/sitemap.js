@@ -6,10 +6,15 @@ import {
   Writable,
 } from 'node:stream';
 import { SitemapItemLoose, ErrorLevel, ErrorHandler } from './types.js';
-import { validateSMIOptions, normalizeURL } from './utils.js';
+import { normalizeURL } from './utils.js';
+import {
+  validateSMIOptions,
+  validateURL,
+  validateXSLUrl,
+} from './validation.js';
 import { SitemapItemStream } from './sitemap-item-stream.js';
 import { EmptyStream, EmptySitemap } from './errors.js';
-import { validateURL, validateXSLUrl } from './validation.js';
+import { LIMITS } from './constants.js';
 
 const xmlDec = '<?xml version="1.0" encoding="UTF-8"?>';
 export const stylesheetInclude = (url: string): string => {
@@ -37,14 +42,12 @@ function validateCustomNamespaces(custom: string[]): void {
   }
 
   // Limit number of custom namespaces to prevent DoS
-  const MAX_CUSTOM_NAMESPACES = 20;
-  if (custom.length > MAX_CUSTOM_NAMESPACES) {
+  if (custom.length > LIMITS.MAX_CUSTOM_NAMESPACES) {
     throw new Error(
-      `Too many custom namespaces: ${custom.length} exceeds limit of ${MAX_CUSTOM_NAMESPACES}`
+      `Too many custom namespaces: ${custom.length} exceeds limit of ${LIMITS.MAX_CUSTOM_NAMESPACES}`
     );
   }
 
-  const MAX_NAMESPACE_LENGTH = 512;
   // Basic format validation for xmlns declarations
   const xmlnsPattern = /^xmlns:[a-zA-Z_][\w.-]*="[^"<>]*"$/;
 
@@ -53,9 +56,9 @@ function validateCustomNamespaces(custom: string[]): void {
       throw new Error('Custom namespace must be a non-empty string');
     }
 
-    if (ns.length > MAX_NAMESPACE_LENGTH) {
+    if (ns.length > LIMITS.MAX_NAMESPACE_LENGTH) {
       throw new Error(
-        `Custom namespace exceeds maximum length of ${MAX_NAMESPACE_LENGTH} characters: ${ns.substring(0, 50)}...`
+        `Custom namespace exceeds maximum length of ${LIMITS.MAX_NAMESPACE_LENGTH} characters: ${ns.substring(0, 50)}...`
       );
     }
 
