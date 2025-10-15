@@ -9,6 +9,7 @@ import {
 import { SitemapStream, stylesheetInclude } from './sitemap-stream.js';
 import { element, otag, ctag } from './sitemap-xml.js';
 import { LIMITS, DEFAULT_SITEMAP_ITEM_LIMIT } from './constants.js';
+import { validateURL } from './validation.js';
 
 // Re-export IndexTagNames for backward compatibility
 export { IndexTagNames };
@@ -98,7 +99,7 @@ export class SitemapIndexStream extends Transform {
     }
 
     try {
-      // Validate URL
+      // Validate URL using centralized validation (checks protocol, length, format)
       const url = typeof item === 'string' ? item : item.url;
       if (!url || typeof url !== 'string') {
         const error = new Error(
@@ -115,16 +116,20 @@ export class SitemapIndexStream extends Transform {
         return;
       }
 
-      // Basic URL validation
+      // Security: Use centralized validation to enforce protocol restrictions,
+      // length limits, and prevent injection attacks
       try {
-        new URL(url);
-      } catch {
-        const error = new Error(`Invalid URL in sitemap index: ${url}`);
+        validateURL(url, 'Sitemap index URL');
+      } catch (error) {
+        // Wrap the validation error with consistent message format
+        const validationMsg =
+          error instanceof Error ? error.message : String(error);
+        const err = new Error(`Invalid URL in sitemap index: ${validationMsg}`);
         if (this.level === ErrorLevel.THROW) {
-          callback(error);
+          callback(err);
           return;
         } else if (this.level === ErrorLevel.WARN) {
-          console.warn(error.message);
+          console.warn(err.message);
         }
         // For SILENT or after WARN, skip this item
         callback();
