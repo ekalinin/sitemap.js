@@ -1,5 +1,48 @@
 # Changelog
 
+## 8.0.1 - Security Patch Release
+
+**SECURITY FIXES** - This release backports comprehensive security patches from 9.0.0 to 8.0.x
+
+### Security Improvements
+
+- **XML Injection Prevention**: Enhanced XML entity escaping, added `>` character escaping, attribute name validation
+- **Parser Security**: Added resource limits (max 50K URLs, 1K images, 100 videos per sitemap), string length limits, URL validation (http/https only, max 2048 chars)
+- **Protocol Injection Prevention**: Block dangerous protocols (javascript:, data:, file:, ftp:) in sitemap index parser
+- **DoS Protection**: Memory exhaustion protection, URL length validation, date format validation (ISO 8601)
+- **Path Traversal Prevention**: Block `..` sequences in file paths
+- **Command Injection Fix**: xmllint now uses stdin exclusively instead of file paths
+- **Input Validation**: Comprehensive validation for all user inputs - numbers (reject NaN/Infinity), dates (check Invalid Date), URLs, paths
+- **XSS Prevention**: XSL URL validation to prevent script injection
+- **Namespace Security**: Custom namespace validation (max 20, max 512 chars each)
+
+### Infrastructure
+
+- Added `lib/constants.ts` - Centralized security limits and constants
+- Added `lib/validation.ts` - Comprehensive validation functions
+- Added new security-related error classes
+
+### Backward Compatibility
+
+- ✅ **100% API compatible** with 8.0.0
+- Added `XMLToSitemapItemStream.error` getter for backward compatibility (returns `errors[0]`)
+- All existing valid inputs continue to work
+- Only rejects invalid/malicious inputs
+- Default `ErrorLevel.WARN` behavior unchanged
+
+### Dependencies Updated
+
+- `sax`: ^1.2.4 → ^1.4.1 (security updates)
+
+### Files Changed
+
+17 files changed: 2,122 additions, 245 deletions
+
+### Testing
+
+- All 94 existing tests passing
+- No breaking changes to public API
+
 ## 8.0.0
 
 - fix #423 via #424 thanks @huntharo - Propagate errors in SitemapAndIndexStream
