@@ -1,5 +1,214 @@
 # Changelog
 
+## 9.0.0 - Unreleased
+
+This major release modernizes the package with ESM-first architecture, drops support for Node.js < 20, and includes comprehensive security and robustness improvements.
+
+### [BREAKING CHANGES]
+
+#### Dropped Node.js < 20 Support
+
+- **Node.js >=20.19.5 now required** (previously >=14.0.0)
+- **npm >=10.8.2 now required** (previously >=6.0.0)
+- Dropped support for Node.js 14, 16, and 18
+
+#### ESM Conversion with Dual Package Support
+
+- Package now uses `"type": "module"` in package.json
+- Built as dual ESM/CJS package with conditional exports
+- **Import paths in ESM require `.js` extensions** (TypeScript will add these automatically)
+- Both ESM and CommonJS imports continue to work:
+
+  ```js
+  // ESM (new default)
+  import { SitemapStream } from 'sitemap'
+
+  // CommonJS (still supported)
+  const { SitemapStream } = require('sitemap')
+  ```
+
+- CLI remains ESM-only at `dist/esm/cli.js`
+
+#### Build Output Changes
+
+- ESM output: `dist/esm/` (was `dist/`)
+- CJS output: `dist/cjs/` (new)
+- TypeScript definitions: `dist/esm/index.d.ts` (was `dist/index.d.ts`)
+
+#### Node.js Modernization
+
+- All built-in Node.js modules now use `node:` protocol imports (`node:stream`, `node:fs`, etc.)
+- Uses native promise-based `pipeline` from `node:stream/promises` (instead of `promisify(pipeline)`)
+- TypeScript target updated to ES2023 (from ES2022)
+
+### New Exports
+
+The following validation functions and constants are now part of the public API:
+
+**Validation Functions** (from `lib/validation.js`):
+
+- `validateURL()`, `validatePath()`, `validateLimit()`, `validatePublicBasePath()`, `validateXSLUrl()`
+- Type guards: `isPriceType()`, `isResolution()`, `isValidChangeFreq()`, `isValidYesNo()`, `isAllowDeny()`
+- `validators` - object containing regex validators for all sitemap fields
+
+**Constants** (from `lib/constants.js`):
+
+- `LIMITS` - security limits object (max URL length, max items per sitemap, video/news/image constraints, etc.)
+- `DEFAULT_SITEMAP_ITEM_LIMIT` - default items per sitemap file (45,000)
+
+**New Type Export**:
+
+- `SimpleSitemapAndIndexOptions` interface now exported
+
+### Features
+
+#### Comprehensive Security Validation
+
+- **Parser Security** (#461): Added resource limits and comprehensive validation to sitemap index parser and stream
+  - Max 50K URLs per sitemap, 1K images, 100 videos per entry
+  - String length limits on all fields
+  - URL validation (http/https only, max 2048 chars)
+  - Protocol injection prevention (blocks javascript:, data:, file:, ftp:)
+  - Path traversal prevention (blocks `..` sequences)
+
+- **Stream Validation** (#456, #455, #454): Added comprehensive validation to all stream classes
+  - Enhanced XML entity escaping (including `>` character)
+  - Attribute name validation
+  - Date format validation (ISO 8601)
+  - Input validation for numbers (reject NaN/Infinity), dates (check Invalid Date)
+  - XSL URL validation to prevent script injection
+  - Custom namespace validation (max 20 namespaces, max 512 chars each)
+
+- **XML Generation Security** (#457): Comprehensive validation and documentation in sitemap-xml
+  - Safe XML attribute and element generation
+  - Protection against XML injection attacks
+
+#### Robustness Improvements
+
+- **Sitemap Item Stream** (#453): Improved robustness and type safety
+- **Sitemap Index Stream** (#449): Enhanced robustness and test coverage
+- **Sitemap Index Parser** (#448): Improved error handling and robustness
+- **Code Quality** (#458): Comprehensive security and code quality improvements across codebase
+
+### Fixes
+
+- Fixed TS151002 warning and test race condition (#455)
+- Improved sitemap-item-stream robustness and type safety (#453)
+- Enhanced sitemap-index-stream error handling (#449)
+- Improved sitemap-index-parser error handling (#448)
+- Fixed coverage reporting (#399, #434)
+- Fixed invalid XML regex for better performance (#437, #417)
+- Improved normalizeURL performance (#416)
+
+### Refactoring
+
+- **Architecture Reorganization** (#460): Consolidated constants and validation
+  - Created `lib/constants.ts` - single source of truth for all shared constants
+  - Created `lib/validation.ts` - centralized all validation logic and type guards
+  - Eliminated duplicate constants and validation code across files
+  - Prevents inconsistencies where different files used different values
+
+### Infrastructure
+
+#### Build System
+
+- Dual ESM/CJS build with separate TypeScript configurations
+  - `tsconfig.json` - ESM build (NodeNext module resolution)
+  - `tsconfig.cjs.json` - CJS build (CommonJS module)
+- Build outputs `package.json` with `"type": "commonjs"` to `dist/cjs/`
+- Test infrastructure converted to ESM
+- Updated Jest configuration for ESM support
+
+#### Testing
+
+- Converted to ts-jest for better TypeScript support (#434)
+- All 172+ tests passing with 91%+ code coverage
+- Enhanced security-focused test coverage
+- Performance tests converted to `.mjs` format
+
+#### Dependencies
+
+- Updated `sax` from ^1.2.4 to ^1.4.1
+- Updated `@types/node` from ^17.0.5 to ^24.7.2
+- Removed unused dependencies (#459)
+- Updated all dev dependencies to latest versions
+- Replaced babel-based test setup with ts-jest
+
+#### Developer Experience
+
+- Updated examples to ESM syntax in README (#452)
+- Updated API documentation for accuracy and ESM syntax (#452)
+- Added comprehensive CLAUDE.md with architecture documentation
+- Improved ESLint and Prettier integration
+- Updated git hooks with Husky 9.x
+
+### Upgrade Guide for 9.0.0
+
+#### 1. Update Node.js Version
+
+Ensure you are running Node.js >=20.19.5 and npm >=10.8.2:
+
+```bash
+node --version  # Should be 20.19.5 or higher
+npm --version   # Should be 10.8.2 or higher
+```
+
+#### 2. Update Package
+
+```bash
+npm install sitemap@9.0.0
+```
+
+#### 3. Import Syntax (No Changes Required for Most Users)
+
+Both ESM and CommonJS imports continue to work:
+
+```js
+// ESM - works the same as before
+import { SitemapStream, streamToPromise } from 'sitemap'
+
+// CommonJS - works the same as before
+const { SitemapStream, streamToPromise } = require('sitemap')
+```
+
+**Note**: If you're importing from the package in an ESM context, the module resolution happens automatically. If you're directly importing library files (not recommended), you'll need `.js` extensions.
+
+#### 4. Existing Code Compatibility
+
+- ✅ **All existing valid data continues to work unchanged**
+- ✅ **Public API is fully compatible** - same classes, methods, and options
+- ✅ **Stream behavior unchanged** - all streaming patterns continue to work
+- ✅ **Error handling unchanged** - `ErrorLevel.WARN` default behavior maintained
+- ⚠️ **Invalid data may now be rejected** due to enhanced security validation
+  - URLs must be http/https protocol (no javascript:, data:, etc.)
+  - String lengths enforced per sitemaps.org spec
+  - Resource limits enforced (50K URLs, 1K images, 100 videos per entry)
+
+#### 5. TypeScript Users
+
+- Update `tsconfig.json` if needed to support ES2023
+- Type definitions are now at `dist/esm/index.d.ts` (automatically resolved by package.json exports)
+- No changes needed to your TypeScript code
+
+#### 6. New Optional Features
+
+You can now import validation utilities and constants if needed:
+
+```js
+import { LIMITS, validateURL, validators } from 'sitemap'
+
+// Check limits
+console.log(LIMITS.MAX_URL_LENGTH) // 2048
+
+// Validate URLs
+const url = validateURL('https://example.com/page')
+
+// Use validators
+if (validators['video:rating'].test('4.5')) {
+  // valid rating
+}
+```
+
 ## 8.0.1 - Security Patch Release
 
 **SECURITY FIXES** - This release backports comprehensive security patches from 9.0.0 to 8.0.x
