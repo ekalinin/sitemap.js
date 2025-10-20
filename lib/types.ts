@@ -16,33 +16,16 @@ export enum EnumChangefreq {
   NEVER = 'never',
 }
 
-const allowDeny = /^(?:allow|deny)$/;
-export const validators: { [index: string]: RegExp } = {
-  'price:currency': /^[A-Z]{3}$/,
-  'price:type': /^(?:rent|purchase|RENT|PURCHASE)$/,
-  'price:resolution': /^(?:HD|hd|sd|SD)$/,
-  'platform:relationship': allowDeny,
-  'restriction:relationship': allowDeny,
-  restriction: /^([A-Z]{2}( +[A-Z]{2})*)?$/,
-  platform: /^((web|mobile|tv)( (web|mobile|tv))*)?$/,
-  language: /^zh-cn|zh-tw|([a-z]{2,3})$/,
-  genres:
-    /^(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated)(, *(PressRelease|Satire|Blog|OpEd|Opinion|UserGenerated))*$/,
-  stock_tickers: /^(\w+:\w+(, *\w+:\w+){0,4})?$/,
-};
-
-export function isPriceType(pt: string | PriceType): pt is PriceType {
-  return validators['price:type'].test(pt);
-}
-
-export function isResolution(res: string): res is Resolution {
-  return validators['price:resolution'].test(res);
-}
-
-export const CHANGEFREQ = Object.values(EnumChangefreq);
-export function isValidChangeFreq(freq: string): freq is EnumChangefreq {
-  return CHANGEFREQ.includes(freq as EnumChangefreq);
-}
+// Validators and type guards have been moved to lib/validation.ts
+// These re-exports maintain backward compatibility
+export {
+  validators,
+  isPriceType,
+  isResolution,
+  isValidChangeFreq,
+  isValidYesNo,
+  isAllowDeny,
+} from './validation';
 
 export enum EnumYesNo {
   YES = 'YES',
@@ -53,17 +36,9 @@ export enum EnumYesNo {
   no = 'no',
 }
 
-export function isValidYesNo(yn: string): yn is EnumYesNo {
-  return /^YES|NO|[Yy]es|[Nn]o$/.test(yn);
-}
-
 export enum EnumAllowDeny {
   ALLOW = 'allow',
   DENY = 'deny',
-}
-
-export function isAllowDeny(ad: string): ad is EnumAllowDeny {
-  return allowDeny.test(ad);
 }
 
 /**
@@ -251,7 +226,18 @@ interface VideoItemBase {
   'platform:relationship'?: EnumAllowDeny;
 }
 
+/**
+ * Video price type
+ * Per Google Video Sitemap spec, allows case variations
+ * @see https://developers.google.com/search/docs/advanced/sitemaps/video-sitemaps
+ */
 export type PriceType = 'rent' | 'purchase' | 'RENT' | 'PURCHASE';
+
+/**
+ * Video resolution type
+ * Per Google Video Sitemap spec, allows case variations
+ * @see https://developers.google.com/search/docs/advanced/sitemaps/video-sitemaps
+ */
 export type Resolution = 'HD' | 'hd' | 'sd' | 'SD';
 
 /**

@@ -7,17 +7,23 @@ export interface StringObj {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [index: string]: any;
 }
-function attrBuilder(
-  conf: StringObj,
-  keys: string | string[]
-): Record<string, string> {
+
+/**
+ * Builds an attributes object for XML elements from configuration object
+ * Extracts attributes based on colon-delimited keys (e.g., 'price:currency' -> { currency: value })
+ *
+ * @param conf - Configuration object containing attribute values
+ * @param keys - Single key or array of keys in format 'namespace:attribute'
+ * @returns Record of attribute names to string values (may contain non-string values from conf)
+ * @throws {InvalidAttr} When key format is invalid (must contain exactly one colon)
+ */
+function attrBuilder(conf: StringObj, keys: string | string[]): StringObj {
   if (typeof keys === 'string') {
     keys = [keys];
   }
 
   const iv: StringObj = {};
   return keys.reduce((attrs, key): StringObj => {
-    // eslint-disable-next-line
     if (conf[key] !== undefined) {
       const keyAr = key.split(':');
       if (keyAr.length !== 2) {
@@ -119,7 +125,7 @@ export class SitemapItemStream extends Transform {
 
       if (video.view_count !== undefined) {
         this.push(
-          element(TagNames['video:view_count'], video.view_count.toString())
+          element(TagNames['video:view_count'], String(video.view_count))
         );
       }
 
@@ -129,8 +135,10 @@ export class SitemapItemStream extends Transform {
         );
       }
 
-      for (const tag of video.tag) {
-        this.push(element(TagNames['video:tag'], tag));
+      if (video.tag && video.tag.length > 0) {
+        for (const tag of video.tag) {
+          this.push(element(TagNames['video:tag'], tag));
+        }
       }
 
       if (video.category) {
@@ -157,7 +165,7 @@ export class SitemapItemStream extends Transform {
         this.push(
           element(
             TagNames['video:gallery_loc'],
-            { title: video['gallery_loc:title'] },
+            attrBuilder(video, 'gallery_loc:title'),
             video.gallery_loc
           )
         );

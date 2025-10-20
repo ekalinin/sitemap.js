@@ -6,9 +6,11 @@ import {
   Writable,
 } from 'stream';
 import { SitemapItemLoose, ErrorLevel, ErrorHandler } from './types';
-import { validateSMIOptions, normalizeURL } from './utils';
+import { normalizeURL } from './utils';
+import { validateSMIOptions, validateURL, validateXSLUrl } from './validation';
 import { SitemapItemStream } from './sitemap-item-stream';
 import { EmptyStream, EmptySitemap } from './errors';
+import { LIMITS } from './constants';
 
 const xmlDec = '<?xml version="1.0" encoding="UTF-8"?>';
 export const stylesheetInclude = (url: string): string => {
@@ -24,6 +26,68 @@ export interface NSArgs {
   image: boolean;
   custom?: string[];
 }
+
+/**
+ * Validates custom namespace declarations for security
+ * @param custom - Array of custom namespace declarations
+ * @throws {Error} If namespace format is invalid or contains malicious content
+ */
+function validateCustomNamespaces(custom: string[]): void {
+  if (!Array.isArray(custom)) {
+    throw new Error('Custom namespaces must be an array');
+  }
+
+  // Limit number of custom namespaces to prevent DoS
+  if (custom.length > LIMITS.MAX_CUSTOM_NAMESPACES) {
+    throw new Error(
+      `Too many custom namespaces: ${custom.length} exceeds limit of ${LIMITS.MAX_CUSTOM_NAMESPACES}`
+    );
+  }
+
+  // Basic format validation for xmlns declarations
+  const xmlnsPattern = /^xmlns:[a-zA-Z_][\w.-]*="[^"<>]*"$/;
+
+  for (const ns of custom) {
+    if (typeof ns !== 'string' || ns.length === 0) {
+      throw new Error('Custom namespace must be a non-empty string');
+    }
+
+    if (ns.length > LIMITS.MAX_NAMESPACE_LENGTH) {
+      throw new Error(
+        `Custom namespace exceeds maximum length of ${
+          LIMITS.MAX_NAMESPACE_LENGTH
+        } characters: ${ns.substring(0, 50)}...`
+      );
+    }
+
+    // Check for potentially malicious content BEFORE format check
+    // (format check will reject < and > but we want specific error message)
+    const lowerNs = ns.toLowerCase();
+    if (
+      lowerNs.includes('<script') ||
+      lowerNs.includes('javascript:') ||
+      lowerNs.includes('data:text/html')
+    ) {
+      throw new Error(
+        `Custom namespace contains potentially malicious content: ${ns.substring(
+          0,
+          50
+        )}`
+      );
+    }
+
+    // Check format matches xmlns declaration
+    if (!xmlnsPattern.test(ns)) {
+      throw new Error(
+        `Invalid namespace format (must be xmlns:prefix="uri"): ${ns.substring(
+          0,
+          50
+        )}`
+      );
+    }
+  }
+}
+
 const getURLSetNs: (opts: NSArgs, xslURL?: string) => string = (
   { news, video, image, xhtml, custom },
   xslURL
@@ -52,6 +116,7 @@ const getURLSetNs: (opts: NSArgs, xslURL?: string) => string = (
   }
 
   if (custom) {
+    validateCustomNamespaces(custom);
     ns += ' ' + custom.join(' ');
   }
 
@@ -82,6 +147,34 @@ const defaultStreamOpts: SitemapStreamOptions = {
  * [Readable stream](https://nodejs.org/api/stream.html#stream_readable_streams)
  * of either [SitemapItemOptions](#sitemap-item-options) or url strings into a
  * Sitemap. The readable stream it transforms **must** be in object mode.
+ *
+ * @param {SitemapStreamOptions} opts - Configuration options
+ * @param {string} [opts.hostname] - Base URL for relative paths. Must use http:// or https:// protocol
+ * @param {ErrorLevel} [opts.level=ErrorLevel.WARN] - Error handling level (SILENT, WARN, or THROW)
+ * @param {boolean} [opts.lastmodDateOnly=false] - Format lastmod as date only (YYYY-MM-DD)
+ * @param {NSArgs} [opts.xmlns] - Control which XML namespaces to include in output
+ * @param {string} [opts.xslUrl] - URL to XSL stylesheet for sitemap display. Must use http:// or https://
+ * @param {ErrorHandler} [opts.errorHandler] - Custom error handler function
+ *
+ * @throws {InvalidHostnameError} If hostname is provided but invalid (non-http(s), malformed, or >2048 chars)
+ * @throws {InvalidXSLUrlError} If xslUrl is provided but invalid (non-http(s), malformed, >2048 chars, or contains malicious content)
+ * @throws {Error} If xmlns.custom contains invalid namespace declarations
+ *
+ * @example
+ * ```typescript
+ * const stream = new SitemapStream({
+ *   hostname: 'https://example.com',
+ *   level: ErrorLevel.THROW
+ * });
+ * stream.write({ url: '/page', changefreq: 'daily' });
+ * stream.end();
+ * ```
+ *
+ * @security
+ * - Hostname and xslUrl are validated to prevent URL injection attacks
+ * - Custom namespaces are validated to prevent XML injection
+ * - All URLs are normalized and validated before output
+ * - XML content is properly escaped to prevent injection
  */
 export class SitemapStream extends Transform {
   hostname?: string;
@@ -95,6 +188,17 @@ export class SitemapStream extends Transform {
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
+
+    // Validate hostname if provided
+    if (opts.hostname !== undefined) {
+      validateURL(opts.hostname, 'hostname');
+    }
+
+    // Validate xslUrl if provided
+    if (opts.xslUrl !== undefined) {
+      validateXSLUrl(opts.xslUrl);
+    }
+
     this.hasHeadOutput = false;
     this.hostname = opts.hostname;
     this.level = opts.level || ErrorLevel.WARN;

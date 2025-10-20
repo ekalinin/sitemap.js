@@ -1,4 +1,5 @@
-import sax, { SAXStream } from 'sax';
+import sax from 'sax';
+import type { SAXStream } from 'sax';
 import {
   Readable,
   Transform,
@@ -6,6 +7,8 @@ import {
   TransformCallback,
 } from 'stream';
 import { IndexItem, ErrorLevel, IndexTagNames } from './types';
+import { validateURL } from './validation';
+import { LIMITS } from './constants';
 
 function isValidTagName(tagName: string): tagName is IndexTagNames {
   // This only works because the enum name and value are the same
@@ -20,7 +23,7 @@ function tagTemplate(): IndexItem {
 
 type Logger = (
   level: 'warn' | 'error' | 'info' | 'log',
-  ...message: Parameters<Console['log']>[0]
+  ...message: Parameters<Console['log']>
 ) => void;
 export interface XMLToSitemapIndexItemStreamOptions extends TransformOptions {
   level?: ErrorLevel;
@@ -31,7 +34,6 @@ const defaultStreamOpts: XMLToSitemapIndexItemStreamOptions = {
   logger: defaultLogger,
 };
 
-// TODO does this need to end with `options`
 /**
  * Takes a stream of xml and transforms it into a stream of IndexItems
  * Use this to parse existing sitemap indices into config options compatible with this library
@@ -39,14 +41,16 @@ const defaultStreamOpts: XMLToSitemapIndexItemStreamOptions = {
 export class XMLToSitemapIndexStream extends Transform {
   level: ErrorLevel;
   logger: Logger;
+  error: Error | null;
   saxStream: SAXStream;
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
+    this.error = null;
     this.saxStream = sax.createStream(true, {
       xmlns: true,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+
+      // @ts-expect-error - SAX types don't include strictEntities option
       strictEntities: true,
       trim: true,
     });
@@ -65,16 +69,36 @@ export class XMLToSitemapIndexStream extends Transform {
     this.saxStream.on('opentag', (tag): void => {
       if (!isValidTagName(tag.name)) {
         this.logger('warn', 'unhandled tag', tag.name);
+        this.err(`unhandled tag: ${tag.name}`);
       }
     });
 
     this.saxStream.on('text', (text): void => {
       switch (currentTag) {
         case IndexTagNames.loc:
-          currentItem.url = text;
+          // Validate URL for security: prevents protocol injection, checks length limits
+          try {
+            validateURL(text, 'Sitemap index URL');
+            currentItem.url = text;
+          } catch (error) {
+            const errMsg =
+              error instanceof Error ? error.message : String(error);
+            this.logger('warn', 'Invalid URL in sitemap index:', errMsg);
+            this.err(`Invalid URL in sitemap index: ${errMsg}`);
+          }
           break;
         case IndexTagNames.lastmod:
-          currentItem.lastmod = text;
+          // Validate date format for security and spec compliance
+          if (text && !LIMITS.ISO_DATE_REGEX.test(text)) {
+            this.logger(
+              'warn',
+              'Invalid lastmod date format in sitemap index:',
+              text
+            );
+            this.err(`Invalid lastmod date format: ${text}`);
+          } else {
+            currentItem.lastmod = text;
+          }
           break;
         default:
           this.logger(
@@ -83,14 +107,41 @@ export class XMLToSitemapIndexStream extends Transform {
             currentTag,
             `'${text}'`
           );
+          this.err(`unhandled text for tag: ${currentTag} '${text}'`);
           break;
       }
     });
 
-    this.saxStream.on('cdata', (_text): void => {
+    this.saxStream.on('cdata', (text): void => {
       switch (currentTag) {
+        case IndexTagNames.loc:
+          // Validate URL for security: prevents protocol injection, checks length limits
+          try {
+            validateURL(text, 'Sitemap index URL');
+            currentItem.url = text;
+          } catch (error) {
+            const errMsg =
+              error instanceof Error ? error.message : String(error);
+            this.logger('warn', 'Invalid URL in sitemap index:', errMsg);
+            this.err(`Invalid URL in sitemap index: ${errMsg}`);
+          }
+          break;
+        case IndexTagNames.lastmod:
+          // Validate date format for security and spec compliance
+          if (text && !LIMITS.ISO_DATE_REGEX.test(text)) {
+            this.logger(
+              'warn',
+              'Invalid lastmod date format in sitemap index:',
+              text
+            );
+            this.err(`Invalid lastmod date format: ${text}`);
+          } else {
+            currentItem.lastmod = text;
+          }
+          break;
         default:
           this.logger('log', 'unhandled cdata for tag:', currentTag);
+          this.err(`unhandled cdata for tag: ${currentTag}`);
           break;
       }
     });
@@ -101,13 +152,17 @@ export class XMLToSitemapIndexStream extends Transform {
           break;
         default:
           this.logger('log', 'unhandled attr', currentTag, attr.name);
+          this.err(`unhandled attr: ${currentTag} ${attr.name}`);
       }
     });
 
     this.saxStream.on('closetag', (tag): void => {
       switch (tag) {
         case IndexTagNames.sitemap:
-          this.push(currentItem);
+          // Only push items with valid URLs (non-empty after validation)
+          if (currentItem.url) {
+            this.push(currentItem);
+          }
           currentItem = tagTemplate();
           break;
 
@@ -123,15 +178,24 @@ export class XMLToSitemapIndexStream extends Transform {
     callback: TransformCallback
   ): void {
     try {
+      const cb = () =>
+        callback(this.level === ErrorLevel.THROW ? this.error : null);
       // correcting the type here can be done without making it a breaking change
       // TODO fix this
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      this.saxStream.write(data, encoding);
-      callback();
+      if (!this.saxStream.write(data, encoding)) {
+        this.saxStream.once('drain', cb);
+      } else {
+        process.nextTick(cb);
+      }
     } catch (error) {
       callback(error as Error);
     }
+  }
+
+  private err(msg: string) {
+    if (!this.error) this.error = new Error(msg);
   }
 }
 
@@ -149,14 +213,29 @@ export class XMLToSitemapIndexStream extends Transform {
   )
   ```
   @param {Readable} xml what to parse
+  @param {number} maxEntries Maximum number of sitemap entries to parse (default: 50,000 per sitemaps.org spec)
   @return {Promise<IndexItem[]>} resolves with list of index items that can be fed into a SitemapIndexStream. Rejects with an Error object.
  */
-export async function parseSitemapIndex(xml: Readable): Promise<IndexItem[]> {
+export async function parseSitemapIndex(
+  xml: Readable,
+  maxEntries: number = LIMITS.MAX_SITEMAP_ITEM_LIMIT
+): Promise<IndexItem[]> {
   const urls: IndexItem[] = [];
   return new Promise((resolve, reject): void => {
     xml
       .pipe(new XMLToSitemapIndexStream())
-      .on('data', (smi: IndexItem) => urls.push(smi))
+      .on('data', (smi: IndexItem) => {
+        // Security: Prevent memory exhaustion by limiting number of entries
+        if (urls.length >= maxEntries) {
+          reject(
+            new Error(
+              `Sitemap index exceeds maximum allowed entries (${maxEntries})`
+            )
+          );
+          return;
+        }
+        urls.push(smi);
+      })
       .on('end', (): void => {
         resolve(urls);
       })

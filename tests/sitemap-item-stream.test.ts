@@ -117,7 +117,7 @@ describe('sitemapItem-stream', () => {
             el('video:thumbnail_loc', simpleURLEscaped) +
               el('video:title', simpleTextEscaped) +
               el('video:description', simpleTextEscaped) +
-              '<video:player_loc autoplay="ap=1&amp;>&lt;&apos;&quot;">' +
+              '<video:player_loc autoplay="ap=1&amp;&gt;&lt;&apos;&quot;">' +
               simpleURLEscaped +
               '</video:player_loc>' +
               el('video:duration', 1208 + '') +
