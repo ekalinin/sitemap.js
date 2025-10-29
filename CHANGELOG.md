@@ -209,6 +209,41 @@ if (validators['video:rating'].test('4.5')) {
 }
 ```
 
+## 8.0.2 - Bug Fix Release
+
+### Bug Fixes
+
+- **fix #464**: Support `xsi:schemaLocation` in custom namespaces - thanks @dzakki
+  - Extended custom namespace validation to accept namespace-qualified attributes (like `xsi:schemaLocation`) in addition to `xmlns` declarations
+  - The validation regex now matches both `xmlns:prefix="uri"` and `prefix:attribute="value"` patterns
+  - Enables proper W3C schema validation while maintaining security validation for malicious content
+  - Added comprehensive tests including security regression tests
+
+### Example Usage
+
+The following now works correctly (as documented in README):
+
+```javascript
+const sms = new SitemapStream({
+  xmlns: {
+    custom: [
+      'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+      'xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"'
+    ]
+  }
+});
+```
+
+### Testing
+
+- ✅ All existing tests passing
+- ✅ 8 new tests added covering positive and security scenarios
+- ✅ 100% backward compatible with 8.0.1
+
+### Files Changed
+
+2 files changed: 144 insertions, 5 deletions
+
 ## 8.0.1 - Security Patch Release
 
 **SECURITY FIXES** - This release backports comprehensive security patches from 9.0.0 to 8.0.x

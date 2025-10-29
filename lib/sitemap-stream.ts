@@ -48,8 +48,9 @@ function validateCustomNamespaces(custom: string[]): void {
     );
   }
 
-  // Basic format validation for xmlns declarations
-  const xmlnsPattern = /^xmlns:[a-zA-Z_][\w.-]*="[^"<>]*"$/;
+  // Basic format validation for xmlns declarations and namespace-qualified attributes
+  // Supports both xmlns:prefix="uri" and prefix:attribute="value" (e.g., xsi:schemaLocation)
+  const xmlAttributePattern = /^[a-zA-Z_][\w.-]*:[a-zA-Z_][\w.-]*="[^"<>]*"$/;
 
   for (const ns of custom) {
     if (typeof ns !== 'string' || ns.length === 0) {
@@ -75,10 +76,10 @@ function validateCustomNamespaces(custom: string[]): void {
       );
     }
 
-    // Check format matches xmlns declaration
-    if (!xmlnsPattern.test(ns)) {
+    // Check format matches xmlns declaration or namespace-qualified attribute
+    if (!xmlAttributePattern.test(ns)) {
       throw new Error(
-        `Invalid namespace format (must be xmlns:prefix="uri"): ${ns.substring(0, 50)}`
+        `Invalid namespace format (must be prefix:name="value", e.g., xmlns:prefix="uri" or xsi:schemaLocation="..."): ${ns.substring(0, 50)}`
       );
     }
   }

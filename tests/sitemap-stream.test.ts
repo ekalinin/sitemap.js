@@ -61,6 +61,144 @@ describe('sitemap stream', () => {
     );
   });
 
+  it('supports xsi:schemaLocation with xmlns:xsi (README example)', async () => {
+    const sms = new SitemapStream({
+      xmlns: {
+        news: false,
+        video: false,
+        image: false,
+        xhtml: false,
+        custom: [
+          'xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"',
+          'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+        ],
+      },
+    });
+    sms.write(sampleURLs[0]);
+    sms.end();
+    const result = (await streamToPromise(sms)).toString();
+    expect(result).toContain(
+      'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+    );
+
+    expect(result).toContain(
+      'xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"'
+    );
+  });
+
+  it('supports other namespace-qualified attributes', async () => {
+    const sms = new SitemapStream({
+      xmlns: {
+        news: false,
+        video: false,
+        image: false,
+        xhtml: false,
+        custom: [
+          'xmlns:custom="http://example.com/custom"',
+          'custom:attr="value123"',
+        ],
+      },
+    });
+    sms.write(sampleURLs[0]);
+    sms.end();
+    const result = (await streamToPromise(sms)).toString();
+    expect(result).toContain('xmlns:custom="http://example.com/custom"');
+    expect(result).toContain('custom:attr="value123"');
+  });
+
+  it('rejects invalid XML attributes (security)', () => {
+    const sms = new SitemapStream({
+      xmlns: {
+        news: false,
+        video: false,
+        image: false,
+        xhtml: false,
+        custom: [
+          'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+          '<script>alert("xss")</script>',
+        ],
+      },
+    });
+    expect(() => {
+      sms.write(sampleURLs[0]);
+    }).toThrow('Custom namespace contains potentially malicious content');
+  });
+
+  it('rejects attributes with angle brackets (security)', () => {
+    const sms = new SitemapStream({
+      xmlns: {
+        news: false,
+        video: false,
+        image: false,
+        xhtml: false,
+        custom: ['xsi:attr="<script>alert(1)</script>"'],
+      },
+    });
+    expect(() => {
+      sms.write(sampleURLs[0]);
+    }).toThrow('Custom namespace contains potentially malicious content');
+  });
+
+  it('rejects attributes without colons (security)', () => {
+    const sms = new SitemapStream({
+      xmlns: {
+        news: false,
+        video: false,
+        image: false,
+        xhtml: false,
+        custom: ['invalidattr="value"'],
+      },
+    });
+    expect(() => {
+      sms.write(sampleURLs[0]);
+    }).toThrow('Invalid namespace format');
+  });
+
+  it('rejects script tags in custom attributes (security)', () => {
+    const sms = new SitemapStream({
+      xmlns: {
+        news: false,
+        video: false,
+        image: false,
+        xhtml: false,
+        custom: ['foo:bar="test<script>alert(1)"'],
+      },
+    });
+    expect(() => {
+      sms.write(sampleURLs[0]);
+    }).toThrow('Custom namespace contains potentially malicious content');
+  });
+
+  it('rejects javascript: URLs in custom attributes (security)', () => {
+    const sms = new SitemapStream({
+      xmlns: {
+        news: false,
+        video: false,
+        image: false,
+        xhtml: false,
+        custom: ['xmlns:foo="javascript:alert(1)"'],
+      },
+    });
+    expect(() => {
+      sms.write(sampleURLs[0]);
+    }).toThrow('Custom namespace contains potentially malicious content');
+  });
+
+  it('rejects data:text/html in custom attributes (security)', () => {
+    const sms = new SitemapStream({
+      xmlns: {
+        news: false,
+        video: false,
+        image: false,
+        xhtml: false,
+        custom: ['xmlns:foo="data:text/html,<script>alert(1)</script>"'],
+      },
+    });
+    expect(() => {
+      sms.write(sampleURLs[0]);
+    }).toThrow('Custom namespace contains potentially malicious content');
+  });
+
   it('normalizes passed in urls', async () => {
     const source = ['/', '/path'];
     const sms = new SitemapStream({ hostname: 'https://example.com/' });
