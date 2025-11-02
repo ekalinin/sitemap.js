@@ -600,6 +600,27 @@ export class XMLToSitemapItemStream extends Transform {
 
     this.saxStream.on('cdata', (text): void => {
       switch (currentTag) {
+        case TagNames.loc:
+          // Validate URL
+          if (text.length > LIMITS.MAX_URL_LENGTH) {
+            this.logger(
+              'warn',
+              `URL exceeds max length of ${LIMITS.MAX_URL_LENGTH}: ${text.substring(0, 100)}...`
+            );
+            this.err(`URL exceeds max length of ${LIMITS.MAX_URL_LENGTH}`);
+          } else if (!LIMITS.URL_PROTOCOL_REGEX.test(text)) {
+            this.logger(
+              'warn',
+              `URL must start with http:// or https://: ${text}`
+            );
+            this.err(`URL must start with http:// or https://: ${text}`);
+          } else {
+            currentItem.url = text;
+          }
+          break;
+        case TagNames['image:loc']:
+          currentImage.url = text;
+          break;
         case TagNames['video:title']:
           if (
             currentVideo.title.length + text.length <=
