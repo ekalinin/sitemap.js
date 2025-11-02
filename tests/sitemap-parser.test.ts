@@ -148,6 +148,60 @@ describe('XMLToSitemapItemStream', () => {
     );
     expect(sitemap).toEqual(normalizedSample.urls);
   });
+
+  it('parses CDATA in <loc> tags (issue #445)', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc><![CDATA[https://example.com/page1]]></loc>
+  </url>
+</urlset>`;
+    const results = await parseSitemap(Readable.from(xml));
+    expect(results).toHaveLength(1);
+    expect(results[0].url).toBe('https://example.com/page1');
+  });
+
+  it('parses CDATA in <image:loc> tags (issue #445)', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://example.com/page</loc>
+    <image:image>
+      <image:loc><![CDATA[https://example.com/image.jpg]]></image:loc>
+    </image:image>
+  </url>
+</urlset>`;
+    const results = await parseSitemap(Readable.from(xml));
+    expect(results).toHaveLength(1);
+    expect(results[0].url).toBe('https://example.com/page');
+    expect(results[0].img).toHaveLength(1);
+    expect(results[0].img[0].url).toBe('https://example.com/image.jpg');
+  });
+
+  it('validates URLs in CDATA sections', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc><![CDATA[invalid-url]]></loc>
+  </url>
+</urlset>`;
+    // With THROW error level, invalid URLs should cause errors
+    const stream = new XMLToSitemapItemStream({ level: ErrorLevel.THROW });
+    const promise = pipeline(
+      Readable.from(xml),
+      stream,
+      new Writable({
+        objectMode: true,
+        write(chunk, a, cb): void {
+          cb();
+        },
+      })
+    );
+    await expect(promise).rejects.toThrow(
+      'URL must start with http:// or https://'
+    );
+  });
 });
 
 describe('ObjectStreamToJSON', () => {
