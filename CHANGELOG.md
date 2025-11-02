@@ -1,6 +1,6 @@
 # Changelog
 
-## 9.0.0 - Unreleased
+## 9.0.0 - 2025-11-01
 
 This major release modernizes the package with ESM-first architecture, drops support for Node.js < 20, and includes comprehensive security and robustness improvements.
 
