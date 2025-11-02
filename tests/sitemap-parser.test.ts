@@ -1,7 +1,7 @@
 import { createReadStream } from 'node:fs';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
-import { pipeline as pipe, Writable, Readable } from 'node:stream';
+import { pipeline as pipe, Writable, Readable, Transform } from 'node:stream';
 import {
   parseSitemap,
   XMLToSitemapItemStream,
@@ -176,5 +176,208 @@ describe('ObjectStreamToJSON', () => {
       })
     );
     expect(sitemap).toBe(JSON.stringify(items));
+  });
+});
+
+describe('XMLToSitemapItemStream filtering', () => {
+  it('filters items during parsing using Transform stream', async () => {
+    const sitemap: SitemapItem[] = [];
+
+    // Create a filter that only keeps URLs containing 'roosterteeth.com'
+    const filterStream = new Transform({
+      objectMode: true,
+      transform(chunk: SitemapItem, encoding, callback): void {
+        if (chunk.url.includes('roosterteeth.com')) {
+          callback(undefined, chunk);
+        } else {
+          callback(); // Skip this item
+        }
+      },
+    });
+
+    await pipeline(
+      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+        encoding: 'utf8',
+      }),
+      new XMLToSitemapItemStream(),
+      filterStream,
+      new Writable({
+        objectMode: true,
+        write(chunk, a, cb): void {
+          sitemap.push(chunk);
+          cb();
+        },
+      })
+    );
+
+    // Should only have items with 'roosterteeth.com' in the URL
+    expect(sitemap.length).toBeGreaterThan(0);
+    sitemap.forEach((item) => {
+      expect(item.url).toContain('roosterteeth.com');
+    });
+  });
+
+  it('deletes items matching exclusion criteria', async () => {
+    const sitemap: SitemapItem[] = [];
+
+    // Create a filter that excludes URLs containing 'roosterteeth'
+    const excludeFilter = new Transform({
+      objectMode: true,
+      transform(chunk: SitemapItem, encoding, callback): void {
+        if (chunk.url.includes('roosterteeth')) {
+          callback(); // Drop this item
+        } else {
+          callback(undefined, chunk); // Keep all others
+        }
+      },
+    });
+
+    await pipeline(
+      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+        encoding: 'utf8',
+      }),
+      new XMLToSitemapItemStream(),
+      excludeFilter,
+      new Writable({
+        objectMode: true,
+        write(chunk, a, cb): void {
+          sitemap.push(chunk);
+          cb();
+        },
+      })
+    );
+
+    // Should not have any items with 'roosterteeth' in the URL
+    expect(sitemap.length).toBeGreaterThan(0);
+    sitemap.forEach((item) => {
+      expect(item.url).not.toContain('roosterteeth');
+    });
+  });
+
+  it('filters items based on priority', async () => {
+    const sitemap: SitemapItem[] = [];
+
+    // Filter to only keep high-priority items
+    const priorityFilter = new Transform({
+      objectMode: true,
+      transform(chunk: SitemapItem, encoding, callback): void {
+        if (chunk.priority !== undefined && chunk.priority >= 0.5) {
+          callback(undefined, chunk);
+        } else {
+          callback();
+        }
+      },
+    });
+
+    await pipeline(
+      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+        encoding: 'utf8',
+      }),
+      new XMLToSitemapItemStream(),
+      priorityFilter,
+      new Writable({
+        objectMode: true,
+        write(chunk, a, cb): void {
+          sitemap.push(chunk);
+          cb();
+        },
+      })
+    );
+
+    // All items should have priority >= 0.5
+    sitemap.forEach((item) => {
+      expect(item.priority).toBeDefined();
+      expect(item.priority).toBeGreaterThanOrEqual(0.5);
+    });
+  });
+
+  it('counts filtered and dropped items', async () => {
+    let keptCount = 0;
+    let droppedCount = 0;
+    const sitemap: SitemapItem[] = [];
+
+    const countingFilter = new Transform({
+      objectMode: true,
+      transform(chunk: SitemapItem, encoding, callback): void {
+        // Keep items with changefreq defined
+        if (chunk.changefreq) {
+          keptCount++;
+          callback(undefined, chunk);
+        } else {
+          droppedCount++;
+          callback();
+        }
+      },
+    });
+
+    await pipeline(
+      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+        encoding: 'utf8',
+      }),
+      new XMLToSitemapItemStream(),
+      countingFilter,
+      new Writable({
+        objectMode: true,
+        write(chunk, a, cb): void {
+          sitemap.push(chunk);
+          cb();
+        },
+      })
+    );
+
+    // Should have processed all items from normalized sample
+    expect(keptCount + droppedCount).toBe(normalizedSample.urls.length);
+    expect(keptCount).toBe(sitemap.length);
+    expect(sitemap.length).toBeGreaterThan(0);
+  });
+
+  it('chains multiple filters together', async () => {
+    const sitemap: SitemapItem[] = [];
+
+    // First filter: only keep items with priority defined
+    const priorityFilter = new Transform({
+      objectMode: true,
+      transform(chunk: SitemapItem, encoding, callback): void {
+        if (chunk.priority !== undefined) {
+          callback(undefined, chunk);
+        } else {
+          callback();
+        }
+      },
+    });
+
+    // Second filter: only keep items with changefreq
+    const changefreqFilter = new Transform({
+      objectMode: true,
+      transform(chunk: SitemapItem, encoding, callback): void {
+        if (chunk.changefreq) {
+          callback(undefined, chunk);
+        } else {
+          callback();
+        }
+      },
+    });
+
+    await pipeline(
+      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+        encoding: 'utf8',
+      }),
+      new XMLToSitemapItemStream(),
+      priorityFilter,
+      changefreqFilter,
+      new Writable({
+        objectMode: true,
+        write(chunk, a, cb): void {
+          sitemap.push(chunk);
+          cb();
+        },
+      })
+    );
+
+    // All items should have both priority and changefreq
+    sitemap.forEach((item) => {
+      expect(item.priority).toBeDefined();
+      expect(item.changefreq).toBeDefined();
+    });
   });
 });

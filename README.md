@@ -304,6 +304,39 @@ smStream.write({
 smStream.end()
 ```
 
+## Filtering sitemap entries during parsing
+
+You can filter or delete items from a sitemap while parsing by piping through a custom Transform stream. This is useful when you want to selectively process only certain URLs from an existing sitemap.
+
+```js
+import { createReadStream } from 'fs'
+import { Transform } from 'stream'
+import { XMLToSitemapItemStream } from 'sitemap'
+
+// Create a filter that only keeps certain URLs
+const filterStream = new Transform({
+  objectMode: true,
+  transform(item, encoding, callback) {
+    // Only keep URLs containing '/blog/'
+    if (item.url.includes('/blog/')) {
+      callback(undefined, item)  // Keep this item
+    } else {
+      callback()  // Skip this item (effectively "deleting" it)
+    }
+  }
+})
+
+// Parse and filter
+createReadStream('./sitemap.xml')
+  .pipe(new XMLToSitemapItemStream())
+  .pipe(filterStream)
+  .on('data', (item) => {
+    console.log('Filtered URL:', item.url)
+  })
+```
+
+You can also chain multiple filters together, filter based on priority/changefreq, or use the filtered results to generate a new sitemap. See [examples/filter-sitemap.js](./examples/filter-sitemap.js) for more filtering patterns.
+
 ## Examples
 
 For more examples see the [examples directory](./examples/)

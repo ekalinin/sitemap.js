@@ -46,7 +46,7 @@
     "lint": "eslint \"{lib,tests}/**/*.ts\" ./cli.ts",
     "lint:fix": "eslint --fix \"{lib,tests}/**/*.ts\" ./cli.ts",
     "prepare": "husky",
-    "prepublishOnly": "rm -rf dist && npm run test",
+    "prepublishOnly": "rm -rf dist && npm run build && npm run test",
     "prettier": "npx prettier --check \"{lib,tests}/**/*.ts\" ./cli.ts",
     "prettier:fix": "npx prettier --write \"{lib,tests}/**/*.ts\" ./cli.ts",
     "test": "jest",
