@@ -93,10 +93,13 @@ export class XMLToSitemapItemStream extends Transform {
   level: ErrorLevel;
   logger: Logger;
   /**
-   * All errors encountered during parsing.
-   * Each validation failure is captured here for comprehensive error reporting.
+   * Errors encountered during parsing, capped at LIMITS.MAX_PARSER_ERRORS entries
+   * to prevent memory DoS from malformed XML (BB-03).
+   * Use errorCount for the total number of errors regardless of the cap.
    */
   errors: Error[];
+  /** Total number of errors seen, including those beyond the stored cap. */
+  errorCount: number;
   saxStream: SAXStream;
   urlCount: number;
 
@@ -104,6 +107,7 @@ export class XMLToSitemapItemStream extends Transform {
     opts.objectMode = true;
     super(opts);
     this.errors = [];
+    this.errorCount = 0;
     this.urlCount = 0;
     this.saxStream = sax.createStream(true, {
       xmlns: true,
@@ -954,8 +958,10 @@ export class XMLToSitemapItemStream extends Transform {
   }
 
   private err(msg: string) {
-    const error = new Error(msg);
-    this.errors.push(error);
+    this.errorCount++;
+    if (this.errors.length < LIMITS.MAX_PARSER_ERRORS) {
+      this.errors.push(new Error(msg));
+    }
   }
 }
 

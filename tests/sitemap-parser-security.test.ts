@@ -1090,4 +1090,32 @@ describe('sitemap-parser security tests', () => {
       expect(video['gallery_loc:title']).toBe('Gallery');
     });
   });
+
+  describe('memory DoS prevention', () => {
+    it('caps stored errors to prevent memory DoS (BB-03)', async () => {
+      const n = 5000;
+      const junk = Array.from(
+        { length: n },
+        (_, i) => `<evil${i}>x</evil${i}>`
+      ).join('');
+      const xml = `<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${junk}</urlset>`;
+
+      const parser = new XMLToSitemapItemStream({ logger: false });
+      await pipeline(
+        Readable.from([xml]),
+        parser,
+        new Writable({
+          objectMode: true,
+          write(_chunk, _enc, cb) {
+            cb();
+          },
+        })
+      );
+
+      expect(parser.errors.length).toBeLessThanOrEqual(
+        LIMITS.MAX_PARSER_ERRORS
+      );
+      expect(parser.errorCount).toBeGreaterThan(LIMITS.MAX_PARSER_ERRORS);
+    });
+  });
 });
