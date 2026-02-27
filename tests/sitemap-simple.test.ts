@@ -1,7 +1,6 @@
 import { simpleSitemapAndIndex, streamToPromise } from '../index.js';
-import { tmpdir } from 'node:os';
-import { resolve } from 'node:path';
 import { existsSync, createReadStream, mkdtempSync, rmSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { createGunzip } from 'node:zlib';
 
 describe('simpleSitemapAndIndex', () => {
@@ -9,7 +8,7 @@ describe('simpleSitemapAndIndex', () => {
 
   beforeEach(() => {
     // Create unique temp directory for each test to avoid conflicts
-    targetFolder = mkdtempSync(resolve(tmpdir(), 'sitemap-test-'));
+    targetFolder = mkdtempSync('sitemap-test-');
   });
 
   afterEach(() => {

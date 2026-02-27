@@ -45,6 +45,7 @@ import {
   ErrorHandler,
 } from './types.js';
 import { LIMITS } from './constants.js';
+import { isAbsolute } from 'node:path';
 
 /**
  * Validator regular expressions for various sitemap fields
@@ -161,6 +162,15 @@ export function validateURL(url: string, paramName: string): void {
 export function validatePath(path: string, paramName: string): void {
   if (!path || typeof path !== 'string') {
     throw new InvalidPathError(path, `${paramName} must be a non-empty string`);
+  }
+
+  // Reject absolute paths to prevent arbitrary write location when caller input
+  // reaches destinationDir (BB-04)
+  if (isAbsolute(path)) {
+    throw new InvalidPathError(
+      path,
+      `${paramName} must be a relative path (absolute paths are not allowed)`
+    );
   }
 
   // Check for path traversal sequences - must check before and after normalization
