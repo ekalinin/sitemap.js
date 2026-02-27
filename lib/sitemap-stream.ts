@@ -18,7 +18,12 @@ import { LIMITS } from './constants.js';
 
 const xmlDec = '<?xml version="1.0" encoding="UTF-8"?>';
 export const stylesheetInclude = (url: string): string => {
-  return `<?xml-stylesheet type="text/xsl" href="${url}"?>`;
+  const safe = url
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return `<?xml-stylesheet type="text/xsl" href="${safe}"?>`;
 };
 const urlsetTagStart =
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';

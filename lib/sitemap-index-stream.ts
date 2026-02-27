@@ -9,7 +9,7 @@ import {
 import { SitemapStream, stylesheetInclude } from './sitemap-stream.js';
 import { element, otag, ctag } from './sitemap-xml.js';
 import { LIMITS, DEFAULT_SITEMAP_ITEM_LIMIT } from './constants.js';
-import { validateURL } from './validation.js';
+import { validateURL, validateXSLUrl } from './validation.js';
 
 // Re-export IndexTagNames for backward compatibility
 export { IndexTagNames };
@@ -77,6 +77,9 @@ export class SitemapIndexStream extends Transform {
     this.hasHeadOutput = false;
     this.lastmodDateOnly = opts.lastmodDateOnly || false;
     this.level = opts.level ?? ErrorLevel.WARN;
+    if (opts.xslUrl !== undefined) {
+      validateXSLUrl(opts.xslUrl);
+    }
     this.xslUrl = opts.xslUrl;
   }
 

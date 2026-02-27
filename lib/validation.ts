@@ -365,6 +365,15 @@ export function validateXSLUrl(xslUrl: string): void {
       );
     }
   }
+
+  // Reject unencoded XML special characters — these must be percent-encoded in
+  // valid URLs and could break out of XML attribute context if left raw.
+  if (xslUrl.includes('"') || xslUrl.includes('<') || xslUrl.includes('>')) {
+    throw new InvalidXSLUrlError(
+      xslUrl,
+      'contains unencoded XML special characters (" < >); percent-encode them in the URL'
+    );
+  }
 }
 
 /**
