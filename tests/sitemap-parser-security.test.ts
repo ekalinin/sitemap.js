@@ -3,6 +3,7 @@ import { promisify } from 'node:util';
 import { pipeline as pipe } from 'node:stream';
 import { XMLToSitemapItemStream } from '../lib/sitemap-parser.js';
 import { SitemapItem } from '../lib/types.js';
+import { LIMITS } from '../lib/constants.js';
 
 const pipeline = promisify(pipe);
 
@@ -526,6 +527,7 @@ describe('sitemap-parser security tests', () => {
         'error',
         expect.stringContaining('exceeds maximum of 50000 URLs')
       );
+      expect(sitemap.length).toBeLessThanOrEqual(LIMITS.MAX_URL_ENTRIES);
     }, 60000); // Longer timeout for this test
   });
 

@@ -866,7 +866,8 @@ export class XMLToSitemapItemStream extends Transform {
             this.err(
               `Sitemap exceeds maximum of ${LIMITS.MAX_URL_ENTRIES} URLs`
             );
-            // Still push the item but log the error
+            currentItem = tagTemplate();
+            break;
           }
           this.push(currentItem);
           currentItem = tagTemplate();
