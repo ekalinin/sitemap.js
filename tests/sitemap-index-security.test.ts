@@ -451,6 +451,42 @@ describe('Sitemap Index Security', () => {
         await parseSitemapIndex(readable, 2);
       }).rejects.toThrow(/exceeds maximum allowed entries \(2\)/);
     });
+
+    it('immediately destroys streams when maxEntries is exceeded (BB-05)', async () => {
+      let i = 0;
+      const max = 100000;
+      const src = new Readable({
+        read() {
+          if (i === 0) {
+            this.push(
+              '<?xml version="1.0"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            );
+            i++;
+            return;
+          }
+          if (i <= max) {
+            this.push(`<sitemap><loc>https://e.com/${i}.xml</loc></sitemap>`);
+            i++;
+            return;
+          }
+          if (i === max + 1) {
+            this.push('</sitemapindex>');
+            i++;
+            return;
+          }
+          this.push(null);
+        },
+      });
+
+      await expect(parseSitemapIndex(src, 1)).rejects.toThrow(
+        /exceeds maximum allowed entries/
+      );
+
+      // Source stream must be destroyed immediately (not after full document consumption)
+      expect(src.destroyed).toBe(true);
+      // Counter must be far below max — early teardown, not full traversal
+      expect(i).toBeLessThan(max / 2);
+    });
   });
 
   describe('CDATA Handling', () => {
