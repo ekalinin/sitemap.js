@@ -151,17 +151,51 @@ export class XMLToSitemapIndexStream extends Transform {
   @param {Readable} xml what to parse
   @return {Promise<IndexItem[]>} resolves with list of index items that can be fed into a SitemapIndexStream. Rejects with an Error object.
  */
-export async function parseSitemapIndex(xml: Readable): Promise<IndexItem[]> {
+const MAX_INDEX_ENTRIES = 50_000;
+
+export async function parseSitemapIndex(
+  xml: Readable,
+  maxEntries = MAX_INDEX_ENTRIES
+): Promise<IndexItem[]> {
   const urls: IndexItem[] = [];
   return new Promise((resolve, reject): void => {
+    let settled = false;
+    const parser = new XMLToSitemapIndexStream();
+    xml.on('error', (error: Error): void => {
+      if (!settled) {
+        settled = true;
+        reject(error);
+      }
+    });
+
     xml
-      .pipe(new XMLToSitemapIndexStream())
-      .on('data', (smi: IndexItem) => urls.push(smi))
+      .pipe(parser)
+      .on('data', (smi: IndexItem) => {
+        if (settled) return;
+        if (urls.length >= maxEntries) {
+          settled = true;
+          reject(
+            new Error(
+              `Sitemap index exceeds maximum allowed entries (${maxEntries})`
+            )
+          );
+          parser.destroy();
+          xml.destroy();
+          return;
+        }
+        urls.push(smi);
+      })
       .on('end', (): void => {
-        resolve(urls);
+        if (!settled) {
+          settled = true;
+          resolve(urls);
+        }
       })
       .on('error', (error: Error): void => {
-        reject(error);
+        if (!settled) {
+          settled = true;
+          reject(error);
+        }
       });
   });
 }

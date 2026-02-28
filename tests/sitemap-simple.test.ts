@@ -1,40 +1,17 @@
 import { simpleSitemapAndIndex, streamToPromise } from '../index';
-import { tmpdir } from 'os';
 import { resolve } from 'path';
-import { existsSync, unlinkSync, createReadStream } from 'fs';
+import { existsSync, mkdtempSync, rmSync, createReadStream } from 'fs';
 import { createGunzip } from 'zlib';
-function removeFilesArray(files): void {
-  if (files && files.length) {
-    files.forEach(function (file) {
-      if (existsSync(file)) {
-        unlinkSync(file);
-      }
-    });
-  }
-}
 
 describe('simpleSitemapAndIndex', () => {
   let targetFolder: string;
 
   beforeEach(() => {
-    targetFolder = tmpdir();
-    removeFilesArray([
-      resolve(targetFolder, `./sitemap-index.xml.gz`),
-      resolve(targetFolder, `./sitemap-0.xml.gz`),
-      resolve(targetFolder, `./sitemap-1.xml.gz`),
-      resolve(targetFolder, `./sitemap-2.xml.gz`),
-      resolve(targetFolder, `./sitemap-3.xml.gz`),
-    ]);
+    targetFolder = mkdtempSync('sitemap-test-');
   });
 
   afterEach(() => {
-    removeFilesArray([
-      resolve(targetFolder, `./sitemap-index.xml.gz`),
-      resolve(targetFolder, `./sitemap-0.xml.gz`),
-      resolve(targetFolder, `./sitemap-1.xml.gz`),
-      resolve(targetFolder, `./sitemap-2.xml.gz`),
-      resolve(targetFolder, `./sitemap-3.xml.gz`),
-    ]);
+    rmSync(targetFolder, { recursive: true, force: true });
   });
 
   it('writes both a sitemap and index', async () => {

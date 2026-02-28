@@ -3,7 +3,7 @@ import { SitemapStream } from './sitemap-stream';
 import { lineSeparatedURLsToSitemapOptions } from './utils';
 import { createGzip } from 'zlib';
 import { createWriteStream, createReadStream, promises } from 'fs';
-import { normalize, resolve } from 'path';
+import { normalize, resolve, isAbsolute } from 'path';
 import { Readable, pipeline as pline } from 'stream';
 import { SitemapItemLoose } from './types';
 import { promisify } from 'util';
@@ -43,6 +43,25 @@ export const simpleSitemapAndIndex = async ({
   limit?: number;
   gzip?: boolean;
 }): Promise<void> => {
+  if (isAbsolute(destinationDir)) {
+    throw new Error(
+      `destinationDir must be a relative path (absolute paths are not allowed): ${destinationDir}`
+    );
+  }
+
+  let src: Readable;
+  if (typeof sourceData === 'string') {
+    src = lineSeparatedURLsToSitemapOptions(createReadStream(sourceData));
+  } else if (sourceData instanceof Readable) {
+    src = sourceData;
+  } else if (Array.isArray(sourceData)) {
+    src = Readable.from(sourceData);
+  } else {
+    throw new Error(
+      "unhandled source type. You've passed in data that is not supported"
+    );
+  }
+
   await promises.mkdir(destinationDir, { recursive: true });
   const sitemapAndIndexStream = new SitemapAndIndexStream({
     limit,
@@ -76,18 +95,6 @@ export const simpleSitemapAndIndex = async ({
       ];
     },
   });
-  let src: Readable;
-  if (typeof sourceData === 'string') {
-    src = lineSeparatedURLsToSitemapOptions(createReadStream(sourceData));
-  } else if (sourceData instanceof Readable) {
-    src = sourceData;
-  } else if (Array.isArray(sourceData)) {
-    src = Readable.from(sourceData);
-  } else {
-    throw new Error(
-      "unhandled source type. You've passed in data that is not supported"
-    );
-  }
 
   const writePath = resolve(
     destinationDir,

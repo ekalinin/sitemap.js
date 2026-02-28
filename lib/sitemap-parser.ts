@@ -73,6 +73,8 @@ const defaultStreamOpts: XMLToSitemapItemStreamOptions = {
   logger: defaultLogger,
 };
 
+const MAX_URL_ENTRIES = 50_000;
+
 // TODO does this need to end with `options`
 /**
  * Takes a stream of xml and transforms it into a stream of SitemapItems
@@ -82,12 +84,14 @@ export class XMLToSitemapItemStream extends Transform {
   level: ErrorLevel;
   logger: Logger;
   error: Error | null;
+  private urlCount: number;
   saxStream: SAXStream;
 
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
     this.error = null;
+    this.urlCount = 0;
     this.saxStream = sax.createStream(true, {
       xmlns: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -450,6 +454,16 @@ export class XMLToSitemapItemStream extends Transform {
     this.saxStream.on('closetag', (tag): void => {
       switch (tag) {
         case TagNames.url:
+          this.urlCount++;
+          if (this.urlCount > MAX_URL_ENTRIES) {
+            this.logger(
+              'error',
+              `Sitemap exceeds maximum of ${MAX_URL_ENTRIES} URLs`
+            );
+            this.err(`Sitemap exceeds maximum of ${MAX_URL_ENTRIES} URLs`);
+            currentItem = tagTemplate();
+            break;
+          }
           this.push(currentItem);
           currentItem = tagTemplate();
           break;
