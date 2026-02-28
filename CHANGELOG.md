@@ -1,5 +1,13 @@
 # Changelog
 
+## 9.0.1 — Security Patch
+
+- **BB-01**: Fix XML injection via unescaped `xslUrl` in stylesheet processing instruction — special characters (`&`, `"`, `<`, `>`) in the XSL URL are now escaped before being interpolated into the `<?xml-stylesheet?>` processing instruction
+- **BB-02**: Enforce 50,000 URL hard limit in `XMLToSitemapItemStream` — the parser now stops emitting items and emits an error when the limit is exceeded, rather than merely logging a warning
+- **BB-03**: Cap parser error array at 100 entries to prevent memory DoS — `XMLToSitemapItemStream` now tracks a separate `errorCount` and stops appending to the `errors` array beyond `LIMITS.MAX_PARSER_ERRORS`
+- **BB-04**: Reject absolute `destinationDir` paths in `simpleSitemapAndIndex` to prevent arbitrary file writes — passing an absolute path (e.g. `/tmp/sitemaps`) now throws immediately with a descriptive error
+- **BB-05**: `parseSitemapIndex` now destroys source and parser streams immediately when the `maxEntries` limit is exceeded, preventing unbounded memory consumption from large sitemap index files
+
 ## 9.0.0 - 2025-11-01
 
 This major release modernizes the package with ESM-first architecture, drops support for Node.js < 20, and includes comprehensive security and robustness improvements.
