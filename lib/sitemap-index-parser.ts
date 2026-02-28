@@ -222,25 +222,48 @@ export async function parseSitemapIndex(
 ): Promise<IndexItem[]> {
   const urls: IndexItem[] = [];
   return new Promise((resolve, reject): void => {
+    let settled = false;
+
+    const parser = new XMLToSitemapIndexStream();
+
+    // Handle source stream errors (prevents unhandled error events on xml)
+    xml.on('error', (error: Error): void => {
+      if (!settled) {
+        settled = true;
+        reject(error);
+      }
+    });
+
     xml
-      .pipe(new XMLToSitemapIndexStream())
+      .pipe(parser)
       .on('data', (smi: IndexItem) => {
+        if (settled) return;
         // Security: Prevent memory exhaustion by limiting number of entries
         if (urls.length >= maxEntries) {
+          settled = true;
           reject(
             new Error(
               `Sitemap index exceeds maximum allowed entries (${maxEntries})`
             )
           );
+          // Immediately destroy both streams to stop further processing (BB-05)
+          parser.destroy();
+          xml.destroy();
           return;
         }
         urls.push(smi);
       })
       .on('end', (): void => {
-        resolve(urls);
+        if (!settled) {
+          settled = true;
+          resolve(urls);
+        }
       })
       .on('error', (error: Error): void => {
-        reject(error);
+        if (!settled) {
+          settled = true;
+          reject(error);
+        }
       });
   });
 }

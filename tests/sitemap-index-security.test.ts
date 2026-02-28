@@ -6,7 +6,9 @@ import {
   XMLToSitemapIndexStream,
 } from '../lib/sitemap-index-parser.js';
 import { SitemapIndexStream } from '../lib/sitemap-index-stream.js';
+import { streamToPromise } from '../lib/sitemap-stream.js';
 import { ErrorLevel, IndexItem } from '../lib/types.js';
+import { InvalidXSLUrlError } from '../lib/errors.js';
 
 const pipeline = promisify(pipe);
 
@@ -449,6 +451,42 @@ describe('Sitemap Index Security', () => {
         await parseSitemapIndex(readable, 2);
       }).rejects.toThrow(/exceeds maximum allowed entries \(2\)/);
     });
+
+    it('immediately destroys streams when maxEntries is exceeded (BB-05)', async () => {
+      let i = 0;
+      const max = 100000;
+      const src = new Readable({
+        read() {
+          if (i === 0) {
+            this.push(
+              '<?xml version="1.0"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            );
+            i++;
+            return;
+          }
+          if (i <= max) {
+            this.push(`<sitemap><loc>https://e.com/${i}.xml</loc></sitemap>`);
+            i++;
+            return;
+          }
+          if (i === max + 1) {
+            this.push('</sitemapindex>');
+            i++;
+            return;
+          }
+          this.push(null);
+        },
+      });
+
+      await expect(parseSitemapIndex(src, 1)).rejects.toThrow(
+        /exceeds maximum allowed entries/
+      );
+
+      // Source stream must be destroyed immediately (not after full document consumption)
+      expect(src.destroyed).toBe(true);
+      // Counter must be far below max — early teardown, not full traversal
+      expect(i).toBeLessThan(max / 2);
+    });
   });
 
   describe('CDATA Handling', () => {
@@ -517,6 +555,82 @@ describe('Sitemap Index Security', () => {
       // Should only get valid URL, invalid one silently skipped
       expect(items).toHaveLength(1);
       expect(items[0].url).toBe('https://example.com/sitemap.xml');
+    });
+  });
+
+  describe('xslUrl validation in SitemapIndexStream', () => {
+    it('should accept valid https xslUrl', () => {
+      expect(
+        () =>
+          new SitemapIndexStream({ xslUrl: 'https://example.com/style.xsl' })
+      ).not.toThrow();
+    });
+
+    it('should accept valid http xslUrl', () => {
+      expect(
+        () => new SitemapIndexStream({ xslUrl: 'http://example.com/style.xsl' })
+      ).not.toThrow();
+    });
+
+    it('should reject quote-breakout XML injection payload', () => {
+      expect(
+        () =>
+          new SitemapIndexStream({
+            xslUrl: 'https://attacker.test/x.xsl"?><evil>pwned</evil><!--',
+          })
+      ).toThrow(InvalidXSLUrlError);
+    });
+
+    it('should reject ftp: protocol in xslUrl', () => {
+      expect(
+        () => new SitemapIndexStream({ xslUrl: 'ftp://example.com/style.xsl' })
+      ).toThrow(InvalidXSLUrlError);
+    });
+
+    it('should reject javascript: protocol in xslUrl', () => {
+      expect(
+        () => new SitemapIndexStream({ xslUrl: 'javascript:alert(1)' })
+      ).toThrow(InvalidXSLUrlError);
+    });
+
+    it('should reject data: protocol in xslUrl', () => {
+      expect(
+        () =>
+          new SitemapIndexStream({
+            xslUrl: 'data:text/html,<script>alert(1)</script>',
+          })
+      ).toThrow(InvalidXSLUrlError);
+    });
+
+    it('should reject file: protocol in xslUrl', () => {
+      expect(
+        () => new SitemapIndexStream({ xslUrl: 'file:///etc/passwd' })
+      ).toThrow(InvalidXSLUrlError);
+    });
+
+    it('should reject empty xslUrl', () => {
+      expect(() => new SitemapIndexStream({ xslUrl: '' })).toThrow(
+        InvalidXSLUrlError
+      );
+    });
+
+    it('should reject xslUrl exceeding max length', () => {
+      const longUrl = 'https://' + 'a'.repeat(2048) + '.com/style.xsl';
+      expect(() => new SitemapIndexStream({ xslUrl: longUrl })).toThrow(
+        InvalidXSLUrlError
+      );
+    });
+
+    it('should include xslUrl in output when valid', async () => {
+      const stream = new SitemapIndexStream({
+        xslUrl: 'https://example.com/style.xsl',
+      });
+      stream.write('https://example.com/sitemap.xml');
+      stream.end();
+      const result = (await streamToPromise(stream)).toString();
+      expect(result).toContain(
+        '<?xml-stylesheet type="text/xsl" href="https://example.com/style.xsl"?>'
+      );
     });
   });
 

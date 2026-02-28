@@ -1,36 +1,18 @@
 import { simpleSitemapAndIndex, EnumChangefreq } from '../index.js';
-import { tmpdir } from 'node:os';
-import { resolve } from 'node:path';
-import { existsSync, unlinkSync } from 'node:fs';
-
-function removeFilesArray(files: string[]): void {
-  if (files && files.length) {
-    files.forEach(function (file: string) {
-      if (existsSync(file)) {
-        unlinkSync(file);
-      }
-    });
-  }
-}
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 describe('simpleSitemapAndIndex - Security Tests', () => {
   let targetFolder: string;
 
   beforeEach(() => {
-    targetFolder = tmpdir();
-    removeFilesArray([
-      resolve(targetFolder, `./sitemap-index.xml.gz`),
-      resolve(targetFolder, `./sitemap-0.xml.gz`),
-      resolve(targetFolder, `./sitemap-1.xml.gz`),
-    ]);
+    targetFolder = mkdtempSync('sitemap-sec-test-');
   });
 
   afterEach(() => {
-    removeFilesArray([
-      resolve(targetFolder, `./sitemap-index.xml.gz`),
-      resolve(targetFolder, `./sitemap-0.xml.gz`),
-      resolve(targetFolder, `./sitemap-1.xml.gz`),
-    ]);
+    if (targetFolder && existsSync(targetFolder)) {
+      rmSync(targetFolder, { recursive: true, force: true });
+    }
   });
 
   describe('hostname validation', () => {
@@ -101,6 +83,16 @@ describe('simpleSitemapAndIndex - Security Tests', () => {
   });
 
   describe('destinationDir validation', () => {
+    it('throws on absolute destinationDir path', async () => {
+      await expect(
+        simpleSitemapAndIndex({
+          hostname: 'https://example.com',
+          destinationDir: '/tmp/sitemaps',
+          sourceData: ['https://1.example.com/a'],
+        })
+      ).rejects.toThrow(/must be a relative path/);
+    });
+
     it('throws on path traversal with ../', async () => {
       await expect(
         simpleSitemapAndIndex({
@@ -132,7 +124,7 @@ describe('simpleSitemapAndIndex - Security Tests', () => {
     });
 
     it('accepts valid relative paths', async () => {
-      const testDir = resolve(targetFolder, './valid-subdir');
+      const testDir = join(targetFolder, 'valid-subdir');
       await expect(
         simpleSitemapAndIndex({
           hostname: 'https://example.com',
@@ -466,17 +458,19 @@ describe('simpleSitemapAndIndex - Security Tests', () => {
 
   describe('error context in messages', () => {
     it('provides context when mkdir fails', async () => {
-      // Use a path that will fail on permission error (platform-specific)
-      const invalidDir = '/root/nonexistent-' + Date.now();
-      const result = simpleSitemapAndIndex({
-        hostname: 'https://example.com',
-        destinationDir: invalidDir,
-        sourceData: ['https://1.example.com/a'],
-      });
+      // Place a regular file where mkdir expects a directory component so that
+      // mkdir('…/blocker/subdir', {recursive:true}) throws ENOTDIR
+      const blocker = join(targetFolder, 'blocker');
+      writeFileSync(blocker, 'x');
+      const invalidDir = join(targetFolder, 'blocker', 'subdir');
 
-      await expect(result).rejects.toThrow(
-        /Failed to create destination directory/
-      );
+      await expect(
+        simpleSitemapAndIndex({
+          hostname: 'https://example.com',
+          destinationDir: invalidDir,
+          sourceData: ['https://1.example.com/a'],
+        })
+      ).rejects.toThrow(/Failed to create destination directory/);
     });
   });
 });

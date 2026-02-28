@@ -58,6 +58,10 @@ export const LIMITS = {
   // Custom namespace limits to prevent DoS
   MAX_CUSTOM_NAMESPACES: 20,
   MAX_NAMESPACE_LENGTH: 512,
+
+  // Cap on stored parser errors to prevent memory DoS (BB-03)
+  // Errors beyond this limit are counted in errorCount but not retained as objects
+  MAX_PARSER_ERRORS: 100,
 } as const;
 
 /**
