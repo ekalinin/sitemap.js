@@ -1,5 +1,12 @@
 # Changelog
 
+## 7.1.3 — Security Patch
+
+- **BB-01**: Fix XML injection via unescaped `xslUrl` in stylesheet processing instruction (`stylesheetInclude` now escapes `&`, `"`, `<`, `>`)
+- **BB-02**: Enforce 50,000 URL hard limit in `XMLToSitemapItemStream` — parser stops emitting items instead of only logging a warning
+- **BB-04**: Reject absolute `destinationDir` paths in `simpleSitemapAndIndex` to prevent arbitrary file writes
+- **BB-05**: `parseSitemapIndex` now accepts a `maxEntries` limit (default 50,000) and destroys source/parser streams immediately on breach
+
 ## 7.1.2
 
 - fix #425 via #426 thanks to @huntharo update streamToPromise to bubble up errors + jsDoc
