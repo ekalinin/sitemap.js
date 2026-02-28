@@ -94,9 +94,14 @@ export class XMLToSitemapItemStream extends Transform {
   logger: Logger;
   /**
    * All errors encountered during parsing.
-   * Each validation failure is captured here for comprehensive error reporting.
+   * Capped at LIMITS.MAX_PARSER_ERRORS objects to prevent memory DoS.
+   * Use errorCount for the total number of errors seen.
    */
   errors: Error[];
+  /**
+   * Total number of errors encountered, including those not stored in the errors array.
+   */
+  errorCount: number;
   saxStream: SAXStream;
   urlCount: number;
 
@@ -112,6 +117,7 @@ export class XMLToSitemapItemStream extends Transform {
     opts.objectMode = true;
     super(opts);
     this.errors = [];
+    this.errorCount = 0;
     this.urlCount = 0;
     this.saxStream = sax.createStream(true, {
       xmlns: true,
@@ -855,7 +861,8 @@ export class XMLToSitemapItemStream extends Transform {
             this.err(
               `Sitemap exceeds maximum of ${LIMITS.MAX_URL_ENTRIES} URLs`
             );
-            // Still push the item but log the error
+            currentItem = tagTemplate();
+            break;
           }
           this.push(currentItem);
           currentItem = tagTemplate();
@@ -942,8 +949,10 @@ export class XMLToSitemapItemStream extends Transform {
   }
 
   private err(msg: string) {
-    const error = new Error(msg);
-    this.errors.push(error);
+    this.errorCount++;
+    if (this.errors.length < LIMITS.MAX_PARSER_ERRORS) {
+      this.errors.push(new Error(msg));
+    }
   }
 }
 

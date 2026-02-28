@@ -5,6 +5,7 @@
  */
 
 import { URL } from 'url';
+import { isAbsolute } from 'path';
 import {
   InvalidPathError,
   InvalidHostnameError,
@@ -164,6 +165,14 @@ export function validateURL(url: string, paramName: string): void {
 export function validatePath(path: string, paramName: string): void {
   if (!path || typeof path !== 'string') {
     throw new InvalidPathError(path, `${paramName} must be a non-empty string`);
+  }
+
+  // Reject absolute paths to prevent arbitrary write location
+  if (isAbsolute(path)) {
+    throw new InvalidPathError(
+      path,
+      `${paramName} must be a relative path (absolute paths are not allowed)`
+    );
   }
 
   // Check for path traversal sequences - must check before and after normalization

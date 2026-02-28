@@ -19,6 +19,8 @@ coverage/*
 /.browserslistrc
 /.nvmrc
 /tests/~tempFile.tmp
+sitemap-test-*
+sitemap-sec-test-*
 urls.txt
 stream-write.js
 toflat.js
