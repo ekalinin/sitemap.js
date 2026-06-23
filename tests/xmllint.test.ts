@@ -1,4 +1,6 @@
-import { xmlLint } from '../lib/xmllint.js';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { xmlLint } from '../dist/lib/xmllint.js';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, createReadStream } from 'node:fs';
 
@@ -10,67 +12,60 @@ try {
 }
 
 describe('xmllint', () => {
-  it('returns a promise', async () => {
+  it('returns a promise', { timeout: 10000 }, async () => {
     if (hasXMLLint) {
       const xmlContent = readFileSync(
         './tests/mocks/cli-urls.json.xml',
         'utf8'
       );
-      expect(xmlLint(xmlContent).catch()).toBeInstanceOf(Promise);
+      const p = xmlLint(xmlContent);
+      assert.ok(p instanceof Promise);
+      await p.catch(() => {});
     } else {
-      console.warn('skipping xmlLint test, not installed');
-      expect(true).toBe(true);
+      // skip
     }
-  }, 10000);
+  });
 
-  it('resolves when complete with string content', async () => {
-    expect.assertions(1);
-    if (hasXMLLint) {
-      try {
+  it(
+    'resolves when complete with string content',
+    { timeout: 60000 },
+    async () => {
+      if (hasXMLLint) {
         const xmlContent = readFileSync(
           './tests/mocks/cli-urls.json.xml',
           'utf8'
         );
         const result = await xmlLint(xmlContent);
-        await expect(result).toBeFalsy();
-      } catch (e) {
-        console.log(e);
-        expect(true).toBe(false);
+        assert.ok(typeof result === 'undefined');
+      } else {
+        // skip
       }
-    } else {
-      console.warn('skipping xmlLint test, not installed');
-      expect(true).toBe(true);
     }
-  }, 60000);
+  );
 
-  it('resolves when complete with stream content', async () => {
-    expect.assertions(1);
-    if (hasXMLLint) {
-      try {
+  it(
+    'resolves when complete with stream content',
+    { timeout: 60000 },
+    async () => {
+      if (hasXMLLint) {
         const xmlStream = createReadStream('./tests/mocks/cli-urls.json.xml');
         const result = await xmlLint(xmlStream);
-        await expect(result).toBeFalsy();
-      } catch (e) {
-        console.log(e);
-        expect(true).toBe(false);
+        assert.ok(typeof result === 'undefined');
+      } else {
+        // skip
       }
-    } else {
-      console.warn('skipping xmlLint test, not installed');
-      expect(true).toBe(true);
     }
-  }, 60000);
+  );
 
-  it('rejects when invalid', async () => {
-    expect.assertions(1);
+  it('rejects when invalid', { timeout: 60000 }, async () => {
     if (hasXMLLint) {
       const xmlContent = readFileSync(
         './tests/mocks/cli-urls.json.bad.xml',
         'utf8'
       );
-      await expect(xmlLint(xmlContent)).rejects.toBeTruthy();
+      await assert.rejects(() => xmlLint(xmlContent));
     } else {
-      console.warn('skipping xmlLint test, not installed');
-      expect(true).toBe(true);
+      // skip
     }
-  }, 60000);
+  });
 });

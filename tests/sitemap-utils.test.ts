@@ -1,23 +1,24 @@
+import { describe, it, beforeEach } from 'node:test';
+import assert from 'node:assert/strict';
 import {
   EnumYesNo,
   EnumAllowDeny,
-  SitemapItem,
   ErrorLevel,
-  SitemapItemLoose,
   EnumChangefreq,
   SitemapStream,
-} from '../index.js';
-import * as testUtil from './util.js';
+} from '../dist/index.js';
+import * as testUtil from './util.ts';
 import {
   validateSMIOptions,
   lineSeparatedURLsToSitemapOptions,
   normalizeURL,
   mergeStreams,
-} from '../lib/utils.js';
+} from '../dist/lib/utils.js';
 import MemoryStream from 'memorystream';
 import { promisify } from 'node:util';
 import { Readable, Writable, finished } from 'node:stream';
-import { streamToPromise } from '../lib/sitemap-stream.js';
+import { streamToPromise } from '../dist/lib/sitemap-stream.js';
+import type { SitemapItem, SitemapItemLoose } from '../dist/lib/types.js';
 const finishedP = promisify(finished);
 
 describe('utils', () => {
@@ -28,44 +29,54 @@ describe('utils', () => {
 
   describe('validateSMIOptions', () => {
     it('ignores errors if told to do so', () => {
-      expect(() =>
+      assert.doesNotThrow(() =>
         validateSMIOptions({} as SitemapItem, ErrorLevel.SILENT)
-      ).not.toThrow();
+      );
     });
 
     it('throws when no config is passed', () => {
-      expect(function () {
-        // @ts-expect-error testing bad option
-        validateSMIOptions(undefined, ErrorLevel.THROW);
-      }).toThrow(/SitemapItem requires a configuration/);
+      assert.throws(
+        function () {
+          // @ts-expect-error testing bad option
+          validateSMIOptions(undefined, ErrorLevel.THROW);
+        },
+        { message: /SitemapItem requires a configuration/ }
+      );
     });
 
     it('throws an error for url absence', () => {
-      expect(() =>
-        validateSMIOptions({} as SitemapItem, ErrorLevel.THROW)
-      ).toThrow(/URL is required/);
+      assert.throws(
+        () => validateSMIOptions({} as SitemapItem, ErrorLevel.THROW),
+        { message: /URL is required/ }
+      );
     });
 
     it('sitemap: invalid changefreq error', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            url: '/',
-            // @ts-expect-error testing bad option
-            changefreq: 'allllways',
-          },
-          ErrorLevel.THROW
-        ).toString();
-      }).toThrow(/changefreq "allllways" is invalid/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              url: '/',
+              // @ts-expect-error testing bad option
+              changefreq: 'allllways',
+            },
+            ErrorLevel.THROW
+          ).toString();
+        },
+        { message: /changefreq "allllways" is invalid/ }
+      );
     });
 
     it('sitemap: invalid priority error', () => {
-      expect(function () {
-        validateSMIOptions(
-          { ...itemTemplate, url: '/', priority: 1.1 },
-          ErrorLevel.THROW
-        ).toString();
-      }).toThrow(/priority "1.1" must be a number between/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            { ...itemTemplate, url: '/', priority: 1.1 },
+            ErrorLevel.THROW
+          ).toString();
+        },
+        { message: /priority "1.1" must be a number between/ }
+      );
     });
 
     describe('news', () => {
@@ -86,82 +97,102 @@ describe('utils', () => {
       });
 
       it('will throw if you dont provide required attr publication', () => {
-        expect(news.news).toBeDefined();
+        assert.notStrictEqual(news.news, undefined);
         if (!news.news) {
           throw new Error('news.news is undefined');
         }
         delete (news.news as Partial<typeof news.news>).publication;
 
-        expect(() => {
-          validateSMIOptions(news, ErrorLevel.THROW);
-        }).toThrow(
-          /must include publication, publication name, publication language, title, and publication_date for news/
+        assert.throws(
+          () => {
+            validateSMIOptions(news, ErrorLevel.THROW);
+          },
+          {
+            message:
+              /must include publication, publication name, publication language, title, and publication_date for news/,
+          }
         );
       });
 
       it('will throw if you dont provide required attr publication name', () => {
-        expect(news.news).toBeDefined();
+        assert.notStrictEqual(news.news, undefined);
         if (!news.news) {
           throw new Error('news.news is undefined');
         }
-        expect(news.news.publication).toBeDefined();
+        assert.notStrictEqual(news.news.publication, undefined);
         if (!news.news.publication) {
           throw new Error('news.news.publication is undefined');
         }
         delete (news.news.publication as Partial<typeof news.news.publication>)
           .name;
 
-        expect(() => {
-          validateSMIOptions(news, ErrorLevel.THROW);
-        }).toThrow(
-          /must include publication, publication name, publication language, title, and publication_date for news/
+        assert.throws(
+          () => {
+            validateSMIOptions(news, ErrorLevel.THROW);
+          },
+          {
+            message:
+              /must include publication, publication name, publication language, title, and publication_date for news/,
+          }
         );
       });
 
       it('will throw if you dont provide required attr publication language', () => {
-        expect(news.news).toBeDefined();
+        assert.notStrictEqual(news.news, undefined);
         if (!news.news) {
           throw new Error('news.news is undefined');
         }
-        expect(news.news.publication).toBeDefined();
+        assert.notStrictEqual(news.news.publication, undefined);
         if (!news.news.publication) {
           throw new Error('news.news.publication is undefined');
         }
         delete (news.news.publication as Partial<typeof news.news.publication>)
           .language;
 
-        expect(() => {
-          validateSMIOptions(news, ErrorLevel.THROW);
-        }).toThrow(
-          /must include publication, publication name, publication language, title, and publication_date for news/
+        assert.throws(
+          () => {
+            validateSMIOptions(news, ErrorLevel.THROW);
+          },
+          {
+            message:
+              /must include publication, publication name, publication language, title, and publication_date for news/,
+          }
         );
       });
 
       it('will throw if you dont provide required attr title', () => {
-        expect(news.news).toBeDefined();
+        assert.notStrictEqual(news.news, undefined);
         if (!news.news) {
           throw new Error('news.news is undefined');
         }
         delete (news.news as Partial<typeof news.news>).title;
 
-        expect(() => {
-          validateSMIOptions(news, ErrorLevel.THROW);
-        }).toThrow(
-          /must include publication, publication name, publication language, title, and publication_date for news/
+        assert.throws(
+          () => {
+            validateSMIOptions(news, ErrorLevel.THROW);
+          },
+          {
+            message:
+              /must include publication, publication name, publication language, title, and publication_date for news/,
+          }
         );
       });
 
       it('will throw if you dont provide required attr publication_date', () => {
-        expect(news.news).toBeDefined();
+        assert.notStrictEqual(news.news, undefined);
         if (!news.news) {
           throw new Error('news.news is undefined');
         }
         delete (news.news as Partial<typeof news.news>).publication_date;
 
-        expect(() => {
-          validateSMIOptions(news, ErrorLevel.THROW);
-        }).toThrow(
-          /must include publication, publication name, publication language, title, and publication_date for news/
+        assert.throws(
+          () => {
+            validateSMIOptions(news, ErrorLevel.THROW);
+          },
+          {
+            message:
+              /must include publication, publication name, publication language, title, and publication_date for news/,
+          }
         );
       });
 
@@ -169,19 +200,23 @@ describe('utils', () => {
         // @ts-expect-error testing bad option
         news.news.access = 'a';
 
-        expect(() => {
-          validateSMIOptions(news, ErrorLevel.THROW);
-        }).toThrow(
-          /News access "a" must be either Registration, Subscription or not be present/
+        assert.throws(
+          () => {
+            validateSMIOptions(news, ErrorLevel.THROW);
+          },
+          {
+            message:
+              /News access "a" must be either Registration, Subscription or not be present/,
+          }
         );
       });
 
       it('will not throw if everythign is valid', () => {
         news.news!.access = 'Registration';
 
-        expect(() => {
+        assert.doesNotThrow(() => {
           validateSMIOptions(news, ErrorLevel.THROW);
-        }).not.toThrow();
+        });
       });
     });
 
@@ -222,466 +257,528 @@ describe('utils', () => {
       });
 
       it('throws if a required attr is not provided', () => {
-        expect(() => {
-          const test = Object.assign({}, testvideo);
-          delete (test.video[0] as Partial<(typeof test.video)[0]>).title;
-          validateSMIOptions(test, ErrorLevel.THROW);
-        }).toThrow(
-          /must include thumbnail_loc, title and description fields for videos/
+        assert.throws(
+          () => {
+            const test = Object.assign({}, testvideo);
+            delete (test.video[0] as Partial<(typeof test.video)[0]>).title;
+            validateSMIOptions(test, ErrorLevel.THROW);
+          },
+          {
+            message:
+              /must include thumbnail_loc, title and description fields for videos/,
+          }
         );
 
-        expect(() => {
-          const test = Object.assign({}, testvideo);
-          // @ts-expect-error - Testing invalid video type
-          test.video[0] = 'a';
-          validateSMIOptions(test, ErrorLevel.THROW);
-        }).toThrow(
-          /must include thumbnail_loc, title and description fields for videos/
+        assert.throws(
+          () => {
+            const test = Object.assign({}, testvideo);
+            // @ts-expect-error - Testing invalid video type
+            test.video[0] = 'a';
+            validateSMIOptions(test, ErrorLevel.THROW);
+          },
+          {
+            message:
+              /must include thumbnail_loc, title and description fields for videos/,
+          }
         );
 
-        expect(() => {
-          const test = Object.assign({}, testvideo);
-          delete (test.video[0] as Partial<(typeof test.video)[0]>)
-            .thumbnail_loc;
-          validateSMIOptions(test, ErrorLevel.THROW);
-        }).toThrow(
-          /must include thumbnail_loc, title and description fields for videos/
+        assert.throws(
+          () => {
+            const test = Object.assign({}, testvideo);
+            delete (test.video[0] as Partial<(typeof test.video)[0]>)
+              .thumbnail_loc;
+            validateSMIOptions(test, ErrorLevel.THROW);
+          },
+          {
+            message:
+              /must include thumbnail_loc, title and description fields for videos/,
+          }
         );
 
-        expect(() => {
-          const test = Object.assign({}, testvideo);
-          delete (test.video[0] as Partial<(typeof test.video)[0]>).description;
-          validateSMIOptions(test, ErrorLevel.THROW);
-        }).toThrow(
-          /must include thumbnail_loc, title and description fields for videos/
+        assert.throws(
+          () => {
+            const test = Object.assign({}, testvideo);
+            delete (test.video[0] as Partial<(typeof test.video)[0]>)
+              .description;
+            validateSMIOptions(test, ErrorLevel.THROW);
+          },
+          {
+            message:
+              /must include thumbnail_loc, title and description fields for videos/,
+          }
         );
       });
     });
 
     it('video duration', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description:
-                  "Jack gives us a walkthrough on getting the Millionaire's Club Achievement in Burnout Paradise.",
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                duration: -1,
-                publication_date: '2008-07-29T14:58:04.000Z',
-                requires_subscription: EnumYesNo.yes,
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/must be an integer of seconds/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description:
+                    "Jack gives us a walkthrough on getting the Millionaire's Club Achievement in Burnout Paradise.",
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  duration: -1,
+                  publication_date: '2008-07-29T14:58:04.000Z',
+                  requires_subscription: EnumYesNo.yes,
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /must be an integer of seconds/ }
+      );
     });
 
     it('video description limit', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description:
-                  'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc, quis gravida magna mi a libero. Fusce vulputate eleifend sapien. Vestibulum purus quam, scelerisque ut, mollis sed, nonummy id, metus. Nullam accumsan lorem in dui. Cras ultricies mi eu turpis hendrerit fringilla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; In ac dui quis mi consectetuer lacinia. Nam pretium turpis et arcu. Duis arcu tortor, suscipit eget, imperdiet nec, imperdiet iaculis, ipsum. Sed aliquam ultrices mauris. Integer ante arcu, accumsan a, consectetuer eget, posuere ut, mauris. Praesent adipiscing. Phasellus ullamcorper ipsum rutrum nunc. Nunc nonummy metus. Vestibulum volutpat pretium libero. Cras id dui. Aenean ut eros et nisl sagittis vestibulum. Nullam nulla.',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                duration: 1,
-                publication_date: '2008-07-29T14:58:04.000Z',
-                requires_subscription: EnumYesNo.NO,
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/long 2100 vs limit of 2048/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description:
+                    'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc, quis gravida magna mi a libero. Fusce vulputate eleifend sapien. Vestibulum purus quam, scelerisque ut, mollis sed, nonummy id, metus. Nullam accumsan lorem in dui. Cras ultricies mi eu turpis hendrerit fringilla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; In ac dui quis mi consectetuer lacinia. Nam pretium turpis et arcu. Duis arcu tortor, suscipit eget, imperdiet nec, imperdiet iaculis, ipsum. Sed aliquam ultrices mauris. Integer ante arcu, accumsan a, consectetuer eget, posuere ut, mauris. Praesent adipiscing. Phasellus ullamcorper ipsum rutrum nunc. Nunc nonummy metus. Vestibulum volutpat pretium libero. Cras id dui. Aenean ut eros et nisl sagittis vestibulum. Nullam nulla.',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  duration: 1,
+                  publication_date: '2008-07-29T14:58:04.000Z',
+                  requires_subscription: EnumYesNo.NO,
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /long 2100 vs limit of 2048/ }
+      );
     });
 
     it('video title limit', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title:
-                  "2008:E2 - Burnout Paradise: Millionaire's Clubconsectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc, quis gravida magna mi a libero. Fusce vulputate eleifend sapien. Vestibulum purus quam, scelerisque ut, mollis sed, nonummy id, metus. Nullam accumsan lorem in dui. Cras ultricies mi eu turpis hendrerit fringilla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; In ac dui quis mi consectetuer lacinia. Nam pretium turpis et arcu. Duis arcu tortor, suscipit eget, imperdiet nec, imperdiet iaculis, ipsum. Sed aliquam ultrices mauris. Integer ante arcu, accumsan a, consectetuer eget, posuere ut, mauris. Praesent adipiscing. Phasellus ullamcorper ipsum rutrum nunc. Nunc nonummy metus. Vestibulum volutpat pretium libero. Cras id dui. Aenean ut eros et nisl sagittis vestibulum. Nullam nulla.',",
-                description: 'Lorem ipsum dolor sit amet, ',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                duration: 1,
-                publication_date: '2008-07-29T14:58:04.000Z',
-                requires_subscription: EnumYesNo.NO,
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/long 2120 vs 100/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title:
+                    "2008:E2 - Burnout Paradise: Millionaire's Clubconsectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc, quis gravida magna mi a libero. Fusce vulputate eleifend sapien. Vestibulum purus quam, scelerisque ut, mollis sed, nonummy id, metus. Nullam accumsan lorem in dui. Cras ultricies mi eu turpis hendrerit fringilla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; In ac dui quis mi consectetuer lacinia. Nam pretium turpis et arcu. Duis arcu tortor, suscipit eget, imperdiet nec, imperdiet iaculis, ipsum. Sed aliquam ultrices mauris. Integer ante arcu, accumsan a, consectetuer eget, posuere ut, mauris. Praesent adipiscing. Phasellus ullamcorper ipsum rutrum nunc. Nunc nonummy metus. Vestibulum volutpat pretium libero. Cras id dui. Aenean ut eros et nisl sagittis vestibulum. Nullam nulla.',",
+                  description: 'Lorem ipsum dolor sit amet, ',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  duration: 1,
+                  publication_date: '2008-07-29T14:58:04.000Z',
+                  requires_subscription: EnumYesNo.NO,
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /long 2120 vs 100/ }
+      );
     });
 
     it('video price type', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description: 'Lorem ipsum',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                price: '1.99',
-                // @ts-expect-error testing bad option
-                'price:type': 'subscription',
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/is not "rent" or "purchase"/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description: 'Lorem ipsum',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  price: '1.99',
+                  // @ts-expect-error testing bad option
+                  'price:type': 'subscription',
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /is not "rent" or "purchase"/ }
+      );
     });
 
     it('video price currency', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description: 'Lorem ipsum',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                price: '1.99',
-                'price:currency': 'dollar',
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/abbrieviation for the country currency/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description: 'Lorem ipsum',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  price: '1.99',
+                  'price:currency': 'dollar',
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /abbrieviation for the country currency/ }
+      );
     });
 
     it('video price resolution', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description: 'Lorem ipsum',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                price: '1.99',
-                // @ts-expect-error testing bad option
-                'price:resolution': '1920x1080',
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/is not hd or sd/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description: 'Lorem ipsum',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  price: '1.99',
+                  // @ts-expect-error testing bad option
+                  'price:resolution': '1920x1080',
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /is not hd or sd/ }
+      );
     });
 
     it('requires video price type when price is not provided', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description: 'Lorem ipsum',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                platform: 'tv',
-                price: '',
-                // @ts-expect-error testing bad option
-                'platform:relationship': 'mother',
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/priceType is required when price is not provided/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description: 'Lorem ipsum',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  platform: 'tv',
+                  price: '',
+                  // @ts-expect-error testing bad option
+                  'platform:relationship': 'mother',
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /priceType is required when price is not provided/ }
+      );
     });
 
     it('video platform relationship', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description: 'Lorem ipsum',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                platform: 'tv',
-                // @ts-expect-error testing bad option
-                'platform:relationship': 'mother',
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/is not a valid value for attr: "platform:relationship"/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description: 'Lorem ipsum',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  platform: 'tv',
+                  // @ts-expect-error testing bad option
+                  'platform:relationship': 'mother',
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /is not a valid value for attr: "platform:relationship"/ }
+      );
     });
 
     it('throws without a restriction of allow or deny', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description: 'Lorem ipsum',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                restriction: 'IE GB US CA',
-                // @ts-expect-error testing bad option
-                'restriction:relationship': 'father',
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/must be either allow or deny/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description: 'Lorem ipsum',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  restriction: 'IE GB US CA',
+                  // @ts-expect-error testing bad option
+                  'restriction:relationship': 'father',
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /must be either allow or deny/ }
+      );
     });
 
     it('throws if it gets a rating out of bounds', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description: 'Lorem ipsum',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                restriction: 'IE GB US CA',
-                rating: 6,
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/0 and 5/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description: 'Lorem ipsum',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  restriction: 'IE GB US CA',
+                  rating: 6,
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /0 and 5/ }
+      );
     });
 
     it('throws if it gets an invalid video restriction', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description: 'Lorem ipsum',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                rating: 5,
-                restriction: 's',
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description: 'Lorem ipsum',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  rating: 5,
+                  restriction: 's',
 
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/country codes/);
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /country codes/ }
+      );
     });
 
     it('throws if it gets an invalid value for family friendly', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description: 'Lorem ipsum',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                rating: 5,
-                // @ts-expect-error testing bad option
-                family_friendly: 'foo',
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description: 'Lorem ipsum',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  rating: 5,
+                  // @ts-expect-error testing bad option
+                  family_friendly: 'foo',
 
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/family friendly/);
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /family friendly/ }
+      );
     });
 
     it('throws if it gets a category that is too long', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description: 'Lorem ipsum',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                rating: 5,
-                category:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpghttps://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpghttps://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpghttps://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/video category can only be 256/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description: 'Lorem ipsum',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  rating: 5,
+                  category:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpghttps://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpghttps://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpghttps://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /video category can only be 256/ }
+      );
     });
 
     it('throws if it gets a negative view count', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description: 'Lorem ipsum',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                restriction: 'IE GB US CA',
-                rating: 5,
-                view_count: -1,
-                tag: [],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/positive/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description: 'Lorem ipsum',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  restriction: 'IE GB US CA',
+                  rating: 5,
+                  view_count: -1,
+                  tag: [],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /positive/ }
+      );
     });
 
     it('throws if it gets more than 32 tags', () => {
-      expect(function () {
-        validateSMIOptions(
-          {
-            ...itemTemplate,
-            url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-            video: [
-              {
-                title: "2008:E2 - Burnout Paradise: Millionaire's Club",
-                description: 'Lorem ipsum',
-                player_loc:
-                  'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
-                thumbnail_loc:
-                  'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
-                restriction: 'IE GB US CA',
-                rating: 5,
-                tag: [
-                  'one',
-                  'two',
-                  'three',
-                  'four',
-                  '5',
-                  '6',
-                  '7',
-                  '8',
-                  '9',
-                  '10',
-                  '11',
-                  '12',
-                  '13',
-                  '14',
-                  '15',
-                  '16',
-                  '17',
-                  '18',
-                  '19',
-                  '20',
-                  '21',
-                  '22',
-                  '23',
-                  '24',
-                  '25',
-                  '26',
-                  '27',
-                  '28',
-                  '29',
-                  '30',
-                  '31',
-                  '32',
-                  '33',
-                ],
-              },
-            ],
-          },
-          ErrorLevel.THROW
-        );
-      }).toThrow(/32 tags/);
+      assert.throws(
+        function () {
+          validateSMIOptions(
+            {
+              ...itemTemplate,
+              url: 'https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+              video: [
+                {
+                  title: "2008:E2 - Burnout Paradise: Millionaire's Club",
+                  description: 'Lorem ipsum',
+                  player_loc:
+                    'https://roosterteeth.com/embed/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club',
+                  thumbnail_loc:
+                    'https://rtv3-img-roosterteeth.akamaized.net/uploads/images/e82e1925-89dd-4493-9bcf-cdef9665d726/sm/ep298.jpg',
+                  restriction: 'IE GB US CA',
+                  rating: 5,
+                  tag: [
+                    'one',
+                    'two',
+                    'three',
+                    'four',
+                    '5',
+                    '6',
+                    '7',
+                    '8',
+                    '9',
+                    '10',
+                    '11',
+                    '12',
+                    '13',
+                    '14',
+                    '15',
+                    '16',
+                    '17',
+                    '18',
+                    '19',
+                    '20',
+                    '21',
+                    '22',
+                    '23',
+                    '24',
+                    '25',
+                    '26',
+                    '27',
+                    '28',
+                    '29',
+                    '30',
+                    '31',
+                    '32',
+                    '33',
+                  ],
+                },
+              ],
+            },
+            ErrorLevel.THROW
+          );
+        },
+        { message: /32 tags/ }
+      );
     });
   });
 
@@ -720,9 +817,9 @@ describe('utils', () => {
         lineSeparatedURLsToSitemapOptions(rs).pipe(ws);
         ws.on('finish', () => resolve());
       });
-      expect(drain.length).toBe(2);
-      expect(drain[0]).toBe(sampleURLs[0]);
-      expect(drain[1]).toBe(sampleURLs[1]);
+      assert.strictEqual(drain.length, 2);
+      assert.strictEqual(drain[0], sampleURLs[0]);
+      assert.strictEqual(drain[1], sampleURLs[1]);
     });
 
     it('turns a line-separated JSON stream into a sitemap', async () => {
@@ -732,31 +829,31 @@ describe('utils', () => {
         lineSeparatedURLsToSitemapOptions(rs, { isJSON: true }).pipe(ws);
         ws.on('finish', () => resolve());
       });
-      expect(drain.length).toBe(2);
-      expect(drain[0]).toEqual(osampleURLs[0]);
-      expect(drain[1]).toEqual(osampleURLs[1]);
+      assert.strictEqual(drain.length, 2);
+      assert.deepStrictEqual(drain[0], osampleURLs[0]);
+      assert.deepStrictEqual(drain[1], osampleURLs[1]);
     });
   });
 
   describe('normalizeURL', () => {
     it('turns strings into full urls', () => {
-      expect(normalizeURL('http://example.com')).toHaveProperty(
-        'url',
+      assert.strictEqual(
+        normalizeURL('http://example.com').url,
         'http://example.com/'
       );
     });
 
     it('prepends paths with the provided hostname', () => {
-      expect(normalizeURL('/', 'http://example.com')).toHaveProperty(
-        'url',
+      assert.strictEqual(
+        normalizeURL('/', 'http://example.com').url,
         'http://example.com/'
       );
     });
 
     it('turns img prop provided as string into array of object', () => {
       const url = { url: 'http://example.com', img: 'http://example.com/img' };
-      expect(normalizeURL(url).img[0]).toHaveProperty(
-        'url',
+      assert.strictEqual(
+        normalizeURL(url).img[0].url,
         'http://example.com/img'
       );
     });
@@ -766,11 +863,11 @@ describe('utils', () => {
         url: 'http://example.com',
         img: { url: 'http://example.com/img', title: 'some thing' },
       };
-      expect(normalizeURL(url).img[0]).toHaveProperty(
-        'url',
+      assert.strictEqual(
+        normalizeURL(url).img[0].url,
         'http://example.com/img'
       );
-      expect(normalizeURL(url).img[0]).toHaveProperty('title', 'some thing');
+      assert.strictEqual(normalizeURL(url).img[0].title, 'some thing');
     });
 
     it('turns img prop provided as array of strings into array of object', () => {
@@ -778,13 +875,13 @@ describe('utils', () => {
         url: 'http://example.com',
         img: ['http://example.com/img', '/img2'],
       };
-      expect(normalizeURL(url, 'http://example.com/').img[0]).toHaveProperty(
-        'url',
+      assert.strictEqual(
+        normalizeURL(url, 'http://example.com/').img[0].url,
         'http://example.com/img'
       );
 
-      expect(normalizeURL(url, 'http://example.com/').img[1]).toHaveProperty(
-        'url',
+      assert.strictEqual(
+        normalizeURL(url, 'http://example.com/').img[1].url,
         'http://example.com/img2'
       );
     });
@@ -803,25 +900,23 @@ describe('utils', () => {
         ],
       };
       const normal = normalizeURL(url, 'http://example.com/').img[0];
-      expect(normal).toHaveProperty('url', 'http://test.com/img2.jpg');
-      expect(normal).toHaveProperty('caption', 'Another image');
-      expect(normal).toHaveProperty('title', 'The Title of Image Two');
-      expect(normal).toHaveProperty('geoLocation', 'London, United Kingdom');
-      expect(normal).toHaveProperty(
-        'license',
+      assert.strictEqual(normal.url, 'http://test.com/img2.jpg');
+      assert.strictEqual(normal.caption, 'Another image');
+      assert.strictEqual(normal.title, 'The Title of Image Two');
+      assert.strictEqual(normal.geoLocation, 'London, United Kingdom');
+      assert.strictEqual(
+        normal.license,
         'https://creativecommons.org/licenses/by/4.0/'
       );
     });
 
     it('ensures img is always an array', () => {
       const url = { url: 'http://example.com' };
-      expect(Array.isArray(normalizeURL(url).img)).toBeTruthy();
+      assert.ok(Array.isArray(normalizeURL(url).img));
     });
 
     it('ensures links is always an array', () => {
-      expect(
-        Array.isArray(normalizeURL('http://example.com').links)
-      ).toBeTruthy();
+      assert.ok(Array.isArray(normalizeURL('http://example.com').links));
     });
 
     it('prepends provided hostname to links', () => {
@@ -829,8 +924,8 @@ describe('utils', () => {
         url: 'http://example.com',
         links: [{ url: '/lang', lang: 'en-us' }],
       };
-      expect(normalizeURL(url, 'http://example.com').links[0]).toHaveProperty(
-        'url',
+      assert.strictEqual(
+        normalizeURL(url, 'http://example.com').links[0].url,
         'http://example.com/lang'
       );
     });
@@ -846,8 +941,10 @@ describe('utils', () => {
       });
       sms.end();
 
-      expect((await streamToPromise(sms)).toString()).toContain(
-        'https://example.com/docs'
+      assert.ok(
+        (await streamToPromise(sms))
+          .toString()
+          .includes('https://example.com/docs')
       );
 
       const url = {
@@ -857,25 +954,20 @@ describe('utils', () => {
           { url: '/lang', lang: 'en-us' },
         ],
       };
-      expect(normalizeURL(url, 'http://example.ru').links[0]).toHaveProperty(
-        'url',
+      assert.strictEqual(
+        normalizeURL(url, 'http://example.ru').links[0].url,
         'http://example.com/lang'
       );
     });
 
     describe('video', () => {
       it('is ensured to be an array', () => {
-        expect(
-          Array.isArray(normalizeURL('http://example.com').video)
-        ).toBeTruthy();
+        assert.ok(Array.isArray(normalizeURL('http://example.com').video));
         const url = {
           url: 'http://example.com',
           video: { thumbnail_loc: 'foo', title: '', description: '' },
         };
-        expect(normalizeURL(url).video[0]).toHaveProperty(
-          'thumbnail_loc',
-          'foo'
-        );
+        assert.strictEqual(normalizeURL(url).video[0].thumbnail_loc, 'foo');
       });
 
       it('turns boolean-like props into yes/no', () => {
@@ -917,18 +1009,18 @@ describe('utils', () => {
           ],
         };
         const smv = normalizeURL(url).video;
-        expect(smv[0]).toHaveProperty('family_friendly', 'no');
-        expect(smv[0]).toHaveProperty('live', 'no');
-        expect(smv[0]).toHaveProperty('requires_subscription', 'no');
-        expect(smv[1]).toHaveProperty('family_friendly', 'yes');
-        expect(smv[1]).toHaveProperty('live', 'yes');
-        expect(smv[1]).toHaveProperty('requires_subscription', 'yes');
-        expect(smv[2]).toHaveProperty('family_friendly', 'yes');
-        expect(smv[2]).toHaveProperty('live', 'yes');
-        expect(smv[2]).toHaveProperty('requires_subscription', 'yes');
-        expect(smv[3]).toHaveProperty('family_friendly', 'no');
-        expect(smv[3]).toHaveProperty('live', 'no');
-        expect(smv[3]).toHaveProperty('requires_subscription', 'no');
+        assert.strictEqual(smv[0].family_friendly, 'no');
+        assert.strictEqual(smv[0].live, 'no');
+        assert.strictEqual(smv[0].requires_subscription, 'no');
+        assert.strictEqual(smv[1].family_friendly, 'yes');
+        assert.strictEqual(smv[1].live, 'yes');
+        assert.strictEqual(smv[1].requires_subscription, 'yes');
+        assert.strictEqual(smv[2].family_friendly, 'yes');
+        assert.strictEqual(smv[2].live, 'yes');
+        assert.strictEqual(smv[2].requires_subscription, 'yes');
+        assert.strictEqual(smv[3].family_friendly, 'no');
+        assert.strictEqual(smv[3].live, 'no');
+        assert.strictEqual(smv[3].requires_subscription, 'no');
       });
 
       it('ensures tag is always an array', () => {
@@ -936,7 +1028,7 @@ describe('utils', () => {
           url: 'http://example.com',
           video: { thumbnail_loc: 'foo', title: '', description: '' },
         };
-        expect(normalizeURL(url).video[0]).toHaveProperty('tag', []);
+        assert.deepStrictEqual(normalizeURL(url).video[0].tag, []);
         url = {
           url: 'http://example.com',
           video: [
@@ -944,8 +1036,8 @@ describe('utils', () => {
             { thumbnail_loc: 'foo', title: '', description: '', tag: ['bazz'] },
           ],
         };
-        expect(normalizeURL(url).video[0]).toHaveProperty('tag', ['fizz']);
-        expect(normalizeURL(url).video[1]).toHaveProperty('tag', ['bazz']);
+        assert.deepStrictEqual(normalizeURL(url).video[0].tag, ['fizz']);
+        assert.deepStrictEqual(normalizeURL(url).video[1].tag, ['bazz']);
       });
 
       it('ensures rating is always a number', () => {
@@ -963,53 +1055,57 @@ describe('utils', () => {
           ],
         };
         // @ts-expect-error - Incomplete video for brevity
-        expect(normalizeURL(url).video[0]).toHaveProperty('rating', 5);
+        assert.strictEqual(normalizeURL(url).video[0].rating, 5);
         // @ts-expect-error - Incomplete video for brevity
-        expect(normalizeURL(url).video[0]).toHaveProperty(
-          'view_count',
-          10000000000
-        );
+        assert.strictEqual(normalizeURL(url).video[0].view_count, 10000000000);
         // @ts-expect-error - Incomplete video for brevity
-        expect(normalizeURL(url).video[1]).toHaveProperty('rating', 4);
+        assert.strictEqual(normalizeURL(url).video[1].rating, 4);
       });
     });
 
     describe('lastmod', () => {
       it('treats legacy ISO option like lastmod', () => {
-        expect(
+        assert.strictEqual(
           normalizeURL({ url: 'http://example.com', lastmodISO: '2019-01-01' })
-        ).toHaveProperty('lastmod', '2019-01-01T00:00:00.000Z');
+            .lastmod,
+          '2019-01-01T00:00:00.000Z'
+        );
       });
 
       it('turns all last mod strings into ISO timestamps', () => {
-        expect(
+        assert.strictEqual(
           normalizeURL({ url: 'http://example.com', lastmod: '2019-01-01' })
-        ).toHaveProperty('lastmod', '2019-01-01T00:00:00.000Z');
+            .lastmod,
+          '2019-01-01T00:00:00.000Z'
+        );
 
-        expect(
+        assert.strictEqual(
           normalizeURL({
             url: 'http://example.com',
             lastmod: '2019-01-01T00:00:00.000Z',
-          })
-        ).toHaveProperty('lastmod', '2019-01-01T00:00:00.000Z');
+          }).lastmod,
+          '2019-01-01T00:00:00.000Z'
+        );
       });
 
       it('date-only', () => {
-        expect(
+        assert.strictEqual(
           normalizeURL(
             { url: 'http://example.com', lastmod: '2019-01-01' },
             undefined,
             true
-          )
-        ).toHaveProperty('lastmod', '2019-01-01');
+          ).lastmod,
+          '2019-01-01'
+        );
 
-        expect(
+        assert.strictEqual(
           normalizeURL(
             { url: 'http://example.com', lastmod: '2019-01-01T00:00:00.000Z' },
             undefined,
             true
-          )
-        ).toHaveProperty('lastmod', '2019-01-01');
+          ).lastmod,
+          '2019-01-01'
+        );
       });
 
       it('supports reading off file mtime', () => {
@@ -1027,7 +1123,7 @@ describe('utils', () => {
 
         testUtil.unlinkCache();
 
-        expect(smcfg).toHaveProperty('lastmod', lastmod);
+        assert.strictEqual(smcfg.lastmod, lastmod);
       });
     });
   });
@@ -1053,11 +1149,11 @@ describe('utils', () => {
 
       const str = Buffer.concat(chunks).toString();
 
-      expect(str).toContain('a');
-      expect(str).toContain('b');
-      expect(str).toContain('c');
-      expect(str).toContain('d');
-      expect(str).not.toContain('e');
+      assert.ok(str.includes('a'));
+      assert.ok(str.includes('b'));
+      assert.ok(str.includes('c'));
+      assert.ok(str.includes('d'));
+      assert.ok(!str.includes('e'));
     });
 
     it('works in objectMode', async () => {
@@ -1090,12 +1186,12 @@ describe('utils', () => {
         str += item.value;
       }
 
-      expect(str.length).toBe(4);
-      expect(str).toContain('a');
-      expect(str).toContain('b');
-      expect(str).toContain('c');
-      expect(str).toContain('d');
-      expect(str).not.toContain('e');
+      assert.strictEqual(str.length, 4);
+      assert.ok(str.includes('a'));
+      assert.ok(str.includes('b'));
+      assert.ok(str.includes('c'));
+      assert.ok(str.includes('d'));
+      assert.ok(!str.includes('e'));
     });
   });
 });

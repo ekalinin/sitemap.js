@@ -1,108 +1,118 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 import util from 'node:util';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import {
   exec as execCb,
   execFileSync as execFileSyncCb,
 } from 'node:child_process';
-import pkg from '../package.json';
-import normalizedSample from './mocks/sampleconfig.normalized.json';
+import pkg from '../package.json' with { type: 'json' };
+import normalizedSample from './mocks/sampleconfig.normalized.json' with { type: 'json' };
 
 const exec = util.promisify(execCb);
 const execFileSync = execFileSyncCb;
 
+const isWindows = os.platform() === 'win32';
+
 let hasXMLLint = true;
 try {
-  execFileSync('which', ['xmllint']);
+  const command = isWindows ? 'where' : 'which';
+  execFileSync(command, ['xmllint']);
 } catch {
   hasXMLLint = false;
 }
+
 const txtxml =
   '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"><url><loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc></url><url><loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-endangered-species-walkthrough-</loc></url></urlset>';
 
 const jsonxml = fs.readFileSync(
-  path.resolve(__dirname, './mocks/cli-urls.json.xml'),
+  path.resolve(import.meta.dirname!, './mocks/cli-urls.json.xml'),
   { encoding: 'utf8' }
 );
-/* eslint-env jest, jasmine */
+
 describe('cli', () => {
   it('prints its version when asked', async () => {
-    const { stdout } = await exec('node ./dist/esm/cli.js --version', {
+    const { stdout } = await exec('node ./dist/cli.js --version', {
       encoding: 'utf8',
     });
-    expect(stdout).toBe(pkg.version + '\n');
+    assert.strictEqual(stdout, pkg.version + '\n');
   });
 
   it('prints a help doc when asked', async () => {
-    const { stdout } = await exec('node ./dist/esm/cli.js --help', {
+    const { stdout } = await exec('node ./dist/cli.js --help', {
       encoding: 'utf8',
     });
-    expect(stdout.length).toBeGreaterThan(1);
+    assert.ok(stdout.length > 1);
   });
 
   it('accepts line separated urls', async () => {
     const { stdout } = await exec(
-      'node ./dist/esm/cli.js < ./tests/mocks/cli-urls.txt',
+      'node ./dist/cli.js < ./tests/mocks/cli-urls.txt',
       { encoding: 'utf8' }
     );
-    expect(stdout).toBe(txtxml);
+    assert.strictEqual(stdout, txtxml);
   });
 
-  it('prepends to existing xml', async () => {
+  it('prepends to existing xml', { skip: isWindows }, async () => {
     let threw = false;
     try {
       await exec(
-        'echo "https://example.com/asdr32/" | node ./dist/esm/cli.js --prepend ./tests/mocks/cli-urls.json.xml|grep \'https://example.com/asdr32/\''
+        'echo "https://example.com/asdr32/" | node ./dist/cli.js --prepend ./tests/mocks/cli-urls.json.xml|grep \'https://example.com/asdr32/\''
       );
     } catch {
       threw = true;
     }
-    expect(threw).toBe(false);
+    assert.strictEqual(threw, false);
   });
 
   it('accepts line separated urls as file', async () => {
     const { stdout } = await exec(
-      'node ./dist/esm/cli.js ./tests/mocks/cli-urls.txt',
+      'node ./dist/cli.js ./tests/mocks/cli-urls.txt',
       { encoding: 'utf8' }
     );
-    expect(stdout).toBe(txtxml);
+    assert.strictEqual(stdout, txtxml);
   });
 
-  it('streams a index file and writes sitemaps', async () => {
-    const { stdout } = await exec(
-      'cat ./tests/mocks/short-list.txt | node ./dist/esm/cli.js --index --limit 250 --index-base-url https://example.com/path/',
-      { encoding: 'utf8' }
-    );
-    expect(stdout).toContain('https://example.com/path/sitemap-0.xml');
-    expect(stdout).toContain('https://example.com/path/sitemap-1.xml');
-    expect(stdout).toContain('https://example.com/path/sitemap-2.xml');
-    expect(stdout).toContain('https://example.com/path/sitemap-3.xml');
-    expect(stdout).not.toContain('https://example.com/path/sitemap-4.xml');
-    try {
-      fs.accessSync(path.resolve('./sitemap-0.xml'), fs.constants.R_OK);
-      fs.accessSync(path.resolve('./sitemap-3.xml'), fs.constants.R_OK);
-      expect('file exists').toBe('file exists');
-    } catch (e) {
-      expect('file to exist').toBe(e);
+  it(
+    'streams a index file and writes sitemaps',
+    { timeout: 30000, skip: isWindows },
+    async () => {
+      const { stdout } = await exec(
+        'cat ./tests/mocks/short-list.txt | node ./dist/cli.js --index --limit 250 --index-base-url https://example.com/path/',
+        { encoding: 'utf8' }
+      );
+      assert.ok(stdout.includes('https://example.com/path/sitemap-0.xml'));
+      assert.ok(stdout.includes('https://example.com/path/sitemap-1.xml'));
+      assert.ok(stdout.includes('https://example.com/path/sitemap-2.xml'));
+      assert.ok(stdout.includes('https://example.com/path/sitemap-3.xml'));
+      assert.ok(!stdout.includes('https://example.com/path/sitemap-4.xml'));
+      try {
+        fs.accessSync(path.resolve('./sitemap-0.xml'), fs.constants.R_OK);
+        fs.accessSync(path.resolve('./sitemap-3.xml'), fs.constants.R_OK);
+      } catch {
+        assert.fail('expected sitemap files to exist');
+      }
+      try {
+        fs.accessSync(path.resolve('sitemap-4.xml'), fs.constants.R_OK);
+        assert.fail('expected sitemap-4.xml to not exist');
+      } catch {
+        // expected
+      }
+      fs.unlinkSync(path.resolve('./sitemap-0.xml'));
+      fs.unlinkSync(path.resolve('./sitemap-1.xml'));
+      fs.unlinkSync(path.resolve('./sitemap-2.xml'));
+      fs.unlinkSync(path.resolve('./sitemap-3.xml'));
     }
-    try {
-      fs.accessSync(path.resolve('sitemap-4.xml'), fs.constants.R_OK);
-      expect('file to not exist').toBe(true);
-    } catch {
-      expect('file does not exist').toBe('file does not exist');
-    }
-    fs.unlinkSync(path.resolve('./sitemap-0.xml'));
-    fs.unlinkSync(path.resolve('./sitemap-1.xml'));
-    fs.unlinkSync(path.resolve('./sitemap-2.xml'));
-    fs.unlinkSync(path.resolve('./sitemap-3.xml'));
-  }, 30000);
+  );
 
   it('accepts json line separated urls', async () => {
     const { stdout } = await exec(
-      'node ./dist/esm/cli.js < ./tests/mocks/cli-urls.json.txt',
+      'node ./dist/cli.js < ./tests/mocks/cli-urls.json.txt',
       { encoding: 'utf8' }
     );
-    expect(stdout + '\n').toBe(jsonxml);
+    assert.strictEqual(stdout + '\n', jsonxml);
   });
 
   it('parses xml piped in', async () => {
@@ -110,15 +120,15 @@ describe('cli', () => {
     let threw = false;
     try {
       const { stdout } = await exec(
-        'node ./dist/esm/cli.js --parse --single-line-json < ./tests/mocks/alltags.xml',
+        'node ./dist/cli.js --parse --single-line-json < ./tests/mocks/alltags.xml',
         { encoding: 'utf8' }
       );
       json = JSON.parse(stdout);
     } catch {
       threw = true;
     }
-    expect(threw).toBe(false);
-    expect(json).toEqual(normalizedSample.urls);
+    assert.strictEqual(threw, false);
+    assert.deepStrictEqual(json, normalizedSample.urls);
   });
 
   it('parses xml specified as a file', async () => {
@@ -126,15 +136,15 @@ describe('cli', () => {
     let json;
     try {
       const { stdout } = await exec(
-        'node ./dist/esm/cli.js --parse --single-line-json ./tests/mocks/alltags.xml',
+        'node ./dist/cli.js --parse --single-line-json ./tests/mocks/alltags.xml',
         { encoding: 'utf8' }
       );
       json = JSON.parse(stdout);
     } catch {
       threw = true;
     }
-    expect(threw).toBe(false);
-    expect(json).toEqual(normalizedSample.urls);
+    assert.strictEqual(threw, false);
+    assert.deepStrictEqual(json, normalizedSample.urls);
   });
 
   it('exits with an error while parsing a bad xml file', async () => {
@@ -142,56 +152,38 @@ describe('cli', () => {
     let json;
     try {
       const { stdout } = await exec(
-        'node ./dist/esm/cli.js --parse --single-line-json ./tests/mocks/bad-tag-sitemap.xml',
+        'node ./dist/cli.js --parse --single-line-json ./tests/mocks/bad-tag-sitemap.xml',
         { encoding: 'utf8' }
       );
       json = JSON.parse(stdout);
     } catch {
       threw = true;
     }
-    expect(threw).toBe(true);
-    expect(json).toBeUndefined();
+    assert.strictEqual(threw, true);
+    assert.strictEqual(json, undefined);
   });
 
-  it('validates xml piped in', (done) => {
+  it('validates xml piped in', { timeout: 60000 }, async () => {
     if (hasXMLLint) {
-      exec(
-        'node ./dist/esm/cli.js --validate < ./tests/mocks/cli-urls.json.xml',
-        {
-          encoding: 'utf8',
-        }
-      ).then(({ stdout, stderr }) => {
-        expect(stdout).toBe('valid\n');
-        done();
-      });
+      const { stdout } = await exec(
+        'node ./dist/cli.js --validate < ./tests/mocks/cli-urls.json.xml',
+        { encoding: 'utf8' }
+      );
+      assert.strictEqual(stdout, 'valid\n');
     } else {
-      console.warn('xmlLint not installed. Skipping test');
-      done();
+      // skip
     }
-  }, 60000);
+  });
 
-  it('validates xml specified as file', (done) => {
+  it('validates xml specified as file', { timeout: 60000 }, async () => {
     if (hasXMLLint) {
-      exec(
-        'node ./dist/esm/cli.js --validate ./tests/mocks/cli-urls.json.xml',
-        {
-          encoding: 'utf8',
-        }
-      )
-        .then(
-          ({ stdout, stderr }) => {
-            expect(stdout).toBe('valid\n');
-            done();
-          },
-          (error: Error): void => {
-            console.log(error);
-            done();
-          }
-        )
-        .catch((e: Error): void => console.log(e));
+      const { stdout } = await exec(
+        'node ./dist/cli.js --validate ./tests/mocks/cli-urls.json.xml',
+        { encoding: 'utf8' }
+      );
+      assert.strictEqual(stdout, 'valid\n');
     } else {
-      console.warn('xmlLint not installed. Skipping test');
-      done();
+      // skip
     }
-  }, 60000);
+  });
 });

@@ -9,8 +9,7 @@ import { XMLLintUnavailable } from './errors.js';
  * Searches from the project root directory using process.cwd().
  * This works correctly regardless of whether the code is running from:
  * - Source: lib/xmllint.ts
- * - ESM build: dist/esm/lib/xmllint.js
- * - CJS build: dist/cjs/lib/xmllint.js
+ * - ESM build: dist/lib/xmllint.js
  * - Test environment
  *
  * @throws {Error} if the schema directory is not found

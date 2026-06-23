@@ -33,11 +33,13 @@ import {
   InvalidVideoPriceCurrency,
 } from './errors.js';
 import {
-  SitemapItem,
   ErrorLevel,
   EnumChangefreq,
   EnumYesNo,
   EnumAllowDeny,
+} from './types.js';
+import type {
+  SitemapItem,
   PriceType,
   Resolution,
   NewsItem,

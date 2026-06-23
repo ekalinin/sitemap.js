@@ -1,8 +1,17 @@
 #!/usr/bin/env node
+import {
+  createReadStream,
+  createWriteStream,
+  WriteStream,
+  readFileSync,
+} from 'node:fs';
 import { Readable } from 'node:stream';
-import { createReadStream, createWriteStream, WriteStream } from 'node:fs';
-import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath, URL } from 'node:url';
+import { createGzip, type Gzip } from 'node:zlib';
+
+import arg from 'arg';
+
 import { xmlLint } from './lib/xmllint.js';
 import { XMLLintUnavailable } from './lib/errors.js';
 import {
@@ -12,25 +21,12 @@ import {
 import { lineSeparatedURLsToSitemapOptions } from './lib/utils.js';
 import { SitemapStream } from './lib/sitemap-stream.js';
 import { SitemapAndIndexStream } from './lib/sitemap-index-stream.js';
-import { URL } from 'node:url';
-import { createGzip, Gzip } from 'node:zlib';
 import { ErrorLevel } from './lib/types.js';
-import arg from 'arg';
 
-// Read package.json from the project root (one level up from dist/esm or dist/cjs)
-// In ESM, __dirname is not defined, so we use import.meta.url
-// In CJS, __dirname is defined and import.meta is not available
-let currentDir: string;
-try {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore - __dirname may not be defined in ESM
-  currentDir = __dirname;
-} catch {
-  // ESM fallback using import.meta.url
-  currentDir = new URL('.', import.meta.url).pathname;
-}
+// Read package.json from the project root (one level up from dist)
+const currentDir = fileURLToPath(new URL('.', import.meta.url));
 const packageJson = JSON.parse(
-  readFileSync(resolve(currentDir, '../../package.json'), 'utf8')
+  readFileSync(resolve(currentDir, '../package.json'), 'utf8')
 );
 
 const pickStreamOrArg = (argv: { _: string[] }): Readable => {

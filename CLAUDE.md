@@ -10,15 +10,13 @@ sitemap.js is a TypeScript library and CLI tool for generating sitemap XML files
 
 ### Building
 ```bash
-npm run build                 # Compile TypeScript to dist/esm/ and dist/cjs/
-npm run build:esm             # Build ESM only (dist/esm/)
-npm run build:cjs             # Build CJS only (dist/cjs/)
+npm run build                 # Compile TypeScript to dist
 ```
 
 ### Testing
 ```bash
-npm test                      # Run Jest tests with coverage
-npm run test:full             # Run lint, build, Jest, and xmllint validation
+npm test                      #  tests with the Node.js test runner
+npm run test:full             # Run lint, build, coverage-enforced tests, and xmllint validation
 npm run test:typecheck        # Type check only (tsc)
 npm run test:perf             # Run performance tests (tests/perf.mjs)
 npm run test:xmllint          # Validate XML schema (requires xmllint)
@@ -32,8 +30,8 @@ npx eslint lib/* ./cli.ts --fix  # Auto-fix linting issues
 
 ### Running CLI Locally
 ```bash
-node dist/esm/cli.js < urls.txt   # Run CLI from built dist
-./dist/esm/cli.js --version       # Run directly (has shebang)
+node dist/cli.js < urls.txt   # Run CLI from built dist
+./dist/cli.js --version       # Run directly (has shebang)
 npm link && sitemap --version     # Link and test as global command
 ```
 
@@ -181,7 +179,7 @@ All limits are documented with references to sitemaps.org and Google specificati
 
 ```bash
 npm run test:full    # Run all tests, linting, and validation
-npm run build        # Ensure both ESM and CJS builds work
+npm run build        # Ensure ESM build works
 npm test             # Verify 90%+ code coverage maintained
 ```
 
@@ -207,7 +205,7 @@ npm test             # Verify 90%+ code coverage maintained
 
 ## Testing Strategy
 
-Tests are in [tests/](tests/) directory with Jest:
+Tests are in [tests/](tests/) directory with the Node.js test runner:
 - **[tests/sitemap-stream.test.ts](tests/sitemap-stream.test.ts)**: Core streaming functionality
 - **[tests/sitemap-parser.test.ts](tests/sitemap-parser.test.ts)**: XML parsing
 - **[tests/sitemap-index.test.ts](tests/sitemap-index.test.ts)**: Index generation
@@ -216,11 +214,11 @@ Tests are in [tests/](tests/) directory with Jest:
 - **[tests/*-security.test.ts](tests/)**: Security-focused validation and injection tests
 - **[tests/sitemap-utils.test.ts](tests/sitemap-utils.test.ts)**: Utility function tests
 
-### Coverage Requirements (enforced by jest.config.cjs)
+### Coverage Requirements (enforced by `npm run test:full`)
 - Branches: 80%
 - Functions: 90%
 - Lines: 90%
-- Statements: 90%
+- (Statements coverage is not available in Node.js test runner)
 
 ### When to Write Tests
 - **Always** write tests for new validation functions
@@ -231,17 +229,12 @@ Tests are in [tests/](tests/) directory with Jest:
 
 ## TypeScript Configuration
 
-The project uses a dual-build setup for ESM and CommonJS:
+The project uses ESM only:
 
 - **[tsconfig.json](tsconfig.json)**: ESM build (`module: "NodeNext"`, `moduleResolution: "NodeNext"`)
-  - Outputs to `dist/esm/`
+  - Outputs to `dist`
   - Includes both [index.ts](index.ts) and [cli.ts](cli.ts)
   - ES2023 target with strict null checks enabled
-
-- **[tsconfig.cjs.json](tsconfig.cjs.json)**: CommonJS build (`module: "CommonJS"`)
-  - Outputs to `dist/cjs/`
-  - Excludes [cli.ts](cli.ts) (CLI is ESM-only)
-  - Only includes [index.ts](index.ts) for library exports
 
 **Important**: All relative imports must include `.js` extensions for ESM compatibility (e.g., `import { foo } from './types.js'`)
 
@@ -278,35 +271,10 @@ Control validation strictness with `ErrorLevel`:
 
 The package is distributed as a dual ESM/CommonJS package with `"type": "module"` in package.json:
 
-- **ESM**: `dist/esm/index.js` (ES modules)
-- **CJS**: `dist/cjs/index.js` (CommonJS, via conditional exports)
-- **Types**: `dist/esm/index.d.ts` (TypeScript definitions)
-- **Binary**: `dist/esm/cli.js` (ESM-only CLI, executable via `npx sitemap`)
-- **Engines**: Node.js >=20.19.5, npm >=10.8.2
-
-### Dual Package Exports
-
-The `exports` field in package.json provides conditional exports:
-
-```json
-{
-  "exports": {
-    ".": {
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
-    }
-  }
-}
-```
-
-This allows both:
-```javascript
-// ESM
-import { SitemapStream } from 'sitemap'
-
-// CommonJS
-const { SitemapStream } = require('sitemap')
-```
+- **ESM**: `dist/index.js` (ES modules)
+- **Types**: `dist/index.d.ts` (TypeScript definitions)
+- **Binary**: `dist/cli.js` (ESM-only CLI, executable via `npx sitemap`)
+- **Engines**: Node.js >=22, npm >=10.8.2
 
 ## Git Hooks
 

@@ -9,6 +9,7 @@
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { createReadStream, createWriteStream } from 'node:fs';
+import { devNull } from 'node:os';
 import { clearLine, cursorTo } from 'node:readline';
 import { finished, Readable } from 'node:stream';
 import { promisify } from 'node:util';
@@ -22,7 +23,7 @@ import {
   XMLToSitemapItemStream,
   parseSitemap,
   mergeStreams,
-} from '../dist/esm/index.js';
+} from '../dist/index.js';
 import stats from 'stats-lite';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -145,7 +146,7 @@ async function testPerf(runs, batches, testName) {
       printPerf(
         testName,
         await run([], 0, async () => {
-          const ws = createWriteStream('/dev/null');
+          const ws = createWriteStream(devNull);
           const rs = createReadStream(
             resolve(__dirname, 'mocks', 'long-list.txt.gz')
           );
@@ -162,7 +163,7 @@ async function testPerf(runs, batches, testName) {
         testName,
         await run([], 0, async () => {
           const sms = new SitemapStream({ level: ErrorLevel.SILENT });
-          const ws = createWriteStream('/dev/null');
+          const ws = createWriteStream(devNull);
           const rs = createReadStream(
             resolve(__dirname, 'mocks', 'perf-data.xml')
           );
@@ -203,7 +204,7 @@ async function testPerf(runs, batches, testName) {
           const rs = createReadStream(
             resolve(__dirname, 'mocks', 'perf-data.xml')
           );
-          const ws = createWriteStream('/dev/null');
+          const ws = createWriteStream(devNull);
           const items = await parseSitemap(rs);
 
           const sms = new SitemapStream({ level: ErrorLevel.SILENT });
@@ -223,7 +224,7 @@ async function testPerf(runs, batches, testName) {
         testName,
         await run([], 0, async () => {
           const sms = new SitemapStream({ level: ErrorLevel.SILENT });
-          const ws = createWriteStream('/dev/null');
+          const ws = createWriteStream(devNull);
           const rs = createReadStream(
             resolve(__dirname, 'mocks', 'perf-data.xml')
           );
@@ -262,7 +263,7 @@ async function testPerf(runs, batches, testName) {
             resolve(__dirname, 'mocks', 'perf-data.json.txt')
           );
           const rsItems = lineSeparatedURLsToSitemapOptions(rs);
-          const ws = createWriteStream('/dev/null');
+          const ws = createWriteStream(devNull);
           const moreItemsStream = new MemoryStream(undefined, {
             objectMode: true,
           });
@@ -292,7 +293,7 @@ async function testPerf(runs, batches, testName) {
         // Hard-code the test label for the default case only
         'stream',
         await run([], 0, async () => {
-          const ws = createWriteStream('/dev/null');
+          const ws = createWriteStream(devNull);
           const rs = createReadStream(
             resolve(__dirname, 'mocks', 'perf-data.json.txt')
           );

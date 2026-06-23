@@ -3,17 +3,16 @@ import type { SAXStream } from 'sax';
 import {
   Readable,
   Transform,
-  TransformOptions,
-  TransformCallback,
+  type TransformOptions,
+  type TransformCallback,
 } from 'node:stream';
-import {
+import { ErrorLevel, TagNames } from './types.js';
+import type {
   SitemapItem,
   VideoItem,
   Img,
   LinkItem,
   NewsItem,
-  ErrorLevel,
-  TagNames,
 } from './types.js';
 import {
   isValidChangeFreq,

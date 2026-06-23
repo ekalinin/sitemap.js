@@ -1,25 +1,20 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 import { Readable, Writable } from 'node:stream';
 import { promisify } from 'node:util';
 import { pipeline as pipe } from 'node:stream';
 import {
   parseSitemapIndex,
   XMLToSitemapIndexStream,
-} from '../lib/sitemap-index-parser.js';
-import { SitemapIndexStream } from '../lib/sitemap-index-stream.js';
-import { streamToPromise } from '../lib/sitemap-stream.js';
-import { ErrorLevel, IndexItem } from '../lib/types.js';
-import { InvalidXSLUrlError } from '../lib/errors.js';
+} from '../dist/lib/sitemap-index-parser.js';
+import { SitemapIndexStream } from '../dist/lib/sitemap-index-stream.js';
+import { streamToPromise } from '../dist/lib/sitemap-stream.js';
+import { ErrorLevel } from '../dist/lib/types.js';
+import type { IndexItem } from '../dist/lib/types.js';
+import { InvalidXSLUrlError } from '../dist/lib/errors.js';
 
 const pipeline = promisify(pipe);
 
-/**
- * Security tests for sitemap index parser and stream
- * These tests validate protection against common attacks:
- * - Protocol injection (javascript:, data:, file:)
- * - URL length limits
- * - Invalid date formats
- * - Memory exhaustion attacks
- */
 describe('Sitemap Index Security', () => {
   describe('Protocol Injection Protection - Parser', () => {
     it('filters javascript: protocol URLs (WARN mode)', async () => {
@@ -36,9 +31,8 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      // Invalid URL should be filtered out, only valid URL remains
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('https://example.com/sitemap.xml');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'https://example.com/sitemap.xml');
     });
 
     it('rejects javascript: protocol in THROW mode', async () => {
@@ -53,19 +47,19 @@ describe('Sitemap Index Security', () => {
       const stream = new XMLToSitemapIndexStream({ level: ErrorLevel.THROW });
 
       const items: IndexItem[] = [];
-      const parsePromise = pipeline(
-        readable,
-        stream,
-        new Writable({
-          objectMode: true,
-          write(chunk, encoding, callback) {
-            items.push(chunk);
-            callback();
-          },
-        })
+      await assert.rejects(
+        pipeline(
+          readable,
+          stream,
+          new Writable({
+            objectMode: true,
+            write(chunk, encoding, callback) {
+              items.push(chunk);
+              callback();
+            },
+          })
+        )
       );
-
-      await expect(parsePromise).rejects.toThrow();
     });
 
     it('filters data: protocol URLs', async () => {
@@ -82,8 +76,8 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('https://example.com/sitemap.xml');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'https://example.com/sitemap.xml');
     });
 
     it('filters file: protocol URLs', async () => {
@@ -100,8 +94,8 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('https://example.com/sitemap.xml');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'https://example.com/sitemap.xml');
     });
 
     it('filters ftp: protocol URLs', async () => {
@@ -118,8 +112,8 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('https://example.com/sitemap.xml');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'https://example.com/sitemap.xml');
     });
 
     it('accepts valid https: URLs', async () => {
@@ -133,8 +127,8 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('https://example.com/sitemap.xml');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'https://example.com/sitemap.xml');
     });
 
     it('accepts valid http: URLs', async () => {
@@ -148,8 +142,8 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('http://example.com/sitemap.xml');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'http://example.com/sitemap.xml');
     });
   });
 
@@ -176,7 +170,7 @@ describe('Sitemap Index Security', () => {
       stream.write({ url: 'javascript:alert("XSS")' });
       stream.end();
 
-      await expect(writePromise).rejects.toThrow(/Invalid URL/);
+      await assert.rejects(writePromise, /Invalid URL/);
     });
 
     it('rejects data: protocol in SitemapIndexStream', async () => {
@@ -201,7 +195,7 @@ describe('Sitemap Index Security', () => {
       stream.write({ url: 'data:text/html,<script>alert("XSS")</script>' });
       stream.end();
 
-      await expect(writePromise).rejects.toThrow(/Invalid URL/);
+      await assert.rejects(writePromise, /Invalid URL/);
     });
   });
 
@@ -221,9 +215,8 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      // Long URL should be filtered out
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('https://example.com/valid.xml');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'https://example.com/valid.xml');
     });
 
     it('rejects URLs exceeding 2048 characters in SitemapIndexStream', async () => {
@@ -249,11 +242,10 @@ describe('Sitemap Index Security', () => {
       stream.write({ url: longUrl });
       stream.end();
 
-      await expect(writePromise).rejects.toThrow(/Invalid URL/);
+      await assert.rejects(writePromise, /Invalid URL/);
     });
 
     it('accepts URLs at the limit (2048 characters)', async () => {
-      // Create a URL that's exactly 2048 characters
       const pathLength = 2048 - 'https://example.com/'.length;
       const validUrl = 'https://example.com/' + 'a'.repeat(pathLength);
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -266,9 +258,9 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe(validUrl);
-      expect(result[0].url.length).toBe(2048);
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, validUrl);
+      assert.strictEqual(result[0].url.length, 2048);
     });
   });
 
@@ -285,10 +277,9 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('https://example.com/sitemap.xml');
-      // Invalid lastmod should not be included
-      expect(result[0].lastmod).toBeUndefined();
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'https://example.com/sitemap.xml');
+      assert.strictEqual(result[0].lastmod, undefined);
     });
 
     it('rejects invalid date format in parser (THROW mode)', async () => {
@@ -304,19 +295,19 @@ describe('Sitemap Index Security', () => {
       const stream = new XMLToSitemapIndexStream({ level: ErrorLevel.THROW });
 
       const items: IndexItem[] = [];
-      const parsePromise = pipeline(
-        readable,
-        stream,
-        new Writable({
-          objectMode: true,
-          write(chunk, encoding, callback) {
-            items.push(chunk);
-            callback();
-          },
-        })
+      await assert.rejects(
+        pipeline(
+          readable,
+          stream,
+          new Writable({
+            objectMode: true,
+            write(chunk, encoding, callback) {
+              items.push(chunk);
+              callback();
+            },
+          })
+        )
       );
-
-      await expect(parsePromise).rejects.toThrow();
     });
 
     it('accepts valid ISO 8601 dates', async () => {
@@ -331,9 +322,9 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('https://example.com/sitemap.xml');
-      expect(result[0].lastmod).toBe('2023-12-25T10:30:00Z');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'https://example.com/sitemap.xml');
+      assert.strictEqual(result[0].lastmod, '2023-12-25T10:30:00Z');
     });
 
     it('accepts date-only format (YYYY-MM-DD)', async () => {
@@ -348,20 +339,18 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].lastmod).toBe('2023-12-25');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].lastmod, '2023-12-25');
     });
   });
 
   describe('Memory Exhaustion Protection', () => {
     it('rejects sitemap index with too many entries (default limit)', async () => {
-      // Generate XML with 50,001 entries (exceeds default limit of 50,000)
       const header = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
       const footer = '</sitemapindex>';
       const entryCount = 50001;
 
-      // Create a readable stream that generates entries on-the-fly
       interface StreamState {
         headerSent?: boolean;
         footerSent?: boolean;
@@ -372,7 +361,6 @@ describe('Sitemap Index Security', () => {
 
       const readable = new Readable({
         read() {
-          // Start with header
           if (!state.headerSent) {
             state.headerSent = true;
             state.entryIndex = 0;
@@ -380,7 +368,6 @@ describe('Sitemap Index Security', () => {
             return;
           }
 
-          // Generate entries in batches
           if (state.entryIndex! < entryCount) {
             let batch = '';
             const batchSize = 100;
@@ -398,7 +385,6 @@ describe('Sitemap Index Security', () => {
             return;
           }
 
-          // End with footer and signal end of stream
           if (!state.footerSent) {
             state.footerSent = true;
             this.push(footer);
@@ -408,9 +394,10 @@ describe('Sitemap Index Security', () => {
         },
       });
 
-      await expect(async () => {
-        await parseSitemapIndex(readable);
-      }).rejects.toThrow(/exceeds maximum allowed entries/);
+      await assert.rejects(
+        () => parseSitemapIndex(readable),
+        /exceeds maximum allowed entries/
+      );
     });
 
     it('accepts sitemap index within limit', async () => {
@@ -427,7 +414,7 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      expect(result).toHaveLength(2);
+      assert.strictEqual(result.length, 2);
     });
 
     it('respects custom maxEntries limit', async () => {
@@ -446,10 +433,10 @@ describe('Sitemap Index Security', () => {
 
       const readable = Readable.from([xml]);
 
-      // Set limit to 2 entries
-      await expect(async () => {
-        await parseSitemapIndex(readable, 2);
-      }).rejects.toThrow(/exceeds maximum allowed entries \(2\)/);
+      await assert.rejects(
+        () => parseSitemapIndex(readable, 2),
+        /exceeds maximum allowed entries \(2\)/
+      );
     });
 
     it('immediately destroys streams when maxEntries is exceeded (BB-05)', async () => {
@@ -478,14 +465,13 @@ describe('Sitemap Index Security', () => {
         },
       });
 
-      await expect(parseSitemapIndex(src, 1)).rejects.toThrow(
+      await assert.rejects(
+        () => parseSitemapIndex(src, 1),
         /exceeds maximum allowed entries/
       );
 
-      // Source stream must be destroyed immediately (not after full document consumption)
-      expect(src.destroyed).toBe(true);
-      // Counter must be far below max — early teardown, not full traversal
-      expect(i).toBeLessThan(max / 2);
+      assert.ok(src.destroyed);
+      assert.ok(i < max / 2);
     });
   });
 
@@ -504,8 +490,8 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('https://example.com/sitemap.xml');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'https://example.com/sitemap.xml');
     });
 
     it('accepts valid URLs in CDATA sections', async () => {
@@ -519,8 +505,8 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('https://example.com/sitemap.xml');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'https://example.com/sitemap.xml');
     });
   });
 
@@ -552,71 +538,77 @@ describe('Sitemap Index Security', () => {
         })
       );
 
-      // Should only get valid URL, invalid one silently skipped
-      expect(items).toHaveLength(1);
-      expect(items[0].url).toBe('https://example.com/sitemap.xml');
+      assert.strictEqual(items.length, 1);
+      assert.strictEqual(items[0].url, 'https://example.com/sitemap.xml');
     });
   });
 
   describe('xslUrl validation in SitemapIndexStream', () => {
     it('should accept valid https xslUrl', () => {
-      expect(
+      assert.doesNotThrow(
         () =>
           new SitemapIndexStream({ xslUrl: 'https://example.com/style.xsl' })
-      ).not.toThrow();
+      );
     });
 
     it('should accept valid http xslUrl', () => {
-      expect(
+      assert.doesNotThrow(
         () => new SitemapIndexStream({ xslUrl: 'http://example.com/style.xsl' })
-      ).not.toThrow();
+      );
     });
 
     it('should reject quote-breakout XML injection payload', () => {
-      expect(
+      assert.throws(
         () =>
           new SitemapIndexStream({
             xslUrl: 'https://attacker.test/x.xsl"?><evil>pwned</evil><!--',
-          })
-      ).toThrow(InvalidXSLUrlError);
+          }),
+        InvalidXSLUrlError
+      );
     });
 
     it('should reject ftp: protocol in xslUrl', () => {
-      expect(
-        () => new SitemapIndexStream({ xslUrl: 'ftp://example.com/style.xsl' })
-      ).toThrow(InvalidXSLUrlError);
+      assert.throws(
+        () => new SitemapIndexStream({ xslUrl: 'ftp://example.com/style.xsl' }),
+        InvalidXSLUrlError
+      );
     });
 
     it('should reject javascript: protocol in xslUrl', () => {
-      expect(
-        () => new SitemapIndexStream({ xslUrl: 'javascript:alert(1)' })
-      ).toThrow(InvalidXSLUrlError);
+      assert.throws(
+        () => new SitemapIndexStream({ xslUrl: 'javascript:alert(1)' }),
+        InvalidXSLUrlError
+      );
     });
 
     it('should reject data: protocol in xslUrl', () => {
-      expect(
+      assert.throws(
         () =>
           new SitemapIndexStream({
             xslUrl: 'data:text/html,<script>alert(1)</script>',
-          })
-      ).toThrow(InvalidXSLUrlError);
+          }),
+        InvalidXSLUrlError
+      );
     });
 
     it('should reject file: protocol in xslUrl', () => {
-      expect(
-        () => new SitemapIndexStream({ xslUrl: 'file:///etc/passwd' })
-      ).toThrow(InvalidXSLUrlError);
+      assert.throws(
+        () => new SitemapIndexStream({ xslUrl: 'file:///etc/passwd' }),
+        InvalidXSLUrlError
+      );
     });
 
     it('should reject empty xslUrl', () => {
-      expect(() => new SitemapIndexStream({ xslUrl: '' })).toThrow(
+      assert.throws(
+        () => new SitemapIndexStream({ xslUrl: '' }),
         InvalidXSLUrlError
       );
     });
 
     it('should reject xslUrl exceeding max length', () => {
       const longUrl = 'https://' + 'a'.repeat(2048) + '.com/style.xsl';
-      expect(() => new SitemapIndexStream({ xslUrl: longUrl })).toThrow(
+      assert.throws(
+        () => new SitemapIndexStream({ xslUrl: longUrl }),
         InvalidXSLUrlError
       );
     });
@@ -628,8 +620,10 @@ describe('Sitemap Index Security', () => {
       stream.write('https://example.com/sitemap.xml');
       stream.end();
       const result = (await streamToPromise(stream)).toString();
-      expect(result).toContain(
-        '<?xml-stylesheet type="text/xsl" href="https://example.com/style.xsl"?>'
+      assert.ok(
+        result.includes(
+          '<?xml-stylesheet type="text/xsl" href="https://example.com/style.xsl"?>'
+        )
       );
     });
   });
@@ -649,9 +643,8 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      // Empty URL should be filtered
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('https://example.com/sitemap.xml');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'https://example.com/sitemap.xml');
     });
 
     it('filters malformed URLs', async () => {
@@ -668,9 +661,8 @@ describe('Sitemap Index Security', () => {
       const readable = Readable.from([xml]);
       const result = await parseSitemapIndex(readable);
 
-      // Malformed URL should be filtered
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe('https://example.com/sitemap.xml');
+      assert.strictEqual(result.length, 1);
+      assert.strictEqual(result[0].url, 'https://example.com/sitemap.xml');
     });
   });
 });

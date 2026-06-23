@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-export const CACHE_FILE = path.join(__dirname, `~tempFile.tmp`);
+export const CACHE_FILE = path.join(import.meta.dirname, `~tempFile.tmp`);
 
 export function truncateSync(file: string): fs.Stats {
   const tempFile = fs.openSync(file, 'w');

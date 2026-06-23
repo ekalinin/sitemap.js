@@ -3,39 +3,31 @@ name: Node CI
 on: [push, pull_request]
 
 jobs:
-  # We do not strictly need an install-deps job
-  # because we do not kick of multiple jobs in parallel
-  # that would all try to install deps when the key changes.
-  # Skipping this saves a few seconds until the point where we need it.
-  # install-deps:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       node-version: [12.x, 14.x, 16.x]
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: ./.github/actions/configure-nodejs
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         lookup-only: 'true' # We only want to lookup from the cache - if a hit, this job does nothing
-
   build:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x, 22.x, 24.x]
+        node-version: [22.x, 24.x, 26.x]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
     steps:
-    - uses: actions/checkout@v4
-    - uses: ./.github/actions/configure-nodejs
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: Lint
-      run: npm run lint
-    - name: Check Formatting with Prettier
-      run: npm run prettier
-    - name: Build TypeScript
-      run: npm run build
-    - name: Unit Tests
-      run: npm run test
-    - name: XML Lint Test
-      run: npm run test:xmllint
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: ./.github/actions/configure-nodejs
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check Formatting with Prettier
+        run: npm run prettier
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Unit Tests
+        run: npm run test
+
+      - name: XML Lint Test
+        run: npm run test:xmllint

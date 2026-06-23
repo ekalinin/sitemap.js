@@ -3,10 +3,10 @@ import type { SAXStream } from 'sax';
 import {
   Readable,
   Transform,
-  TransformOptions,
-  TransformCallback,
+  type TransformOptions,
+  type TransformCallback,
 } from 'node:stream';
-import { IndexItem, ErrorLevel, IndexTagNames } from './types.js';
+import { type IndexItem, ErrorLevel, IndexTagNames } from './types.js';
 import { validateURL } from './validation.js';
 import { LIMITS } from './constants.js';
 

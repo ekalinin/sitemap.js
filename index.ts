@@ -5,19 +5,19 @@
  */
 export {
   SitemapItemStream,
-  SitemapItemStreamOptions,
+  type SitemapItemStreamOptions,
 } from './lib/sitemap-item-stream.js';
 export {
   IndexTagNames,
   SitemapIndexStream,
-  SitemapIndexStreamOptions,
+  type SitemapIndexStreamOptions,
   SitemapAndIndexStream,
-  SitemapAndIndexStreamOptions,
+  type SitemapAndIndexStreamOptions,
 } from './lib/sitemap-index-stream.js';
 export {
   streamToPromise,
   SitemapStream,
-  SitemapStreamOptions,
+  type SitemapStreamOptions,
 } from './lib/sitemap-stream.js';
 export * from './lib/errors.js';
 export * from './lib/types.js';
@@ -27,27 +27,27 @@ export {
   validateSMIOptions,
   normalizeURL,
   ReadlineStream,
-  ReadlineStreamOptions,
+  type ReadlineStreamOptions,
 } from './lib/utils.js';
 export { xmlLint } from './lib/xmllint.js';
 export {
   parseSitemap,
   XMLToSitemapItemStream,
-  XMLToSitemapItemStreamOptions,
+  type XMLToSitemapItemStreamOptions,
   ObjectStreamToJSON,
-  ObjectStreamToJSONOptions,
+  type ObjectStreamToJSONOptions,
 } from './lib/sitemap-parser.js';
 export {
   parseSitemapIndex,
   XMLToSitemapIndexStream,
-  XMLToSitemapIndexItemStreamOptions,
+  type XMLToSitemapIndexItemStreamOptions,
   IndexObjectStreamToJSON,
-  IndexObjectStreamToJSONOptions,
+  type IndexObjectStreamToJSONOptions,
 } from './lib/sitemap-index-parser.js';
 
 export {
   simpleSitemapAndIndex,
-  SimpleSitemapAndIndexOptions,
+  type SimpleSitemapAndIndexOptions,
 } from './lib/sitemap-simple.js';
 
 export {

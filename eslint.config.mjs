@@ -1,5 +1,4 @@
 import { defineConfig, globalIgnores } from "eslint/config";
-import jest from "eslint-plugin-jest";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
@@ -38,13 +37,11 @@ export default defineConfig([globalIgnores([
     ),
 
     plugins: {
-        jest,
         "@typescript-eslint": typescriptEslint,
     },
 
     languageOptions: {
         globals: {
-            ...globals.jest,
             ...globals.node,
         },
 

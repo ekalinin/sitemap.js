@@ -1,3 +1,5 @@
+import { describe, it, mock } from 'node:test';
+import assert from 'node:assert/strict';
 import { createReadStream } from 'node:fs';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
@@ -6,29 +8,36 @@ import {
   parseSitemapIndex,
   XMLToSitemapIndexStream,
   IndexObjectStreamToJSON,
-} from '../lib/sitemap-index-parser.js';
-import { ErrorLevel, IndexItem } from '../lib/types.js';
+} from '../dist/lib/sitemap-index-parser.js';
+import { ErrorLevel } from '../dist/lib/types.js';
+import type { IndexItem } from '../dist/lib/types.js';
 const pipeline = promisify(pipe);
-import normalizedSample from './mocks/sampleconfig-index.normalized.json';
+import normalizedSample from './mocks/sampleconfig-index.normalized.json' with { type: 'json' };
 
 describe('parseSitemapIndex', () => {
   it('parses xml into index-items', async () => {
     const urls = await parseSitemapIndex(
-      createReadStream(resolve(__dirname, './mocks/alltags-index.xml'), {
-        encoding: 'utf8',
-      })
+      createReadStream(
+        resolve(import.meta.dirname!, './mocks/alltags-index.xml'),
+        {
+          encoding: 'utf8',
+        }
+      )
     );
-    expect(urls).toEqual(normalizedSample.sitemaps);
+    assert.deepStrictEqual(urls, normalizedSample.sitemaps);
   });
 
   it('rejects malformed file', async () => {
-    await expect(async () =>
+    await assert.rejects(
       parseSitemapIndex(
-        createReadStream(resolve(__dirname, './mocks/index-unescaped-lt.xml'), {
-          encoding: 'utf8',
-        })
+        createReadStream(
+          resolve(import.meta.dirname!, './mocks/index-unescaped-lt.xml'),
+          {
+            encoding: 'utf8',
+          }
+        )
       )
-    ).rejects.toThrow();
+    );
   });
 });
 
@@ -36,9 +45,12 @@ describe('XMLToSitemapIndexItemStream', () => {
   it('stream parses XML', async () => {
     const sitemap: IndexItem[] = [];
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/alltags-index.xml'), {
-        encoding: 'utf8',
-      }),
+      createReadStream(
+        resolve(import.meta.dirname!, './mocks/alltags-index.xml'),
+        {
+          encoding: 'utf8',
+        }
+      ),
       new XMLToSitemapIndexStream(),
       new Writable({
         objectMode: true,
@@ -48,16 +60,19 @@ describe('XMLToSitemapIndexItemStream', () => {
         },
       })
     );
-    expect(sitemap).toEqual(normalizedSample.sitemaps);
+    assert.deepStrictEqual(sitemap, normalizedSample.sitemaps);
   });
 
   it('stream parses bad XML', async () => {
     const sitemap: IndexItem[] = [];
-    const logger = jest.fn();
+    const logger = mock.fn();
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/bad-tag-index.xml'), {
-        encoding: 'utf8',
-      }),
+      createReadStream(
+        resolve(import.meta.dirname!, './mocks/bad-tag-index.xml'),
+        {
+          encoding: 'utf8',
+        }
+      ),
       new XMLToSitemapIndexStream({ logger }),
       new Writable({
         objectMode: true,
@@ -67,19 +82,22 @@ describe('XMLToSitemapIndexItemStream', () => {
         },
       })
     );
-    expect(sitemap).toEqual(normalizedSample.sitemaps);
-    expect(logger.mock.calls.length).toBe(2);
-    expect(logger.mock.calls[0][1]).toBe('unhandled tag');
-    expect(logger.mock.calls[0][2]).toBe('foo');
+    assert.deepStrictEqual(sitemap, normalizedSample.sitemaps);
+    assert.strictEqual(logger.mock.calls.length, 2);
+    assert.strictEqual(logger.mock.calls[0].arguments[1], 'unhandled tag');
+    assert.strictEqual(logger.mock.calls[0].arguments[2], 'foo');
   });
 
   it('stream parses bad XML - silently', async () => {
     const sitemap: IndexItem[] = [];
-    const logger = jest.fn();
+    const logger = mock.fn();
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/bad-tag-index.xml'), {
-        encoding: 'utf8',
-      }),
+      createReadStream(
+        resolve(import.meta.dirname!, './mocks/bad-tag-index.xml'),
+        {
+          encoding: 'utf8',
+        }
+      ),
       new XMLToSitemapIndexStream({ logger, level: ErrorLevel.SILENT }),
       new Writable({
         objectMode: true,
@@ -89,17 +107,20 @@ describe('XMLToSitemapIndexItemStream', () => {
         },
       })
     );
-    expect(sitemap).toEqual(normalizedSample.sitemaps);
-    expect(logger.mock.calls.length).toBe(0);
+    assert.deepStrictEqual(sitemap, normalizedSample.sitemaps);
+    assert.strictEqual(logger.mock.calls.length, 0);
   });
 
   it('stream parses XML with cdata', async () => {
     const sitemap: IndexItem[] = [];
-    const logger = jest.fn();
+    const logger = mock.fn();
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/alltags-index.cdata.xml'), {
-        encoding: 'utf8',
-      }),
+      createReadStream(
+        resolve(import.meta.dirname!, './mocks/alltags-index.cdata.xml'),
+        {
+          encoding: 'utf8',
+        }
+      ),
       new XMLToSitemapIndexStream({ logger }),
       new Writable({
         objectMode: true,
@@ -109,21 +130,27 @@ describe('XMLToSitemapIndexItemStream', () => {
         },
       })
     );
-    expect(sitemap).toEqual(normalizedSample.sitemaps);
-    expect(logger.mock.calls.length).toBe(2);
-    expect(logger.mock.calls[0][1]).toBe('unhandled tag');
-    expect(logger.mock.calls[0][2]).toBe('foo');
-    expect(logger.mock.calls[1][1]).toBe('unhandled cdata for tag:');
-    expect(logger.mock.calls[1][2]).toBe('foo');
+    assert.deepStrictEqual(sitemap, normalizedSample.sitemaps);
+    assert.strictEqual(logger.mock.calls.length, 2);
+    assert.strictEqual(logger.mock.calls[0].arguments[1], 'unhandled tag');
+    assert.strictEqual(logger.mock.calls[0].arguments[2], 'foo');
+    assert.strictEqual(
+      logger.mock.calls[1].arguments[1],
+      'unhandled cdata for tag:'
+    );
+    assert.strictEqual(logger.mock.calls[1].arguments[2], 'foo');
   });
 
   it('stream parses XML with cdata - silently', async () => {
     const sitemap: IndexItem[] = [];
-    const logger = jest.fn();
+    const logger = mock.fn();
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/alltags-index.cdata.xml'), {
-        encoding: 'utf8',
-      }),
+      createReadStream(
+        resolve(import.meta.dirname!, './mocks/alltags-index.cdata.xml'),
+        {
+          encoding: 'utf8',
+        }
+      ),
       new XMLToSitemapIndexStream({ logger, level: ErrorLevel.SILENT }),
       new Writable({
         objectMode: true,
@@ -133,8 +160,8 @@ describe('XMLToSitemapIndexItemStream', () => {
         },
       })
     );
-    expect(sitemap).toEqual(normalizedSample.sitemaps);
-    expect(logger.mock.calls.length).toBe(0);
+    assert.deepStrictEqual(sitemap, normalizedSample.sitemaps);
+    assert.strictEqual(logger.mock.calls.length, 0);
   });
 });
 
@@ -163,6 +190,6 @@ describe('ObjectStreamToJSON', () => {
         },
       })
     );
-    expect(sitemap).toBe(JSON.stringify(items));
+    assert.strictEqual(sitemap, JSON.stringify(items));
   });
 });

@@ -1,9 +1,11 @@
+import { describe, it, mock } from 'node:test';
+import assert from 'node:assert/strict';
 import { Readable, Writable } from 'node:stream';
 import { promisify } from 'node:util';
 import { pipeline as pipe } from 'node:stream';
-import { XMLToSitemapItemStream } from '../lib/sitemap-parser.js';
-import { SitemapItem } from '../lib/types.js';
-import { LIMITS } from '../lib/constants.js';
+import { XMLToSitemapItemStream } from '../dist/lib/sitemap-parser.js';
+import type { SitemapItem } from '../dist/lib/types.js';
+import { LIMITS } from '../dist/lib/constants.js';
 
 const pipeline = promisify(pipe);
 
@@ -19,7 +21,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -33,9 +35,12 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('URL exceeds max length')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'URL exceeds max length'
+        )
       );
     });
 
@@ -51,7 +56,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -65,12 +70,16 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('must start with http://')
+      const warnCalls = logger.mock.calls.filter(
+        (c: { arguments: unknown[] }) => c.arguments[0] === 'warn'
       );
-      expect(sitemap[0].url).not.toBe('javascript:alert(1)');
-      expect(sitemap[1].url).not.toBe('file:///etc/passwd');
+      assert.ok(
+        warnCalls.some((c: { arguments: unknown[] }) =>
+          (c.arguments[1] as string).includes('must start with http://')
+        )
+      );
+      assert.notStrictEqual(sitemap[0].url, 'javascript:alert(1)');
+      assert.notStrictEqual(sitemap[1].url, 'file:///etc/passwd');
     });
   });
 
@@ -90,7 +99,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -104,11 +113,15 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('too many images')
+      const imgWarnCalls = logger.mock.calls.filter(
+        (c: { arguments: unknown[] }) => c.arguments[0] === 'warn'
       );
-      expect(sitemap[0].img.length).toBeLessThanOrEqual(1000);
+      assert.ok(
+        imgWarnCalls.some((c: { arguments: unknown[] }) =>
+          (c.arguments[1] as string).includes('too many images')
+        )
+      );
+      assert.ok(sitemap[0].img!.length <= 1000);
     });
 
     it('should limit number of videos per URL', async () => {
@@ -133,7 +146,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -147,11 +160,15 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('too many videos')
+      const vidWarnCalls = logger.mock.calls.filter(
+        (c: { arguments: unknown[] }) => c.arguments[0] === 'warn'
       );
-      expect(sitemap[0].video.length).toBeLessThanOrEqual(100);
+      assert.ok(
+        vidWarnCalls.some((c: { arguments: unknown[] }) =>
+          (c.arguments[1] as string).includes('too many videos')
+        )
+      );
+      assert.ok(sitemap[0].video!.length <= 100);
     });
 
     it('should limit number of tags per video', async () => {
@@ -170,7 +187,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -184,11 +201,15 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('too many tags')
+      const tagWarnCalls = logger.mock.calls.filter(
+        (c: { arguments: unknown[] }) => c.arguments[0] === 'warn'
       );
-      expect(sitemap[0].video[0].tag.length).toBeLessThanOrEqual(32);
+      assert.ok(
+        tagWarnCalls.some((c: { arguments: unknown[] }) =>
+          (c.arguments[1] as string).includes('too many tags')
+        )
+      );
+      assert.ok(sitemap[0].video![0].tag!.length <= 32);
     });
   });
 
@@ -208,7 +229,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -222,9 +243,12 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('video title exceeds max length')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'video title exceeds max length'
+        )
       );
     });
 
@@ -243,7 +267,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -257,9 +281,12 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('video description exceeds max length')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'video description exceeds max length'
+        )
       );
     });
   });
@@ -275,7 +302,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -289,11 +316,14 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('Invalid priority')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'Invalid priority'
+        )
       );
-      expect(sitemap[0].priority).toBeUndefined();
+      assert.strictEqual(sitemap[0].priority, undefined);
     });
 
     it('should reject out-of-range priority', async () => {
@@ -306,7 +336,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -320,11 +350,14 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('Invalid priority')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'Invalid priority'
+        )
       );
-      expect(sitemap[0].priority).toBeUndefined();
+      assert.strictEqual(sitemap[0].priority, undefined);
     });
 
     it('should reject invalid video duration', async () => {
@@ -342,7 +375,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -356,9 +389,12 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('Invalid video duration')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'Invalid video duration'
+        )
       );
     });
 
@@ -377,7 +413,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -391,9 +427,12 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('Invalid video rating')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'Invalid video rating'
+        )
       );
     });
   });
@@ -409,7 +448,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -423,9 +462,12 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('Invalid lastmod date format')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'Invalid lastmod date format'
+        )
       );
     });
 
@@ -439,7 +481,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -453,7 +495,7 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(sitemap[0].lastmod).toBe('2024-01-15T10:30:00Z');
+      assert.strictEqual(sitemap[0].lastmod, '2024-01-15T10:30:00Z');
     });
   });
 
@@ -476,7 +518,7 @@ describe('sitemap-parser security tests', () => {
 </urlset>`;
 
       const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+      const logger = mock.fn();
 
       await pipeline(
         Readable.from([xml]),
@@ -490,45 +532,57 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('Invalid news:access value')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'Invalid news:access value'
+        )
       );
     });
   });
 
   describe('sitemap entry limit', () => {
-    it('should warn when exceeding 50k URL entries', async () => {
-      // Generate a sitemap with more than 50k URLs (just test a few over limit)
-      const urls = Array(50010)
-        .fill('<url><loc>http://example.com</loc></url>')
-        .join('');
-      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    // Longer timeout for this test
+    it(
+      'should warn when exceeding 50k URL entries',
+      { timeout: 60000 },
+      async () => {
+        // Generate a sitemap with more than 50k URLs (just test a few over limit)
+        const urls = Array(50010)
+          .fill('<url><loc>http://example.com</loc></url>')
+          .join('');
+        const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   ${urls}
 </urlset>`;
 
-      const sitemap: SitemapItem[] = [];
-      const logger = jest.fn();
+        const sitemap: SitemapItem[] = [];
+        const logger = mock.fn();
 
-      await pipeline(
-        Readable.from([xml]),
-        new XMLToSitemapItemStream({ logger }),
-        new Writable({
-          objectMode: true,
-          write(chunk, a, cb): void {
-            sitemap.push(chunk);
-            cb();
-          },
-        })
-      );
+        await pipeline(
+          Readable.from([xml]),
+          new XMLToSitemapItemStream({ logger }),
+          new Writable({
+            objectMode: true,
+            write(chunk, a, cb): void {
+              sitemap.push(chunk);
+              cb();
+            },
+          })
+        );
 
-      expect(logger).toHaveBeenCalledWith(
-        'error',
-        expect.stringContaining('exceeds maximum of 50000 URLs')
-      );
-      expect(sitemap.length).toBeLessThanOrEqual(LIMITS.MAX_URL_ENTRIES);
-    }, 60000); // Longer timeout for this test
+        const errorCalls = logger.mock.calls.filter(
+          (c: { arguments: unknown[] }) => c.arguments[0] === 'error'
+        );
+        assert.ok(
+          errorCalls.some((c: { arguments: unknown[] }) =>
+            (c.arguments[1] as string).includes('exceeds maximum of 50000 URLs')
+          )
+        );
+        assert.ok(sitemap.length <= LIMITS.MAX_URL_ENTRIES);
+      }
+    );
   });
 
   describe('dontpushCurrentLink bug fix', () => {
@@ -557,11 +611,10 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      // Should have 2 links (es and fr), not just es
-      expect(sitemap[0].links.length).toBe(2);
-      expect(sitemap[0].links[0].lang).toBe('es');
-      expect(sitemap[0].links[1].lang).toBe('fr');
-      expect(sitemap[0].ampLink).toBe('http://example.com/amp');
+      assert.strictEqual(sitemap[0].links!.length, 2);
+      assert.strictEqual(sitemap[0].links![0].lang, 'es');
+      assert.strictEqual(sitemap[0].links![1].lang, 'fr');
+      assert.strictEqual(sitemap[0].ampLink, 'http://example.com/amp');
     });
   });
 
@@ -591,21 +644,22 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      // Should have collected multiple errors
-      expect(parser.errors.length).toBeGreaterThan(1);
-      expect(
-        parser.errors.some((e) =>
+      assert.ok(parser.errors.length > 1);
+      assert.ok(
+        parser.errors.some((e: Error) =>
           e.message.includes('URL must start with http')
         )
-      ).toBe(true);
+      );
 
-      expect(
-        parser.errors.some((e) => e.message.includes('Invalid priority'))
-      ).toBe(true);
+      assert.ok(
+        parser.errors.some((e: Error) => e.message.includes('Invalid priority'))
+      );
 
-      expect(
-        parser.errors.some((e) => e.message.includes('Invalid lastmod date'))
-      ).toBe(true);
+      assert.ok(
+        parser.errors.some((e: Error) =>
+          e.message.includes('Invalid lastmod date')
+        )
+      );
     });
   });
 
@@ -632,7 +686,7 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(sitemap[0].changefreq).toBe('daily');
+      assert.strictEqual(sitemap[0].changefreq, 'daily');
     });
 
     it('should handle valid yes/no values', async () => {
@@ -664,9 +718,9 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(sitemap[0].video[0].family_friendly).toBe('yes');
-      expect(sitemap[0].video[0].requires_subscription).toBe('no');
-      expect(sitemap[0].video[0].live).toBe('YES');
+      assert.strictEqual(sitemap[0].video![0].family_friendly, 'yes');
+      assert.strictEqual(sitemap[0].video![0].requires_subscription, 'no');
+      assert.strictEqual(sitemap[0].video![0].live, 'YES');
     });
 
     it('should handle Infinity priority', async () => {
@@ -678,7 +732,7 @@ describe('sitemap-parser security tests', () => {
   </url>
 </urlset>`;
 
-      const logger = jest.fn();
+      const logger = mock.fn();
       const sitemap: SitemapItem[] = [];
       await pipeline(
         Readable.from([xml]),
@@ -692,9 +746,12 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('Invalid priority')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'Invalid priority'
+        )
       );
     });
 
@@ -712,7 +769,7 @@ describe('sitemap-parser security tests', () => {
   </url>
 </urlset>`;
 
-      const logger = jest.fn();
+      const logger = mock.fn();
       const sitemap: SitemapItem[] = [];
       await pipeline(
         Readable.from([xml]),
@@ -726,9 +783,12 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('Invalid video duration')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'Invalid video duration'
+        )
       );
     });
 
@@ -757,7 +817,7 @@ describe('sitemap-parser security tests', () => {
   </url>
 </urlset>`;
 
-      const logger = jest.fn();
+      const logger = mock.fn();
       const sitemap: SitemapItem[] = [];
       await pipeline(
         Readable.from([xml]),
@@ -771,14 +831,19 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('publication_date')
+      const warnCalls = logger.mock.calls.filter(
+        (c: { arguments: unknown[] }) => c.arguments[0] === 'warn'
+      );
+      assert.ok(
+        warnCalls.some((c: { arguments: unknown[] }) =>
+          (c.arguments[1] as string).includes('publication_date')
+        )
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('expiration_date')
+      assert.ok(
+        warnCalls.some((c: { arguments: unknown[] }) =>
+          (c.arguments[1] as string).includes('expiration_date')
+        )
       );
     });
 
@@ -791,7 +856,7 @@ describe('sitemap-parser security tests', () => {
   </url>
 </urlset>`;
 
-      const logger = jest.fn();
+      const logger = mock.fn();
       const sitemap: SitemapItem[] = [];
       await pipeline(
         Readable.from([xml]),
@@ -805,9 +870,12 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('missing required rel or href')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'missing required rel or href'
+        )
       );
     });
 
@@ -833,7 +901,7 @@ describe('sitemap-parser security tests', () => {
   </url>
 </urlset>`;
 
-      const logger = jest.fn();
+      const logger = mock.fn();
       const sitemap: SitemapItem[] = [];
       await pipeline(
         Readable.from([xml]),
@@ -847,9 +915,12 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('video title exceeds max length')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'video title exceeds max length'
+        )
       );
     });
 
@@ -895,22 +966,30 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(sitemap[0].video[0].player_loc).toBe('http://example.com/player');
+      assert.strictEqual(
+        sitemap[0].video![0].player_loc,
+        'http://example.com/player'
+      );
 
-      expect(sitemap[0].video[0].content_loc).toBe(
+      assert.strictEqual(
+        sitemap[0].video![0].content_loc,
         'http://example.com/content.mp4'
       );
-      expect(sitemap[0].video[0].id).toBe('video123');
-      expect(sitemap[0].video[0].restriction).toBe('US CA');
-      expect(sitemap[0].video[0].uploader).toBe('John Doe');
-      expect(sitemap[0].video[0].platform).toBe('web mobile');
-      expect(sitemap[0].video[0].price).toBe('9.99');
-      expect(sitemap[0].video[0].category).toBe('Sports');
-      expect(sitemap[0].video[0].gallery_loc).toBe(
+      assert.strictEqual(sitemap[0].video![0].id, 'video123');
+      assert.strictEqual(sitemap[0].video![0].restriction, 'US CA');
+      assert.strictEqual(sitemap[0].video![0].uploader, 'John Doe');
+      assert.strictEqual(sitemap[0].video![0].platform, 'web mobile');
+      assert.strictEqual(sitemap[0].video![0].price, '9.99');
+      assert.strictEqual(sitemap[0].video![0].category, 'Sports');
+      assert.strictEqual(
+        sitemap[0].video![0].gallery_loc,
         'http://example.com/gallery'
       );
-      expect(sitemap[0].img[0].geoLocation).toBe('Los Angeles, CA');
-      expect(sitemap[0].img[0].license).toBe('http://example.com/license');
+      assert.strictEqual(sitemap[0].img![0].geoLocation, 'Los Angeles, CA');
+      assert.strictEqual(
+        sitemap[0].img![0].license,
+        'http://example.com/license'
+      );
     });
 
     it('should handle news with all fields', async () => {
@@ -947,10 +1026,13 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(sitemap[0].news?.access).toBe('Registration');
-      expect(sitemap[0].news?.genres).toBe('Blog, Opinion');
-      expect(sitemap[0].news?.keywords).toBe('news, breaking, update');
-      expect(sitemap[0].news?.stock_tickers).toBe('NASDAQ:AAPL, NYSE:GOOGL');
+      assert.strictEqual(sitemap[0].news?.access, 'Registration');
+      assert.strictEqual(sitemap[0].news?.genres, 'Blog, Opinion');
+      assert.strictEqual(sitemap[0].news?.keywords, 'news, breaking, update');
+      assert.strictEqual(
+        sitemap[0].news?.stock_tickers,
+        'NASDAQ:AAPL, NYSE:GOOGL'
+      );
     });
 
     it('should handle mobile:mobile tag', async () => {
@@ -975,7 +1057,7 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(sitemap[0].url).toBe('http://example.com');
+      assert.strictEqual(sitemap[0].url, 'http://example.com');
     });
 
     it('should handle oversized image caption on first chunk', async () => {
@@ -991,7 +1073,7 @@ describe('sitemap-parser security tests', () => {
   </url>
 </urlset>`;
 
-      const logger = jest.fn();
+      const logger = mock.fn();
       const sitemap: SitemapItem[] = [];
       await pipeline(
         Readable.from([xml]),
@@ -1005,11 +1087,14 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('image caption exceeds max length')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'image caption exceeds max length'
+        )
       );
-      expect(sitemap[0].img[0].caption?.length).toBeLessThanOrEqual(512);
+      assert.ok(sitemap[0].img![0].caption!.length <= 512);
     });
 
     it('should handle oversized image title on first chunk', async () => {
@@ -1025,7 +1110,7 @@ describe('sitemap-parser security tests', () => {
   </url>
 </urlset>`;
 
-      const logger = jest.fn();
+      const logger = mock.fn();
       const sitemap: SitemapItem[] = [];
       await pipeline(
         Readable.from([xml]),
@@ -1039,11 +1124,14 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(logger).toHaveBeenCalledWith(
-        'warn',
-        expect.stringContaining('image title exceeds max length')
+      assert.strictEqual(logger.mock.calls.length, 1);
+      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.ok(
+        (logger.mock.calls[0].arguments[1] as string).includes(
+          'image title exceeds max length'
+        )
       );
-      expect(sitemap[0].img[0].title?.length).toBeLessThanOrEqual(512);
+      assert.ok(sitemap[0].img![0].title!.length <= 512);
     });
 
     it('should handle video attributes', async () => {
@@ -1078,16 +1166,16 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      const video = sitemap[0].video[0];
-      expect(video['player_loc:autoplay']).toBe('yes');
-      expect(video['player_loc:allow_embed']).toBe('no');
-      expect(video['restriction:relationship']).toBe('deny');
-      expect(video['platform:relationship']).toBe('allow');
-      expect(video['price:currency']).toBe('USD');
-      expect(video['price:type']).toBe('rent');
-      expect(video['price:resolution']).toBe('HD');
-      expect(video['uploader:info']).toBe('http://example.com/uploader');
-      expect(video['gallery_loc:title']).toBe('Gallery');
+      const video = sitemap[0].video![0];
+      assert.strictEqual(video['player_loc:autoplay'], 'yes');
+      assert.strictEqual(video['player_loc:allow_embed'], 'no');
+      assert.strictEqual(video['restriction:relationship'], 'deny');
+      assert.strictEqual(video['platform:relationship'], 'allow');
+      assert.strictEqual(video['price:currency'], 'USD');
+      assert.strictEqual(video['price:type'], 'rent');
+      assert.strictEqual(video['price:resolution'], 'HD');
+      assert.strictEqual(video['uploader:info'], 'http://example.com/uploader');
+      assert.strictEqual(video['gallery_loc:title'], 'Gallery');
     });
   });
 
@@ -1112,10 +1200,8 @@ describe('sitemap-parser security tests', () => {
         })
       );
 
-      expect(parser.errors.length).toBeLessThanOrEqual(
-        LIMITS.MAX_PARSER_ERRORS
-      );
-      expect(parser.errorCount).toBeGreaterThan(LIMITS.MAX_PARSER_ERRORS);
+      assert.ok(parser.errors.length <= LIMITS.MAX_PARSER_ERRORS);
+      assert.ok(parser.errorCount > LIMITS.MAX_PARSER_ERRORS);
     });
   });
 });

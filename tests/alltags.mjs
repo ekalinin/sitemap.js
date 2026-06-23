@@ -2,7 +2,7 @@ import { createReadStream } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
-import { SitemapStream } from '../dist/esm/index.js';
+import { SitemapStream } from '../dist/index.js';
 // external libs provided as example only
 import Pick from 'stream-json/filters/Pick.js';
 import StreamArray from 'stream-json/streamers/StreamArray.js';
@@ -29,11 +29,3 @@ async function run() {
   );
 }
 run();
-/*
-let urls = []
-config.urls.forEach((smi) => {
-  urls.push(validateSMIOptions(Sitemap.normalizeURL(smi, 'https://roosterteeth.com')))
-})
-config.urls = urls
-  console.log(JSON.stringify(config, null, 2))
-  */
