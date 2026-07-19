@@ -21,6 +21,12 @@ import {
   isAllowDeny,
   isPriceType,
   isResolution,
+  isValidPriority,
+  isValidVideoDuration,
+  isValidVideoRating,
+  isValidVideoViewCount,
+  isValidISODate,
+  validateURL,
 } from './validation.js';
 import { LIMITS } from './constants.js';
 
@@ -175,26 +181,21 @@ export class XMLToSitemapItemStream extends Transform {
       }
     });
 
-    this.saxStream.on('text', (text): void => {
+    // Per ADR 0001, CDATA sections are ordinary character data: both SAX
+    // events route through this one handler.
+    const handleCharData = (text: string): void => {
       switch (currentTag) {
         case 'mobile:mobile':
           break;
         case TagNames.loc:
-          // Validate URL
-          if (text.length > LIMITS.MAX_URL_LENGTH) {
-            this.logger(
-              'warn',
-              `URL exceeds max length of ${LIMITS.MAX_URL_LENGTH}: ${text.substring(0, 100)}...`
-            );
-            this.err(`URL exceeds max length of ${LIMITS.MAX_URL_LENGTH}`);
-          } else if (!LIMITS.URL_PROTOCOL_REGEX.test(text)) {
-            this.logger(
-              'warn',
-              `URL must start with http:// or https://: ${text}`
-            );
-            this.err(`URL must start with http:// or https://: ${text}`);
-          } else {
+          try {
+            validateURL(text, 'Sitemap URL');
             currentItem.url = text;
+          } catch (error) {
+            const errMsg =
+              error instanceof Error ? error.message : String(error);
+            this.logger('warn', 'Invalid URL in sitemap:', errMsg);
+            this.err(`Invalid URL in sitemap: ${errMsg}`);
           }
           break;
         case TagNames.changefreq:
@@ -205,12 +206,7 @@ export class XMLToSitemapItemStream extends Transform {
         case TagNames.priority:
           {
             const priority = parseFloat(text);
-            if (
-              isNaN(priority) ||
-              !isFinite(priority) ||
-              priority < 0 ||
-              priority > 1
-            ) {
+            if (!isValidPriority(priority)) {
               this.logger(
                 'warn',
                 `Invalid priority "${text}" - must be between 0 and 1`
@@ -222,7 +218,7 @@ export class XMLToSitemapItemStream extends Transform {
           }
           break;
         case TagNames.lastmod:
-          if (LIMITS.ISO_DATE_REGEX.test(text)) {
+          if (isValidISODate(text)) {
             currentItem.lastmod = text;
           } else {
             this.logger(
@@ -255,12 +251,7 @@ export class XMLToSitemapItemStream extends Transform {
         case TagNames['video:duration']:
           {
             const duration = parseInt(text, 10);
-            if (
-              isNaN(duration) ||
-              !isFinite(duration) ||
-              duration < 0 ||
-              duration > 28800
-            ) {
+            if (!isValidVideoDuration(duration)) {
               this.logger(
                 'warn',
                 `Invalid video duration "${text}" - must be between 0 and 28800 seconds`
@@ -286,7 +277,7 @@ export class XMLToSitemapItemStream extends Transform {
           }
           break;
         case TagNames['video:publication_date']:
-          if (LIMITS.ISO_DATE_REGEX.test(text)) {
+          if (isValidISODate(text)) {
             currentVideo.publication_date = text;
           } else {
             this.logger(
@@ -308,7 +299,7 @@ export class XMLToSitemapItemStream extends Transform {
         case TagNames['video:view_count']:
           {
             const viewCount = parseInt(text, 10);
-            if (isNaN(viewCount) || !isFinite(viewCount) || viewCount < 0) {
+            if (!isValidVideoViewCount(viewCount)) {
               this.logger(
                 'warn',
                 `Invalid video view_count "${text}" - must be a positive integer`
@@ -331,7 +322,7 @@ export class XMLToSitemapItemStream extends Transform {
           }
           break;
         case TagNames['video:expiration_date']:
-          if (LIMITS.ISO_DATE_REGEX.test(text)) {
+          if (isValidISODate(text)) {
             currentVideo.expiration_date = text;
           } else {
             this.logger(
@@ -353,12 +344,7 @@ export class XMLToSitemapItemStream extends Transform {
         case TagNames['video:rating']:
           {
             const rating = parseFloat(text);
-            if (
-              isNaN(rating) ||
-              !isFinite(rating) ||
-              rating < 0 ||
-              rating > 5
-            ) {
+            if (!isValidVideoRating(rating)) {
               this.logger(
                 'warn',
                 `Invalid video rating "${text}" - must be between 0 and 5`
@@ -419,7 +405,7 @@ export class XMLToSitemapItemStream extends Transform {
           if (!currentItem.news) {
             currentItem.news = newsTemplate();
           }
-          if (LIMITS.ISO_DATE_REGEX.test(text)) {
+          if (isValidISODate(text)) {
             currentItem.news.publication_date = text;
           } else {
             this.logger(
@@ -600,176 +586,10 @@ export class XMLToSitemapItemStream extends Transform {
           this.err(`unhandled text for tag: ${currentTag} '${text}'`);
           break;
       }
-    });
+    };
 
-    this.saxStream.on('cdata', (text): void => {
-      switch (currentTag) {
-        case TagNames.loc:
-          // Validate URL
-          if (text.length > LIMITS.MAX_URL_LENGTH) {
-            this.logger(
-              'warn',
-              `URL exceeds max length of ${LIMITS.MAX_URL_LENGTH}: ${text.substring(0, 100)}...`
-            );
-            this.err(`URL exceeds max length of ${LIMITS.MAX_URL_LENGTH}`);
-          } else if (!LIMITS.URL_PROTOCOL_REGEX.test(text)) {
-            this.logger(
-              'warn',
-              `URL must start with http:// or https://: ${text}`
-            );
-            this.err(`URL must start with http:// or https://: ${text}`);
-          } else {
-            currentItem.url = text;
-          }
-          break;
-        case TagNames['image:loc']:
-          currentImage.url = text;
-          break;
-        case TagNames['video:title']:
-          if (
-            currentVideo.title.length + text.length <=
-            LIMITS.MAX_VIDEO_TITLE_LENGTH
-          ) {
-            currentVideo.title += text;
-          } else {
-            this.logger(
-              'warn',
-              `video title exceeds max length of ${LIMITS.MAX_VIDEO_TITLE_LENGTH}`
-            );
-
-            this.err(
-              `video title exceeds max length of ${LIMITS.MAX_VIDEO_TITLE_LENGTH}`
-            );
-          }
-          break;
-        case TagNames['video:description']:
-          if (
-            currentVideo.description.length + text.length <=
-            LIMITS.MAX_VIDEO_DESCRIPTION_LENGTH
-          ) {
-            currentVideo.description += text;
-          } else {
-            this.logger(
-              'warn',
-              `video description exceeds max length of ${LIMITS.MAX_VIDEO_DESCRIPTION_LENGTH}`
-            );
-
-            this.err(
-              `video description exceeds max length of ${LIMITS.MAX_VIDEO_DESCRIPTION_LENGTH}`
-            );
-          }
-          break;
-        case TagNames['news:name']:
-          if (!currentItem.news) {
-            currentItem.news = newsTemplate();
-          }
-          if (
-            currentItem.news.publication.name.length + text.length <=
-            LIMITS.MAX_NEWS_NAME_LENGTH
-          ) {
-            currentItem.news.publication.name += text;
-          } else {
-            this.logger(
-              'warn',
-              `news name exceeds max length of ${LIMITS.MAX_NEWS_NAME_LENGTH}`
-            );
-
-            this.err(
-              `news name exceeds max length of ${LIMITS.MAX_NEWS_NAME_LENGTH}`
-            );
-          }
-          break;
-        case TagNames['news:title']:
-          if (!currentItem.news) {
-            currentItem.news = newsTemplate();
-          }
-          if (
-            currentItem.news.title.length + text.length <=
-            LIMITS.MAX_NEWS_TITLE_LENGTH
-          ) {
-            currentItem.news.title += text;
-          } else {
-            this.logger(
-              'warn',
-              `news title exceeds max length of ${LIMITS.MAX_NEWS_TITLE_LENGTH}`
-            );
-
-            this.err(
-              `news title exceeds max length of ${LIMITS.MAX_NEWS_TITLE_LENGTH}`
-            );
-          }
-          break;
-        case TagNames['image:caption']:
-          if (!currentImage.caption) {
-            currentImage.caption =
-              text.length <= LIMITS.MAX_IMAGE_CAPTION_LENGTH
-                ? text
-                : text.substring(0, LIMITS.MAX_IMAGE_CAPTION_LENGTH);
-            if (text.length > LIMITS.MAX_IMAGE_CAPTION_LENGTH) {
-              this.logger(
-                'warn',
-                `image caption exceeds max length of ${LIMITS.MAX_IMAGE_CAPTION_LENGTH}`
-              );
-
-              this.err(
-                `image caption exceeds max length of ${LIMITS.MAX_IMAGE_CAPTION_LENGTH}`
-              );
-            }
-          } else if (
-            currentImage.caption.length + text.length <=
-            LIMITS.MAX_IMAGE_CAPTION_LENGTH
-          ) {
-            currentImage.caption += text;
-          } else {
-            this.logger(
-              'warn',
-              `image caption exceeds max length of ${LIMITS.MAX_IMAGE_CAPTION_LENGTH}`
-            );
-
-            this.err(
-              `image caption exceeds max length of ${LIMITS.MAX_IMAGE_CAPTION_LENGTH}`
-            );
-          }
-          break;
-        case TagNames['image:title']:
-          if (!currentImage.title) {
-            currentImage.title =
-              text.length <= LIMITS.MAX_IMAGE_TITLE_LENGTH
-                ? text
-                : text.substring(0, LIMITS.MAX_IMAGE_TITLE_LENGTH);
-            if (text.length > LIMITS.MAX_IMAGE_TITLE_LENGTH) {
-              this.logger(
-                'warn',
-                `image title exceeds max length of ${LIMITS.MAX_IMAGE_TITLE_LENGTH}`
-              );
-
-              this.err(
-                `image title exceeds max length of ${LIMITS.MAX_IMAGE_TITLE_LENGTH}`
-              );
-            }
-          } else if (
-            currentImage.title.length + text.length <=
-            LIMITS.MAX_IMAGE_TITLE_LENGTH
-          ) {
-            currentImage.title += text;
-          } else {
-            this.logger(
-              'warn',
-              `image title exceeds max length of ${LIMITS.MAX_IMAGE_TITLE_LENGTH}`
-            );
-
-            this.err(
-              `image title exceeds max length of ${LIMITS.MAX_IMAGE_TITLE_LENGTH}`
-            );
-          }
-          break;
-
-        default:
-          this.logger('log', 'unhandled cdata for tag:', currentTag);
-          this.err(`unhandled cdata for tag: ${currentTag}`);
-          break;
-      }
-    });
+    this.saxStream.on('text', handleCharData);
+    this.saxStream.on('cdata', handleCharData);
 
     this.saxStream.on('attribute', (attr): void => {
       switch (currentTag) {

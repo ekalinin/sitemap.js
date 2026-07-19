@@ -35,7 +35,8 @@ describe('sitemap-parser security tests', () => {
 
       expect(logger).toHaveBeenCalledWith(
         'warn',
-        expect.stringContaining('URL exceeds max length')
+        'Invalid URL in sitemap:',
+        expect.stringContaining('exceeds maximum length')
       );
     });
 
@@ -67,7 +68,8 @@ describe('sitemap-parser security tests', () => {
 
       expect(logger).toHaveBeenCalledWith(
         'warn',
-        expect.stringContaining('must start with http://')
+        'Invalid URL in sitemap:',
+        expect.stringContaining('must use http:// or https:// protocol')
       );
       expect(sitemap[0].url).not.toBe('javascript:alert(1)');
       expect(sitemap[1].url).not.toBe('file:///etc/passwd');
@@ -595,7 +597,7 @@ describe('sitemap-parser security tests', () => {
       expect(parser.errors.length).toBeGreaterThan(1);
       expect(
         parser.errors.some((e) =>
-          e.message.includes('URL must start with http')
+          e.message.includes('must use http:// or https:// protocol')
         )
       ).toBe(true);
 

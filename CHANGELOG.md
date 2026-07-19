@@ -1,5 +1,11 @@
 # Changelog
 
+## 9.1.0
+
+- **CDATA accepted everywhere in the sitemap parser**: `XMLToSitemapItemStream` now treats CDATA sections as ordinary character data in every tag. Previously only the 8 tags from issue #445 (`loc`, `image:loc`, `video:title`, `video:description`, `news:name`, `news:title`, `image:caption`, `image:title`) accepted CDATA; content in any other tag was logged as unhandled. (See `docs/adr/0001-cdata-is-character-data.md`.)
+- **Unified `<loc>` validation**: the sitemap parser now validates `<loc>` values with the same `validateURL` used by the sitemap index parser, adding a URL-parseability check on top of the existing length and protocol checks. A rare malformed URL that passed the old checks but fails `new URL()` is now dropped with a warning. Warn/error messages for invalid `<loc>` values changed to the `Invalid URL in sitemap: …` form.
+- Internal: the parser's duplicated `text`/`cdata` SAX handlers were collapsed into one, and its inline bounds checks (priority, video duration/rating/view count, ISO dates) now delegate to shared guards in `lib/validation.ts`, with the bounds defined once in `LIMITS`.
+
 ## 9.0.1 — Security Patch
 
 - **BB-01**: Fix XML injection via unescaped `xslUrl` in stylesheet processing instruction — special characters (`&`, `"`, `<`, `>`) in the XSL URL are now escaped before being interpolated into the `<?xml-stylesheet?>` processing instruction
