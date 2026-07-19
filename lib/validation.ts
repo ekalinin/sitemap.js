@@ -96,6 +96,55 @@ export function isValidYesNo(yn: string): yn is EnumYesNo {
 }
 
 /**
+ * Checks that a priority is a finite number within sitemaps.org bounds (0–1)
+ */
+export function isValidPriority(priority: number): boolean {
+  return (
+    isFinite(priority) &&
+    priority >= LIMITS.MIN_PRIORITY &&
+    priority <= LIMITS.MAX_PRIORITY
+  );
+}
+
+/**
+ * Checks that a video duration is a finite number of seconds within Google's
+ * video sitemap bounds (0–28800)
+ */
+export function isValidVideoDuration(duration: number): boolean {
+  return (
+    isFinite(duration) &&
+    duration >= LIMITS.MIN_VIDEO_DURATION &&
+    duration <= LIMITS.MAX_VIDEO_DURATION
+  );
+}
+
+/**
+ * Checks that a video rating is a finite number within Google's video sitemap
+ * bounds (0–5)
+ */
+export function isValidVideoRating(rating: number): boolean {
+  return (
+    isFinite(rating) &&
+    rating >= LIMITS.MIN_VIDEO_RATING &&
+    rating <= LIMITS.MAX_VIDEO_RATING
+  );
+}
+
+/**
+ * Checks that a video view count is a finite, non-negative number
+ */
+export function isValidVideoViewCount(count: number): boolean {
+  return isFinite(count) && count >= 0;
+}
+
+/**
+ * Checks that a date string is in ISO 8601 / W3C format
+ */
+export function isValidISODate(date: string): boolean {
+  return LIMITS.ISO_DATE_REGEX.test(date);
+}
+
+/**
  * Type guard to check if a string is a valid allow/deny value
  */
 export function isAllowDeny(ad: string): ad is EnumAllowDeny {
@@ -452,7 +501,7 @@ export function validateSMIOptions(
   }
 
   if (priority) {
-    if (!(priority >= 0.0 && priority <= 1.0)) {
+    if (!isValidPriority(priority)) {
       errorHandler(new PriorityInvalidError(url, priority), level);
     }
   }
@@ -483,11 +532,11 @@ export function validateSMIOptions(
   if (video) {
     video.forEach((vid): void => {
       if (vid.duration !== undefined) {
-        if (vid.duration < 0 || vid.duration > 28800) {
+        if (!isValidVideoDuration(vid.duration)) {
           errorHandler(new InvalidVideoDuration(url, vid.duration), level);
         }
       }
-      if (vid.rating !== undefined && (vid.rating < 0 || vid.rating > 5)) {
+      if (vid.rating !== undefined && !isValidVideoRating(vid.rating)) {
         errorHandler(new InvalidVideoRating(url, vid.title, vid.rating), level);
       }
 
@@ -512,7 +561,10 @@ export function validateSMIOptions(
         );
       }
 
-      if (vid.view_count !== undefined && vid.view_count < 0) {
+      if (
+        vid.view_count !== undefined &&
+        !isValidVideoViewCount(vid.view_count)
+      ) {
         errorHandler(new InvalidVideoViewCount(url, vid.view_count), level);
       }
 

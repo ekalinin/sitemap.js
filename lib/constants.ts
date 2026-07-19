@@ -29,6 +29,16 @@ export const LIMITS = {
   MIN_SITEMAP_ITEM_LIMIT: 1,
   MAX_SITEMAP_ITEM_LIMIT: 50000,
 
+  // Priority bounds per sitemaps.org spec
+  MIN_PRIORITY: 0,
+  MAX_PRIORITY: 1,
+
+  // Video value bounds per Google spec
+  MIN_VIDEO_DURATION: 0,
+  MAX_VIDEO_DURATION: 28800, // 8 hours
+  MIN_VIDEO_RATING: 0,
+  MAX_VIDEO_RATING: 5,
+
   // Video field length constraints per Google spec
   MAX_VIDEO_TITLE_LENGTH: 100,
   MAX_VIDEO_DESCRIPTION_LENGTH: 2048,
