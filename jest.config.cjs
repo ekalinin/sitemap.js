@@ -15,7 +15,9 @@ const config = {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
-  modulePathIgnorePatterns: ['<rootDir>/dist/'],
+  modulePathIgnorePatterns: ['<rootDir>/dist/', '<rootDir>/.claude/'],
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/.claude/'],
+  watchPathIgnorePatterns: ['<rootDir>/.claude/'],
   collectCoverage: true,
   collectCoverageFrom: [
     'lib/**/*.ts',
