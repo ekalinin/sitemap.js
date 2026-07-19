@@ -38,6 +38,10 @@
     "lib": "lib",
     "test": "tests"
   },
+  "files": [
+    "dist",
+    "schema"
+  ],
   "scripts": {
     "build": "npm run build:esm && npm run build:cjs-package && npm run build:cjs",
     "build:cjs": "tsc -p tsconfig.cjs.json",
