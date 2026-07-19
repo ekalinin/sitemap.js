@@ -1037,17 +1037,21 @@ describe('utils', () => {
       const in1 = Readable.from(['a', 'b']);
       const in2 = Readable.from(['c', 'd']);
       const memStream = new MemoryStream();
-      const in1Done = finishedP(in1);
-      const in2Done = finishedP(in2);
+      const memDone = finishedP(memStream);
       const mergeStream = mergeStreams([in1, in2]);
+
+      const chunks: Buffer[] = [];
+      memStream.on('data', (chunk) => chunks.push(chunk));
 
       mergeStream.pipe(memStream);
 
-      // Wait for the two inputs to be done being read
-      await Promise.all([in1Done, in2Done]);
+      // Wait for all merged data to be written into memStream and its
+      // readable side to end, rather than assuming that happens within the
+      // same tick as the source streams finishing (that timing isn't
+      // guaranteed across Node versions).
+      await memDone;
 
-      const buff = Buffer.from(memStream.read());
-      const str = buff.toString();
+      const str = Buffer.concat(chunks).toString();
 
       expect(str).toContain('a');
       expect(str).toContain('b');
