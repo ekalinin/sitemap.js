@@ -36,10 +36,14 @@ describe('sitemap-parser security tests', () => {
       );
 
       assert.strictEqual(logger.mock.calls.length, 1);
-      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.deepStrictEqual(logger.mock.calls[0].arguments.slice(0, 2), [
+        'warn',
+        'Invalid URL in sitemap:',
+      ]);
+
       assert.ok(
-        (logger.mock.calls[0].arguments[1] as string).includes(
-          'URL exceeds max length'
+        (logger.mock.calls[0].arguments[2] as string).includes(
+          'exceeds maximum length'
         )
       );
     });
@@ -71,11 +75,15 @@ describe('sitemap-parser security tests', () => {
       );
 
       const warnCalls = logger.mock.calls.filter(
-        (c: { arguments: unknown[] }) => c.arguments[0] === 'warn'
+        (c: { arguments: unknown[] }) =>
+          c.arguments[0] === 'warn' &&
+          c.arguments[1] === 'Invalid URL in sitemap:'
       );
       assert.ok(
         warnCalls.some((c: { arguments: unknown[] }) =>
-          (c.arguments[1] as string).includes('must start with http://')
+          (c.arguments[2] as string).includes(
+            'must use http:// or https:// protocol'
+          )
         )
       );
       assert.notStrictEqual(sitemap[0].url, 'javascript:alert(1)');
@@ -647,7 +655,7 @@ describe('sitemap-parser security tests', () => {
       assert.ok(parser.errors.length > 1);
       assert.ok(
         parser.errors.some((e: Error) =>
-          e.message.includes('URL must start with http')
+          e.message.includes('must use http:// or https:// protocol')
         )
       );
 

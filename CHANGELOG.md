@@ -23,9 +23,25 @@
   enforced in CI by a dedicated job.
 - CI now runs on Linux, Windows and macOS across Node 22/24/26. Lint, formatting
   and typechecking run once rather than on every matrix leg.
+- **Stricter `<loc>` validation in the sitemap parser**: `XMLToSitemapItemStream`
+  now validates `<loc>` values with the same `validateURL` used by the sitemap
+  index parser, adding a URL-parseability check on top of the existing length
+  and protocol checks. A malformed URL that passed the old checks but fails
+  `new URL()` is now dropped with a warning (or throws under
+  `ErrorLevel.THROW`). Warn/error messages for invalid `<loc>` values changed to
+  the `Invalid URL in sitemap: …` form.
+- Internal: the parser's duplicated `text`/`cdata` SAX handlers were collapsed
+  into one, and its inline bounds checks (priority, video duration/rating/view
+  count, ISO dates) now delegate to shared guards in `lib/validation.ts`, with
+  the bounds defined once in `LIMITS`.
 
 ### Fixed
 
+- `XMLToSitemapItemStream` now treats CDATA sections as ordinary character data
+  in every tag. Previously only the 8 tags from issue #445 (`loc`, `image:loc`,
+  `video:title`, `video:description`, `news:name`, `news:title`,
+  `image:caption`, `image:title`) accepted CDATA; content in any other tag was
+  logged as unhandled. See `docs/adr/0001-cdata-is-character-data.md`.
 - `xmlLint()` no longer probes for the binary with `which`, which is not a
   command on Windows and made validation report `XMLLintUnavailable` there even
   when xmllint was installed. A missing binary is now detected via `ENOENT` from

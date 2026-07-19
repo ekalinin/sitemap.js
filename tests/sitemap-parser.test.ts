@@ -217,8 +217,52 @@ describe('XMLToSitemapItemStream', () => {
       })
     );
     await assert.rejects(promise, {
-      message: 'URL must start with http:// or https://: invalid-url',
+      message: /must use http:\/\/ or https:\/\/ protocol/,
     });
+  });
+
+  it('parses CDATA as ordinary character data in any tag', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://example.com/page</loc>
+    <priority><![CDATA[0.5]]></priority>
+    <video:video>
+      <video:thumbnail_loc><![CDATA[https://example.com/thumb.jpg]]></video:thumbnail_loc>
+      <video:title>title</video:title>
+      <video:description>description</video:description>
+    </video:video>
+  </url>
+</urlset>`;
+    const results = await parseSitemap(Readable.from(xml));
+    assert.strictEqual(results.length, 1);
+    assert.strictEqual(results[0].priority, 0.5);
+    assert.strictEqual(
+      results[0].video[0].thumbnail_loc,
+      'https://example.com/thumb.jpg'
+    );
+  });
+
+  it('rejects loc values that fail URL parsing', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://exa mple.com/page</loc>
+  </url>
+</urlset>`;
+    const stream = new XMLToSitemapItemStream({ level: ErrorLevel.THROW });
+    const promise = pipeline(
+      Readable.from(xml),
+      stream,
+      new Writable({
+        objectMode: true,
+        write(chunk, a, cb): void {
+          cb();
+        },
+      })
+    );
+    await assert.rejects(promise, { message: /is not a valid URL/ });
   });
 });
 
