@@ -1,0 +1,8 @@
+# Test fixtures are compared byte-for-byte against generated output, which
+# always uses LF. Without this, a Windows checkout converts them to CRLF and
+# those comparisons fail on the Windows CI runners.
+tests/mocks/** text eol=lf
+
+# The XSD files are fed to xmllint alongside generated XML; keep them stable
+# across platforms for the same reason.
+schema/** text eol=lf
