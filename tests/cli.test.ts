@@ -79,18 +79,23 @@ describe('cli', () => {
       assert.ok(stdout.includes('https://example.com/path/sitemap-2.xml'));
       assert.ok(stdout.includes('https://example.com/path/sitemap-3.xml'));
       assert.ok(!stdout.includes('https://example.com/path/sitemap-4.xml'));
-      try {
-        fs.accessSync(path.resolve('./sitemap-0.xml'), fs.constants.R_OK);
-        fs.accessSync(path.resolve('./sitemap-3.xml'), fs.constants.R_OK);
-      } catch {
-        assert.fail('expected sitemap files to exist');
-      }
-      try {
-        fs.accessSync(path.resolve('sitemap-4.xml'), fs.constants.R_OK);
-        assert.fail('expected sitemap-4.xml to not exist');
-      } catch {
-        // expected
-      }
+      assert.strictEqual(
+        fs.existsSync(path.resolve('./sitemap-0.xml')),
+        true,
+        'expected sitemap-0.xml to exist'
+      );
+
+      assert.strictEqual(
+        fs.existsSync(path.resolve('./sitemap-3.xml')),
+        true,
+        'expected sitemap-3.xml to exist'
+      );
+
+      assert.strictEqual(
+        fs.existsSync(path.resolve('./sitemap-4.xml')),
+        false,
+        'expected sitemap-4.xml to not exist'
+      );
       fs.unlinkSync(path.resolve('./sitemap-0.xml'));
       fs.unlinkSync(path.resolve('./sitemap-1.xml'));
       fs.unlinkSync(path.resolve('./sitemap-2.xml'));

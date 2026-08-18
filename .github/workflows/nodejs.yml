@@ -40,9 +40,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Build TypeScript
-        run: npm run build
-
+      # `npm run test` builds first, so there is no separate build step here.
       - name: Unit Tests
         run: npm run test
 
@@ -61,8 +59,6 @@ jobs:
         with:
           node-version: 24.x
 
-      - name: Build TypeScript
-        run: npm run build
-
+      # `npm run test:coverage` builds first, so there is no separate build step.
       - name: Unit Tests with Coverage Thresholds
         run: npm run test:coverage

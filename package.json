@@ -43,9 +43,9 @@
     "prepublishOnly": "rm -rf dist && npm run build && npm run test",
     "prettier": "npx prettier --check \"{lib,tests}/**/*.ts\" ./cli.ts",
     "prettier:fix": "npx prettier --write \"{lib,tests}/**/*.ts\" ./cli.ts",
-    "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "test:coverage": "node --experimental-strip-types --experimental-test-coverage --test-coverage-branches=80 --test-coverage-functions=90 --test-coverage-lines=90 --test tests/*.test.ts",
-    "test:full": "npm run lint && npm run build && npm run test:coverage && npm run test:xmllint",
+    "test": "npm run build && node --experimental-strip-types --test tests/*.test.ts",
+    "test:coverage": "npm run build && node --experimental-strip-types --experimental-test-coverage --test-coverage-branches=80 --test-coverage-functions=90 --test-coverage-lines=90 --test tests/*.test.ts",
+    "test:full": "npm run lint && npm run test:coverage && npm run test:xmllint",
     "test:perf": "node ./tests/perf.mjs",
     "test:schema": "node ./tests/xmllint-schema.mjs",
     "test:typecheck": "tsc --noEmit",
@@ -61,6 +61,7 @@
     ]
   },
   "dependencies": {
+    "@types/sax": "^1.2.1",
     "arg": "^5.0.0",
     "sax": "^1.4.1"
   },
@@ -69,7 +70,6 @@
     "@eslint/js": "^9.39.0",
     "@types/memorystream": "^0.3.0",
     "@types/node": "^24.9.2",
-    "@types/sax": "^1.2.1",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
     "eslint": "^9.39.0",
