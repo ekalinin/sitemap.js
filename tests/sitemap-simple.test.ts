@@ -1,4 +1,6 @@
-import { simpleSitemapAndIndex, streamToPromise } from '../index.js';
+import { describe, it, beforeEach, afterEach } from 'node:test';
+import assert from 'node:assert/strict';
+import { simpleSitemapAndIndex, streamToPromise } from '../dist/index.js';
 import { existsSync, createReadStream, mkdtempSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createGunzip } from 'node:zlib';
@@ -40,27 +42,45 @@ describe('simpleSitemapAndIndex', () => {
         )
       )
     ).toString();
-    expect(index).toContain(`${baseURL}sitemap-0`);
-    expect(index).toContain(`${baseURL}sitemap-1`);
-    expect(index).toContain(`${baseURL}sitemap-2`);
-    expect(index).toContain(`${baseURL}sitemap-3`);
-    expect(index).not.toContain(`${baseURL}sitemap-4`);
-    expect(existsSync(resolve(targetFolder, `./sitemap-0.xml.gz`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-1.xml.gz`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-2.xml.gz`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-3.xml.gz`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-4.xml.gz`))).toBe(false);
+    assert.ok(index.includes(`${baseURL}sitemap-0`));
+    assert.ok(index.includes(`${baseURL}sitemap-1`));
+    assert.ok(index.includes(`${baseURL}sitemap-2`));
+    assert.ok(index.includes(`${baseURL}sitemap-3`));
+    assert.ok(!index.includes(`${baseURL}sitemap-4`));
+    assert.strictEqual(
+      existsSync(resolve(targetFolder, `./sitemap-0.xml.gz`)),
+      true
+    );
+
+    assert.strictEqual(
+      existsSync(resolve(targetFolder, `./sitemap-1.xml.gz`)),
+      true
+    );
+
+    assert.strictEqual(
+      existsSync(resolve(targetFolder, `./sitemap-2.xml.gz`)),
+      true
+    );
+
+    assert.strictEqual(
+      existsSync(resolve(targetFolder, `./sitemap-3.xml.gz`)),
+      true
+    );
+
+    assert.strictEqual(
+      existsSync(resolve(targetFolder, `./sitemap-4.xml.gz`)),
+      false
+    );
     const xml = await streamToPromise(
       createReadStream(resolve(targetFolder, `./sitemap-0.xml.gz`)).pipe(
         createGunzip()
       )
     );
-    expect(xml.toString()).toContain('https://1.example.com/a');
+    assert.ok(xml.toString().includes('https://1.example.com/a'));
   });
 
   it('accepts sitemapItemLoose as a type', async () => {
     const baseURL = 'https://example.com/sub/';
-    expect.assertions(3);
 
     await simpleSitemapAndIndex({
       hostname: baseURL,
@@ -80,14 +100,17 @@ describe('simpleSitemapAndIndex', () => {
         )
       )
     ).toString();
-    expect(index).toContain(`${baseURL}sitemap-0`);
-    expect(existsSync(resolve(targetFolder, './sitemap-0.xml.gz'))).toBe(true);
+    assert.ok(index.includes(`${baseURL}sitemap-0`));
+    assert.strictEqual(
+      existsSync(resolve(targetFolder, './sitemap-0.xml.gz')),
+      true
+    );
     const xml = await streamToPromise(
       createReadStream(resolve(targetFolder, './sitemap-0.xml.gz')).pipe(
         createGunzip()
       )
     );
-    expect(xml.toString()).toContain('https://1.example.com/a');
+    assert.ok(xml.toString().includes('https://1.example.com/a'));
   });
 
   it('accepts a filepath', async () => {
@@ -104,14 +127,17 @@ describe('simpleSitemapAndIndex', () => {
         )
       )
     ).toString();
-    expect(index).toContain(`${baseURL}/sitemap-0`);
-    expect(existsSync(resolve(targetFolder, `./sitemap-0.xml.gz`))).toBe(true);
+    assert.ok(index.includes(`${baseURL}/sitemap-0`));
+    assert.strictEqual(
+      existsSync(resolve(targetFolder, `./sitemap-0.xml.gz`)),
+      true
+    );
     const xml = await streamToPromise(
       createReadStream(resolve(targetFolder, `./sitemap-0.xml.gz`)).pipe(
         createGunzip()
       )
     );
-    expect(xml.toString()).toContain('achievement');
+    assert.ok(xml.toString().includes('achievement'));
   });
 
   it("creates the dest dir if it doesn't exist", async () => {
@@ -128,7 +154,8 @@ describe('simpleSitemapAndIndex', () => {
       destinationDir,
     });
 
-    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml.gz`))).toBe(
+    assert.strictEqual(
+      existsSync(resolve(destinationDir, `./sitemap-0.xml.gz`)),
       true
     );
     const index = (
@@ -138,8 +165,9 @@ describe('simpleSitemapAndIndex', () => {
         ).pipe(createGunzip())
       )
     ).toString();
-    expect(index).toContain(`${baseURL}/sitemap-0.xml.gz`);
-    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml.gz`))).toBe(
+    assert.ok(index.includes(`${baseURL}/sitemap-0.xml.gz`));
+    assert.strictEqual(
+      existsSync(resolve(destinationDir, `./sitemap-0.xml.gz`)),
       true
     );
   });
@@ -159,24 +187,30 @@ describe('simpleSitemapAndIndex', () => {
       gzip: false,
     });
 
-    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    assert.strictEqual(
+      existsSync(resolve(destinationDir, `./sitemap-0.xml`)),
+      true
+    );
     const index = (
       await streamToPromise(
         createReadStream(resolve(destinationDir, `./sitemap-index.xml`))
       )
     ).toString();
-    expect(index).toContain(`${baseURL}/sitemap-0`);
-    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    assert.ok(index.includes(`${baseURL}/sitemap-0`));
+    assert.strictEqual(
+      existsSync(resolve(destinationDir, `./sitemap-0.xml`)),
+      true
+    );
     const xml = await streamToPromise(
       createReadStream(resolve(destinationDir, `./sitemap-0.xml`))
     );
-    expect(xml.toString()).toContain('1.example.com');
+    assert.ok(xml.toString().includes('1.example.com'));
   });
 
   it('throws on bad data', async () => {
     const baseURL = 'http://example.com';
     const destinationDir = `${targetFolder}/non-existent/`;
-    await expect(
+    await assert.rejects(
       simpleSitemapAndIndex({
         hostname: baseURL,
         sourceData: {
@@ -192,7 +226,7 @@ describe('simpleSitemapAndIndex', () => {
         destinationDir,
         gzip: false,
       })
-    ).rejects.toThrow();
+    );
   });
 
   it('supports non-root-based sitemap urls', async () => {
@@ -211,18 +245,24 @@ describe('simpleSitemapAndIndex', () => {
       gzip: false,
     });
 
-    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    assert.strictEqual(
+      existsSync(resolve(destinationDir, `./sitemap-0.xml`)),
+      true
+    );
     const index = (
       await streamToPromise(
         createReadStream(resolve(destinationDir, `./sitemap-index.xml`))
       )
     ).toString();
-    expect(index).toContain(`${baseURL}/foo/bar/sitemap-0`);
-    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    assert.ok(index.includes(`${baseURL}/foo/bar/sitemap-0`));
+    assert.strictEqual(
+      existsSync(resolve(destinationDir, `./sitemap-0.xml`)),
+      true
+    );
     const xml = await streamToPromise(
       createReadStream(resolve(destinationDir, `./sitemap-0.xml`))
     );
-    expect(xml.toString()).toContain('1.example.com');
+    assert.ok(xml.toString().includes('1.example.com'));
   });
 
   it('supports non-root-based sitemap urls not ending in a /', async () => {
@@ -241,18 +281,24 @@ describe('simpleSitemapAndIndex', () => {
       gzip: false,
     });
 
-    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    assert.strictEqual(
+      existsSync(resolve(destinationDir, `./sitemap-0.xml`)),
+      true
+    );
     const index = (
       await streamToPromise(
         createReadStream(resolve(destinationDir, `./sitemap-index.xml`))
       )
     ).toString();
-    expect(index).toContain(`${baseURL}/foo/bar/sitemap-0`);
-    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    assert.ok(index.includes(`${baseURL}/foo/bar/sitemap-0`));
+    assert.strictEqual(
+      existsSync(resolve(destinationDir, `./sitemap-0.xml`)),
+      true
+    );
     const xml = await streamToPromise(
       createReadStream(resolve(destinationDir, `./sitemap-0.xml`))
     );
-    expect(xml.toString()).toContain('1.example.com');
+    assert.ok(xml.toString().includes('1.example.com'));
   });
 
   it('supports relative non-root-based sitemap urls', async () => {
@@ -271,17 +317,23 @@ describe('simpleSitemapAndIndex', () => {
       gzip: false,
     });
 
-    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    assert.strictEqual(
+      existsSync(resolve(destinationDir, `./sitemap-0.xml`)),
+      true
+    );
     const index = (
       await streamToPromise(
         createReadStream(resolve(destinationDir, `./sitemap-index.xml`))
       )
     ).toString();
-    expect(index).toContain(`http://example.com/foo/bar/sitemap-0`);
-    expect(existsSync(resolve(destinationDir, `./sitemap-0.xml`))).toBe(true);
+    assert.ok(index.includes(`http://example.com/foo/bar/sitemap-0`));
+    assert.strictEqual(
+      existsSync(resolve(destinationDir, `./sitemap-0.xml`)),
+      true
+    );
     const xml = await streamToPromise(
       createReadStream(resolve(destinationDir, `./sitemap-0.xml`))
     );
-    expect(xml.toString()).toContain('1.example.com');
+    assert.ok(xml.toString().includes('1.example.com'));
   });
 });

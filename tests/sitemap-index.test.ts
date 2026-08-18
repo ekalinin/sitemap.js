@@ -1,5 +1,7 @@
-import { SitemapStream } from '../index.js';
-import { tmpdir } from 'node:os';
+import { describe, it, beforeEach, afterEach } from 'node:test';
+import assert from 'node:assert/strict';
+import { SitemapStream } from '../dist/index.js';
+import { devNull, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import {
   existsSync,
@@ -10,15 +12,15 @@ import {
 import {
   SitemapIndexStream,
   SitemapAndIndexStream,
-} from '../lib/sitemap-index-stream.js';
-import { streamToPromise } from '../lib/sitemap-stream.js';
+} from '../dist/lib/sitemap-index-stream.js';
+import { streamToPromise } from '../dist/lib/sitemap-stream.js';
 import { finished as finishedCallback } from 'node:stream';
 import { readFileSync, WriteStream } from 'node:fs';
 import { promisify } from 'node:util';
+import { ErrorLevel } from '../dist/lib/types.js';
 
 const finished = promisify(finishedCallback);
 
-/* eslint-env jest, jasmine */
 function removeFilesArray(files: string[]): void {
   if (files && files.length) {
     files.forEach(function (file) {
@@ -30,107 +32,101 @@ function removeFilesArray(files: string[]): void {
 }
 
 const xmlDef = '<?xml version="1.0" encoding="UTF-8"?>';
+
 describe('sitemapIndex', () => {
   describe('validation', () => {
     it('should reject invalid URL in THROW mode', async () => {
-      const { ErrorLevel } = await import('../lib/types');
       const smis = new SitemapIndexStream({ level: ErrorLevel.THROW });
       smis.write('not a url');
       smis.end();
-      await expect(streamToPromise(smis)).rejects.toThrow(
-        'Invalid URL in sitemap index'
+      await assert.rejects(
+        streamToPromise(smis),
+        /Invalid URL in sitemap index/
       );
     });
 
-    it('should skip invalid URL in WARN mode', async () => {
-      const { ErrorLevel } = await import('../lib/types');
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    it('should skip invalid URL in WARN mode', async (t) => {
+      const warnMock = t.mock.method(console, 'warn');
       const smis = new SitemapIndexStream({ level: ErrorLevel.WARN });
       smis.write('not a url');
       smis.write('https://test.com/valid.xml');
       smis.end();
       const result = await streamToPromise(smis);
-      expect(result.toString()).toContain('https://test.com/valid.xml');
-      expect(result.toString()).not.toContain('not a url');
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Invalid URL')
+      assert.ok(result.toString().includes('https://test.com/valid.xml'));
+      assert.ok(!result.toString().includes('not a url'));
+      assert.strictEqual(warnMock.mock.calls.length, 1);
+      assert.ok(
+        (warnMock.mock.calls[0].arguments[0] as string).includes('Invalid URL')
       );
-      consoleSpy.mockRestore();
     });
 
-    it('should skip invalid URL in SILENT mode', async () => {
-      const { ErrorLevel } = await import('../lib/types');
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    it('should skip invalid URL in SILENT mode', async (t) => {
+      const warnMock = t.mock.method(console, 'warn');
       const smis = new SitemapIndexStream({ level: ErrorLevel.SILENT });
       smis.write('not a url');
       smis.write('https://test.com/valid.xml');
       smis.end();
       const result = await streamToPromise(smis);
-      expect(result.toString()).toContain('https://test.com/valid.xml');
-      expect(result.toString()).not.toContain('not a url');
-      expect(consoleSpy).not.toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      assert.ok(result.toString().includes('https://test.com/valid.xml'));
+      assert.ok(!result.toString().includes('not a url'));
+      assert.strictEqual(warnMock.mock.calls.length, 0);
     });
 
     it('should reject empty URL in THROW mode', async () => {
-      const { ErrorLevel } = await import('../lib/types');
       const smis = new SitemapIndexStream({ level: ErrorLevel.THROW });
       smis.write({ url: '' });
       smis.end();
-      await expect(streamToPromise(smis)).rejects.toThrow(
-        'URL must be a non-empty string'
+      await assert.rejects(
+        streamToPromise(smis),
+        /URL must be a non-empty string/
       );
     });
 
     it('should reject null URL in THROW mode', async () => {
-      const { ErrorLevel } = await import('../lib/types');
       const smis = new SitemapIndexStream({ level: ErrorLevel.THROW });
       smis.write({ url: null as unknown as string });
       smis.end();
-      await expect(streamToPromise(smis)).rejects.toThrow(
-        'URL must be a non-empty string'
+      await assert.rejects(
+        streamToPromise(smis),
+        /URL must be a non-empty string/
       );
     });
 
     it('should reject invalid lastmod date in THROW mode', async () => {
-      const { ErrorLevel } = await import('../lib/types');
       const smis = new SitemapIndexStream({ level: ErrorLevel.THROW });
       smis.write({ url: 'https://test.com/s1.xml', lastmod: 'invalid-date' });
       smis.end();
-      await expect(streamToPromise(smis)).rejects.toThrow(
-        'Invalid lastmod date'
-      );
+      await assert.rejects(streamToPromise(smis), /Invalid lastmod date/);
     });
 
-    it('should skip invalid lastmod date in WARN mode and continue', async () => {
-      const { ErrorLevel } = await import('../lib/types');
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    it('should skip invalid lastmod date in WARN mode and continue', async (t) => {
+      const warnMock = t.mock.method(console, 'warn');
       const smis = new SitemapIndexStream({ level: ErrorLevel.WARN });
       smis.write({ url: 'https://test.com/s1.xml', lastmod: 'invalid-date' });
       smis.write({ url: 'https://test.com/s2.xml', lastmod: '2018-11-26' });
       smis.end();
       const result = await streamToPromise(smis);
-      expect(result.toString()).toContain('https://test.com/s1.xml');
-      expect(result.toString()).toContain('https://test.com/s2.xml');
-      expect(result.toString()).toContain('2018-11-26');
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Invalid lastmod date')
+      assert.ok(result.toString().includes('https://test.com/s1.xml'));
+      assert.ok(result.toString().includes('https://test.com/s2.xml'));
+      assert.ok(result.toString().includes('2018-11-26'));
+      assert.strictEqual(warnMock.mock.calls.length, 1);
+      assert.ok(
+        (warnMock.mock.calls[0].arguments[0] as string).includes(
+          'Invalid lastmod date'
+        )
       );
-      consoleSpy.mockRestore();
     });
 
-    it('should skip invalid lastmod date in SILENT mode without warning', async () => {
-      const { ErrorLevel } = await import('../lib/types');
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    it('should skip invalid lastmod date in SILENT mode without warning', async (t) => {
+      const warnMock = t.mock.method(console, 'warn');
       const smis = new SitemapIndexStream({ level: ErrorLevel.SILENT });
       smis.write({ url: 'https://test.com/s1.xml', lastmod: 'invalid-date' });
       smis.write({ url: 'https://test.com/s2.xml' });
       smis.end();
       const result = await streamToPromise(smis);
-      expect(result.toString()).toContain('https://test.com/s1.xml');
-      expect(result.toString()).toContain('https://test.com/s2.xml');
-      expect(consoleSpy).not.toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      assert.ok(result.toString().includes('https://test.com/s1.xml'));
+      assert.ok(result.toString().includes('https://test.com/s2.xml'));
+      assert.strictEqual(warnMock.mock.calls.length, 0);
     });
   });
 
@@ -151,7 +147,7 @@ describe('sitemapIndex', () => {
     smis.end();
     const result = await streamToPromise(smis);
 
-    expect(result.toString()).toBe(expectedResult);
+    assert.strictEqual(result.toString(), expectedResult);
   });
 
   it('build sitemap index with lastmodISO', async () => {
@@ -187,7 +183,7 @@ describe('sitemapIndex', () => {
     smis.end();
     const result = await streamToPromise(smis);
 
-    expect(result.toString()).toBe(expectedResult);
+    assert.strictEqual(result.toString(), expectedResult);
   });
 
   it('build sitemap index with lastmodDateOnly', async () => {
@@ -223,38 +219,38 @@ describe('sitemapIndex', () => {
     smis.end();
     const result = await streamToPromise(smis);
 
-    expect(result.toString()).toBe(expectedResult);
+    assert.strictEqual(result.toString(), expectedResult);
   });
 });
 
 describe('sitemapAndIndex', () => {
   describe('validation', () => {
     it('should throw error if limit is below minimum', () => {
-      expect(() => {
+      assert.throws(() => {
         new SitemapAndIndexStream({
           limit: 0,
           getSitemapStream: () => {
             const sm = new SitemapStream();
-            const ws = createWriteStream('/dev/null');
+            const ws = createWriteStream(devNull);
             sm.pipe(ws);
             return ['https://example.com/sitemap.xml', sm, ws];
           },
         });
-      }).toThrow('limit must be between 1 and 50000');
+      }, /limit must be between 1 and 50000/);
     });
 
     it('should throw error if limit is above maximum', () => {
-      expect(() => {
+      assert.throws(() => {
         new SitemapAndIndexStream({
           limit: 50001,
           getSitemapStream: () => {
             const sm = new SitemapStream();
-            const ws = createWriteStream('/dev/null');
+            const ws = createWriteStream(devNull);
             sm.pipe(ws);
             return ['https://example.com/sitemap.xml', sm, ws];
           },
         });
-      }).toThrow('limit must be between 1 and 50000');
+      }, /limit must be between 1 and 50000/);
     });
 
     it('should emit error if getSitemapStream returns non-array', async () => {
@@ -277,9 +273,9 @@ describe('sitemapAndIndex', () => {
       sms.end();
 
       const error = await errorPromise;
-      expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toContain(
-        'must return a 3-element array'
+      assert.ok(error instanceof Error);
+      assert.ok(
+        (error as Error).message.includes('must return a 3-element array')
       );
     });
 
@@ -302,9 +298,9 @@ describe('sitemapAndIndex', () => {
       sms.end();
 
       const error = await errorPromise;
-      expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toContain(
-        'must return a 3-element array'
+      assert.ok(error instanceof Error);
+      assert.ok(
+        (error as Error).message.includes('must return a 3-element array')
       );
     });
 
@@ -313,7 +309,7 @@ describe('sitemapAndIndex', () => {
         limit: 1,
         getSitemapStream: () => {
           const sm = new SitemapStream();
-          const ws = createWriteStream('/dev/null');
+          const ws = createWriteStream(devNull);
           sm.pipe(ws);
           return [null as unknown as string, sm, ws];
         },
@@ -327,9 +323,11 @@ describe('sitemapAndIndex', () => {
       sms.end();
 
       const error = await errorPromise;
-      expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toContain(
-        'IndexItem or string as the first element'
+      assert.ok(error instanceof Error);
+      assert.ok(
+        (error as Error).message.includes(
+          'IndexItem or string as the first element'
+        )
       );
     });
 
@@ -337,7 +335,7 @@ describe('sitemapAndIndex', () => {
       const sms = new SitemapAndIndexStream({
         limit: 1,
         getSitemapStream: () => {
-          const ws = createWriteStream('/dev/null');
+          const ws = createWriteStream(devNull);
           return [
             'https://example.com/sitemap.xml',
             null as unknown as SitemapStream,
@@ -354,9 +352,9 @@ describe('sitemapAndIndex', () => {
       sms.end();
 
       const error = await errorPromise;
-      expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toContain(
-        'SitemapStream as the second element'
+      assert.ok(error instanceof Error);
+      assert.ok(
+        (error as Error).message.includes('SitemapStream as the second element')
       );
     });
 
@@ -381,9 +379,11 @@ describe('sitemapAndIndex', () => {
       sms.end();
 
       const error = await errorPromise;
-      expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toContain(
-        'WriteStream or undefined as the third element'
+      assert.ok(error instanceof Error);
+      assert.ok(
+        (error as Error).message.includes(
+          'WriteStream or undefined as the third element'
+        )
       );
     });
 
@@ -403,11 +403,13 @@ describe('sitemapAndIndex', () => {
       sms.end();
 
       const error = await errorPromise;
-      expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toContain(
-        'getSitemapStream callback threw an error'
+      assert.ok(error instanceof Error);
+      assert.ok(
+        (error as Error).message.includes(
+          'getSitemapStream callback threw an error'
+        )
       );
-      expect((error as Error).message).toContain('callback error');
+      assert.ok((error as Error).message.includes('callback error'));
     });
   });
 
@@ -447,8 +449,6 @@ describe('sitemapAndIndex', () => {
 
         const outputStream = createWriteStream(resolve(targetFolder, path));
 
-        // Streams do not automatically propagate errors
-        // We must propagate this up to the SitemapStream
         outputStream.on('error', (err) => {
           sm.emit('error', err);
         });
@@ -463,20 +463,20 @@ describe('sitemapAndIndex', () => {
     sms.write('https://4.example.com/a');
     sms.end();
     const index = (await streamToPromise(sms)).toString();
-    expect(index).toContain(`${baseURL}sitemap-0`);
-    expect(index).toContain(`${baseURL}sitemap-1`);
-    expect(index).toContain(`${baseURL}sitemap-2`);
-    expect(index).toContain(`${baseURL}sitemap-3`);
-    expect(index).not.toContain(`${baseURL}sitemap-4`);
-    expect(existsSync(resolve(targetFolder, `./sitemap-0.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-1.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-2.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-3.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-4.xml`))).toBe(false);
+    assert.ok(index.includes(`${baseURL}sitemap-0`));
+    assert.ok(index.includes(`${baseURL}sitemap-1`));
+    assert.ok(index.includes(`${baseURL}sitemap-2`));
+    assert.ok(index.includes(`${baseURL}sitemap-3`));
+    assert.ok(!index.includes(`${baseURL}sitemap-4`));
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-0.xml`)));
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-1.xml`)));
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-2.xml`)));
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-3.xml`)));
+    assert.ok(!existsSync(resolve(targetFolder, `./sitemap-4.xml`)));
     const xml = await streamToPromise(
       createReadStream(resolve(targetFolder, `./sitemap-0.xml`))
     );
-    expect(xml.toString()).toContain('https://1.example.com/a');
+    assert.ok(xml.toString().includes('https://1.example.com/a'));
   });
 
   it('propagates error from sitemap stream that cannot be written', async () => {
@@ -488,15 +488,10 @@ describe('sitemapAndIndex', () => {
         const sm = new SitemapStream();
         const path = `./sitemap-${i}.xml`;
 
-        // This will not throw even though it will fail
-        // `outputStream.writable === true`
-        // `outputStream.closed === false`
         const outputStream = createWriteStream(
           resolve(join(targetFolder, 'does', 'not', 'exist'), path)
         );
 
-        // Streams do not automatically propagate errors
-        // We must propagate this up to the SitemapStream
         outputStream.on('error', (err) => {
           sm.emit('error', err);
         });
@@ -510,15 +505,16 @@ describe('sitemapAndIndex', () => {
     sms.write('https://3.example.com/a');
     sms.write('https://4.example.com/a');
     sms.end();
-    await expect(finished(sms)).rejects.toThrow(
-      'ENOENT: no such file or directory, open'
+    await assert.rejects(
+      finished(sms),
+      /ENOENT: no such file or directory, open/
     );
 
-    expect(
-      existsSync(
+    assert.ok(
+      !existsSync(
         resolve(join(targetFolder, 'does', 'not', 'exist'), `./sitemap-0.xml`)
       )
-    ).toBe(false);
+    );
   });
 
   it('writes to index file', async () => {
@@ -530,13 +526,8 @@ describe('sitemapAndIndex', () => {
         const sm = new SitemapStream();
         const path = `./sitemap-${i}.xml`;
 
-        // This will not throw even though it will fail
-        // `outputStream.writable === true`
-        // `outputStream.closed === false`
         const outputStream = createWriteStream(resolve(targetFolder, path));
 
-        // Streams do not automatically propagate errors
-        // We must propagate this up to the SitemapStream
         outputStream.on('error', (err) => {
           sm.emit('error', err);
         });
@@ -546,7 +537,6 @@ describe('sitemapAndIndex', () => {
       },
     });
 
-    // Pipe the index stream to a file
     const indexStream = createWriteStream(
       resolve(targetFolder, `./sitemap-index.xml`)
     );
@@ -555,35 +545,31 @@ describe('sitemapAndIndex', () => {
     await writeData(sms, 'https://2.example.com/a');
     await writeData(sms, 'https://3.example.com/a');
     sms.end();
-    await expect(finished(sms)).resolves.toBeUndefined();
-
+    await finished(sms);
     await finished(indexStream);
 
-    expect(existsSync(resolve(targetFolder, `./sitemap-index.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-0.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-1.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-2.xml`))).toBe(false);
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-index.xml`)));
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-0.xml`)));
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-1.xml`)));
+    assert.ok(!existsSync(resolve(targetFolder, `./sitemap-2.xml`)));
 
-    // Read the first sitemap to make sure it was written
     const sitemap0 = await streamToPromise(
       createReadStream(resolve(targetFolder, `./sitemap-0.xml`))
     );
-    expect(sitemap0.toString()).toContain('https://1.example.com/a');
+    assert.ok(sitemap0.toString().includes('https://1.example.com/a'));
 
-    // Read the last sitemap to make sure it was written
     const sitemap1 = await streamToPromise(
       createReadStream(resolve(targetFolder, `./sitemap-1.xml`))
     );
-    expect(sitemap1.toString()).toContain('https://3.example.com/a');
+    assert.ok(sitemap1.toString().includes('https://3.example.com/a'));
 
-    // Read the index to make sure it was written
     const indexText = readFileSync(
       resolve(targetFolder, `./sitemap-index.xml`),
       'utf-8'
     );
-    expect(indexText).toContain(`${baseURL}sitemap-0`);
-    expect(indexText).toContain(`${baseURL}sitemap-1`);
-    expect(indexText).not.toContain(`${baseURL}sitemap-2`);
+    assert.ok(indexText.includes(`${baseURL}sitemap-0`));
+    assert.ok(indexText.includes(`${baseURL}sitemap-1`));
+    assert.ok(!indexText.includes(`${baseURL}sitemap-2`));
   });
 
   it('does not hang if last sitemap is filled', async () => {
@@ -595,13 +581,8 @@ describe('sitemapAndIndex', () => {
         const sm = new SitemapStream();
         const path = `./sitemap-${i}.xml`;
 
-        // This will not throw even though it will fail
-        // `outputStream.writable === true`
-        // `outputStream.closed === false`
         const outputStream = createWriteStream(resolve(targetFolder, path));
 
-        // Streams do not automatically propagate errors
-        // We must propagate this up to the SitemapStream
         outputStream.on('error', (err) => {
           sm.emit('error', err);
         });
@@ -611,7 +592,6 @@ describe('sitemapAndIndex', () => {
       },
     });
 
-    // Pipe the index stream to a file
     const indexStream = createWriteStream(
       resolve(targetFolder, `./sitemap-index.xml`)
     );
@@ -619,35 +599,32 @@ describe('sitemapAndIndex', () => {
     await writeData(sms, 'https://1.example.com/a');
     await writeData(sms, 'https://2.example.com/a');
     sms.end();
-    await expect(finished(sms)).resolves.toBeUndefined();
-
+    await finished(sms);
     await finished(indexStream);
 
-    expect(existsSync(resolve(targetFolder, `./sitemap-index.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-0.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-1.xml`))).toBe(false);
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-index.xml`)));
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-0.xml`)));
+    assert.ok(!existsSync(resolve(targetFolder, `./sitemap-1.xml`)));
 
     const sitemap0Raw = readFileSync(
       resolve(targetFolder, `./sitemap-0.xml`),
       'utf-8'
     );
-    expect(sitemap0Raw).toContain('https://1.example.com/a');
-    expect(sitemap0Raw).toContain('https://2.example.com/a');
-    expect(sitemap0Raw).not.toContain('https://3.example.com/a');
+    assert.ok(sitemap0Raw.includes('https://1.example.com/a'));
+    assert.ok(sitemap0Raw.includes('https://2.example.com/a'));
+    assert.ok(!sitemap0Raw.includes('https://3.example.com/a'));
 
-    // Read the first sitemap to make sure it was written
     const sitemap0 = await streamToPromise(
       createReadStream(resolve(targetFolder, `./sitemap-0.xml`))
     );
-    expect(sitemap0.toString()).toContain('https://1.example.com/a');
+    assert.ok(sitemap0.toString().includes('https://1.example.com/a'));
 
-    // Read the index to make sure it was written
     const indexText = readFileSync(
       resolve(targetFolder, `./sitemap-index.xml`),
       'utf-8'
     );
-    expect(indexText).toContain(`${baseURL}sitemap-0`);
-    expect(indexText).not.toContain(`${baseURL}sitemap-1`);
+    assert.ok(indexText.includes(`${baseURL}sitemap-0`));
+    assert.ok(!indexText.includes(`${baseURL}sitemap-1`));
   });
 
   it('deterministically finishes writing each sitemap file before creating a new one', async () => {
@@ -661,8 +638,6 @@ describe('sitemapAndIndex', () => {
 
         const outputStream = createWriteStream(resolve(targetFolder, path));
 
-        // Streams do not automatically propagate errors
-        // We must propagate this up to the SitemapStream
         outputStream.on('error', (err) => {
           sm.emit('error', err);
         });
@@ -672,14 +647,11 @@ describe('sitemapAndIndex', () => {
       },
     });
 
-    // Pipe the index stream to a file
     const indexStream = createWriteStream(
       resolve(targetFolder, `./sitemap-index.xml`)
     );
     sms.pipe(indexStream);
     for (let i = 0; i < 5000; i++) {
-      // Intentionally write while ignoring back pressure to stress test
-      // the rolling to new files
       sms.write(`https://1.example.com/a${i}`);
     }
     for (let i = 0; i < 5000; i++) {
@@ -689,57 +661,52 @@ describe('sitemapAndIndex', () => {
       sms.write(`https://3.example.com/a${i}`);
     }
     sms.end();
-    await expect(finished(sms)).resolves.toBeUndefined();
-
+    await finished(sms);
     await finished(indexStream);
 
-    expect(existsSync(resolve(targetFolder, `./sitemap-index.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-0.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-1.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-2.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-3.xml`))).toBe(false);
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-index.xml`)));
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-0.xml`)));
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-1.xml`)));
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-2.xml`)));
+    assert.ok(!existsSync(resolve(targetFolder, `./sitemap-3.xml`)));
 
-    // Make sure the very first file is completed
     const sitemap0Raw = readFileSync(
       resolve(targetFolder, `./sitemap-0.xml`),
       'utf-8'
     );
-    expect(sitemap0Raw).toContain('</urlset>');
-    expect(sitemap0Raw).toContain('https://1.example.com/a0');
-    expect(sitemap0Raw).toContain('https://1.example.com/a4999');
-    expect(sitemap0Raw).toContain('</urlset>');
+    assert.ok(sitemap0Raw.includes('</urlset>'));
+    assert.ok(sitemap0Raw.includes('https://1.example.com/a0'));
+    assert.ok(sitemap0Raw.includes('https://1.example.com/a4999'));
+    assert.ok(sitemap0Raw.includes('</urlset>'));
 
-    // Make sure the first rolled file is completed
     const sitemap1Raw = readFileSync(
       resolve(targetFolder, `./sitemap-1.xml`),
       'utf-8'
     );
-    expect(sitemap1Raw).toContain('</urlset>');
-    expect(sitemap1Raw).toContain('https://2.example.com/a0');
-    expect(sitemap1Raw).toContain('https://2.example.com/a4999');
-    expect(sitemap1Raw).toContain('</urlset>');
+    assert.ok(sitemap1Raw.includes('</urlset>'));
+    assert.ok(sitemap1Raw.includes('https://2.example.com/a0'));
+    assert.ok(sitemap1Raw.includes('https://2.example.com/a4999'));
+    assert.ok(sitemap1Raw.includes('</urlset>'));
 
-    // Make sure the last file is completed
     const sitemap2Raw = readFileSync(
       resolve(targetFolder, `./sitemap-2.xml`),
       'utf-8'
     );
-    expect(sitemap2Raw).toContain('</urlset>');
-    expect(sitemap2Raw).toContain('https://3.example.com/a0');
-    expect(sitemap2Raw).toContain('</urlset>');
-    expect(sitemap2Raw).not.toContain('https://3.example.com/a1');
+    assert.ok(sitemap2Raw.includes('</urlset>'));
+    assert.ok(sitemap2Raw.includes('https://3.example.com/a0'));
+    assert.ok(sitemap2Raw.includes('</urlset>'));
+    assert.ok(!sitemap2Raw.includes('https://3.example.com/a1'));
 
-    // Read the index to make sure it was written
     const indexText = readFileSync(
       resolve(targetFolder, `./sitemap-index.xml`),
       'utf-8'
     );
-    expect(indexText).toContain('<sitemapindex');
-    expect(indexText).toContain(`${baseURL}sitemap-0`);
-    expect(indexText).toContain(`${baseURL}sitemap-1`);
-    expect(indexText).toContain(`${baseURL}sitemap-2`);
-    expect(indexText).toContain('</sitemapindex>');
-    expect(indexText).not.toContain(`${baseURL}sitemap-3`);
+    assert.ok(indexText.includes('<sitemapindex'));
+    assert.ok(indexText.includes(`${baseURL}sitemap-0`));
+    assert.ok(indexText.includes(`${baseURL}sitemap-1`));
+    assert.ok(indexText.includes(`${baseURL}sitemap-2`));
+    assert.ok(indexText.includes('</sitemapindex>'));
+    assert.ok(!indexText.includes(`${baseURL}sitemap-3`));
   });
 
   it('writes index if no items written at all', async () => {
@@ -753,8 +720,6 @@ describe('sitemapAndIndex', () => {
 
         const outputStream = createWriteStream(resolve(targetFolder, path));
 
-        // Streams do not automatically propagate errors
-        // We must propagate this up to the SitemapStream
         outputStream.on('error', (err) => {
           sm.emit('error', err);
         });
@@ -764,29 +729,26 @@ describe('sitemapAndIndex', () => {
       },
     });
 
-    // Pipe the index stream to a file
     const indexStream = createWriteStream(
       resolve(targetFolder, `./sitemap-index.xml`)
     );
     sms.pipe(indexStream);
     sms.end();
-    await expect(finished(sms)).resolves.toBeUndefined();
-
+    await finished(sms);
     await finished(indexStream);
 
-    expect(existsSync(resolve(targetFolder, `./sitemap-index.xml`))).toBe(true);
-    expect(existsSync(resolve(targetFolder, `./sitemap-0.xml`))).toBe(false);
+    assert.ok(existsSync(resolve(targetFolder, `./sitemap-index.xml`)));
+    assert.ok(!existsSync(resolve(targetFolder, `./sitemap-0.xml`)));
 
-    // Read the index to make sure it was written
     const indexText = readFileSync(
       resolve(targetFolder, `./sitemap-index.xml`),
       'utf-8'
     );
-    expect(indexText).toContain(`<sitemapindex `);
-    expect(indexText).not.toContain(`${baseURL}sitemap-0`);
-    expect(indexText).not.toContain(`${baseURL}sitemap-1`);
-    expect(indexText).toContain(`</sitemapindex>`);
-    expect(indexText).not.toContain(`${baseURL}sitemap-2`);
+    assert.ok(indexText.includes(`<sitemapindex `));
+    assert.ok(!indexText.includes(`${baseURL}sitemap-0`));
+    assert.ok(!indexText.includes(`${baseURL}sitemap-1`));
+    assert.ok(indexText.includes(`</sitemapindex>`));
+    assert.ok(!indexText.includes(`${baseURL}sitemap-2`));
   });
 });
 

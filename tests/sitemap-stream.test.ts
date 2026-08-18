@@ -1,13 +1,15 @@
+import { describe, it, mock } from 'node:test';
+import assert from 'node:assert/strict';
 import { createReadStream } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { Readable } from 'node:stream';
-import { EmptyStream } from '../lib/errors.js';
+import { EmptyStream } from '../dist/lib/errors.js';
 import {
   SitemapStream,
   closetag,
   streamToPromise,
-} from '../lib/sitemap-stream.js';
+} from '../dist/lib/sitemap-stream.js';
 
 const minimumns =
   '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
@@ -24,7 +26,8 @@ describe('sitemap stream', () => {
     sms.write(sampleURLs[0]);
     sms.write(sampleURLs[1]);
     sms.end();
-    expect((await streamToPromise(sms)).toString()).toBe(
+    assert.strictEqual(
+      (await streamToPromise(sms)).toString(),
       preamble +
         `<url><loc>${sampleURLs[0]}/</loc></url>` +
         `<url><loc>${sampleURLs[1]}</loc></url>` +
@@ -48,7 +51,8 @@ describe('sitemap stream', () => {
     sms.write(sampleURLs[0]);
     sms.write(sampleURLs[1]);
     sms.end();
-    expect((await streamToPromise(sms)).toString()).toBe(
+    assert.strictEqual(
+      (await streamToPromise(sms)).toString(),
       minimumns +
         xhtml +
         image +
@@ -77,12 +81,14 @@ describe('sitemap stream', () => {
     sms.write(sampleURLs[0]);
     sms.end();
     const result = (await streamToPromise(sms)).toString();
-    expect(result).toContain(
-      'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+    assert.ok(
+      result.includes('xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"')
     );
 
-    expect(result).toContain(
-      'xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"'
+    assert.ok(
+      result.includes(
+        'xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"'
+      )
     );
   });
 
@@ -102,8 +108,8 @@ describe('sitemap stream', () => {
     sms.write(sampleURLs[0]);
     sms.end();
     const result = (await streamToPromise(sms)).toString();
-    expect(result).toContain('xmlns:custom="http://example.com/custom"');
-    expect(result).toContain('custom:attr="value123"');
+    assert.ok(result.includes('xmlns:custom="http://example.com/custom"'));
+    assert.ok(result.includes('custom:attr="value123"'));
   });
 
   it('rejects invalid XML attributes (security)', () => {
@@ -119,9 +125,12 @@ describe('sitemap stream', () => {
         ],
       },
     });
-    expect(() => {
-      sms.write(sampleURLs[0]);
-    }).toThrow('Custom namespace contains potentially malicious content');
+    assert.throws(
+      () => {
+        sms.write(sampleURLs[0]);
+      },
+      { message: /Custom namespace contains potentially malicious content/ }
+    );
   });
 
   it('rejects attributes with angle brackets (security)', () => {
@@ -134,9 +143,12 @@ describe('sitemap stream', () => {
         custom: ['xsi:attr="<script>alert(1)</script>"'],
       },
     });
-    expect(() => {
-      sms.write(sampleURLs[0]);
-    }).toThrow('Custom namespace contains potentially malicious content');
+    assert.throws(
+      () => {
+        sms.write(sampleURLs[0]);
+      },
+      { message: /Custom namespace contains potentially malicious content/ }
+    );
   });
 
   it('rejects attributes without colons (security)', () => {
@@ -149,9 +161,12 @@ describe('sitemap stream', () => {
         custom: ['invalidattr="value"'],
       },
     });
-    expect(() => {
-      sms.write(sampleURLs[0]);
-    }).toThrow('Invalid namespace format');
+    assert.throws(
+      () => {
+        sms.write(sampleURLs[0]);
+      },
+      { message: /Invalid namespace format/ }
+    );
   });
 
   it('rejects script tags in custom attributes (security)', () => {
@@ -164,9 +179,12 @@ describe('sitemap stream', () => {
         custom: ['foo:bar="test<script>alert(1)"'],
       },
     });
-    expect(() => {
-      sms.write(sampleURLs[0]);
-    }).toThrow('Custom namespace contains potentially malicious content');
+    assert.throws(
+      () => {
+        sms.write(sampleURLs[0]);
+      },
+      { message: /Custom namespace contains potentially malicious content/ }
+    );
   });
 
   it('rejects javascript: URLs in custom attributes (security)', () => {
@@ -179,9 +197,12 @@ describe('sitemap stream', () => {
         custom: ['xmlns:foo="javascript:alert(1)"'],
       },
     });
-    expect(() => {
-      sms.write(sampleURLs[0]);
-    }).toThrow('Custom namespace contains potentially malicious content');
+    assert.throws(
+      () => {
+        sms.write(sampleURLs[0]);
+      },
+      { message: /Custom namespace contains potentially malicious content/ }
+    );
   });
 
   it('rejects data:text/html in custom attributes (security)', () => {
@@ -194,9 +215,12 @@ describe('sitemap stream', () => {
         custom: ['xmlns:foo="data:text/html,<script>alert(1)</script>"'],
       },
     });
-    expect(() => {
-      sms.write(sampleURLs[0]);
-    }).toThrow('Custom namespace contains potentially malicious content');
+    assert.throws(
+      () => {
+        sms.write(sampleURLs[0]);
+      },
+      { message: /Custom namespace contains potentially malicious content/ }
+    );
   });
 
   it('normalizes passed in urls', async () => {
@@ -205,7 +229,8 @@ describe('sitemap stream', () => {
     sms.write(source[0]);
     sms.write(source[1]);
     sms.end();
-    expect((await streamToPromise(sms)).toString()).toBe(
+    assert.strictEqual(
+      (await streamToPromise(sms)).toString(),
       preamble +
         `<url><loc>https://example.com/</loc></url>` +
         `<url><loc>https://example.com/path</loc></url>` +
@@ -218,7 +243,7 @@ describe('sitemap stream', () => {
       { url: '/', changefreq: 'daily' },
       { url: '/path', changefreq: 'invalid' },
     ];
-    const errorHandlerMock = jest.fn();
+    const errorHandlerMock = mock.fn();
     const sms = new SitemapStream({
       hostname: 'https://example.com/',
       errorHandler: errorHandlerMock,
@@ -227,8 +252,9 @@ describe('sitemap stream', () => {
     sms.write(source[1]);
     sms.end();
     await new Promise((resolve) => sms.on('finish', resolve));
-    expect(errorHandlerMock.mock.calls.length).toBe(1);
-    expect((await streamToPromise(sms)).toString()).toBe(
+    assert.strictEqual(errorHandlerMock.mock.callCount(), 1);
+    assert.strictEqual(
+      (await streamToPromise(sms)).toString(),
       preamble +
         `<url><loc>https://example.com/</loc><changefreq>daily</changefreq></url>` +
         `<url><loc>https://example.com/path</loc><changefreq>invalid</changefreq></url>` +
@@ -237,18 +263,19 @@ describe('sitemap stream', () => {
   });
 
   it('streamToPromise propagates error on read stream', async () => {
-    await expect(
+    await assert.rejects(
       streamToPromise(
         createReadStream(resolve(tmpdir(), `./does-not-exist-sitemap.xml`))
-      )
-    ).rejects.toThrow('ENOENT');
+      ),
+      { message: /ENOENT/ }
+    );
   });
 
   it('streamToPromise throws EmptyStream error on empty stream', async () => {
     const emptyStream = new Readable();
     emptyStream.push(null); // This makes the stream "empty"
 
-    await expect(streamToPromise(emptyStream)).rejects.toThrow(EmptyStream);
+    await assert.rejects(streamToPromise(emptyStream), EmptyStream);
   });
 
   it('streamToPromise returns concatenated data', async () => {
@@ -259,7 +286,8 @@ describe('sitemap stream', () => {
     stream.push('!');
     stream.push(null); // Close the stream
 
-    await expect(streamToPromise(stream)).resolves.toEqual(
+    assert.deepStrictEqual(
+      await streamToPromise(stream),
       Buffer.from('Hello World!', 'utf-8')
     );
   });

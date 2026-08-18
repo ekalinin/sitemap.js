@@ -1,11 +1,15 @@
 import {
   Transform,
-  TransformOptions,
-  TransformCallback,
+  type TransformOptions,
+  type TransformCallback,
   Readable,
   Writable,
 } from 'node:stream';
-import { SitemapItemLoose, ErrorLevel, ErrorHandler } from './types.js';
+import {
+  type SitemapItemLoose,
+  ErrorLevel,
+  type ErrorHandler,
+} from './types.js';
 import { normalizeURL } from './utils.js';
 import {
   validateSMIOptions,

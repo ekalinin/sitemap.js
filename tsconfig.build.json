@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "outDir": "dist"
+  },
+  "include": ["index.ts", "cli.ts", "lib"],
+  "exclude": ["node_modules", "tests", "dist"]
+}

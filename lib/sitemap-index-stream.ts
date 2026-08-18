@@ -1,8 +1,12 @@
 import { WriteStream } from 'node:fs';
-import { Transform, TransformOptions, TransformCallback } from 'node:stream';
 import {
-  IndexItem,
-  SitemapItemLoose,
+  Transform,
+  type TransformOptions,
+  type TransformCallback,
+} from 'node:stream';
+import {
+  type IndexItem,
+  type SitemapItemLoose,
   ErrorLevel,
   IndexTagNames,
 } from './types.js';

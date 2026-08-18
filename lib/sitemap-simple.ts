@@ -11,7 +11,7 @@ import {
 import { normalize, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { SitemapItemLoose } from './types.js';
+import type { SitemapItemLoose } from './types.js';
 import { URL } from 'node:url';
 import {
   validateURL,

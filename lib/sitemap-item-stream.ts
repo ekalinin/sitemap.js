@@ -1,6 +1,15 @@
-import { Transform, TransformOptions, TransformCallback } from 'node:stream';
+import {
+  Transform,
+  type TransformOptions,
+  type TransformCallback,
+} from 'node:stream';
 import { InvalidAttr } from './errors.js';
-import { SitemapItem, ErrorLevel, TagNames, StringObj } from './types.js';
+import {
+  type SitemapItem,
+  ErrorLevel,
+  TagNames,
+  type StringObj,
+} from './types.js';
 import { element, otag, ctag } from './sitemap-xml.js';
 
 /**

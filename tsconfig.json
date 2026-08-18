@@ -1,19 +1,21 @@
 {
   "compilerOptions": {
+    "verbatimModuleSyntax": true,
     "sourceMap": false,
-    "outDir": "./dist/esm/",
     "strictNullChecks": true,
     "strict": true,
     "declaration": true,
     "module": "NodeNext",
     "target": "ES2023",
-    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "NodeNext",
     "lib": ["es2023"],
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   },
-  "include": ["index.ts", "cli.ts"],
-  "exclude": ["node_modules"]
+  "include": ["index.ts", "cli.ts", "tests", "lib"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -4,7 +4,7 @@
  * MIT Licensed
  */
 
-import { TagNames, IndexTagNames, StringObj } from './types.js';
+import { TagNames, IndexTagNames, type StringObj } from './types.js';
 import { InvalidXMLAttributeNameError } from './errors.js';
 
 /**

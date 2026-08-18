@@ -1,3 +1,5 @@
+import { describe, it, mock } from 'node:test';
+import assert from 'node:assert/strict';
 import { createReadStream } from 'node:fs';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
@@ -6,30 +8,34 @@ import {
   parseSitemap,
   XMLToSitemapItemStream,
   ObjectStreamToJSON,
-} from '../lib/sitemap-parser.js';
-import { SitemapStreamOptions } from '../lib/sitemap-stream.js';
-import { ErrorLevel, SitemapItem } from '../lib/types.js';
+} from '../dist/lib/sitemap-parser.js';
+import type { SitemapStreamOptions } from '../dist/lib/sitemap-stream.js';
+import { ErrorLevel } from '../dist/lib/types.js';
+import type { SitemapItem } from '../dist/lib/types.js';
 const pipeline = promisify(pipe);
-import normalizedSample from './mocks/sampleconfig.normalized.json';
+import normalizedSample from './mocks/sampleconfig.normalized.json' with { type: 'json' };
 
 describe('parseSitemap', () => {
   it('parses xml into sitemap-items', async () => {
     const urls = await parseSitemap(
-      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+      createReadStream(resolve(import.meta.dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
       })
     );
-    expect(urls).toEqual(normalizedSample.urls);
+    assert.deepStrictEqual(urls, normalizedSample.urls);
   });
 
   it('rejects malformed file', async () => {
-    await expect(async () =>
+    await assert.rejects(async () =>
       parseSitemap(
-        createReadStream(resolve(__dirname, './mocks/unescaped-lt.xml'), {
-          encoding: 'utf8',
-        })
+        createReadStream(
+          resolve(import.meta.dirname, './mocks/unescaped-lt.xml'),
+          {
+            encoding: 'utf8',
+          }
+        )
       )
-    ).rejects.toThrow();
+    );
   });
 });
 
@@ -37,7 +43,7 @@ describe('XMLToSitemapItemStream', () => {
   it('stream parses XML', async () => {
     const sitemap: SitemapItem[] = [];
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+      createReadStream(resolve(import.meta.dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
       }),
       new XMLToSitemapItemStream(),
@@ -49,16 +55,19 @@ describe('XMLToSitemapItemStream', () => {
         },
       })
     );
-    expect(sitemap).toEqual(normalizedSample.urls);
+    assert.deepStrictEqual(sitemap, normalizedSample.urls);
   });
 
   it('stream parses bad XML', async () => {
     const sitemap: SitemapStreamOptions[] = [];
-    const logger = jest.fn();
+    const logger = mock.fn();
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/bad-tag-sitemap.xml'), {
-        encoding: 'utf8',
-      }),
+      createReadStream(
+        resolve(import.meta.dirname, './mocks/bad-tag-sitemap.xml'),
+        {
+          encoding: 'utf8',
+        }
+      ),
       new XMLToSitemapItemStream({ logger }),
       new Writable({
         objectMode: true,
@@ -68,19 +77,22 @@ describe('XMLToSitemapItemStream', () => {
         },
       })
     );
-    expect(sitemap).toEqual(normalizedSample.urls);
-    expect(logger.mock.calls.length).toBe(2);
-    expect(logger.mock.calls[0][1]).toBe('unhandled tag');
-    expect(logger.mock.calls[0][2]).toBe('foo');
+    assert.deepStrictEqual(sitemap, normalizedSample.urls);
+    assert.strictEqual(logger.mock.callCount(), 2);
+    assert.strictEqual(logger.mock.calls[0].arguments[1], 'unhandled tag');
+    assert.strictEqual(logger.mock.calls[0].arguments[2], 'foo');
   });
 
   it('stream parses bad XML - silently', async () => {
     const sitemap: SitemapStreamOptions[] = [];
-    const logger = jest.fn();
+    const logger = mock.fn();
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/bad-tag-sitemap.xml'), {
-        encoding: 'utf8',
-      }),
+      createReadStream(
+        resolve(import.meta.dirname, './mocks/bad-tag-sitemap.xml'),
+        {
+          encoding: 'utf8',
+        }
+      ),
       new XMLToSitemapItemStream({ logger, level: ErrorLevel.SILENT }),
       new Writable({
         objectMode: true,
@@ -90,14 +102,14 @@ describe('XMLToSitemapItemStream', () => {
         },
       })
     );
-    expect(sitemap).toEqual(normalizedSample.urls);
-    expect(logger.mock.calls.length).toBe(0);
+    assert.deepStrictEqual(sitemap, normalizedSample.urls);
+    assert.strictEqual(logger.mock.callCount(), 0);
   });
 
   it('stream parses good XML - at a noisy setting without throwing', async () => {
     const sitemap: SitemapStreamOptions[] = [];
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+      createReadStream(resolve(import.meta.dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
       }),
       new XMLToSitemapItemStream({ level: ErrorLevel.THROW }),
@@ -109,16 +121,19 @@ describe('XMLToSitemapItemStream', () => {
         },
       })
     );
-    expect(sitemap).toEqual(normalizedSample.urls);
+    assert.deepStrictEqual(sitemap, normalizedSample.urls);
   });
 
   it('stream parses bad XML - noisily', async () => {
     const sitemap: SitemapStreamOptions[] = [];
-    expect(() =>
+    await assert.rejects(() =>
       pipeline(
-        createReadStream(resolve(__dirname, './mocks/bad-tag-sitemap.xml'), {
-          encoding: 'utf8',
-        }),
+        createReadStream(
+          resolve(import.meta.dirname, './mocks/bad-tag-sitemap.xml'),
+          {
+            encoding: 'utf8',
+          }
+        ),
         new XMLToSitemapItemStream({ level: ErrorLevel.THROW }),
         new Writable({
           objectMode: true,
@@ -128,15 +143,18 @@ describe('XMLToSitemapItemStream', () => {
           },
         })
       )
-    ).rejects.toThrow();
+    );
   });
 
   it('stream parses XML with cdata', async () => {
     const sitemap: SitemapStreamOptions[] = [];
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/alltags.cdata.xml'), {
-        encoding: 'utf8',
-      }),
+      createReadStream(
+        resolve(import.meta.dirname, './mocks/alltags.cdata.xml'),
+        {
+          encoding: 'utf8',
+        }
+      ),
       new XMLToSitemapItemStream(),
       new Writable({
         objectMode: true,
@@ -146,7 +164,7 @@ describe('XMLToSitemapItemStream', () => {
         },
       })
     );
-    expect(sitemap).toEqual(normalizedSample.urls);
+    assert.deepStrictEqual(sitemap, normalizedSample.urls);
   });
 
   it('parses CDATA in <loc> tags (issue #445)', async () => {
@@ -157,8 +175,8 @@ describe('XMLToSitemapItemStream', () => {
   </url>
 </urlset>`;
     const results = await parseSitemap(Readable.from(xml));
-    expect(results).toHaveLength(1);
-    expect(results[0].url).toBe('https://example.com/page1');
+    assert.strictEqual(results.length, 1);
+    assert.strictEqual(results[0].url, 'https://example.com/page1');
   });
 
   it('parses CDATA in <image:loc> tags (issue #445)', async () => {
@@ -173,10 +191,10 @@ describe('XMLToSitemapItemStream', () => {
   </url>
 </urlset>`;
     const results = await parseSitemap(Readable.from(xml));
-    expect(results).toHaveLength(1);
-    expect(results[0].url).toBe('https://example.com/page');
-    expect(results[0].img).toHaveLength(1);
-    expect(results[0].img[0].url).toBe('https://example.com/image.jpg');
+    assert.strictEqual(results.length, 1);
+    assert.strictEqual(results[0].url, 'https://example.com/page');
+    assert.strictEqual(results[0].img.length, 1);
+    assert.strictEqual(results[0].img[0].url, 'https://example.com/image.jpg');
   });
 
   it('validates URLs in CDATA sections', async () => {
@@ -198,9 +216,9 @@ describe('XMLToSitemapItemStream', () => {
         },
       })
     );
-    await expect(promise).rejects.toThrow(
-      'URL must start with http:// or https://'
-    );
+    await assert.rejects(promise, {
+      message: 'URL must start with http:// or https://: invalid-url',
+    });
   });
 });
 
@@ -229,7 +247,7 @@ describe('ObjectStreamToJSON', () => {
         },
       })
     );
-    expect(sitemap).toBe(JSON.stringify(items));
+    assert.strictEqual(sitemap, JSON.stringify(items));
   });
 });
 
@@ -250,7 +268,7 @@ describe('XMLToSitemapItemStream filtering', () => {
     });
 
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+      createReadStream(resolve(import.meta.dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
       }),
       new XMLToSitemapItemStream(),
@@ -265,9 +283,9 @@ describe('XMLToSitemapItemStream filtering', () => {
     );
 
     // Should only have items with 'roosterteeth.com' in the URL
-    expect(sitemap.length).toBeGreaterThan(0);
+    assert.ok(sitemap.length > 0);
     sitemap.forEach((item) => {
-      expect(item.url).toContain('roosterteeth.com');
+      assert.ok(item.url.includes('roosterteeth.com'));
     });
   });
 
@@ -287,7 +305,7 @@ describe('XMLToSitemapItemStream filtering', () => {
     });
 
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+      createReadStream(resolve(import.meta.dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
       }),
       new XMLToSitemapItemStream(),
@@ -302,9 +320,9 @@ describe('XMLToSitemapItemStream filtering', () => {
     );
 
     // Should not have any items with 'roosterteeth' in the URL
-    expect(sitemap.length).toBeGreaterThan(0);
+    assert.ok(sitemap.length > 0);
     sitemap.forEach((item) => {
-      expect(item.url).not.toContain('roosterteeth');
+      assert.ok(!item.url.includes('roosterteeth'));
     });
   });
 
@@ -324,7 +342,7 @@ describe('XMLToSitemapItemStream filtering', () => {
     });
 
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+      createReadStream(resolve(import.meta.dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
       }),
       new XMLToSitemapItemStream(),
@@ -340,8 +358,8 @@ describe('XMLToSitemapItemStream filtering', () => {
 
     // All items should have priority >= 0.5
     sitemap.forEach((item) => {
-      expect(item.priority).toBeDefined();
-      expect(item.priority).toBeGreaterThanOrEqual(0.5);
+      assert.notStrictEqual(item.priority, undefined);
+      assert.ok(item.priority! >= 0.5);
     });
   });
 
@@ -365,7 +383,7 @@ describe('XMLToSitemapItemStream filtering', () => {
     });
 
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+      createReadStream(resolve(import.meta.dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
       }),
       new XMLToSitemapItemStream(),
@@ -380,9 +398,9 @@ describe('XMLToSitemapItemStream filtering', () => {
     );
 
     // Should have processed all items from normalized sample
-    expect(keptCount + droppedCount).toBe(normalizedSample.urls.length);
-    expect(keptCount).toBe(sitemap.length);
-    expect(sitemap.length).toBeGreaterThan(0);
+    assert.strictEqual(keptCount + droppedCount, normalizedSample.urls.length);
+    assert.strictEqual(keptCount, sitemap.length);
+    assert.ok(sitemap.length > 0);
   });
 
   it('chains multiple filters together', async () => {
@@ -413,7 +431,7 @@ describe('XMLToSitemapItemStream filtering', () => {
     });
 
     await pipeline(
-      createReadStream(resolve(__dirname, './mocks/alltags.xml'), {
+      createReadStream(resolve(import.meta.dirname, './mocks/alltags.xml'), {
         encoding: 'utf8',
       }),
       new XMLToSitemapItemStream(),
@@ -430,8 +448,8 @@ describe('XMLToSitemapItemStream filtering', () => {
 
     // All items should have both priority and changefreq
     sitemap.forEach((item) => {
-      expect(item.priority).toBeDefined();
-      expect(item.changefreq).toBeDefined();
+      assert.notStrictEqual(item.priority, undefined);
+      assert.ok(item.changefreq);
     });
   });
 });

@@ -1,4 +1,6 @@
-import { SitemapItemStream, streamToPromise } from '../index.js';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { SitemapItemStream, streamToPromise } from '../dist/index.js';
 import {
   simpleText,
   simpleURL,
@@ -8,7 +10,7 @@ import {
   simpleTextEscaped,
   escapable,
   attrEscaped,
-} from './mocks/generator.js';
+} from './mocks/generator.ts';
 
 describe('sitemapItem-stream', () => {
   it('handles video with null/undefined tag array', async () => {
@@ -16,7 +18,7 @@ describe('sitemapItem-stream', () => {
       img: [],
       video: [
         {
-          tag: null as unknown as string[],
+          tag: null,
           thumbnail_loc: simpleURL,
           title: simpleText,
           description: simpleText,
@@ -30,8 +32,8 @@ describe('sitemapItem-stream', () => {
     smis.write(testData);
     smis.end();
     const result = (await streamToPromise(smis)).toString();
-    expect(result).toContain('<video:video>');
-    expect(result).not.toContain('<video:tag>');
+    assert.ok(result.includes('<video:video>'));
+    assert.ok(!result.includes('<video:tag>'));
   });
 
   it('handles video with empty tag array', async () => {
@@ -53,8 +55,8 @@ describe('sitemapItem-stream', () => {
     smis.write(testData);
     smis.end();
     const result = (await streamToPromise(smis)).toString();
-    expect(result).toContain('<video:video>');
-    expect(result).not.toContain('<video:tag>');
+    assert.ok(result.includes('<video:video>'));
+    assert.ok(!result.includes('<video:tag>'));
   });
 
   it('handles numeric fields correctly (view_count, rating, duration)', async () => {
@@ -78,9 +80,9 @@ describe('sitemapItem-stream', () => {
     smis.write(testData);
     smis.end();
     const result = (await streamToPromise(smis)).toString();
-    expect(result).toContain('<video:view_count>12345</video:view_count>');
-    expect(result).toContain('<video:rating>4.5</video:rating>');
-    expect(result).toContain('<video:duration>600</video:duration>');
+    assert.ok(result.includes('<video:view_count>12345</video:view_count>'));
+    assert.ok(result.includes('<video:rating>4.5</video:rating>'));
+    assert.ok(result.includes('<video:duration>600</video:duration>'));
   });
 
   it('handles priority with full precision', async () => {
@@ -96,7 +98,7 @@ describe('sitemapItem-stream', () => {
     smis.write(testData);
     smis.end();
     const result = (await streamToPromise(smis)).toString();
-    expect(result).toContain('<priority>0.789456</priority>');
+    assert.ok(result.includes('<priority>0.789456</priority>'));
   });
 
   it('handles priority with fixed precision', async () => {
@@ -112,7 +114,7 @@ describe('sitemapItem-stream', () => {
     smis.write(testData);
     smis.end();
     const result = (await streamToPromise(smis)).toString();
-    expect(result).toContain('<priority>0.8</priority>');
+    assert.ok(result.includes('<priority>0.8</priority>'));
   });
 
   it('full options', async () => {
@@ -209,7 +211,8 @@ describe('sitemapItem-stream', () => {
     const smis = new SitemapItemStream();
     smis.write(testData);
     smis.end();
-    expect((await streamToPromise(smis)).toString()).toBe(
+    assert.strictEqual(
+      (await streamToPromise(smis)).toString(),
       el(
         'url',
         el('loc', simpleURLEscaped) +

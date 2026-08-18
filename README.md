@@ -21,6 +21,11 @@ makes creating [sitemap XML](http://www.sitemaps.org/) files easy. [What is a si
 npm install --save sitemap
 ```
 
+Requires Node.js >= 22.12. This package is **ESM-only** — it no longer ships a
+CommonJS build. Load it with `import`; `require('sitemap')` works only on Node
+versions with built-in `require(esm)` support, which is why the minimum is
+22.12 rather than 22.0.
+
 ## Generate a one time sitemap from a list of urls
 
 If you are just looking to take a giant list of URLs and turn it into some sitemaps, try out our CLI. The cli can also parse, update and validate existing sitemaps.
@@ -32,13 +37,8 @@ npx sitemap < listofurls.txt # `npx sitemap -h` for more examples and a list of 
 For programmatic one time generation of a sitemap try:
 
 ```js
-// ESM
 import { SitemapStream, streamToPromise } from 'sitemap'
 import { Readable } from 'stream'
-
-// CommonJS
-const { SitemapStream, streamToPromise } = require('sitemap')
-const { Readable } = require('stream')
 
 // An array with your links
 const links = [{ url: '/page-1/',  changefreq: 'daily', priority: 0.3  }]
@@ -57,17 +57,10 @@ return streamToPromise(Readable.from(links).pipe(stream)).then((data) =>
 Use this if you have less than 50 thousand urls. See SitemapAndIndexStream for if you have more.
 
 ```js
-// ESM
 import express from 'express'
 import { SitemapStream, streamToPromise } from 'sitemap'
 import { createGzip } from 'zlib'
 import { Readable } from 'stream'
-
-// CommonJS
-const express = require('express')
-const { SitemapStream, streamToPromise } = require('sitemap')
-const { createGzip } = require('zlib')
-const { Readable } = require('stream')
 
 const app = express()
 let sitemap
@@ -117,20 +110,10 @@ app.listen(3000, () => {
 If you know you are definitely going to have more than 50,000 urls in your sitemap, you can use this slightly more complex interface to create a new sitemap every 45,000 entries and add that file to a sitemap index.
 
 ```js
-// ESM
 import { createReadStream, createWriteStream } from 'fs'
 import { resolve } from 'path'
 import { createGzip } from 'zlib'
 import { simpleSitemapAndIndex, lineSeparatedURLsToSitemapOptions } from 'sitemap'
-
-// CommonJS
-const { createReadStream, createWriteStream } = require('fs')
-const { resolve } = require('path')
-const { createGzip } = require('zlib')
-const {
-  simpleSitemapAndIndex,
-  lineSeparatedURLsToSitemapOptions
-} = require('sitemap')
 
 // writes sitemaps and index out to the destination you provide.
 simpleSitemapAndIndex({
@@ -155,23 +138,11 @@ simpleSitemapAndIndex({
 Want to customize that?
 
 ```js
-// ESM
 import { createReadStream, createWriteStream } from 'fs'
 import { resolve } from 'path'
 import { createGzip } from 'zlib'
 import { Readable } from 'stream'
 import { SitemapAndIndexStream, SitemapStream, lineSeparatedURLsToSitemapOptions } from 'sitemap'
-
-// CommonJS
-const { createReadStream, createWriteStream } = require('fs')
-const { resolve } = require('path')
-const { createGzip } = require('zlib')
-const { Readable } = require('stream')
-const {
-  SitemapAndIndexStream,
-  SitemapStream,
-  lineSeparatedURLsToSitemapOptions
-} = require('sitemap')
 
 const sms = new SitemapAndIndexStream({
   limit: 50000, // defaults to 45k
@@ -217,11 +188,7 @@ sms.end() // necessary to let it know you've got nothing else to write
 ### Options you can pass
 
 ```js
-// ESM
 import { SitemapStream, streamToPromise } from 'sitemap'
-
-// CommonJS
-const { SitemapStream, streamToPromise } = require('sitemap')
 
 const smStream = new SitemapStream({
   hostname: 'http://www.mywebsite.com',

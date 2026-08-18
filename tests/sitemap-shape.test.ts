@@ -1,3 +1,5 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 import {
   SitemapIndexStream,
   SitemapAndIndexStream,
@@ -19,29 +21,29 @@ import {
   parseSitemapIndex,
   XMLToSitemapIndexStream,
   IndexObjectStreamToJSON,
-} from '../index.js';
+} from '../dist/index.js';
 
 describe('sitemap shape', () => {
   it('exports individually as well', () => {
-    expect(NoURLError).toBeDefined();
-    expect(InvalidNewsFormat).toBeDefined();
-    expect(NoConfigError).toBeDefined();
-    expect(ChangeFreqInvalidError).toBeDefined();
-    expect(PriorityInvalidError).toBeDefined();
-    expect(UndefinedTargetFolder).toBeDefined();
-    expect(InvalidVideoFormat).toBeDefined();
-    expect(InvalidVideoDuration).toBeDefined();
-    expect(InvalidVideoDescription).toBeDefined();
-    expect(InvalidAttrValue).toBeDefined();
-    expect(SitemapIndexStream).toBeDefined();
-    expect(SitemapAndIndexStream).toBeDefined();
-    expect(parseSitemap).toBeDefined();
-    expect(xmlLint).toBeDefined();
-    expect(normalizeURL).toBeDefined();
-    expect(SitemapStream).toBeDefined();
-    expect(SitemapItemStream).toBeDefined();
-    expect(parseSitemapIndex).toBeDefined();
-    expect(XMLToSitemapIndexStream).toBeDefined();
-    expect(IndexObjectStreamToJSON).toBeDefined();
+    assert.notStrictEqual(NoURLError, undefined);
+    assert.notStrictEqual(InvalidNewsFormat, undefined);
+    assert.notStrictEqual(NoConfigError, undefined);
+    assert.notStrictEqual(ChangeFreqInvalidError, undefined);
+    assert.notStrictEqual(PriorityInvalidError, undefined);
+    assert.notStrictEqual(UndefinedTargetFolder, undefined);
+    assert.notStrictEqual(InvalidVideoFormat, undefined);
+    assert.notStrictEqual(InvalidVideoDuration, undefined);
+    assert.notStrictEqual(InvalidVideoDescription, undefined);
+    assert.notStrictEqual(InvalidAttrValue, undefined);
+    assert.notStrictEqual(SitemapIndexStream, undefined);
+    assert.notStrictEqual(SitemapAndIndexStream, undefined);
+    assert.notStrictEqual(parseSitemap, undefined);
+    assert.notStrictEqual(xmlLint, undefined);
+    assert.notStrictEqual(normalizeURL, undefined);
+    assert.notStrictEqual(SitemapStream, undefined);
+    assert.notStrictEqual(SitemapItemStream, undefined);
+    assert.notStrictEqual(parseSitemapIndex, undefined);
+    assert.notStrictEqual(XMLToSitemapIndexStream, undefined);
+    assert.notStrictEqual(IndexObjectStreamToJSON, undefined);
   });
 });

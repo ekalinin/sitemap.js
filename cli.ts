@@ -1,8 +1,18 @@
 #!/usr/bin/env node
+import {
+  createReadStream,
+  createWriteStream,
+  WriteStream,
+  readFileSync,
+  existsSync,
+} from 'node:fs';
 import { Readable } from 'node:stream';
-import { createReadStream, createWriteStream, WriteStream } from 'node:fs';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
+import { URL } from 'node:url';
+import { createGzip, type Gzip } from 'node:zlib';
+
+import arg from 'arg';
+
 import { xmlLint } from './lib/xmllint.js';
 import { XMLLintUnavailable } from './lib/errors.js';
 import {
@@ -12,26 +22,32 @@ import {
 import { lineSeparatedURLsToSitemapOptions } from './lib/utils.js';
 import { SitemapStream } from './lib/sitemap-stream.js';
 import { SitemapAndIndexStream } from './lib/sitemap-index-stream.js';
-import { URL } from 'node:url';
-import { createGzip, Gzip } from 'node:zlib';
 import { ErrorLevel } from './lib/types.js';
-import arg from 'arg';
 
-// Read package.json from the project root (one level up from dist/esm or dist/cjs)
-// In ESM, __dirname is not defined, so we use import.meta.url
-// In CJS, __dirname is defined and import.meta is not available
-let currentDir: string;
-try {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore - __dirname may not be defined in ESM
-  currentDir = __dirname;
-} catch {
-  // ESM fallback using import.meta.url
-  currentDir = new URL('.', import.meta.url).pathname;
-}
-const packageJson = JSON.parse(
-  readFileSync(resolve(currentDir, '../../package.json'), 'utf8')
-);
+/**
+ * Locate the package manifest by walking up from this module's directory.
+ *
+ * Resolving it at a hardcoded relative depth has broken twice already, because
+ * the correct depth depends on the build's output layout (`dist/esm/cli.js`
+ * needed `../../`, `dist/cli.js` needs `../`). Walking up finds it whichever
+ * layout this file is running from, source or built.
+ */
+const findPackageJson = (): string => {
+  let dir = import.meta.dirname;
+  for (;;) {
+    const candidate = resolve(dir, 'package.json');
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) {
+      throw new Error('Could not locate package.json');
+    }
+    dir = parent;
+  }
+};
+
+const packageJson = JSON.parse(readFileSync(findPackageJson(), 'utf8'));
 
 const pickStreamOrArg = (argv: { _: string[] }): Readable => {
   if (!argv._.length) {

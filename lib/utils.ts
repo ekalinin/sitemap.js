@@ -8,19 +8,19 @@ import {
   Readable,
   Transform,
   PassThrough,
-  ReadableOptions,
-  TransformOptions,
+  type ReadableOptions,
+  type TransformOptions,
 } from 'node:stream';
 import { createInterface, Interface } from 'node:readline';
 import { URL } from 'node:url';
-import {
+import type {
   SitemapItem,
   SitemapItemLoose,
-  EnumYesNo,
   Img,
   LinkItem,
   VideoItem,
 } from './types.js';
+import { EnumYesNo } from './types.js';
 
 // Re-export validateSMIOptions from validation.ts for backward compatibility
 export { validateSMIOptions } from './validation.js';
