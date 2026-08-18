@@ -3,7 +3,30 @@ name: Node CI
 on: [push, pull_request]
 
 jobs:
-  build:
+  # Lint, formatting and typechecking are identical on every OS and Node
+  # version, so they run once rather than on each leg of the test matrix.
+  # Typechecking matters more than it used to: tests now run through
+  # --experimental-strip-types, which strips types without checking them, so
+  # this job is the only thing that typechecks the test suite.
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: ./.github/actions/configure-nodejs
+        with:
+          node-version: 24.x
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check Formatting with Prettier
+        run: npm run prettier
+
+      - name: Typecheck
+        run: npm run test:typecheck
+
+  test:
     strategy:
       matrix:
         node-version: [22.x, 24.x, 26.x]
@@ -17,12 +40,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Check Formatting with Prettier
-        run: npm run prettier
-
       - name: Build TypeScript
         run: npm run build
 
@@ -31,3 +48,21 @@ jobs:
 
       - name: XML Lint Test
         run: npm run test:xmllint
+
+  # Coverage thresholds are enforced on a single platform: Windows and macOS
+  # legs skip the POSIX-shell and xmllint-dependent tests, so their coverage is
+  # legitimately lower and would trip the thresholds spuriously.
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: ./.github/actions/configure-nodejs
+        with:
+          node-version: 24.x
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Unit Tests with Coverage Thresholds
+        run: npm run test:coverage

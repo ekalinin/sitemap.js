@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach, mock } from 'node:test';
+import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { SitemapStream } from '../dist/index.js';
 import { devNull, tmpdir } from 'node:os';
@@ -45,8 +45,8 @@ describe('sitemapIndex', () => {
       );
     });
 
-    it('should skip invalid URL in WARN mode', async () => {
-      const warnMock = mock.method(console, 'warn');
+    it('should skip invalid URL in WARN mode', async (t) => {
+      const warnMock = t.mock.method(console, 'warn');
       const smis = new SitemapIndexStream({ level: ErrorLevel.WARN });
       smis.write('not a url');
       smis.write('https://test.com/valid.xml');
@@ -60,8 +60,8 @@ describe('sitemapIndex', () => {
       );
     });
 
-    it('should skip invalid URL in SILENT mode', async () => {
-      const warnMock = mock.method(console, 'warn');
+    it('should skip invalid URL in SILENT mode', async (t) => {
+      const warnMock = t.mock.method(console, 'warn');
       const smis = new SitemapIndexStream({ level: ErrorLevel.SILENT });
       smis.write('not a url');
       smis.write('https://test.com/valid.xml');
@@ -99,8 +99,8 @@ describe('sitemapIndex', () => {
       await assert.rejects(streamToPromise(smis), /Invalid lastmod date/);
     });
 
-    it('should skip invalid lastmod date in WARN mode and continue', async () => {
-      const warnMock = mock.method(console, 'warn');
+    it('should skip invalid lastmod date in WARN mode and continue', async (t) => {
+      const warnMock = t.mock.method(console, 'warn');
       const smis = new SitemapIndexStream({ level: ErrorLevel.WARN });
       smis.write({ url: 'https://test.com/s1.xml', lastmod: 'invalid-date' });
       smis.write({ url: 'https://test.com/s2.xml', lastmod: '2018-11-26' });
@@ -117,8 +117,8 @@ describe('sitemapIndex', () => {
       );
     });
 
-    it('should skip invalid lastmod date in SILENT mode without warning', async () => {
-      const warnMock = mock.method(console, 'warn');
+    it('should skip invalid lastmod date in SILENT mode without warning', async (t) => {
+      const warnMock = t.mock.method(console, 'warn');
       const smis = new SitemapIndexStream({ level: ErrorLevel.SILENT });
       smis.write({ url: 'https://test.com/s1.xml', lastmod: 'invalid-date' });
       smis.write({ url: 'https://test.com/s2.xml' });

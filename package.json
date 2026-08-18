@@ -47,9 +47,9 @@
     "test:coverage": "node --experimental-strip-types --experimental-test-coverage --test-coverage-branches=80 --test-coverage-functions=90 --test-coverage-lines=90 --test tests/*.test.ts",
     "test:full": "npm run lint && npm run build && npm run test:coverage && npm run test:xmllint",
     "test:perf": "node ./tests/perf.mjs",
-    "test:schema": "node tests/alltags.mjs | xmllint --schema schema/all.xsd --noout -",
+    "test:schema": "node ./tests/xmllint-schema.mjs",
     "test:typecheck": "tsc --noEmit",
-    "test:xmllint": "if which xmllint; then npm run test:schema; else echo 'skipping xml tests. xmllint not installed'; fi"
+    "test:xmllint": "node ./tests/xmllint-schema.mjs --skip-if-missing"
   },
   "lint-staged": {
     "package.json": [
@@ -86,9 +86,9 @@
     "through2-map": "^4.0.0",
     "typescript": "^5.4.5"
   },
+  "packageManager": "npm@11.17.0",
   "engines": {
-    "node": ">=22",
+    "node": ">=22.12",
     "npm": ">=10.8.2"
-  },
-  "packageManager": "npm@11.17.0"
+  }
 }

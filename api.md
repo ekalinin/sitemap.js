@@ -23,11 +23,7 @@
 A [Transform](https://nodejs.org/api/stream.html#stream_implementing_a_transform_stream) for turning a [Readable stream](https://nodejs.org/api/stream.html#stream_readable_streams) of either [SitemapItemOptions](#sitemap-item-options) or url strings into a Sitemap. The readable stream it transforms **must** be in object mode.
 
 ```javascript
-// ESM
 import { SitemapStream } from 'sitemap'
-
-// CommonJS
-const { SitemapStream } = require('sitemap')
 
 const sms = new SitemapStream({
   hostname: 'https://example.com', // optional only necessary if your paths are relative
@@ -51,13 +47,8 @@ Takes a stream of xml and transforms it into a stream of SitemapOptions.
 Use this to parse existing sitemaps into config options compatible with this library
 
 ```javascript
-// ESM
 import { createReadStream, createWriteStream } from 'fs';
 import { XMLToSitemapItemStream, ObjectStreamToJSON, ErrorLevel } from 'sitemap';
-
-// CommonJS
-const { createReadStream, createWriteStream } = require('fs');
-const { XMLToSitemapItemStream, ObjectStreamToJSON, ErrorLevel } = require('sitemap');
 
 createReadStream('./some/sitemap.xml')
 // turn the xml into sitemap option item options
@@ -79,7 +70,6 @@ SitemapAndIndexStream consumes a stream of urls and streams out index entries wh
 Provide it with a function which when provided with a index returns a url where the sitemap will ultimately be hosted and a stream to write the current sitemap to. This function will be called everytime the next item in the stream would exceed the provided limit.
 
 ```js
-// ESM
 import { createReadStream, createWriteStream } from 'fs';
 import { resolve } from 'path';
 import { createGzip } from 'zlib';
@@ -88,16 +78,6 @@ import {
   SitemapStream,
   lineSeparatedURLsToSitemapOptions
 } from 'sitemap';
-
-// CommonJS
-const { createReadStream, createWriteStream } = require('fs');
-const { resolve } = require('path');
-const { createGzip } = require('zlib');
-const {
-  SitemapAndIndexStream,
-  SitemapStream,
-  lineSeparatedURLsToSitemapOptions
-} = require('sitemap');
 
 const sms = new SitemapAndIndexStream({
   limit: 10000, // defaults to 45k
@@ -129,11 +109,7 @@ lineSeparatedURLsToSitemapOptions(
 A simpler interface for creating sitemaps and indexes. Automatically handles splitting large datasets into multiple sitemap files.
 
 ```js
-// ESM
 import { simpleSitemapAndIndex } from 'sitemap';
-
-// CommonJS
-const { simpleSitemapAndIndex } = require('sitemap');
 
 // writes sitemaps and index out to the destination you provide.
 await simpleSitemapAndIndex({
@@ -222,11 +198,7 @@ May throw:
 Writes a sitemap index when given a stream urls.
 
 ```js
-// ESM
 import { SitemapIndexStream } from 'sitemap';
-
-// CommonJS
-const { SitemapIndexStream } = require('sitemap');
 
 /**
  * writes the following
@@ -257,13 +229,8 @@ and always pipes it via stdin to xmllint. It does NOT accept file paths to preve
 command injection vulnerabilities.
 
 ```js
-// ESM
 import { createReadStream, readFileSync } from 'fs';
 import { xmlLint } from 'sitemap';
-
-// CommonJS
-const { createReadStream, readFileSync } = require('fs');
-const { xmlLint } = require('sitemap');
 
 // Validate using a stream
 xmlLint(createReadStream('./example.xml')).then(
@@ -284,13 +251,8 @@ xmlLint(xmlContent).then(
 Read xml and resolve with an array of sitemap items or reject with an error
 
 ```js
-// ESM
 import { createReadStream } from 'fs';
 import { parseSitemap } from 'sitemap';
-
-// CommonJS
-const { createReadStream } = require('fs');
-const { parseSitemap } = require('sitemap');
 
 parseSitemap(createReadStream('./example.xml')).then(
   (items) => {
@@ -310,11 +272,7 @@ Takes a stream of urls or sitemapoptions likely from fs.createReadStream('./path
 Takes a stream returns a promise that resolves when stream emits finish.
 
 ```javascript
-// ESM
 import { streamToPromise, SitemapStream } from 'sitemap';
-
-// CommonJS
-const { streamToPromise, SitemapStream } = require('sitemap');
 
 const sitemap = new SitemapStream({ hostname: 'http://example.com' });
 sitemap.write({ url: '/page-1/', changefreq: 'daily', priority: 0.3 })
@@ -329,13 +287,8 @@ A Transform that converts a stream of objects into a JSON Array or a line separa
 - @param [lineSeparated=false] whether to separate entries by a new line or comma
 
 ```javascript
-// ESM
 import { Readable } from 'stream';
 import { ObjectStreamToJSON } from 'sitemap';
-
-// CommonJS
-const { Readable } = require('stream');
-const { ObjectStreamToJSON } = require('sitemap');
 
 const stream = Readable.from([{a: 'b'}])
   .pipe(new ObjectStreamToJSON())
@@ -349,11 +302,7 @@ stream.end()
 Takes a stream of SitemapItemOptions and spits out xml for each
 
 ```js
-// ESM
 import { SitemapItemStream } from 'sitemap';
-
-// CommonJS
-const { SitemapItemStream } = require('sitemap');
 
 // writes <url><loc>https://example.com</loc><url><url><loc>https://example.com/2</loc><url>
 const smis = new SitemapItemStream({level: 'warn'})

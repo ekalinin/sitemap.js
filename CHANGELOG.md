@@ -1,5 +1,39 @@
 # Changelog
 
+## Unreleased
+
+### [BREAKING CHANGES]
+
+#### Dropped CommonJS build — the package is now ESM-only
+
+- **`require('sitemap')` is no longer supported** on Node versions without
+  built-in `require(esm)`. The `dist/cjs` build, the `require` export condition,
+  and `tsconfig.cjs.json` are all gone; `exports` now resolves to `dist/index.js`
+  for every consumer. Migrate to `import { SitemapStream } from 'sitemap'`.
+- **Node.js >=22.12 now required** (previously >=20.19.5). The floor is 22.12
+  rather than 22.0 because that is where `require(esm)` landed unflagged, which
+  is what lets CommonJS consumers keep loading this package at all.
+- Build output flattened from `dist/esm/*` and `dist/cjs/*` to `dist/*`. The
+  `bin` entry is now `dist/cli.js`.
+
+### Changed
+
+- Test suite migrated from Jest to the built-in Node.js test runner. Coverage
+  thresholds moved from `jest.config.cjs` into the `test:coverage` script and are
+  enforced in CI by a dedicated job.
+- CI now runs on Linux, Windows and macOS across Node 22/24/26. Lint, formatting
+  and typechecking run once rather than on every matrix leg.
+
+### Fixed
+
+- `xmlLint()` no longer probes for the binary with `which`, which is not a
+  command on Windows and made validation report `XMLLintUnavailable` there even
+  when xmllint was installed. A missing binary is now detected via `ENOENT` from
+  the spawn itself, which is correct on every platform.
+- The CLI locates `package.json` by walking up from its own directory instead of
+  a hardcoded relative depth, so `--version` no longer breaks when the build
+  output layout changes.
+
 ## 9.0.1 — Security Patch
 
 - **BB-01**: Fix XML injection via unescaped `xslUrl` in stylesheet processing instruction — special characters (`&`, `"`, `<`, `>`) in the XSL URL are now escaped before being interpolated into the `<?xml-stylesheet?>` processing instruction

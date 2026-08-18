@@ -15,7 +15,8 @@ npm run build                 # Compile TypeScript to dist
 
 ### Testing
 ```bash
-npm test                      #  tests with the Node.js test runner
+npm test                      # Run tests with the Node.js test runner (no coverage)
+npm run test:coverage         # Run tests and enforce coverage thresholds
 npm run test:full             # Run lint, build, coverage-enforced tests, and xmllint validation
 npm run test:typecheck        # Type check only (tsc)
 npm run test:perf             # Run performance tests (tests/perf.mjs)
@@ -180,7 +181,7 @@ All limits are documented with references to sitemaps.org and Google specificati
 ```bash
 npm run test:full    # Run all tests, linting, and validation
 npm run build        # Ensure ESM build works
-npm test             # Verify 90%+ code coverage maintained
+npm run test:coverage # Verify 90%+ code coverage maintained
 ```
 
 ## Finding Code in the Codebase
@@ -231,10 +232,14 @@ Tests are in [tests/](tests/) directory with the Node.js test runner:
 
 The project uses ESM only:
 
-- **[tsconfig.json](tsconfig.json)**: ESM build (`module: "NodeNext"`, `moduleResolution: "NodeNext"`)
-  - Outputs to `dist`
-  - Includes both [index.ts](index.ts) and [cli.ts](cli.ts)
+- **[tsconfig.json](tsconfig.json)**: type checking only (`module: "NodeNext"`, `moduleResolution: "NodeNext"`)
+  - Sets `noEmit: true` — this config never produces output
+  - Includes [index.ts](index.ts), [cli.ts](cli.ts), [lib](lib), and [tests](tests), so `npm run test:typecheck` checks the test suite too
   - ES2023 target with strict null checks enabled
+
+- **[tsconfig.build.json](tsconfig.build.json)**: the build config, used by `npm run build`
+  - Extends [tsconfig.json](tsconfig.json) and overrides `noEmit: false` plus `outDir: "dist"`
+  - Excludes [tests](tests), so test files are never emitted into `dist`
 
 **Important**: All relative imports must include `.js` extensions for ESM compatibility (e.g., `import { foo } from './types.js'`)
 
@@ -269,12 +274,14 @@ Control validation strictness with `ErrorLevel`:
 
 ## Package Distribution
 
-The package is distributed as a dual ESM/CommonJS package with `"type": "module"` in package.json:
+The package is ESM-only, with `"type": "module"` in package.json. There is no
+CommonJS build: `require('sitemap')` works only on Node versions with built-in
+`require(esm)` support, which is why the engines floor is 22.12.
 
 - **ESM**: `dist/index.js` (ES modules)
 - **Types**: `dist/index.d.ts` (TypeScript definitions)
 - **Binary**: `dist/cli.js` (ESM-only CLI, executable via `npx sitemap`)
-- **Engines**: Node.js >=22, npm >=10.8.2
+- **Engines**: Node.js >=22.12, npm >=10.8.2
 
 ## Git Hooks
 

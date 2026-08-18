@@ -4,25 +4,16 @@ import util from 'node:util';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import {
-  exec as execCb,
-  execFileSync as execFileSyncCb,
-} from 'node:child_process';
+import { exec as execCb } from 'node:child_process';
 import pkg from '../package.json' with { type: 'json' };
 import normalizedSample from './mocks/sampleconfig.normalized.json' with { type: 'json' };
+import { hasXMLLint } from './util.ts';
 
 const exec = util.promisify(execCb);
-const execFileSync = execFileSyncCb;
 
 const isWindows = os.platform() === 'win32';
 
-let hasXMLLint = true;
-try {
-  const command = isWindows ? 'where' : 'which';
-  execFileSync(command, ['xmllint']);
-} catch {
-  hasXMLLint = false;
-}
+const skipWithoutXMLLint = hasXMLLint ? false : 'xmllint is not installed';
 
 const txtxml =
   '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"><url><loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-burnout-paradise-millionaires-club</loc></url><url><loc>https://roosterteeth.com/episode/achievement-hunter-achievement-hunter-endangered-species-walkthrough-</loc></url></urlset>';
@@ -163,27 +154,27 @@ describe('cli', () => {
     assert.strictEqual(json, undefined);
   });
 
-  it('validates xml piped in', { timeout: 60000 }, async () => {
-    if (hasXMLLint) {
+  it(
+    'validates xml piped in',
+    { timeout: 60000, skip: skipWithoutXMLLint },
+    async () => {
       const { stdout } = await exec(
         'node ./dist/cli.js --validate < ./tests/mocks/cli-urls.json.xml',
         { encoding: 'utf8' }
       );
       assert.strictEqual(stdout, 'valid\n');
-    } else {
-      // skip
     }
-  });
+  );
 
-  it('validates xml specified as file', { timeout: 60000 }, async () => {
-    if (hasXMLLint) {
+  it(
+    'validates xml specified as file',
+    { timeout: 60000, skip: skipWithoutXMLLint },
+    async () => {
       const { stdout } = await exec(
         'node ./dist/cli.js --validate ./tests/mocks/cli-urls.json.xml',
         { encoding: 'utf8' }
       );
       assert.strictEqual(stdout, 'valid\n');
-    } else {
-      // skip
     }
-  });
+  );
 });

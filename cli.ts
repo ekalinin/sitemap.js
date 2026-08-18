@@ -4,10 +4,11 @@ import {
   createWriteStream,
   WriteStream,
   readFileSync,
+  existsSync,
 } from 'node:fs';
 import { Readable } from 'node:stream';
-import { resolve } from 'node:path';
-import { fileURLToPath, URL } from 'node:url';
+import { resolve, dirname } from 'node:path';
+import { URL } from 'node:url';
 import { createGzip, type Gzip } from 'node:zlib';
 
 import arg from 'arg';
@@ -23,11 +24,30 @@ import { SitemapStream } from './lib/sitemap-stream.js';
 import { SitemapAndIndexStream } from './lib/sitemap-index-stream.js';
 import { ErrorLevel } from './lib/types.js';
 
-// Read package.json from the project root (one level up from dist)
-const currentDir = fileURLToPath(new URL('.', import.meta.url));
-const packageJson = JSON.parse(
-  readFileSync(resolve(currentDir, '../package.json'), 'utf8')
-);
+/**
+ * Locate the package manifest by walking up from this module's directory.
+ *
+ * Resolving it at a hardcoded relative depth has broken twice already, because
+ * the correct depth depends on the build's output layout (`dist/esm/cli.js`
+ * needed `../../`, `dist/cli.js` needs `../`). Walking up finds it whichever
+ * layout this file is running from, source or built.
+ */
+const findPackageJson = (): string => {
+  let dir = import.meta.dirname;
+  for (;;) {
+    const candidate = resolve(dir, 'package.json');
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) {
+      throw new Error('Could not locate package.json');
+    }
+    dir = parent;
+  }
+};
+
+const packageJson = JSON.parse(readFileSync(findPackageJson(), 'utf8'));
 
 const pickStreamOrArg = (argv: { _: string[] }): Readable => {
   if (!argv._.length) {

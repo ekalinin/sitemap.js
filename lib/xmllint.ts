@@ -54,37 +54,41 @@ export function xmlLint(xml: string | Readable): Promise<void> {
   ];
 
   return new Promise((resolve, reject): void => {
-    execFile('which', ['xmllint'], (error, stdout, stderr): void => {
+    // Spawn xmllint directly rather than probing with `which` first: `which`
+    // is not a command on Windows, so probing there reported xmllint as
+    // unavailable even when it was installed. A missing binary surfaces as
+    // ENOENT from the spawn itself on every platform, and this saves a process.
+    const xmllint = execFile('xmllint', args, (error, stdout, stderr): void => {
       if (error) {
-        reject([new XMLLintUnavailable()]);
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          reject([new XMLLintUnavailable()]);
+        } else {
+          reject([error, stderr]);
+        }
         return;
       }
-      const xmllint = execFile(
-        'xmllint',
-        args,
-        (error, stdout, stderr): void => {
-          if (error) {
-            reject([error, stderr]);
-          }
-          resolve();
-        }
-      );
-
-      // Always pipe XML content via stdin for security
-      if (xmllint.stdin) {
-        if (typeof xml === 'string') {
-          // Convert string to stream and pipe to stdin
-          xmllint.stdin.write(xml);
-          xmllint.stdin.end();
-        } else if (xml) {
-          // Pipe readable stream to stdin
-          xml.pipe(xmllint.stdin);
-        }
-      }
-
-      if (xmllint.stdout) {
-        xmllint.stdout.unpipe();
-      }
+      resolve();
     });
+
+    // Always pipe XML content via stdin for security
+    if (xmllint.stdin) {
+      // When the binary is missing the stdin socket is torn down immediately,
+      // so writing to it emits EPIPE. The execFile callback above reports the
+      // real failure; don't let that stray error go unhandled and crash.
+      xmllint.stdin.on('error', (): void => undefined);
+
+      if (typeof xml === 'string') {
+        // Convert string to stream and pipe to stdin
+        xmllint.stdin.write(xml);
+        xmllint.stdin.end();
+      } else if (xml) {
+        // Pipe readable stream to stdin
+        xml.pipe(xmllint.stdin);
+      }
+    }
+
+    if (xmllint.stdout) {
+      xmllint.stdout.unpipe();
+    }
   });
 }
