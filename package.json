@@ -82,7 +82,7 @@
     "prettier": "^3.2.5",
     "sort-package-json": "^3.4.0",
     "stats-lite": "^2.2.0",
-    "stream-json": "^1.7.1",
+    "stream-json": "^3.5.0",
     "through2-map": "^4.0.0",
     "typescript": "^5.4.5"
   },
