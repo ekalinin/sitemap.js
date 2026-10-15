@@ -399,7 +399,7 @@ export enum TagNames {
   'news:language' = 'news:language',
   'mobile:mobile' = 'mobile:mobile',
   'xhtml:link' = 'xhtml:link',
-  'expires' = 'expires',
+  expires = 'expires',
 }
 
 export enum IndexTagNames {
