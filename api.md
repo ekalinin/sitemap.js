@@ -8,6 +8,8 @@
   - [SitemapIndexStream](#sitemapindexstream)
   - [xmlLint](#xmllint)
   - [parseSitemap](#parsesitemap)
+  - [XMLToSitemapIndexStream](#xmltositemapindexstream)
+  - [parseSitemapIndex](#parsesitemapindex)
   - [lineSeparatedURLsToSitemapOptions](#lineseparatedurlstositemapoptions)
   - [streamToPromise](#streamtopromise)
   - [ObjectStreamToJSON](#objectstreamtojson)
@@ -54,7 +56,7 @@ createReadStream('./some/sitemap.xml')
 // turn the xml into sitemap option item options
 .pipe(new XMLToSitemapItemStream({
   // optional
-  level: ErrorLevel.WARN // default is WARN pass SILENT to silence
+  level: ErrorLevel.WARN, // default is WARN pass SILENT to silence
   logger: false // default is console log, pass false as another way to silence or your own custom logger
 }))
 // convert the object stream to JSON
@@ -62,6 +64,11 @@ createReadStream('./some/sitemap.xml')
 // write the library compatible options to disk
 .pipe(createWriteStream('./sitemapOptions.json'))
 ```
+
+The parser enforces the sitemaps.org limits while it reads, so untrusted input can't exhaust memory:
+
+- After 50,000 `<url>` entries (`LIMITS.MAX_URL_ENTRIES`) it stops emitting items and records an error.
+- It keeps at most 100 messages (`LIMITS.MAX_PARSER_ERRORS`) in its `errors` array; `errorCount` holds the full count.
 
 ## SitemapAndIndexStream
 
@@ -139,7 +146,7 @@ await simpleSitemapAndIndex({
 
 - **hostname** (required): The base URL for all sitemap entries. Must be a valid `http://` or `https://` URL.
 - **sitemapHostname** (optional): The base URL for sitemap index entries if different from `hostname`. Must be a valid `http://` or `https://` URL.
-- **destinationDir** (required): Directory where sitemaps and index will be written. Can be relative or absolute, but must not contain path traversal sequences (`..`).
+- **destinationDir** (required): Directory where sitemaps and index will be written, relative to the current working directory. Absolute paths are rejected, as are path traversal sequences (`..`). If you need to write to an absolute path, use [SitemapAndIndexStream](#sitemapandindexstream) and validate the destination yourself.
 - **sourceData** (required): URL source data. Can be:
   - Array of strings (URLs)
   - Array of `SitemapItemLoose` objects
@@ -160,6 +167,7 @@ await simpleSitemapAndIndex({
 - URLs are parsed and validated to ensure they are well-formed
 
 **Path Traversal Protection:**
+- `destinationDir` must be a relative path; absolute paths such as `/tmp/sitemaps` or `C:\sitemaps` are rejected
 - `destinationDir` and `publicBasePath` are checked for path traversal sequences (`..`)
 - Validation detects `..` in all positions (beginning, middle, end, standalone)
 - Both Unix-style (`/`) and Windows-style (`\`) path separators are normalized and checked
@@ -187,7 +195,7 @@ await simpleSitemapAndIndex({
 May throw:
 
 - `InvalidHostnameError`: Invalid or malformed hostname/sitemapHostname
-- `InvalidPathError`: destinationDir contains path traversal or invalid characters
+- `InvalidPathError`: destinationDir is absolute, or contains path traversal or invalid characters
 - `InvalidPublicBasePathError`: publicBasePath contains path traversal or invalid characters
 - `InvalidLimitError`: limit is out of range (not 1-50,000)
 - `InvalidXSLUrlError`: xslUrl is invalid or potentially malicious
@@ -263,6 +271,38 @@ parseSitemap(createReadStream('./example.xml')).then(
 )
 ```
 
+The parser stops emitting items after 50,000 `<url>` entries, so `parseSitemap` never resolves with more than that.
+
+## XMLToSitemapIndexStream
+
+Takes a stream of sitemap index xml and transforms it into a stream of `IndexItem` objects (`{ url, lastmod? }`). Accepts the same `level` and `logger` options as [XMLToSitemapItemStream](#xmltositemapitemstream).
+
+```js
+import { createReadStream } from 'fs';
+import { XMLToSitemapIndexStream, IndexObjectStreamToJSON } from 'sitemap';
+
+createReadStream('./sitemap-index.xml')
+  .pipe(new XMLToSitemapIndexStream())
+  .pipe(new IndexObjectStreamToJSON())
+  .pipe(process.stdout)
+```
+
+## parseSitemapIndex
+
+Read sitemap index xml and resolve with an array of `IndexItem` objects, or reject with an error.
+
+```js
+import { createReadStream } from 'fs';
+import { parseSitemapIndex } from 'sitemap';
+
+const items = await parseSitemapIndex(
+  createReadStream('./sitemap-index.xml'),
+  1000 // optional maxEntries, default: 50000
+);
+```
+
+If the index has more than `maxEntries` entries, `parseSitemapIndex` rejects and destroys both the source stream and the parser so no more input is read.
+
 ## lineSeparatedURLsToSitemapOptions
 
 Takes a stream of urls or sitemapoptions likely from fs.createReadStream('./path') and returns an object stream of sitemap items.
@@ -290,11 +330,10 @@ A Transform that converts a stream of objects into a JSON Array or a line separa
 import { Readable } from 'stream';
 import { ObjectStreamToJSON } from 'sitemap';
 
-const stream = Readable.from([{a: 'b'}])
+Readable.from([{a: 'b'}])
   .pipe(new ObjectStreamToJSON())
   .pipe(process.stdout)
-stream.end()
-// prints {"a":"b"}
+// prints [{"a":"b"}]
 ```
 
 ## SitemapItemStream
