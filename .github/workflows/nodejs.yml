@@ -2,6 +2,9 @@ name: Node CI
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   # Lint, formatting and typechecking are identical on every OS and Node
   # version, so they run once rather than on each leg of the test matrix.
