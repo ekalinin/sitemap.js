@@ -4,12 +4,10 @@ import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import { SitemapStream } from '../dist/index.js';
 // external libs provided as example only
-import Pick from 'stream-json/filters/Pick.js';
-import StreamArray from 'stream-json/streamers/StreamArray.js';
+import { pick } from 'stream-json/filters/pick.js';
+import { streamArray } from 'stream-json/streamers/stream-array.js';
 import map from 'through2-map';
 import { pipeline } from 'node:stream/promises';
-
-const { streamArray } = StreamArray;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,8 +17,8 @@ async function run() {
 
   await pipeline(
     createReadStream(resolve(__dirname, 'mocks', 'sampleconfig.json')),
-    Pick.withParser({ filter: 'urls' }),
-    streamArray(),
+    pick.withParserAsStream({ filter: 'urls' }),
+    streamArray.asStream(),
     map.obj((chunk) => chunk.value),
     // SitemapStream does the heavy lifting
     // You must provide it with an object stream
