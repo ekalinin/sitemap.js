@@ -1,7 +1,7 @@
 // Stream read a json file and print it as xml to the console
-import { parser } from 'stream-json/Parser';
-import { streamArray } from 'stream-json/streamers/StreamArray';
-//import { streamValues } from 'stream-json/streamers/StreamValues';
+import { parser } from 'stream-json/parser.js';
+import { streamArray } from 'stream-json/streamers/stream-array.js';
+//import { streamValues } from 'stream-json/streamers/stream-values.js';
 import fs from 'fs';
 import map from 'through2-map';
 import { SitemapStream } from 'sitemap';
@@ -12,16 +12,16 @@ import { SitemapStream } from 'sitemap';
 /*
   const pipeline = fs
     .createReadStream("./tests/mocks/perf-data.json.txt")
-    .pipe(parser())
-    .pipe(streamValues())
+    .pipe(parser.asStream())
+    .pipe(streamValues.asStream())
     .pipe(map.obj(chunk => chunk.value))
     .pipe(new SitemapStream());
     */
 
 const pipeline = fs
   .createReadStream('../tests/mocks/perf-data.json')
-  .pipe(parser())
-  .pipe(streamArray())
+  .pipe(parser.asStream())
+  .pipe(streamArray.asStream())
   .pipe(map.obj((chunk) => chunk.value))
   .pipe(new SitemapStream());
 
