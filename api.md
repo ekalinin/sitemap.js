@@ -87,7 +87,7 @@ import {
 } from 'sitemap';
 
 const sms = new SitemapAndIndexStream({
-  limit: 10000, // defaults to 45k
+  limit: 10000, // defaults to 45000
   // SitemapAndIndexStream will call this user provided function every time
   // it needs to create a new sitemap file. You merely need to return a stream
   // for it to write the sitemap urls to and the expected url where that sitemap will be hosted
@@ -127,7 +127,7 @@ await simpleSitemapAndIndex({
     { url: '/page-2/', changefreq: 'weekly', priority: 0.7 },
     // ... more URLs
   ],
-  // optional: limit URLs per sitemap (default: 50000, must be 1-50000)
+  // optional: limit URLs per sitemap (default: 45000, must be 1-50000)
   limit: 45000,
   // optional: gzip the output files (default: true)
   gzip: true,
@@ -152,7 +152,7 @@ await simpleSitemapAndIndex({
   - Array of `SitemapItemLoose` objects
   - String (file path to line-separated URLs)
   - Readable stream
-- **limit** (optional): Maximum URLs per sitemap file. Must be between 1 and 50,000 per [sitemaps.org spec](https://www.sitemaps.org/protocol.html). Default: 50000
+- **limit** (optional): Maximum URLs per sitemap file. Must be between 1 and 50,000 per [sitemaps.org spec](https://www.sitemaps.org/protocol.html). Default: 45000
 - **gzip** (optional): Whether to gzip compress the output files. Default: true
 - **publicBasePath** (optional): Base path for sitemap URLs in the index. Must not contain path traversal sequences. Default: './'
 - **xslUrl** (optional): URL to an XSL stylesheet for XML display. Must be a valid `http://` or `https://` URL.
