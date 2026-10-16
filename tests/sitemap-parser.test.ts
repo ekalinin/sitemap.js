@@ -244,6 +244,52 @@ describe('XMLToSitemapItemStream', () => {
     );
   });
 
+  it('joins text and CDATA chunks within one element', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://example.com/<![CDATA[page]]></loc>
+    <video:video>
+      <video:thumbnail_loc>https://example.com/t.jpg</video:thumbnail_loc>
+      <video:title>title</video:title>
+      <video:description>description</video:description>
+      <video:content_loc>https://example.com/v?<![CDATA[x=1&y=2]]></video:content_loc>
+    </video:video>
+  </url>
+</urlset>`;
+    const results = await parseSitemap(Readable.from(xml));
+    assert.strictEqual(results[0].url, 'https://example.com/page');
+    assert.strictEqual(
+      results[0].video[0].content_loc,
+      'https://example.com/v?x=1&y=2'
+    );
+  });
+
+  it('trims whitespace around CDATA content like text content', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://example.com/page</loc>
+    <changefreq><![CDATA[ daily ]]></changefreq>
+    <video:video>
+      <video:thumbnail_loc><![CDATA[
+        https://example.com/t.jpg
+      ]]></video:thumbnail_loc>
+      <video:title>title</video:title>
+      <video:description>description</video:description>
+    </video:video>
+  </url>
+</urlset>`;
+    const results = await parseSitemap(Readable.from(xml));
+    assert.strictEqual(results[0].changefreq, 'daily');
+    assert.strictEqual(
+      results[0].video[0].thumbnail_loc,
+      'https://example.com/t.jpg'
+    );
+  });
+
   it('rejects loc values that fail URL parsing', async () => {
     const xml = `<?xml version="1.0" encoding="UTF-8" ?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

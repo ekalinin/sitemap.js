@@ -7,7 +7,7 @@ import {
   type TransformCallback,
 } from 'node:stream';
 import { type IndexItem, ErrorLevel, IndexTagNames } from './types.js';
-import { validateURL } from './validation.js';
+import { getURLError } from './validation.js';
 import { LIMITS } from './constants.js';
 
 function isValidTagName(tagName: string): tagName is IndexTagNames {
@@ -77,14 +77,14 @@ export class XMLToSitemapIndexStream extends Transform {
       switch (currentTag) {
         case IndexTagNames.loc:
           // Validate URL for security: prevents protocol injection, checks length limits
-          try {
-            validateURL(text, 'Sitemap index URL');
-            currentItem.url = text;
-          } catch (error) {
-            const errMsg =
-              error instanceof Error ? error.message : String(error);
-            this.logger('warn', 'Invalid URL in sitemap index:', errMsg);
-            this.err(`Invalid URL in sitemap index: ${errMsg}`);
+          {
+            const errMsg = getURLError(text, 'Sitemap index URL');
+            if (errMsg) {
+              this.logger('warn', 'Invalid URL in sitemap index:', errMsg);
+              this.err(`Invalid URL in sitemap index: ${errMsg}`);
+            } else {
+              currentItem.url = text;
+            }
           }
           break;
         case IndexTagNames.lastmod:
@@ -116,14 +116,14 @@ export class XMLToSitemapIndexStream extends Transform {
       switch (currentTag) {
         case IndexTagNames.loc:
           // Validate URL for security: prevents protocol injection, checks length limits
-          try {
-            validateURL(text, 'Sitemap index URL');
-            currentItem.url = text;
-          } catch (error) {
-            const errMsg =
-              error instanceof Error ? error.message : String(error);
-            this.logger('warn', 'Invalid URL in sitemap index:', errMsg);
-            this.err(`Invalid URL in sitemap index: ${errMsg}`);
+          {
+            const errMsg = getURLError(text, 'Sitemap index URL');
+            if (errMsg) {
+              this.logger('warn', 'Invalid URL in sitemap index:', errMsg);
+              this.err(`Invalid URL in sitemap index: ${errMsg}`);
+            } else {
+              currentItem.url = text;
+            }
           }
           break;
         case IndexTagNames.lastmod:

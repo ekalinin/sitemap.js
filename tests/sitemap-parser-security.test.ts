@@ -48,6 +48,37 @@ describe('sitemap-parser security tests', () => {
       );
     });
 
+    it('keeps invalid-URL messages short and labels them as URLs', async () => {
+      const longUrl = 'http://example.com/' + 'a'.repeat(3000);
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${longUrl}</loc>
+  </url>
+</urlset>`;
+
+      const logger = mock.fn();
+      const parser = new XMLToSitemapItemStream({ logger });
+      await pipeline(
+        Readable.from([xml]),
+        parser,
+        new Writable({
+          objectMode: true,
+          write(chunk, a, cb): void {
+            cb();
+          },
+        })
+      );
+
+      const logged = logger.mock.calls[0].arguments[2] as string;
+      const stored = parser.errors[0].message;
+      for (const msg of [logged, stored]) {
+        assert.ok(msg.length < 300, `message too long: ${msg.length}`);
+        assert.ok(!msg.includes('hostname'), msg);
+        assert.ok(msg.includes('http://example.com/aaaa'), msg);
+      }
+    });
+
     it('should reject non-http/https URLs', async () => {
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -669,6 +700,39 @@ describe('sitemap-parser security tests', () => {
         )
       );
     });
+
+    it('reports stray CDATA between elements instead of assigning it to the previous element', async () => {
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://example.com/</loc>
+    <priority>0.2</priority><![CDATA[0.9]]>
+    <changefreq>daily</changefreq>
+  </url>
+</urlset>`;
+
+      const parser = new XMLToSitemapItemStream({ logger: false });
+      const sitemap: SitemapItem[] = [];
+
+      await pipeline(
+        Readable.from([xml]),
+        parser,
+        new Writable({
+          objectMode: true,
+          write(chunk, a, cb): void {
+            sitemap.push(chunk);
+            cb();
+          },
+        })
+      );
+
+      assert.strictEqual(sitemap[0].priority, 0.2);
+      assert.ok(
+        parser.errors.some(
+          (e: Error) => e.message === "unhandled text for tag: url '0.9'"
+        )
+      );
+    });
   });
 
   describe('additional edge cases', () => {
@@ -1210,6 +1274,46 @@ describe('sitemap-parser security tests', () => {
 
       assert.ok(parser.errors.length <= LIMITS.MAX_PARSER_ERRORS);
       assert.ok(parser.errorCount > LIMITS.MAX_PARSER_ERRORS);
+    });
+
+    it('drops element character data that exceeds the buffer cap', async () => {
+      const huge = 'k'.repeat(200_000);
+      const xml = `<?xml version="1.0"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+  <url>
+    <loc>https://example.com/</loc>
+    <news:news>
+      <news:publication><news:name>n</news:name><news:language>en</news:language></news:publication>
+      <news:publication_date>2024-01-01</news:publication_date>
+      <news:title>t</news:title>
+      <news:keywords>${huge}</news:keywords>
+    </news:news>
+  </url>
+</urlset>`;
+
+      const parser = new XMLToSitemapItemStream({ logger: false });
+      const sitemap: SitemapItem[] = [];
+      await pipeline(
+        Readable.from([xml]),
+        parser,
+        new Writable({
+          objectMode: true,
+          write(chunk, _enc, cb) {
+            sitemap.push(chunk);
+            cb();
+          },
+        })
+      );
+
+      assert.strictEqual(sitemap[0].news?.keywords, undefined);
+      assert.ok(
+        parser.errors.some((e: Error) =>
+          e.message.startsWith(
+            'character data for news:keywords exceeds max length of'
+          )
+        )
+      );
     });
   });
 });

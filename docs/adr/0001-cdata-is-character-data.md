@@ -11,4 +11,4 @@
 
 - Parsing is slightly more permissive (CDATA anywhere) and slightly stricter (a `<loc>` that fails `new URL()` is now dropped with a warning). Both deltas ship in 10.0.0.
 - Invalid-`loc` warnings changed shape to the wrapped `Invalid URL in sitemap: …` form used by the index parser.
-- `<loc>` keeps assign-last-wins semantics for multi-chunk character data; accumulating chunks and validating at closetag was considered and deliberately deferred.
+- Character data is buffered per element and handled once at the next tag boundary, so text and CDATA chunks are joined and trimmed together (October 2026: originally deferred, adopted after review found that assign-only tags such as `video:content_loc` silently kept only the last chunk). The buffer is capped at `LIMITS.MAX_PARSER_CHAR_DATA_LENGTH`.

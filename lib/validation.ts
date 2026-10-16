@@ -6,7 +6,7 @@
 
 import {
   InvalidPathError,
-  InvalidHostnameError,
+  InvalidURLError,
   InvalidLimitError,
   InvalidPublicBasePathError,
   InvalidXSLUrlError,
@@ -136,7 +136,7 @@ export function isValidVideoRating(rating: number): boolean {
  * Checks that a video view count is a finite, non-negative number
  */
 export function isValidVideoViewCount(count: number): boolean {
-  return isFinite(count) && count >= 0;
+  return isFinite(count) && count >= LIMITS.MIN_VIDEO_VIEW_COUNT;
 }
 
 /**
@@ -163,25 +163,22 @@ export function isAllowDeny(ad: string): ad is EnumAllowDeny {
  *
  * @param url - The URL to validate
  * @param paramName - The parameter name for error messages
- * @throws {InvalidHostnameError} If the URL is invalid
+ * @throws {InvalidURLError} If the URL is invalid (a subclass of InvalidHostnameError)
  */
 export function validateURL(url: string, paramName: string): void {
   if (!url || typeof url !== 'string') {
-    throw new InvalidHostnameError(
-      url,
-      `${paramName} must be a non-empty string`
-    );
+    throw new InvalidURLError(url, `${paramName} must be a non-empty string`);
   }
 
   if (url.length > LIMITS.MAX_URL_LENGTH) {
-    throw new InvalidHostnameError(
+    throw new InvalidURLError(
       url,
       `${paramName} exceeds maximum length of ${LIMITS.MAX_URL_LENGTH} characters`
     );
   }
 
   if (!LIMITS.URL_PROTOCOL_REGEX.test(url)) {
-    throw new InvalidHostnameError(
+    throw new InvalidURLError(
       url,
       `${paramName} must use http:// or https:// protocol`
     );
@@ -191,10 +188,28 @@ export function validateURL(url: string, paramName: string): void {
   try {
     new URL(url);
   } catch (err) {
-    throw new InvalidHostnameError(
+    throw new InvalidURLError(
       url,
       `${paramName} is not a valid URL: ${err instanceof Error ? err.message : String(err)}`
     );
+  }
+}
+
+/**
+ * Runs validateURL and returns its error message instead of throwing, for
+ * parsers that report invalid values and keep going.
+ *
+ * @returns The validation error message, or undefined if the URL is valid
+ */
+export function getURLError(
+  url: string,
+  paramName: string
+): string | undefined {
+  try {
+    validateURL(url, paramName);
+    return undefined;
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
   }
 }
 

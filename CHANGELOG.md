@@ -30,6 +30,21 @@
   `new URL()` is now dropped with a warning (or throws under
   `ErrorLevel.THROW`). Warn/error messages for invalid `<loc>` values changed to
   the `Invalid URL in sitemap: …` form.
+- **`validateURL` throws `InvalidURLError`**, a new subclass of
+  `InvalidHostnameError` (so `instanceof InvalidHostnameError` still matches).
+  Its message reads `Invalid URL "…": …` instead of `Invalid hostname "…": …`,
+  and it shows at most the first 100 characters of the offending value.
+- **Stricter video validation in `validateSMIOptions`**: a video `duration`,
+  `rating` or `view_count` that is `NaN`, `Infinity` or otherwise non-numeric
+  is now reported as invalid (and throws under `ErrorLevel.THROW`). Previously
+  only out-of-range finite numbers were caught, so `NaN` slipped through.
+- `XMLToSitemapItemStream` now buffers each element's character data and
+  handles it once at the next tag boundary: text and CDATA chunks within one
+  element are joined, surrounding whitespace is trimmed for CDATA as it already
+  was for text, and stray character data between elements is reported against
+  the enclosing element instead of overwriting the previous one. Character data
+  longer than `LIMITS.MAX_PARSER_CHAR_DATA_LENGTH` (64 KiB) for one element is
+  dropped with a warning.
 - Internal: the parser's duplicated `text`/`cdata` SAX handlers were collapsed
   into one, and its inline bounds checks (priority, video duration/rating/view
   count, ISO dates) now delegate to shared guards in `lib/validation.ts`, with

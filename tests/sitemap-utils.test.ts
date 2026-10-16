@@ -340,6 +340,35 @@ describe('utils', () => {
       );
     });
 
+    it('rejects non-finite video duration, rating and view_count', () => {
+      const video = {
+        title: 'title',
+        description: 'description',
+        thumbnail_loc: 'https://example.com/t.jpg',
+        tag: [],
+      };
+      const cases: [Record<string, number>, RegExp][] = [
+        [{ duration: NaN }, /must be an integer of seconds/],
+        [{ rating: Infinity }, /must be between 0 and 5 inclusive/],
+        [{ view_count: NaN }, /view count must be positive/],
+      ];
+      for (const [field, message] of cases) {
+        assert.throws(
+          () =>
+            validateSMIOptions(
+              {
+                ...itemTemplate,
+                url: 'https://example.com/',
+                video: [{ ...video, ...field }],
+              },
+              ErrorLevel.THROW
+            ),
+          { message },
+          JSON.stringify(field)
+        );
+      }
+    });
+
     it('video description limit', () => {
       assert.throws(
         function () {

@@ -25,7 +25,7 @@ import {
   isValidVideoRating,
   isValidVideoViewCount,
   isValidISODate,
-  validateURL,
+  getURLError,
 } from './validation.js';
 import { LIMITS } from './constants.js';
 
@@ -133,7 +133,15 @@ export class XMLToSitemapItemStream extends Transform {
     let currentImage: Img = { ...imageTemplate };
     let currentLink: LinkItem = { ...linkTemplate };
     let dontpushCurrentLink = false;
+    // Character data (text and CDATA) is buffered and handled once at the next
+    // tag boundary, so values split across chunks are joined. It belongs to the
+    // innermost open element, which is not currentTag once a child has closed.
+    let charData = '';
+    let charDataOverflow = false;
+    const openTags: string[] = [];
     this.saxStream.on('opentagstart', (tag): void => {
+      flushCharData();
+      openTags.push(tag.name);
       currentTag = tag.name;
       if (currentTag.startsWith('news:') && !currentItem.news) {
         currentItem.news = newsTemplate();
@@ -181,20 +189,21 @@ export class XMLToSitemapItemStream extends Transform {
     });
 
     // Per ADR 0001, CDATA sections are ordinary character data: both SAX
-    // events route through this one handler.
-    const handleCharData = (text: string): void => {
-      switch (currentTag) {
+    // events append to one buffer, and flushCharData hands the joined value
+    // for an element to this handler.
+    const handleCharData = (tag: string, text: string): void => {
+      switch (tag) {
         case 'mobile:mobile':
           break;
         case TagNames.loc:
-          try {
-            validateURL(text, 'Sitemap URL');
-            currentItem.url = text;
-          } catch (error) {
-            const errMsg =
-              error instanceof Error ? error.message : String(error);
-            this.logger('warn', 'Invalid URL in sitemap:', errMsg);
-            this.err(`Invalid URL in sitemap: ${errMsg}`);
+          {
+            const errMsg = getURLError(text, 'Sitemap URL');
+            if (errMsg) {
+              this.logger('warn', 'Invalid URL in sitemap:', errMsg);
+              this.err(`Invalid URL in sitemap: ${errMsg}`);
+            } else {
+              currentItem.url = text;
+            }
           }
           break;
         case TagNames.changefreq:
@@ -208,9 +217,12 @@ export class XMLToSitemapItemStream extends Transform {
             if (!isValidPriority(priority)) {
               this.logger(
                 'warn',
-                `Invalid priority "${text}" - must be between 0 and 1`
+                `Invalid priority "${text}" - must be between ${LIMITS.MIN_PRIORITY} and ${LIMITS.MAX_PRIORITY}`
               );
-              this.err(`Invalid priority "${text}" - must be between 0 and 1`);
+
+              this.err(
+                `Invalid priority "${text}" - must be between ${LIMITS.MIN_PRIORITY} and ${LIMITS.MAX_PRIORITY}`
+              );
             } else {
               currentItem.priority = priority;
             }
@@ -253,11 +265,11 @@ export class XMLToSitemapItemStream extends Transform {
             if (!isValidVideoDuration(duration)) {
               this.logger(
                 'warn',
-                `Invalid video duration "${text}" - must be between 0 and 28800 seconds`
+                `Invalid video duration "${text}" - must be between ${LIMITS.MIN_VIDEO_DURATION} and ${LIMITS.MAX_VIDEO_DURATION} seconds`
               );
 
               this.err(
-                `Invalid video duration "${text}" - must be between 0 and 28800 seconds`
+                `Invalid video duration "${text}" - must be between ${LIMITS.MIN_VIDEO_DURATION} and ${LIMITS.MAX_VIDEO_DURATION} seconds`
               );
             } else {
               currentVideo.duration = duration;
@@ -346,11 +358,11 @@ export class XMLToSitemapItemStream extends Transform {
             if (!isValidVideoRating(rating)) {
               this.logger(
                 'warn',
-                `Invalid video rating "${text}" - must be between 0 and 5`
+                `Invalid video rating "${text}" - must be between ${LIMITS.MIN_VIDEO_RATING} and ${LIMITS.MAX_VIDEO_RATING}`
               );
 
               this.err(
-                `Invalid video rating "${text}" - must be between 0 and 5`
+                `Invalid video rating "${text}" - must be between ${LIMITS.MIN_VIDEO_RATING} and ${LIMITS.MAX_VIDEO_RATING}`
               );
             } else {
               currentVideo.rating = rating;
@@ -575,20 +587,40 @@ export class XMLToSitemapItemStream extends Transform {
           break;
 
         default:
-          this.logger(
-            'log',
-            'unhandled text for tag:',
-            currentTag,
-            `'${text}'`
-          );
+          this.logger('log', 'unhandled text for tag:', tag, `'${text}'`);
 
-          this.err(`unhandled text for tag: ${currentTag} '${text}'`);
+          this.err(`unhandled text for tag: ${tag} '${text}'`);
           break;
       }
     };
 
-    this.saxStream.on('text', handleCharData);
-    this.saxStream.on('cdata', handleCharData);
+    const appendCharData = (text: string): void => {
+      if (charDataOverflow) {
+        return;
+      }
+      if (charData.length + text.length > LIMITS.MAX_PARSER_CHAR_DATA_LENGTH) {
+        charDataOverflow = true;
+        charData = '';
+        return;
+      }
+      charData += text;
+    };
+    const flushCharData = (): void => {
+      const tag = openTags[openTags.length - 1];
+      const text = charData.trim();
+      charData = '';
+      if (charDataOverflow) {
+        charDataOverflow = false;
+        const msg = `character data for ${tag} exceeds max length of ${LIMITS.MAX_PARSER_CHAR_DATA_LENGTH}`;
+        this.logger('warn', msg);
+        this.err(msg);
+      } else if (text) {
+        handleCharData(tag, text);
+      }
+    };
+
+    this.saxStream.on('text', appendCharData);
+    this.saxStream.on('cdata', appendCharData);
 
     this.saxStream.on('attribute', (attr): void => {
       switch (currentTag) {
@@ -677,6 +709,8 @@ export class XMLToSitemapItemStream extends Transform {
     });
 
     this.saxStream.on('closetag', (tag): void => {
+      flushCharData();
+      openTags.pop();
       switch (tag) {
         case TagNames.url:
           this.urlCount++;
