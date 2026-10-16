@@ -33,16 +33,24 @@ export interface XMLToSitemapIndexItemStreamOptions extends TransformOptions {
   /**
    * Maximum number of `<sitemap>` entries to emit. Entries past the cap are
    * dropped and reported as an error, so untrusted input can't grow memory
-   * without bound.
+   * without bound. A non-negative integer, or `Infinity` for no cap.
    * @default 50000 (LIMITS.MAX_SITEMAP_ITEM_LIMIT, per sitemaps.org)
    */
   maxEntries?: number;
 }
 const defaultStreamOpts: XMLToSitemapIndexItemStreamOptions = {};
 
+function isValidMaxEntries(n: number): boolean {
+  return n === Infinity || (Number.isInteger(n) && n >= 0);
+}
+
 /**
  * Takes a stream of xml and transforms it into a stream of IndexItems
  * Use this to parse existing sitemap indices into config options compatible with this library
+ *
+ * Emits `'maxEntriesExceeded'` (with the cap) once, when the first entry past
+ * `maxEntries` is seen. If nothing listens for that event, the stream logs the
+ * overflow through its logger instead.
  */
 export class XMLToSitemapIndexStream extends Transform {
   level: ErrorLevel;
@@ -58,12 +66,9 @@ export class XMLToSitemapIndexStream extends Transform {
     this.error = null;
     this.entryCount = 0;
     this.maxEntries = opts.maxEntries ?? LIMITS.MAX_SITEMAP_ITEM_LIMIT;
-    if (
-      !(this.maxEntries === Infinity || Number.isInteger(this.maxEntries)) ||
-      this.maxEntries < 1
-    ) {
+    if (!isValidMaxEntries(this.maxEntries)) {
       throw new Error(
-        `maxEntries must be a positive integer, got ${this.maxEntries}`
+        `maxEntries must be a non-negative integer or Infinity, got ${this.maxEntries}`
       );
     }
     this.saxStream = sax.createStream(true, {
@@ -131,8 +136,7 @@ export class XMLToSitemapIndexStream extends Transform {
     const charData = createCharDataBuffer({
       onText: handleCharData,
       onOverflow: (msg): void => {
-        this.logger('warn', msg);
-        this.err(msg);
+        this.report('warn', msg);
       },
     });
     this.saxStream.on('text', charData.append);
@@ -157,8 +161,12 @@ export class XMLToSitemapIndexStream extends Transform {
             // Report once rather than for every dropped entry
             if (this.entryCount === this.maxEntries + 1) {
               const msg = `Sitemap index exceeds maximum of ${this.maxEntries} entries`;
-              this.logger('error', msg);
               this.err(msg);
+              // A listener (such as parseSitemapIndex) handles the overflow
+              // itself; only log when nobody is listening
+              if (!this.emit('maxEntriesExceeded', this.maxEntries)) {
+                this.logger('error', msg);
+              }
             }
           } else if (currentItem.url) {
             // Only push items with valid URLs (non-empty after validation)
@@ -195,6 +203,12 @@ export class XMLToSitemapIndexStream extends Transform {
     }
   }
 
+  /** Log a message and record it as a parse error, with the same text */
+  private report(level: Parameters<Logger>[0], msg: string): void {
+    this.logger(level, msg);
+    this.err(msg);
+  }
+
   private err(msg: string) {
     if (!this.error) this.error = new Error(msg);
   }
@@ -217,6 +231,7 @@ export class XMLToSitemapIndexStream extends Transform {
   @param {Readable} xml what to parse
   @param {number} maxEntries Maximum number of sitemap entries to parse (default: 50,000 per sitemaps.org spec).
     Values above 50,000 have no effect: the spec caps a sitemap index at 50,000 entries, and larger sets must be split.
+    0 rejects on the first entry. Anything other than a non-negative integer or Infinity rejects immediately.
   @return {Promise<IndexItem[]>} resolves with list of index items that can be fed into a SitemapIndexStream. Rejects with an Error object.
  */
 export async function parseSitemapIndex(
@@ -226,6 +241,17 @@ export async function parseSitemapIndex(
   const urls: IndexItem[] = [];
   return new Promise((resolve, reject): void => {
     let settled = false;
+
+    if (!isValidMaxEntries(maxEntries)) {
+      // Release the source before rejecting; nothing else will read it
+      xml.destroy();
+      reject(
+        new Error(
+          `maxEntries must be a non-negative integer or Infinity, got ${maxEntries}`
+        )
+      );
+      return;
+    }
 
     // The spec caps an index at 50,000 entries, so a larger maxEntries has no
     // effect. The stream drops entries past this cap instead of pushing them.
@@ -250,11 +276,11 @@ export async function parseSitemapIndex(
       xml.destroy();
     };
 
-    // Dropped entries never reach 'data', so watch the parser's own entry
-    // count, which its closetag handler (registered first) has already
-    // updated, to stop as soon as the cap is crossed.
-    parser.saxStream.on('closetag', (): void => {
-      if (!settled && parser.entryCount > cap) {
+    // Dropped entries never reach 'data', so stop on the parser's own signal
+    // as soon as the cap is crossed. Listening also stops the parser logging
+    // the overflow, since this rejection already reports it.
+    parser.once('maxEntriesExceeded', (): void => {
+      if (!settled) {
         rejectOverLimit(cap);
       }
     });

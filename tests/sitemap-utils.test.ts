@@ -9,11 +9,11 @@ import {
 } from '../dist/index.js';
 import * as testUtil from './util.ts';
 import {
-  validateSMIOptions,
   lineSeparatedURLsToSitemapOptions,
   normalizeURL,
   mergeStreams,
 } from '../dist/lib/utils.js';
+import { validateSMIOptions } from '../dist/lib/validation.js';
 import MemoryStream from 'memorystream';
 import { promisify } from 'node:util';
 import { Readable, Writable, finished } from 'node:stream';

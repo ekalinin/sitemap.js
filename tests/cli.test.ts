@@ -204,6 +204,30 @@ describe('cli', () => {
   );
 
   it(
+    'exits with code 1 when the xml is invalid',
+    { timeout: 60000, skip: skipWithoutXMLLint },
+    async () => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sitemap-cli-'));
+      const bad = path.join(dir, 'bad.xml');
+      fs.writeFileSync(
+        bad,
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><bogus/></urlset>'
+      );
+      try {
+        await assert.rejects(
+          exec(`node ./dist/cli.js --validate ${bad}`, { encoding: 'utf8' }),
+          (err: { code: number }) => {
+            assert.strictEqual(err.code, 1);
+            return true;
+          }
+        );
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    }
+  );
+
+  it(
     'validates xml specified as file',
     { timeout: 60000, skip: skipWithoutXMLLint },
     async () => {

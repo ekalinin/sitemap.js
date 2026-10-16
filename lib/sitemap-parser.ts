@@ -144,11 +144,10 @@ export class XMLToSitemapItemStream extends Transform {
           const hreflang = getAttrValue(tag.attributes.hreflang);
 
           if (!rel || !href) {
-            this.logger(
+            this.report(
               'warn',
               'xhtml:link missing required rel or href attribute'
             );
-            this.err('xhtml:link missing required rel or href attribute');
             return;
           }
 
@@ -201,12 +200,8 @@ export class XMLToSitemapItemStream extends Transform {
           {
             const priority = parseFloat(text);
             if (!isValidPriority(priority)) {
-              this.logger(
+              this.report(
                 'warn',
-                `Invalid priority "${text}" - must be between ${LIMITS.MIN_PRIORITY} and ${LIMITS.MAX_PRIORITY}`
-              );
-
-              this.err(
                 `Invalid priority "${text}" - must be between ${LIMITS.MIN_PRIORITY} and ${LIMITS.MAX_PRIORITY}`
               );
             } else {
@@ -218,12 +213,8 @@ export class XMLToSitemapItemStream extends Transform {
           if (isValidISODate(text)) {
             currentItem.lastmod = text;
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `Invalid lastmod date format "${text}" - expected ISO 8601 format`
-            );
-
-            this.err(
               `Invalid lastmod date format "${text}" - expected ISO 8601 format`
             );
           }
@@ -235,12 +226,8 @@ export class XMLToSitemapItemStream extends Transform {
           if (currentVideo.tag.length < LIMITS.MAX_TAGS_PER_VIDEO) {
             currentVideo.tag.push(text);
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `video has too many tags (max ${LIMITS.MAX_TAGS_PER_VIDEO})`
-            );
-
-            this.err(
               `video has too many tags (max ${LIMITS.MAX_TAGS_PER_VIDEO})`
             );
           }
@@ -249,12 +236,8 @@ export class XMLToSitemapItemStream extends Transform {
           {
             const duration = parseInt(text, 10);
             if (!isValidVideoDuration(duration)) {
-              this.logger(
+              this.report(
                 'warn',
-                `Invalid video duration "${text}" - must be between ${LIMITS.MIN_VIDEO_DURATION} and ${LIMITS.MAX_VIDEO_DURATION} seconds`
-              );
-
-              this.err(
                 `Invalid video duration "${text}" - must be between ${LIMITS.MIN_VIDEO_DURATION} and ${LIMITS.MAX_VIDEO_DURATION} seconds`
               );
             } else {
@@ -277,12 +260,8 @@ export class XMLToSitemapItemStream extends Transform {
           if (isValidISODate(text)) {
             currentVideo.publication_date = text;
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `Invalid video publication_date format "${text}" - expected ISO 8601 format`
-            );
-
-            this.err(
               `Invalid video publication_date format "${text}" - expected ISO 8601 format`
             );
           }
@@ -297,12 +276,8 @@ export class XMLToSitemapItemStream extends Transform {
           {
             const viewCount = parseInt(text, 10);
             if (!isValidVideoViewCount(viewCount)) {
-              this.logger(
+              this.report(
                 'warn',
-                `Invalid video view_count "${text}" - must be a positive integer`
-              );
-
-              this.err(
                 `Invalid video view_count "${text}" - must be a positive integer`
               );
             } else {
@@ -322,12 +297,8 @@ export class XMLToSitemapItemStream extends Transform {
           if (isValidISODate(text)) {
             currentVideo.expiration_date = text;
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `Invalid video expiration_date format "${text}" - expected ISO 8601 format`
-            );
-
-            this.err(
               `Invalid video expiration_date format "${text}" - expected ISO 8601 format`
             );
           }
@@ -342,12 +313,8 @@ export class XMLToSitemapItemStream extends Transform {
           {
             const rating = parseFloat(text);
             if (!isValidVideoRating(rating)) {
-              this.logger(
+              this.report(
                 'warn',
-                `Invalid video rating "${text}" - must be between ${LIMITS.MIN_VIDEO_RATING} and ${LIMITS.MAX_VIDEO_RATING}`
-              );
-
-              this.err(
                 `Invalid video rating "${text}" - must be between ${LIMITS.MIN_VIDEO_RATING} and ${LIMITS.MAX_VIDEO_RATING}`
               );
             } else {
@@ -382,12 +349,8 @@ export class XMLToSitemapItemStream extends Transform {
           if (text === 'Registration' || text === 'Subscription') {
             currentItem.news.access = text;
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `Invalid news:access value "${text}" - must be "Registration" or "Subscription"`
-            );
-
-            this.err(
               `Invalid news:access value "${text}" - must be "Registration" or "Subscription"`
             );
           }
@@ -405,12 +368,8 @@ export class XMLToSitemapItemStream extends Transform {
           if (isValidISODate(text)) {
             currentItem.news.publication_date = text;
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `Invalid news publication_date format "${text}" - expected ISO 8601 format`
-            );
-
-            this.err(
               `Invalid news publication_date format "${text}" - expected ISO 8601 format`
             );
           }
@@ -440,12 +399,8 @@ export class XMLToSitemapItemStream extends Transform {
           ) {
             currentVideo.title += text;
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `video title exceeds max length of ${LIMITS.MAX_VIDEO_TITLE_LENGTH}`
-            );
-
-            this.err(
               `video title exceeds max length of ${LIMITS.MAX_VIDEO_TITLE_LENGTH}`
             );
           }
@@ -457,12 +412,8 @@ export class XMLToSitemapItemStream extends Transform {
           ) {
             currentVideo.description += text;
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `video description exceeds max length of ${LIMITS.MAX_VIDEO_DESCRIPTION_LENGTH}`
-            );
-
-            this.err(
               `video description exceeds max length of ${LIMITS.MAX_VIDEO_DESCRIPTION_LENGTH}`
             );
           }
@@ -477,12 +428,8 @@ export class XMLToSitemapItemStream extends Transform {
           ) {
             currentItem.news.publication.name += text;
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `news name exceeds max length of ${LIMITS.MAX_NEWS_NAME_LENGTH}`
-            );
-
-            this.err(
               `news name exceeds max length of ${LIMITS.MAX_NEWS_NAME_LENGTH}`
             );
           }
@@ -497,12 +444,8 @@ export class XMLToSitemapItemStream extends Transform {
           ) {
             currentItem.news.title += text;
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `news title exceeds max length of ${LIMITS.MAX_NEWS_TITLE_LENGTH}`
-            );
-
-            this.err(
               `news title exceeds max length of ${LIMITS.MAX_NEWS_TITLE_LENGTH}`
             );
           }
@@ -514,12 +457,8 @@ export class XMLToSitemapItemStream extends Transform {
                 ? text
                 : text.substring(0, LIMITS.MAX_IMAGE_CAPTION_LENGTH);
             if (text.length > LIMITS.MAX_IMAGE_CAPTION_LENGTH) {
-              this.logger(
+              this.report(
                 'warn',
-                `image caption exceeds max length of ${LIMITS.MAX_IMAGE_CAPTION_LENGTH}`
-              );
-
-              this.err(
                 `image caption exceeds max length of ${LIMITS.MAX_IMAGE_CAPTION_LENGTH}`
               );
             }
@@ -529,12 +468,8 @@ export class XMLToSitemapItemStream extends Transform {
           ) {
             currentImage.caption += text;
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `image caption exceeds max length of ${LIMITS.MAX_IMAGE_CAPTION_LENGTH}`
-            );
-
-            this.err(
               `image caption exceeds max length of ${LIMITS.MAX_IMAGE_CAPTION_LENGTH}`
             );
           }
@@ -546,12 +481,8 @@ export class XMLToSitemapItemStream extends Transform {
                 ? text
                 : text.substring(0, LIMITS.MAX_IMAGE_TITLE_LENGTH);
             if (text.length > LIMITS.MAX_IMAGE_TITLE_LENGTH) {
-              this.logger(
+              this.report(
                 'warn',
-                `image title exceeds max length of ${LIMITS.MAX_IMAGE_TITLE_LENGTH}`
-              );
-
-              this.err(
                 `image title exceeds max length of ${LIMITS.MAX_IMAGE_TITLE_LENGTH}`
               );
             }
@@ -561,12 +492,8 @@ export class XMLToSitemapItemStream extends Transform {
           ) {
             currentImage.title += text;
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `image title exceeds max length of ${LIMITS.MAX_IMAGE_TITLE_LENGTH}`
-            );
-
-            this.err(
               `image title exceeds max length of ${LIMITS.MAX_IMAGE_TITLE_LENGTH}`
             );
           }
@@ -583,8 +510,7 @@ export class XMLToSitemapItemStream extends Transform {
     const charData = createCharDataBuffer({
       onText: handleCharData,
       onOverflow: (msg): void => {
-        this.logger('warn', msg);
-        this.err(msg);
+        this.report('warn', msg);
       },
     });
     this.saxStream.on('text', charData.append);
@@ -682,12 +608,8 @@ export class XMLToSitemapItemStream extends Transform {
         case TagNames.url:
           this.urlCount++;
           if (this.urlCount > LIMITS.MAX_URL_ENTRIES) {
-            this.logger(
+            this.report(
               'error',
-              `Sitemap exceeds maximum of ${LIMITS.MAX_URL_ENTRIES} URLs`
-            );
-
-            this.err(
               `Sitemap exceeds maximum of ${LIMITS.MAX_URL_ENTRIES} URLs`
             );
             currentItem = tagTemplate();
@@ -700,12 +622,8 @@ export class XMLToSitemapItemStream extends Transform {
           if (currentItem.video.length < LIMITS.MAX_VIDEOS_PER_URL) {
             currentItem.video.push(currentVideo);
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `URL has too many videos (max ${LIMITS.MAX_VIDEOS_PER_URL})`
-            );
-
-            this.err(
               `URL has too many videos (max ${LIMITS.MAX_VIDEOS_PER_URL})`
             );
           }
@@ -715,12 +633,8 @@ export class XMLToSitemapItemStream extends Transform {
           if (currentItem.img.length < LIMITS.MAX_IMAGES_PER_URL) {
             currentItem.img.push(currentImage);
           } else {
-            this.logger(
+            this.report(
               'warn',
-              `URL has too many images (max ${LIMITS.MAX_IMAGES_PER_URL})`
-            );
-
-            this.err(
               `URL has too many images (max ${LIMITS.MAX_IMAGES_PER_URL})`
             );
           }
@@ -731,12 +645,8 @@ export class XMLToSitemapItemStream extends Transform {
             if (currentItem.links.length < LIMITS.MAX_LINKS_PER_URL) {
               currentItem.links.push(currentLink);
             } else {
-              this.logger(
+              this.report(
                 'warn',
-                `URL has too many links (max ${LIMITS.MAX_LINKS_PER_URL})`
-              );
-
-              this.err(
                 `URL has too many links (max ${LIMITS.MAX_LINKS_PER_URL})`
               );
             }
@@ -775,6 +685,12 @@ export class XMLToSitemapItemStream extends Transform {
     } catch (error) {
       callback(error as Error);
     }
+  }
+
+  /** Log a message and record it as a parse error, with the same text */
+  private report(level: Parameters<Logger>[0], msg: string): void {
+    this.logger(level, msg);
+    this.err(msg);
   }
 
   private err(msg: string) {

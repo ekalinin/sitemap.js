@@ -90,11 +90,20 @@ export class SitemapIndexStream extends Transform {
     this.hasHeadOutput = false;
     this.lastmodDateOnly = opts.lastmodDateOnly || false;
     this.level = opts.level ?? ErrorLevel.WARN;
-    this.logger = resolveLogger(this.level, opts.logger);
+    // Resolve without the level: `level` is a public field that callers may
+    // change after construction, so warn() checks it at call time instead
+    this.logger = resolveLogger(ErrorLevel.WARN, opts.logger);
     if (opts.xslUrl !== undefined) {
       validateXSLUrl(opts.xslUrl);
     }
     this.xslUrl = opts.xslUrl;
+  }
+
+  /** Log a warning unless the current level is SILENT */
+  private warn(...message: Parameters<Console['log']>): void {
+    if (this.level !== ErrorLevel.SILENT) {
+      this.logger('warn', ...message);
+    }
   }
 
   private writeHeadOutput(): void {
@@ -126,7 +135,7 @@ export class SitemapIndexStream extends Transform {
           callback(error);
           return;
         } else {
-          this.logger('warn', error.message, item);
+          this.warn(error.message, item);
         }
         // The logger is a no-op at SILENT; skip this item
         callback();
@@ -146,7 +155,7 @@ export class SitemapIndexStream extends Transform {
           callback(err);
           return;
         } else {
-          this.logger('warn', err.message);
+          this.warn(err.message);
         }
         // The logger is a no-op at SILENT; skip this item
         callback();
@@ -175,7 +184,7 @@ export class SitemapIndexStream extends Transform {
               callback(error);
               return;
             } else {
-              this.logger('warn', error.message);
+              this.warn(error.message);
             }
             // The logger is a no-op at SILENT; continue without lastmod
           }
