@@ -11,10 +11,9 @@ import {
   type ErrorHandler,
   type Logger,
 } from './types.js';
-import { normalizeURL, resolveLogger } from './utils.js';
+import { normalizeURL, resolveLogger, loggingErrorHandler } from './utils.js';
 import {
   validateSMIOptions,
-  loggingErrorHandler,
   validateURL,
   validateXSLUrl,
 } from './validation.js';

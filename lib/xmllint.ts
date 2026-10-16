@@ -1,38 +1,38 @@
 import { existsSync } from 'node:fs';
 import { Readable } from 'node:stream';
-import { resolve } from 'node:path';
+import { dirname, resolve as resolvePath } from 'node:path';
 import { execFile } from 'node:child_process';
 import { XMLLintUnavailable } from './errors.js';
 
 /**
- * Finds the `schema` directory with robust path resolution.
- * Searches from the project root directory using process.cwd().
- * This works correctly regardless of whether the code is running from:
- * - Source: lib/xmllint.ts
- * - ESM build: dist/lib/xmllint.js
- * - Test environment
+ * Finds the `schema` directory that ships with this package.
+ *
+ * Walks up from this module's own directory rather than `process.cwd()`, so
+ * the lookup works however the code is run: from source (`lib/xmllint.ts`),
+ * from the build (`dist/lib/xmllint.js`), or installed as a dependency
+ * (`node_modules/sitemap/dist/lib/xmllint.js`), whatever the caller's working
+ * directory is. `cli.ts` finds `package.json` the same way.
  *
  * @throws {Error} if the schema directory is not found
  * @returns {string} the path to the schema directory
  */
 function findSchemaDir(): string {
-  // Search for schema directory from project root
-  // This works in test, build, and source environments
-  const possiblePaths = [
-    resolve(process.cwd(), 'schema'), // From project root
-    resolve(process.cwd(), '..', 'schema'), // One level up
-    resolve(process.cwd(), '..', '..', 'schema'), // Two levels up
-  ];
-
-  for (const schemaPath of possiblePaths) {
-    if (existsSync(schemaPath)) {
-      return schemaPath;
+  const searched: string[] = [];
+  let dir = import.meta.dirname;
+  for (;;) {
+    const candidate = resolvePath(dir, 'schema');
+    searched.push(candidate);
+    if (existsSync(resolvePath(candidate, 'all.xsd'))) {
+      return candidate;
     }
+    const parent = dirname(dir);
+    if (parent === dir) {
+      throw new Error(
+        `Schema directory not found. Searched paths: ${searched.join(', ')}`
+      );
+    }
+    dir = parent;
   }
-
-  throw new Error(
-    `Schema directory not found. Searched paths: ${possiblePaths.join(', ')}`
-  );
 }
 
 /**
@@ -46,19 +46,37 @@ function findSchemaDir(): string {
  * @return {Promise<void>} resolves on valid rejects [error stderr]
  */
 export function xmlLint(xml: string | Readable): Promise<void> {
-  const args = [
-    '--schema',
-    resolve(findSchemaDir(), 'all.xsd'),
-    '--noout',
-    '-', // Always read from stdin for security
-  ];
-
   return new Promise((resolve, reject): void => {
+    // Inside the executor so a missing schema rejects (matching the
+    // [error] shape callers expect) instead of throwing synchronously
+    let schema: string;
+    try {
+      schema = resolvePath(findSchemaDir(), 'all.xsd');
+    } catch (err) {
+      reject([err]);
+      return;
+    }
+    const args = [
+      '--schema',
+      schema,
+      '--noout',
+      '-', // Always read from stdin for security
+    ];
+
     // Spawn xmllint directly rather than probing with `which` first: `which`
     // is not a command on Windows, so probing there reported xmllint as
     // unavailable even when it was installed. A missing binary surfaces as
     // ENOENT from the spawn itself on every platform, and this saves a process.
     const xmllint = execFile('xmllint', args, (error, stdout, stderr): void => {
+      // If xmllint exited (or never started) before reading all of a stream
+      // input, stop the source so it doesn't sit paused holding a file
+      // descriptor open after the promise settles.
+      if (typeof xml !== 'string' && xml && !xml.readableEnded) {
+        if (xmllint.stdin) {
+          xml.unpipe(xmllint.stdin);
+        }
+        xml.destroy();
+      }
       if (error) {
         if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
           reject([new XMLLintUnavailable()]);

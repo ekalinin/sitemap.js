@@ -292,6 +292,15 @@ createReadStream('./sitemap-index.xml')
   .pipe(process.stdout)
 ```
 
+The stream emits at most `maxEntries` items (default 50,000, the sitemaps.org limit; `Infinity` turns the cap off) and drops the rest. The first time it drops an entry it records an error and emits `'maxEntriesExceeded'` with the cap. If nothing listens for that event, it logs the overflow through `logger` instead.
+
+```js
+const parser = new XMLToSitemapIndexStream({ maxEntries: 1000 });
+parser.on('maxEntriesExceeded', (cap) => {
+  console.error(`index has more than ${cap} entries`);
+});
+```
+
 ## parseSitemapIndex
 
 Read sitemap index xml and resolve with an array of `IndexItem` objects, or reject with an error.

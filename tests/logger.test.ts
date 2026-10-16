@@ -125,6 +125,19 @@ describe('logger option', () => {
     assert.strictEqual(consoleWarn.mock.callCount(), 0);
   });
 
+  it('SitemapIndexStream honors a level changed after construction', async () => {
+    const logger = mock.fn();
+    const smis = new SitemapIndexStream({ logger });
+    smis.level = ErrorLevel.SILENT;
+    smis.write('javascript:alert(1)');
+    smis.level = ErrorLevel.WARN;
+    smis.write('javascript:alert(2)');
+    smis.end();
+    await streamToPromise(smis);
+
+    assert.strictEqual(logger.mock.callCount(), 1);
+  });
+
   it('SitemapIndexStream logs nothing at ErrorLevel.SILENT', async () => {
     const logger = mock.fn();
     const smis = new SitemapIndexStream({ logger, level: ErrorLevel.SILENT });
@@ -177,9 +190,33 @@ describe('logger option, more paths', () => {
     assert.ok(logger.mock.callCount() >= 1);
   });
 
-  it('THROW still throws for invalid news attributes with a non-throwing errorHandler', () => {
+  it('THROW passes invalid news attributes to a custom errorHandler, like other validation errors', () => {
     const errorHandler = mock.fn();
     const sms = new SitemapStream({ level: ErrorLevel.THROW, errorHandler });
+    assert.doesNotThrow(() =>
+      sms._transform(
+        {
+          url: 'https://example.com/',
+          news: {
+            publication: { name: 'Example', language: 'en' },
+            publication_date: '2024-01-01',
+            title: 'Title',
+            genres: 'NotAGenre',
+          },
+        },
+        'utf8',
+        () => undefined
+      )
+    );
+    const call = errorHandler.mock.calls.find(
+      (c) => (c.arguments[0] as Error).name === 'InvalidAttrValue'
+    );
+    assert.ok(call);
+    assert.strictEqual(call.arguments[1], ErrorLevel.THROW);
+  });
+
+  it('THROW still throws for invalid news attributes with the default errorHandler', () => {
+    const sms = new SitemapStream({ level: ErrorLevel.THROW });
     assert.throws(
       () =>
         sms._transform(

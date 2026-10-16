@@ -42,7 +42,9 @@
 - Invalid news and video attribute values now go through `errorHandler` (and
   so the logger) like every other validation error, instead of a hardcoded
   `console.warn`. The warning text is now the error's name and message, which starts with
-  the item's URL.
+  the item's URL. Under `ErrorLevel.THROW` a custom `errorHandler` receives
+  these errors too, like every other validation error; the default handler
+  still throws.
 - The `SitemapStream` property `xmlNS` is now `xmlns`, matching the option
   name (#300). `xmlNS` still works as a deprecated alias. `SitemapStream.errorHandler` is always set now; it defaults to
   a handler that warns through `logger`.
@@ -101,10 +103,28 @@
   rejects an over-limit index and stops reading as soon as the limit is crossed,
   but a `maxEntries` above 50,000 no longer raises the limit. A new
   `maxEntries` stream option lowers the cap, or raises it (`Infinity` turns it
-  off) for callers that knowingly parse oversized indexes.
+  off) for callers that knowingly parse oversized indexes. When the cap is
+  crossed the stream emits `'maxEntriesExceeded'`, and logs the overflow only
+  if nothing listens for that event, so `parseSitemapIndex` rejects without
+  also logging. `maxEntries: 0` is allowed (nothing is emitted, and
+  `parseSitemapIndex` rejects on the first entry); a negative, fractional or
+  `NaN` value is rejected, and `parseSitemapIndex` destroys the source stream
+  before rejecting.
 
 ### Fixed
 
+- `xmlLint()` and `sitemap --validate` find the bundled `schema/` directory
+  when the package is installed as a dependency. The lookup searched relative
+  to `process.cwd()`, so outside this repository it threw a synchronous
+  "Schema directory not found" error that crashed the CLI. It now walks up from
+  the module's own directory, and a missing schema rejects the promise instead
+  of throwing.
+- `xmlLint()` destroys a `Readable` input if xmllint exits or fails to start
+  before reading all of it, so the source no longer stays paused with its file
+  descriptor open.
+- `SitemapIndexStream` checks its public `level` field when it warns, so
+  setting `level` to `ErrorLevel.SILENT` after construction silences it again,
+  as it did in 9.0.1.
 - `XMLToSitemapItemStream` now treats CDATA sections as ordinary character data
   in every tag. Previously only the 8 tags from issue #445 (`loc`, `image:loc`,
   `video:title`, `video:description`, `news:name`, `news:title`,

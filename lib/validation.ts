@@ -45,9 +45,9 @@ import type {
   NewsItem,
   VideoItem,
   ErrorHandler,
-  Logger,
 } from './types.js';
 import { LIMITS } from './constants.js';
+import { defaultLogger, loggingErrorHandler } from './utils.js';
 import { isAbsolute } from 'node:path';
 
 /**
@@ -467,33 +467,9 @@ function validate(
     // @ts-ignore
     const val = subject[key];
     if (validators[key] && !validators[key].test(val)) {
-      const error = new InvalidAttrValue(key, val, validators[key], url);
-      if (level === ErrorLevel.THROW) {
-        throw error;
-      }
-      errorHandler(error, level);
+      errorHandler(new InvalidAttrValue(key, val, validators[key], url), level);
     }
   });
-}
-
-/**
- * The logger streams use when none is given: forwards to the console
- */
-export const defaultLogger: Logger = (level, ...message) =>
-  console[level](...message);
-
-/**
- * An ErrorHandler for validateSMIOptions that throws at ErrorLevel.THROW and
- * sends warnings to the given logger at ErrorLevel.WARN
- */
-export function loggingErrorHandler(logger: Logger): ErrorHandler {
-  return (error, level) => {
-    if (level === ErrorLevel.THROW) {
-      throw error;
-    } else if (level === ErrorLevel.WARN) {
-      logger('warn', error.name, error.message);
-    }
-  };
 }
 
 // Default for direct validateSMIOptions() calls: warn through the console

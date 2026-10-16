@@ -133,9 +133,11 @@ Use XMLLib to validate your sitemap (requires xmllib)
 } else if (argv.validate) {
   xmlLint(getStream())
     .then((): void => console.log('valid'))
-    .catch(([error, stderr]: [Error | null, Buffer]): void => {
-      if (error instanceof XMLLintUnavailable) {
-        console.error(error.message);
+    .catch(([error, stderr]: [Error | null, Buffer?]): void => {
+      if (error instanceof XMLLintUnavailable || stderr === undefined) {
+        // No xmllint output to show (xmllint missing, or the schema could
+        // not be found), so report the error itself
+        console.error(error?.message);
         return;
       } else {
         console.log(stderr);
