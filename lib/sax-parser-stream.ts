@@ -3,7 +3,6 @@ import type { QualifiedAttribute, QualifiedTag, SAXStream } from 'sax';
 import { Transform, type TransformCallback } from 'node:stream';
 import {
   type Logger,
-  type SaxParserStreamConfig,
   type SaxParserStreamOptions,
   ErrorLevel,
 } from './types.js';
@@ -12,9 +11,21 @@ import { LIMITS } from './constants.js';
 import { createCharDataBuffer, resolveLogger } from './utils.js';
 
 /**
+ * What a parser subclass tells the shared SaxParserStream base. Declared here
+ * rather than in types.ts so it stays out of the public API: this module is
+ * not re-exported from index.ts.
+ */
+export interface SaxParserStreamConfig {
+  /** Whether a tag belongs to the parsed format; others are reported */
+  isKnownTag: (name: string) => boolean;
+  /** Error text for the first entry past the entry cap */
+  overflowMessage: (maxEntries: number) => string;
+}
+
+/**
  * Shared plumbing for the XML parser streams: sax setup, character-data
  * buffering, error collection, backpressure, and the entry cap. Subclasses
- * supply tag semantics through the four `on*` hooks and hand each finished
+ * supply tag semantics through the `on*` hooks and hand each finished
  * entry to `emitEntry`.
  *
  * Emits `'maxEntriesExceeded'` (with the cap) once, when the first entry past
@@ -39,8 +50,7 @@ export abstract class SaxParserStream<T> extends Transform {
   private overflowMessage: (maxEntries: number) => string;
 
   constructor(opts: SaxParserStreamOptions, config: SaxParserStreamConfig) {
-    opts.objectMode = true;
-    super(opts);
+    super({ ...opts, objectMode: true });
     this.errors = [];
     this.errorCount = 0;
     this.entryCount = 0;
@@ -103,7 +113,7 @@ export abstract class SaxParserStream<T> extends Transform {
   }
 
   /** Called for every opening tag, after unknown tags have been reported */
-  protected abstract onOpenTag(tag: QualifiedTag): void;
+  protected onOpenTag(tag: QualifiedTag): void {}
   /** Called once per element with its joined, trimmed character data */
   protected abstract onCharData(tag: string, text: string): void;
   /** Called for each attribute of the tag currently being opened */

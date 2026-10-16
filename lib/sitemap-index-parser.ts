@@ -7,7 +7,7 @@ import {
 } from 'node:stream';
 import {
   type IndexItem,
-  type SaxParserStreamOptions,
+  type XMLToSitemapIndexItemStreamOptions,
   IndexTagNames,
 } from './types.js';
 import {
@@ -29,9 +29,7 @@ function tagTemplate(): IndexItem {
   };
 }
 
-// Kept as a named interface for backward compatibility and declaration merging
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface XMLToSitemapIndexItemStreamOptions extends SaxParserStreamOptions {}
+export type { XMLToSitemapIndexItemStreamOptions };
 const defaultStreamOpts: XMLToSitemapIndexItemStreamOptions = {};
 
 /**
@@ -52,8 +50,6 @@ export class XMLToSitemapIndexStream extends SaxParserStream<IndexItem> {
         `Sitemap index exceeds maximum of ${max} entries`,
     });
   }
-
-  protected onOpenTag(): void {}
 
   protected onCharData(tag: string, text: string): void {
     switch (tag) {

@@ -3,7 +3,11 @@ import assert from 'node:assert/strict';
 import { Readable, Writable } from 'node:stream';
 import { promisify } from 'node:util';
 import { pipeline as pipe } from 'node:stream';
-import { XMLToSitemapItemStream } from '../dist/lib/sitemap-parser.js';
+import {
+  XMLToSitemapItemStream,
+  parseSitemap,
+} from '../dist/lib/sitemap-parser.js';
+import { ErrorLevel } from '../dist/lib/types.js';
 import type { SitemapItem } from '../dist/lib/types.js';
 import { LIMITS } from '../dist/lib/constants.js';
 
@@ -1391,6 +1395,44 @@ describe('XMLToSitemapItemStream entry cap', () => {
       capped.error?.message,
       'Sitemap exceeds maximum of 0 URLs'
     );
+  });
+
+  it('fails the stream in THROW mode once the cap is crossed', async () => {
+    const stream = new XMLToSitemapItemStream({
+      maxEntries: 1,
+      level: ErrorLevel.THROW,
+      logger: false,
+    });
+    await assert.rejects(
+      collect(stream, urlsetXml(2)),
+      /Sitemap exceeds maximum of 1 URLs/
+    );
+  });
+
+  it('parseSitemap stops reading the source at the cap', async () => {
+    const max = LIMITS.MAX_SITEMAP_ITEM_LIMIT;
+    let pulled = 0;
+    const entry = (i: number): string =>
+      `<url><loc>https://e.com/${i}</loc></url>`;
+    function* chunks(): Generator<string> {
+      yield '<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+      // Far more entries than the cap, in chunks of 1,000
+      for (let c = 0; c < max / 1000 + 50; c++) {
+        pulled++;
+        let s = '';
+        for (let i = 0; i < 1000; i++) s += entry(c * 1000 + i);
+        yield s;
+      }
+      yield '</urlset>';
+    }
+    const errorSpy = mock.method(console, 'error', () => {});
+    try {
+      const items = await parseSitemap(Readable.from(chunks()));
+      assert.strictEqual(items.length, max);
+      assert.ok(pulled < max / 1000 + 50, `pulled ${pulled} chunks`);
+    } finally {
+      errorSpy.mock.restore();
+    }
   });
 
   it('keeps urlCount as an alias for entryCount', async () => {

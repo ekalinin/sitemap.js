@@ -465,10 +465,11 @@ export interface SaxParserStreamOptions extends TransformOptions {
   maxEntries?: number;
 }
 
-/** What a parser subclass tells the shared SaxParserStream base */
-export interface SaxParserStreamConfig {
-  /** Whether a tag belongs to the parsed format; others are reported */
-  isKnownTag: (name: string) => boolean;
-  /** Error text for the first entry past the entry cap */
-  overflowMessage: (maxEntries: number) => string;
-}
+/** Options for `XMLToSitemapItemStream` */
+// Kept as a named interface for backward compatibility and declaration merging
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface XMLToSitemapItemStreamOptions extends SaxParserStreamOptions {}
+
+/** Options for `XMLToSitemapIndexStream` */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface XMLToSitemapIndexItemStreamOptions extends SaxParserStreamOptions {}

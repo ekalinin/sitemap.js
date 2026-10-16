@@ -277,7 +277,7 @@ parseSitemap(createReadStream('./example.xml')).then(
 )
 ```
 
-The parser stops emitting items after 50,000 `<url>` entries, so `parseSitemap` never resolves with more than that.
+The parser stops emitting items after 50,000 `<url>` entries, so `parseSitemap` never resolves with more than that. It stops reading the source at that point and resolves with the first 50,000 items.
 
 ## XMLToSitemapIndexStream
 

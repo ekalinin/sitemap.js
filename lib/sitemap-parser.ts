@@ -12,7 +12,7 @@ import type {
   Img,
   LinkItem,
   NewsItem,
-  SaxParserStreamOptions,
+  XMLToSitemapItemStreamOptions,
 } from './types.js';
 import {
   isValidChangeFreq,
@@ -77,9 +77,7 @@ function newsTemplate(): NewsItem {
   };
 }
 
-// Kept as a named interface for backward compatibility and declaration merging
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface XMLToSitemapItemStreamOptions extends SaxParserStreamOptions {}
+export type { XMLToSitemapItemStreamOptions };
 const defaultStreamOpts: XMLToSitemapItemStreamOptions = {};
 
 // TODO does this need to end with `options`
@@ -626,8 +624,22 @@ export class XMLToSitemapItemStream extends SaxParserStream<SitemapItem> {
 export async function parseSitemap(xml: Readable): Promise<SitemapItem[]> {
   const urls: SitemapItem[] = [];
   return new Promise((resolve, reject): void => {
+    const parser = new XMLToSitemapItemStream();
+    // Entries past the cap are dropped, so stop reading the source once it is
+    // crossed instead of parsing the rest of it (BB-05). Ending the parser
+    // still delivers the entries it already emitted.
+    parser.once('maxEntriesExceeded', (max: number): void => {
+      parser.logger(
+        'error',
+        `Sitemap exceeds maximum of ${max} URLs; ignoring the rest`
+      );
+      xml.unpipe(parser);
+      xml.destroy();
+      parser.end();
+    });
+
     xml
-      .pipe(new XMLToSitemapItemStream())
+      .pipe(parser)
       .on('data', (smi: SitemapItem) => urls.push(smi))
       .on('end', (): void => {
         resolve(urls);
