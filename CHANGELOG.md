@@ -85,7 +85,9 @@
   every `<sitemap>` seen. Previously only the `parseSitemapIndex` wrapper capped
   entries, so piping the stream directly had no limit. `parseSitemapIndex` still
   rejects an over-limit index and stops reading as soon as the limit is crossed,
-  but a `maxEntries` above 50,000 no longer raises the limit.
+  but a `maxEntries` above 50,000 no longer raises the limit. A new
+  `maxEntries` stream option lowers the cap, or raises it (`Infinity` turns it
+  off) for callers that knowingly parse oversized indexes.
 
 ### Fixed
 
