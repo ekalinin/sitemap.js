@@ -226,7 +226,10 @@ export class SitemapStream extends Transform {
     this.hasHeadOutput = false;
     this.hostname = opts.hostname;
     this.level = opts.level || ErrorLevel.WARN;
-    this.logger = resolveLogger(this.level, opts.logger);
+    // Resolve without the level: `level` is a public field that callers may
+    // change after construction. validateSMIOptions receives the current
+    // level on every item and skips logging at SILENT.
+    this.logger = resolveLogger(ErrorLevel.WARN, opts.logger);
     // Read this.logger at call time so reassigning it later takes effect
     this.errorHandler =
       opts.errorHandler ??

@@ -125,6 +125,28 @@ describe('logger option', () => {
     assert.strictEqual(consoleWarn.mock.callCount(), 0);
   });
 
+  it('SitemapStream honors a level changed after construction', async () => {
+    const logger = mock.fn();
+    const sms = new SitemapStream({ logger, level: ErrorLevel.SILENT });
+    sms.level = ErrorLevel.WARN;
+    sms.write(invalidItem);
+    sms.end();
+    await streamToPromise(sms);
+
+    assert.strictEqual(logger.mock.callCount(), 1);
+  });
+
+  it('SitemapStream stays silent when level is changed to SILENT', async () => {
+    const logger = mock.fn();
+    const sms = new SitemapStream({ logger });
+    sms.level = ErrorLevel.SILENT;
+    sms.write(invalidItem);
+    sms.end();
+    await streamToPromise(sms);
+
+    assert.strictEqual(logger.mock.callCount(), 0);
+  });
+
   it('SitemapIndexStream honors a level changed after construction', async () => {
     const logger = mock.fn();
     const smis = new SitemapIndexStream({ logger });

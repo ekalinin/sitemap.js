@@ -125,9 +125,13 @@
 - `xmlLint()` destroys a `Readable` input if xmllint exits or fails to start
   before reading all of it, so the source no longer stays paused with its file
   descriptor open.
-- `SitemapIndexStream` checks its public `level` field when it warns, so
-  setting `level` to `ErrorLevel.SILENT` after construction silences it again,
+- `SitemapStream` and `SitemapIndexStream` check their public `level` field
+  when they warn, so changing `level` after construction takes effect again,
   as it did in 9.0.1.
+- `@types/node` is a runtime dependency again, as it was in 9.0.1, because the
+  published type definitions import Node's stream types. The range now covers
+  every supported Node major (`^22 || ^24 || ^26`), so npm can share a
+  consumer's own copy.
 - `XMLToSitemapItemStream` now treats CDATA sections as ordinary character data
   in every tag. Previously only the 8 tags from issue #445 (`loc`, `image:loc`,
   `video:title`, `video:description`, `news:name`, `news:title`,
