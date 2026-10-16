@@ -24,6 +24,15 @@
   uncompressed file-size limit. A 50,000-URL input now produces two sitemap
   files instead of one; pass `limit: 50000` to keep the old output.
 
+#### `SitemapStream` writes an empty sitemap instead of erroring
+
+- Ending a `SitemapStream` without writing any items now produces a
+  well-formed empty `<urlset>` instead of failing with `EmptySitemap`
+  (#394, #421). This matches `SitemapIndexStream`, which already wrote an empty
+  `<sitemapindex>`. `EmptySitemap` is still exported but deprecated and no
+  longer thrown. An empty `<urlset>` does not pass strict `sitemap.xsd`
+  validation, which requires at least one `<url>`; search engines accept it.
+
 ### Changed
 
 - The CLI parses arguments with Node's built-in `util.parseArgs` instead of

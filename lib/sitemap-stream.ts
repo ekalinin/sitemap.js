@@ -17,7 +17,7 @@ import {
   validateXSLUrl,
 } from './validation.js';
 import { SitemapItemStream } from './sitemap-item-stream.js';
-import { EmptyStream, EmptySitemap } from './errors.js';
+import { EmptyStream } from './errors.js';
 import { LIMITS } from './constants.js';
 
 const xmlDec = '<?xml version="1.0" encoding="UTF-8"?>';
@@ -241,12 +241,14 @@ export class SitemapStream extends Transform {
   }
 
   _flush(cb: TransformCallback): void {
+    // With no items, still emit a well-formed (empty) urlset, as
+    // SitemapIndexStream does for an empty index
     if (!this.hasHeadOutput) {
-      cb(new EmptySitemap());
-    } else {
-      this.push(closetag);
-      cb();
+      this.hasHeadOutput = true;
+      this.push(getURLSetNs(this.xmlNS, this.xslUrl));
     }
+    this.push(closetag);
+    cb();
   }
 }
 

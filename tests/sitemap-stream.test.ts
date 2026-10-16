@@ -271,6 +271,17 @@ describe('sitemap stream', () => {
     );
   });
 
+  it('emits an empty urlset when ended without items', async () => {
+    const sms = new SitemapStream({ xslUrl: 'https://example.com/style.xsl' });
+    sms.end();
+    const xml = (await streamToPromise(sms)).toString();
+    assert.ok(xml.startsWith('<?xml'));
+    assert.ok(xml.includes('<?xml-stylesheet'));
+    assert.ok(xml.includes('<urlset'));
+    assert.ok(xml.endsWith('</urlset>'));
+    assert.ok(!xml.includes('<url>'));
+  });
+
   it('streamToPromise throws EmptyStream error on empty stream', async () => {
     const emptyStream = new Readable();
     emptyStream.push(null); // This makes the stream "empty"
