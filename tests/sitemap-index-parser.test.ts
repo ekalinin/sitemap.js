@@ -284,6 +284,42 @@ describe('XMLToSitemapIndexStream entry cap', () => {
       /exceeds maximum allowed entries \(50000\)/
     );
   });
+
+  it('parseSitemapIndex stops reading as soon as the spec limit is crossed', async () => {
+    const total = LIMITS.MAX_SITEMAP_ITEM_LIMIT + 10_000;
+    let yielded = 0;
+    function* source(): Generator<string> {
+      yield indexOpen;
+      for (let i = 0; i < total; i++) {
+        yielded++;
+        yield `<sitemap><loc>https://e.com/${i}.xml</loc></sitemap>`;
+      }
+      yield indexClose;
+    }
+    await assert.rejects(
+      parseSitemapIndex(Readable.from(source())),
+      /exceeds maximum allowed entries \(50000\)/
+    );
+
+    assert.ok(
+      yielded < total,
+      `expected early stop, but all ${total} entries were read`
+    );
+  });
+
+  it('reports the spec limit once, not per dropped entry', async () => {
+    const logger = mock.fn();
+    const chunks = overCap();
+    chunks[0] = chunks[0].replace(
+      indexClose,
+      `<sitemap><loc>https://e.com/extra.xml</loc></sitemap>${indexClose}`
+    );
+    await parseIndexChunks(chunks, { logger });
+    const capErrors = logger.mock.calls.filter(
+      (c) => c.arguments[0] === 'error'
+    );
+    assert.strictEqual(capErrors.length, 1);
+  });
 });
 
 describe('ObjectStreamToJSON', () => {

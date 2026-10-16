@@ -56,7 +56,9 @@ export class XMLToSitemapIndexStream extends Transform {
 
       // @ts-expect-error - SAX types don't include strictEntities option
       strictEntities: true,
-      trim: true,
+      // No sax trim: it trims each text chunk separately, dropping whitespace
+      // between text and CDATA. The char-data buffer trims the joined value.
+      trim: false,
     });
     this.level = opts.level || ErrorLevel.WARN;
     if (this.level !== ErrorLevel.SILENT && opts.logger !== false) {
@@ -141,9 +143,12 @@ export class XMLToSitemapIndexStream extends Transform {
         case IndexTagNames.sitemap:
           this.entryCount++;
           if (this.entryCount > LIMITS.MAX_SITEMAP_ITEM_LIMIT) {
-            const msg = `Sitemap index exceeds maximum of ${LIMITS.MAX_SITEMAP_ITEM_LIMIT} entries`;
-            this.logger('error', msg);
-            this.err(msg);
+            // Report once rather than for every dropped entry
+            if (this.entryCount === LIMITS.MAX_SITEMAP_ITEM_LIMIT + 1) {
+              const msg = `Sitemap index exceeds maximum of ${LIMITS.MAX_SITEMAP_ITEM_LIMIT} entries`;
+              this.logger('error', msg);
+              this.err(msg);
+            }
           } else if (currentItem.url) {
             // Only push items with valid URLs (non-empty after validation)
             this.push(currentItem);
@@ -220,39 +225,42 @@ export async function parseSitemapIndex(
       }
     });
 
+    const rejectOverLimit = (limit: number): void => {
+      settled = true;
+      reject(
+        new Error(`Sitemap index exceeds maximum allowed entries (${limit})`)
+      );
+      // Immediately destroy both streams to stop further processing (BB-05)
+      parser.destroy();
+      xml.destroy();
+    };
+
+    // The stream drops entries past the spec limit instead of pushing them,
+    // so the 'data' count below never sees them. Watch the parser's own
+    // entry count, which its closetag handler (registered first) has already
+    // updated, to stop as soon as the limit is crossed.
+    parser.saxStream.on('closetag', (): void => {
+      if (!settled && parser.entryCount > LIMITS.MAX_SITEMAP_ITEM_LIMIT) {
+        rejectOverLimit(Math.min(maxEntries, LIMITS.MAX_SITEMAP_ITEM_LIMIT));
+      }
+    });
+
     xml
       .pipe(parser)
       .on('data', (smi: IndexItem) => {
         if (settled) return;
         // Security: Prevent memory exhaustion by limiting number of entries
         if (urls.length >= maxEntries) {
-          settled = true;
-          reject(
-            new Error(
-              `Sitemap index exceeds maximum allowed entries (${maxEntries})`
-            )
-          );
-          // Immediately destroy both streams to stop further processing (BB-05)
-          parser.destroy();
-          xml.destroy();
+          rejectOverLimit(maxEntries);
           return;
         }
         urls.push(smi);
       })
       .on('end', (): void => {
-        if (settled) return;
-        settled = true;
-        // The stream drops entries past the spec limit instead of pushing them,
-        // so the count above never sees them.
-        if (parser.entryCount > LIMITS.MAX_SITEMAP_ITEM_LIMIT) {
-          reject(
-            new Error(
-              `Sitemap index exceeds maximum allowed entries (${Math.min(maxEntries, LIMITS.MAX_SITEMAP_ITEM_LIMIT)})`
-            )
-          );
-          return;
+        if (!settled) {
+          settled = true;
+          resolve(urls);
         }
-        resolve(urls);
       })
       .on('error', (error: Error): void => {
         if (!settled) {

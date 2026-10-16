@@ -120,7 +120,9 @@ export class XMLToSitemapItemStream extends Transform {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       strictEntities: true,
-      trim: true,
+      // No sax trim: it trims each text chunk separately, dropping whitespace
+      // between text and CDATA. The char-data buffer trims the joined value.
+      trim: false,
     });
     this.level = opts.level || ErrorLevel.WARN;
     if (this.level !== ErrorLevel.SILENT && opts.logger !== false) {

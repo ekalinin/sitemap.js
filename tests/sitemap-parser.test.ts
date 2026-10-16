@@ -266,6 +266,24 @@ describe('XMLToSitemapItemStream', () => {
     );
   });
 
+  it('keeps whitespace between text, CDATA and comment chunks', async () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://example.com/page</loc>
+    <video:video>
+      <video:thumbnail_loc>https://example.com/t.jpg</video:thumbnail_loc>
+      <video:title>  Episode <![CDATA[One]]>  </video:title>
+      <video:description>foo <!-- note --> bar</video:description>
+    </video:video>
+  </url>
+</urlset>`;
+    const results = await parseSitemap(Readable.from(xml));
+    assert.strictEqual(results[0].video[0].title, 'Episode One');
+    assert.strictEqual(results[0].video[0].description, 'foo  bar');
+  });
+
   it('trims whitespace around CDATA content like text content', async () => {
     const xml = `<?xml version="1.0" encoding="UTF-8" ?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"

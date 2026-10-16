@@ -41,7 +41,9 @@
 - `XMLToSitemapItemStream` now buffers each element's character data and
   handles it once at the next tag boundary: text and CDATA chunks within one
   element are joined, surrounding whitespace is trimmed for CDATA as it already
-  was for text, and stray character data between elements is reported against
+  was for text, whitespace between chunks is kept (`Episode <![CDATA[One]]>`
+  now parses as `Episode One`, not `EpisodeOne`), and stray character data
+  between elements is reported against
   the enclosing element instead of overwriting the previous one. Character data
   longer than `LIMITS.MAX_PARSER_CHAR_DATA_LENGTH` (64 KiB) for one element is
   dropped with a warning.
@@ -57,12 +59,12 @@
   `unhandled cdata for tag:`. Both parsers share one buffer,
   `createCharDataBuffer` in `lib/utils.ts`.
 - **`XMLToSitemapIndexStream` enforces the 50,000-entry spec limit itself.**
-  Entries past `LIMITS.MAX_SITEMAP_ITEM_LIMIT` are dropped with an error (which
-  throws under `ErrorLevel.THROW`), and a new `entryCount` property counts every
-  `<sitemap>` seen. Previously only the `parseSitemapIndex` wrapper capped
+  Entries past `LIMITS.MAX_SITEMAP_ITEM_LIMIT` are dropped with a single error
+  (which throws under `ErrorLevel.THROW`), and a new `entryCount` property counts
+  every `<sitemap>` seen. Previously only the `parseSitemapIndex` wrapper capped
   entries, so piping the stream directly had no limit. `parseSitemapIndex` still
-  rejects an over-limit index, but a `maxEntries` above 50,000 no longer raises
-  the limit.
+  rejects an over-limit index and stops reading as soon as the limit is crossed,
+  but a `maxEntries` above 50,000 no longer raises the limit.
 
 ### Fixed
 
