@@ -459,18 +459,15 @@ function validate(
   subject: NewsItem | VideoItem | NewsItem['publication'],
   name: string,
   url: string,
-  level: ErrorLevel
+  level: ErrorLevel,
+  errorHandler: ErrorHandler
 ): void {
   Object.keys(subject).forEach((key): void => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const val = subject[key];
     if (validators[key] && !validators[key].test(val)) {
-      if (level === ErrorLevel.THROW) {
-        throw new InvalidAttrValue(key, val, validators[key]);
-      } else {
-        console.warn(`${url}: ${name} key ${key} has invalid value: ${val}`);
-      }
+      errorHandler(new InvalidAttrValue(key, val, validators[key]), level);
     }
   });
 }
@@ -542,8 +539,8 @@ export function validateSMIOptions(
       errorHandler(new InvalidNewsFormat(url), level);
     }
 
-    validate(news, 'news', url, level);
-    validate(news.publication, 'publication', url, level);
+    validate(news, 'news', url, level, errorHandler);
+    validate(news.publication, 'publication', url, level, errorHandler);
   }
 
   if (video) {
@@ -654,7 +651,7 @@ export function validateSMIOptions(
         );
       }
 
-      validate(vid, 'video', url, level);
+      validate(vid, 'video', url, level, errorHandler);
     });
   }
 

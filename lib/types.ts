@@ -341,7 +341,8 @@ export enum ErrorLevel {
    */
   SILENT = 'silent',
   /**
-   * If an invalid value is encountered, a console.warn will be called with details
+   * If an invalid value is encountered, the stream's `logger` is called with
+   * details (console.warn by default)
    */
   WARN = 'warn',
   /**
@@ -351,6 +352,15 @@ export enum ErrorLevel {
 }
 
 export type ErrorHandler = (error: Error, level: ErrorLevel) => void;
+
+/**
+ * Receives every message the library would otherwise print to the console.
+ * Pass one as the `logger` option of any stream, or pass `false` to silence it.
+ */
+export type Logger = (
+  level: 'warn' | 'error' | 'info' | 'log',
+  ...message: Parameters<Console['log']>
+) => void;
 
 export enum TagNames {
   url = 'url',

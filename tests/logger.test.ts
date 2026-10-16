@@ -1,0 +1,129 @@
+import { describe, it, mock, afterEach } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  SitemapStream,
+  SitemapIndexStream,
+  streamToPromise,
+  ErrorLevel,
+  type SitemapItemLoose,
+} from '../dist/index.js';
+
+// changefreq is deliberately invalid, so cast past the type check
+const invalidItem = {
+  url: 'https://example.com/',
+  changefreq: 'sometimes',
+} as unknown as SitemapItemLoose;
+
+describe('logger option', () => {
+  afterEach(() => {
+    mock.restoreAll();
+  });
+
+  it('SitemapStream sends validation warnings to the logger, not the console', async () => {
+    const consoleWarn = mock.method(console, 'warn', () => undefined);
+    const logger = mock.fn();
+    const sms = new SitemapStream({ logger });
+    sms.write(invalidItem);
+    sms.end();
+    await streamToPromise(sms);
+
+    assert.strictEqual(logger.mock.callCount(), 1);
+    assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+    assert.strictEqual(
+      logger.mock.calls[0].arguments[1],
+      'ChangeFreqInvalidError'
+    );
+    assert.strictEqual(consoleWarn.mock.callCount(), 0);
+  });
+
+  it('SitemapStream routes invalid news attributes through the logger', async () => {
+    const logger = mock.fn();
+    const sms = new SitemapStream({ logger });
+    sms.write({
+      url: 'https://example.com/',
+      news: {
+        publication: { name: 'Example', language: 'en' },
+        publication_date: '2024-01-01',
+        title: 'Title',
+        access: 'Registration',
+        genres: 'NotAGenre',
+      },
+    });
+    sms.end();
+    await streamToPromise(sms);
+
+    assert.ok(
+      logger.mock.calls.some((c) => c.arguments[1] === 'InvalidAttrValue')
+    );
+  });
+
+  it('SitemapStream logs nothing when logger is false', async () => {
+    const consoleWarn = mock.method(console, 'warn', () => undefined);
+    const sms = new SitemapStream({ logger: false });
+    sms.write(invalidItem);
+    sms.end();
+    await streamToPromise(sms);
+
+    assert.strictEqual(consoleWarn.mock.callCount(), 0);
+  });
+
+  it('SitemapStream still throws at ErrorLevel.THROW with a logger', async () => {
+    const logger = mock.fn();
+    const sms = new SitemapStream({ logger, level: ErrorLevel.THROW });
+    assert.throws(
+      () => sms._transform(invalidItem, 'utf8', () => undefined),
+      /changefreq/
+    );
+    assert.strictEqual(logger.mock.callCount(), 0);
+  });
+
+  it('SitemapStream prefers an explicit errorHandler over the logger', async () => {
+    const logger = mock.fn();
+    const errorHandler = mock.fn();
+    const sms = new SitemapStream({ logger, errorHandler });
+    sms.write(invalidItem);
+    sms.end();
+    await streamToPromise(sms);
+
+    assert.strictEqual(errorHandler.mock.callCount(), 1);
+    assert.strictEqual(logger.mock.callCount(), 0);
+  });
+
+  it('SitemapIndexStream sends invalid-item warnings to the logger', async () => {
+    const consoleWarn = mock.method(console, 'warn', () => undefined);
+    const logger = mock.fn();
+    const smis = new SitemapIndexStream({ logger });
+    smis.write('javascript:alert(1)');
+    smis.write('https://example.com/sitemap.xml');
+    smis.end();
+    const xml = (await streamToPromise(smis)).toString();
+
+    assert.ok(xml.includes('https://example.com/sitemap.xml'));
+    assert.strictEqual(logger.mock.callCount(), 1);
+    assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+    assert.match(
+      String(logger.mock.calls[0].arguments[1]),
+      /Invalid URL in sitemap index/
+    );
+    assert.strictEqual(consoleWarn.mock.callCount(), 0);
+  });
+
+  it('SitemapIndexStream logs nothing at ErrorLevel.SILENT', async () => {
+    const logger = mock.fn();
+    const smis = new SitemapIndexStream({ logger, level: ErrorLevel.SILENT });
+    smis.write('javascript:alert(1)');
+    smis.end();
+    await streamToPromise(smis);
+
+    assert.strictEqual(logger.mock.callCount(), 0);
+  });
+});
+
+describe('SitemapStream xmlns property', () => {
+  it('exposes the namespace options as xmlns, matching the option name', () => {
+    const xmlns = { news: false, xhtml: true, image: false, video: false };
+    const sms = new SitemapStream({ xmlns });
+    assert.deepStrictEqual(sms.xmlns, xmlns);
+    assert.ok(!('xmlNS' in sms));
+  });
+});

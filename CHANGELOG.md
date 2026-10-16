@@ -33,6 +33,19 @@
   longer thrown. An empty `<urlset>` does not pass strict `sitemap.xsd`
   validation, which requires at least one `<url>`; search engines accept it.
 
+#### One `logger` option across the library; `xmlNS` renamed to `xmlns`
+
+- `SitemapStream`, `SitemapIndexStream`, `SitemapAndIndexStream` and
+  `simpleSitemapAndIndex` accept the same `logger` option the parsers already
+  had (#348). Validation warnings that went straight to `console.warn` now go
+  through it. Pass `false` to silence. The `Logger` type is now exported.
+- Invalid news and video attribute values now go through `errorHandler` (and
+  so the logger) like every other validation error, instead of a hardcoded
+  `console.warn`. The warning text is now the error's name and message.
+- The `SitemapStream` property `xmlNS` is now `xmlns`, matching the option
+  name (#300). `SitemapStream.errorHandler` is always set now; it defaults to
+  a handler that warns through `logger`.
+
 ### Changed
 
 - The CLI parses arguments with Node's built-in `util.parseArgs` instead of

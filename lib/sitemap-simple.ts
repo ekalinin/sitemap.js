@@ -12,7 +12,7 @@ import {
 import { normalize, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import type { SitemapItemLoose } from './types.js';
+import type { SitemapItemLoose, Logger } from './types.js';
 import { URL } from 'node:url';
 import {
   validateURL,
@@ -66,6 +66,11 @@ export interface SimpleSitemapAndIndexOptions {
    * Must be a valid http:// or https:// URL
    */
   xslUrl?: string;
+  /**
+   * Receives validation warnings from the sitemap and index streams.
+   * Defaults to the console; pass `false` to silence.
+   */
+  logger?: Logger | false;
 }
 
 /**
@@ -90,6 +95,7 @@ export const simpleSitemapAndIndex = async ({
   gzip = true,
   publicBasePath = './',
   xslUrl,
+  logger,
 }: SimpleSitemapAndIndexOptions): Promise<void> => {
   // Validate all inputs upfront
   validateURL(hostname, 'hostname');
@@ -117,10 +123,12 @@ export const simpleSitemapAndIndex = async ({
 
   const sitemapAndIndexStream = new SitemapAndIndexStream({
     limit,
+    logger,
     getSitemapStream: (i) => {
       const sitemapStream = new SitemapStream({
         hostname,
         xslUrl,
+        logger,
       });
       const path = `./sitemap-${i}.xml`;
       const writePath = resolve(destinationDir, path + (gzip ? '.gz' : ''));
