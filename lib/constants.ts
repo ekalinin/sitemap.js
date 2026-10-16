@@ -65,8 +65,10 @@ export const LIMITS = {
 } as const;
 
 /**
- * Default maximum number of items in each sitemap XML file
- * Set below the max to leave room for URLs added during processing
+ * Default maximum number of items in each sitemap XML file, shared by
+ * SitemapAndIndexStream, simpleSitemapAndIndex and the CLI.
+ * Set below the 50,000 max to leave headroom under the 50MB uncompressed
+ * file-size limit, which entries with images, video or news can approach.
  *
  * @see https://www.sitemaps.org/protocol.html#index
  */

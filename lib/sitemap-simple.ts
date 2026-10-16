@@ -1,6 +1,7 @@
 import { SitemapAndIndexStream } from './sitemap-index-stream.js';
 import { SitemapStream } from './sitemap-stream.js';
 import { lineSeparatedURLsToSitemapOptions } from './utils.js';
+import { DEFAULT_SITEMAP_ITEM_LIMIT } from './constants.js';
 import { createGzip } from 'node:zlib';
 import {
   createWriteStream,
@@ -52,7 +53,7 @@ export interface SimpleSitemapAndIndexOptions {
   /**
    * How many URLs to write before switching to a new file
    * Must be between 1 and 50,000 per sitemaps.org spec
-   * @default 50000
+   * @default 45000
    */
   limit?: number;
   /**
@@ -85,7 +86,7 @@ export const simpleSitemapAndIndex = async ({
   sitemapHostname = hostname, // if different
   sourceData,
   destinationDir,
-  limit = 50000,
+  limit = DEFAULT_SITEMAP_ITEM_LIMIT,
   gzip = true,
   publicBasePath = './',
   xslUrl,

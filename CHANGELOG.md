@@ -16,6 +16,14 @@
 - Build output flattened from `dist/esm/*` and `dist/cjs/*` to `dist/*`. The
   `bin` entry is now `dist/cli.js`.
 
+#### `simpleSitemapAndIndex` defaults to 45,000 URLs per sitemap
+
+- The default `limit` drops from 50,000 to 45,000, the same default
+  `SitemapAndIndexStream` and the CLI already use (`DEFAULT_SITEMAP_ITEM_LIMIT`).
+  The headroom keeps rich entries (images, video, news) under the 50MB
+  uncompressed file-size limit. A 50,000-URL input now produces two sitemap
+  files instead of one; pass `limit: 50000` to keep the old output.
+
 ### Changed
 
 - Test suite migrated from Jest to the built-in Node.js test runner. Coverage
