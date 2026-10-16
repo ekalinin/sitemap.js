@@ -11,9 +11,10 @@ import {
   type ErrorHandler,
   type Logger,
 } from './types.js';
-import { normalizeURL, resolveLogger, loggingErrorHandler } from './utils.js';
+import { normalizeURL, resolveLogger } from './utils.js';
 import {
   validateSMIOptions,
+  loggingErrorHandler,
   validateURL,
   validateXSLUrl,
 } from './validation.js';
@@ -227,7 +228,12 @@ export class SitemapStream extends Transform {
     this.hostname = opts.hostname;
     this.level = opts.level || ErrorLevel.WARN;
     this.logger = resolveLogger(this.level, opts.logger);
-    this.errorHandler = opts.errorHandler ?? loggingErrorHandler(this.logger);
+    // Read this.logger at call time so reassigning it later takes effect
+    this.errorHandler =
+      opts.errorHandler ??
+      loggingErrorHandler((level, ...message) =>
+        this.logger(level, ...message)
+      );
     this.smiStream = new SitemapItemStream({ level: opts.level });
     this.smiStream.on('data', (data) => this.push(data));
     this.lastmodDateOnly = opts.lastmodDateOnly || false;

@@ -48,7 +48,6 @@ import type {
   Logger,
 } from './types.js';
 import { LIMITS } from './constants.js';
-import { defaultLogger } from './utils.js';
 import { isAbsolute } from 'node:path';
 
 /**
@@ -459,7 +458,6 @@ export function validateXSLUrl(xslUrl: string): void {
  */
 function validate(
   subject: NewsItem | VideoItem | NewsItem['publication'],
-  name: string,
   url: string,
   level: ErrorLevel,
   errorHandler: ErrorHandler
@@ -469,7 +467,7 @@ function validate(
     // @ts-ignore
     const val = subject[key];
     if (validators[key] && !validators[key].test(val)) {
-      const error = new InvalidAttrValue(key, val, validators[key]);
+      const error = new InvalidAttrValue(key, val, validators[key], url);
       if (level === ErrorLevel.THROW) {
         throw error;
       }
@@ -477,6 +475,12 @@ function validate(
     }
   });
 }
+
+/**
+ * The logger streams use when none is given: forwards to the console
+ */
+export const defaultLogger: Logger = (level, ...message) =>
+  console[level](...message);
 
 /**
  * An ErrorHandler for validateSMIOptions that throws at ErrorLevel.THROW and
@@ -493,8 +497,7 @@ export function loggingErrorHandler(logger: Logger): ErrorHandler {
 }
 
 // Default for direct validateSMIOptions() calls: warn through the console
-const handleError: ErrorHandler = (error, level) =>
-  loggingErrorHandler(defaultLogger)(error, level);
+const handleError: ErrorHandler = loggingErrorHandler(defaultLogger);
 
 /**
  * Verifies all data passed in will comply with sitemap spec.
@@ -552,8 +555,8 @@ export function validateSMIOptions(
       errorHandler(new InvalidNewsFormat(url), level);
     }
 
-    validate(news, 'news', url, level, errorHandler);
-    validate(news.publication, 'publication', url, level, errorHandler);
+    validate(news, url, level, errorHandler);
+    validate(news.publication, url, level, errorHandler);
   }
 
   if (video) {
@@ -664,7 +667,7 @@ export function validateSMIOptions(
         );
       }
 
-      validate(vid, 'video', url, level, errorHandler);
+      validate(vid, url, level, errorHandler);
     });
   }
 

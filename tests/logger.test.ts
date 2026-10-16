@@ -54,9 +54,24 @@ describe('logger option', () => {
     sms.end();
     await streamToPromise(sms);
 
-    assert.ok(
-      logger.mock.calls.some((c) => c.arguments[1] === 'InvalidAttrValue')
+    const attrWarning = logger.mock.calls.find(
+      (c) => c.arguments[1] === 'InvalidAttrValue'
     );
+    assert.ok(attrWarning);
+    assert.match(attrWarning.arguments[2], /^https:\/\/example\.com\/: /);
+  });
+
+  it('SitemapStream uses a logger assigned after construction', async () => {
+    const consoleWarn = mock.method(console, 'warn', () => undefined);
+    const logger = mock.fn();
+    const sms = new SitemapStream();
+    sms.logger = logger;
+    sms.write(invalidItem);
+    sms.end();
+    await streamToPromise(sms);
+
+    assert.strictEqual(logger.mock.callCount(), 1);
+    assert.strictEqual(consoleWarn.mock.callCount(), 0);
   });
 
   it('SitemapStream logs nothing when logger is false', async () => {

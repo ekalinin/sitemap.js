@@ -27,7 +27,8 @@ import { EnumYesNo, ErrorLevel } from './types.js';
 import { LIMITS } from './constants.js';
 
 // Re-export validateSMIOptions from validation.ts for backward compatibility
-export { validateSMIOptions, loggingErrorHandler } from './validation.js';
+export { validateSMIOptions } from './validation.js';
+import { defaultLogger } from './validation.js';
 
 /**
  * Per ADR 0001, CDATA sections are ordinary character data: wire both the SAX
@@ -81,12 +82,6 @@ export function createCharDataBuffer({
     },
   };
 }
-
-/**
- * The logger streams use when none is given: forwards to the console
- */
-export const defaultLogger: Logger = (level, ...message) =>
-  console[level](...message);
 
 const noopLogger: Logger = () => undefined;
 

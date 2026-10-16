@@ -41,9 +41,10 @@
   through it. Pass `false` to silence. The `Logger` type is now exported.
 - Invalid news and video attribute values now go through `errorHandler` (and
   so the logger) like every other validation error, instead of a hardcoded
-  `console.warn`. The warning text is now the error's name and message.
+  `console.warn`. The warning text is now the error's name and message, which starts with
+  the item's URL.
 - The `SitemapStream` property `xmlNS` is now `xmlns`, matching the option
-  name (#300). `SitemapStream.errorHandler` is always set now; it defaults to
+  name (#300). `xmlNS` still works as a deprecated alias. `SitemapStream.errorHandler` is always set now; it defaults to
   a handler that warns through `logger`.
 
 ### Changed

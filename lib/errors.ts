@@ -102,9 +102,10 @@ export class InvalidVideoRating extends Error {
 }
 
 export class InvalidAttrValue extends Error {
-  constructor(key: string, val: any, validator: RegExp) {
+  constructor(key: string, val: any, validator: RegExp, url?: string) {
     super(
-      '"' +
+      (url ? `${url}: ` : '') +
+        '"' +
         val +
         '" tested against: ' +
         validator +

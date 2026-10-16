@@ -125,10 +125,10 @@ export class SitemapIndexStream extends Transform {
         if (this.level === ErrorLevel.THROW) {
           callback(error);
           return;
-        } else if (this.level === ErrorLevel.WARN) {
+        } else {
           this.logger('warn', error.message, item);
         }
-        // For SILENT or after WARN, skip this item
+        // The logger is a no-op at SILENT; skip this item
         callback();
         return;
       }
@@ -145,10 +145,10 @@ export class SitemapIndexStream extends Transform {
         if (this.level === ErrorLevel.THROW) {
           callback(err);
           return;
-        } else if (this.level === ErrorLevel.WARN) {
+        } else {
           this.logger('warn', err.message);
         }
-        // For SILENT or after WARN, skip this item
+        // The logger is a no-op at SILENT; skip this item
         callback();
         return;
       }
@@ -174,10 +174,10 @@ export class SitemapIndexStream extends Transform {
             if (this.level === ErrorLevel.THROW) {
               callback(error);
               return;
-            } else if (this.level === ErrorLevel.WARN) {
+            } else {
               this.logger('warn', error.message);
             }
-            // Continue without lastmod for SILENT or after WARN
+            // The logger is a no-op at SILENT; continue without lastmod
           }
         }
       }
