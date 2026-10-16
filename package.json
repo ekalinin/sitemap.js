@@ -62,7 +62,6 @@
   },
   "dependencies": {
     "@types/sax": "^1.2.1",
-    "arg": "^5.0.0",
     "sax": "^1.4.1"
   },
   "devDependencies": {

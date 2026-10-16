@@ -38,6 +38,38 @@ describe('cli', () => {
     assert.ok(stdout.length > 1);
   });
 
+  it('accepts -h as an alias for --help', async () => {
+    const { stdout } = await exec('node ./dist/cli.js -h', {
+      encoding: 'utf8',
+    });
+    assert.ok(stdout.includes('--index-base-url'));
+  });
+
+  it('exits with code 2 on an unknown option', async () => {
+    await assert.rejects(
+      exec('node ./dist/cli.js --no-such-flag', { encoding: 'utf8' }),
+      (err: { code: number; stderr: string }) => {
+        assert.strictEqual(err.code, 2);
+        assert.ok(err.stderr.includes('--no-such-flag'));
+        return true;
+      }
+    );
+  });
+
+  it('exits with code 2 on a non-integer --limit', async () => {
+    await assert.rejects(
+      exec(
+        'node ./dist/cli.js --index --limit=abc --index-base-url https://example.com/',
+        { encoding: 'utf8' }
+      ),
+      (err: { code: number; stderr: string }) => {
+        assert.strictEqual(err.code, 2);
+        assert.ok(err.stderr.includes('--limit must be an integer'));
+        return true;
+      }
+    );
+  });
+
   it('accepts line separated urls', async () => {
     const { stdout } = await exec(
       'node ./dist/cli.js < ./tests/mocks/cli-urls.txt',

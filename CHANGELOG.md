@@ -18,6 +18,10 @@
 
 ### Changed
 
+- The CLI parses arguments with Node's built-in `util.parseArgs` instead of
+  the `arg` package, which is no longer a dependency (#471). Unknown options
+  and a non-integer `--limit` now print a message and exit with code 2 instead
+  of throwing an uncaught error.
 - Test suite migrated from Jest to the built-in Node.js test runner. Coverage
   thresholds moved from `jest.config.cjs` into the `test:coverage` script and are
   enforced in CI by a dedicated job.
