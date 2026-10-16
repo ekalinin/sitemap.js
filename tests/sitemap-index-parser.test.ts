@@ -10,6 +10,7 @@ import {
   IndexObjectStreamToJSON,
 } from '../dist/lib/sitemap-index-parser.js';
 import { ErrorLevel } from '../dist/lib/types.js';
+import { LIMITS } from '../dist/lib/constants.js';
 import type { IndexItem } from '../dist/lib/types.js';
 const pipeline = promisify(pipe);
 import normalizedSample from './mocks/sampleconfig-index.normalized.json' with { type: 'json' };
@@ -136,7 +137,7 @@ describe('XMLToSitemapIndexItemStream', () => {
     assert.strictEqual(logger.mock.calls[0].arguments[2], 'foo');
     assert.strictEqual(
       logger.mock.calls[1].arguments[1],
-      'unhandled cdata for tag:'
+      'unhandled text for tag:'
     );
     assert.strictEqual(logger.mock.calls[1].arguments[2], 'foo');
   });
@@ -162,6 +163,126 @@ describe('XMLToSitemapIndexItemStream', () => {
     );
     assert.deepStrictEqual(sitemap, normalizedSample.sitemaps);
     assert.strictEqual(logger.mock.calls.length, 0);
+  });
+});
+
+async function parseIndexChunks(
+  chunks: string[],
+  opts: ConstructorParameters<typeof XMLToSitemapIndexStream>[0] = {
+    logger: false,
+  }
+): Promise<{ items: IndexItem[]; parser: XMLToSitemapIndexStream }> {
+  const items: IndexItem[] = [];
+  const parser = new XMLToSitemapIndexStream(opts);
+  await pipeline(
+    Readable.from(chunks),
+    parser,
+    new Writable({
+      objectMode: true,
+      write(chunk, a, cb): void {
+        items.push(chunk);
+        cb();
+      },
+    })
+  );
+  return { items, parser };
+}
+
+const indexOpen =
+  '<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+const indexClose = '</sitemapindex>';
+
+describe('XMLToSitemapIndexStream character data', () => {
+  it('joins text and CDATA in one loc', async () => {
+    const { items, parser } = await parseIndexChunks([
+      `${indexOpen}<sitemap><loc>https://example.com/<![CDATA[a.xml]]></loc></sitemap>${indexClose}`,
+    ]);
+    assert.strictEqual(parser.error, null);
+    assert.deepStrictEqual(items, [{ url: 'https://example.com/a.xml' }]);
+  });
+
+  it('joins text and CDATA in one lastmod', async () => {
+    const { items, parser } = await parseIndexChunks([
+      `${indexOpen}<sitemap><loc>https://example.com/a.xml</loc><lastmod>2024-01-<![CDATA[02]]></lastmod></sitemap>${indexClose}`,
+    ]);
+    assert.strictEqual(parser.error, null);
+    assert.deepStrictEqual(items, [
+      { url: 'https://example.com/a.xml', lastmod: '2024-01-02' },
+    ]);
+  });
+
+  it('joins a loc split across chunks', async () => {
+    const { items, parser } = await parseIndexChunks([
+      `${indexOpen}<sitemap><loc><![CDATA[https://exa`,
+      `mple.com/a.xml]]></loc></sitemap>${indexClose}`,
+    ]);
+    assert.strictEqual(parser.error, null);
+    assert.deepStrictEqual(items, [{ url: 'https://example.com/a.xml' }]);
+  });
+
+  it('trims whitespace around CDATA', async () => {
+    const { items, parser } = await parseIndexChunks([
+      `${indexOpen}<sitemap><loc> <![CDATA[ https://example.com/a.xml ]]> </loc></sitemap>${indexClose}`,
+    ]);
+    assert.strictEqual(parser.error, null);
+    assert.deepStrictEqual(items, [{ url: 'https://example.com/a.xml' }]);
+  });
+
+  it('reports stray text after a closed element against its parent', async () => {
+    const { items, parser } = await parseIndexChunks([
+      `${indexOpen}<sitemap><loc>https://example.com/a.xml</loc><![CDATA[javascript:alert(1)]]></sitemap>${indexClose}`,
+    ]);
+    assert.deepStrictEqual(items, [{ url: 'https://example.com/a.xml' }]);
+    assert.strictEqual(
+      parser.error?.message,
+      "unhandled text for tag: sitemap 'javascript:alert(1)'"
+    );
+  });
+
+  it('drops character data that exceeds the buffer cap', async () => {
+    const huge = 'https://example.com/' + 'a'.repeat(200_000);
+    const { items, parser } = await parseIndexChunks([
+      `${indexOpen}<sitemap><loc>${huge}</loc></sitemap>${indexClose}`,
+    ]);
+    assert.deepStrictEqual(items, []);
+    assert.strictEqual(
+      parser.error?.message,
+      `character data for loc exceeds max length of ${LIMITS.MAX_PARSER_CHAR_DATA_LENGTH}`
+    );
+  });
+});
+
+describe('XMLToSitemapIndexStream entry cap', () => {
+  const overCap = (): string[] => {
+    const chunks = [indexOpen];
+    for (let i = 0; i <= LIMITS.MAX_SITEMAP_ITEM_LIMIT; i++) {
+      chunks.push(`<sitemap><loc>https://e.com/${i}.xml</loc></sitemap>`);
+    }
+    chunks.push(indexClose);
+    return [chunks.join('')];
+  };
+
+  it('stops pushing entries past the spec limit', async () => {
+    const { items, parser } = await parseIndexChunks(overCap());
+    assert.strictEqual(items.length, LIMITS.MAX_SITEMAP_ITEM_LIMIT);
+    assert.strictEqual(
+      parser.error?.message,
+      `Sitemap index exceeds maximum of ${LIMITS.MAX_SITEMAP_ITEM_LIMIT} entries`
+    );
+  });
+
+  it('errors in THROW mode past the spec limit', async () => {
+    await assert.rejects(
+      parseIndexChunks(overCap(), { logger: false, level: ErrorLevel.THROW }),
+      /exceeds maximum of 50000 entries/
+    );
+  });
+
+  it('parseSitemapIndex rejects past the spec limit even with a higher maxEntries', async () => {
+    await assert.rejects(
+      parseSitemapIndex(Readable.from(overCap()), 100_000),
+      /exceeds maximum allowed entries \(50000\)/
+    );
   });
 });
 

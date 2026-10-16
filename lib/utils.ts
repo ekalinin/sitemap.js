@@ -19,11 +19,67 @@ import type {
   Img,
   LinkItem,
   VideoItem,
+  CharDataBuffer,
+  CharDataHandlers,
 } from './types.js';
 import { EnumYesNo } from './types.js';
+import { LIMITS } from './constants.js';
 
 // Re-export validateSMIOptions from validation.ts for backward compatibility
 export { validateSMIOptions } from './validation.js';
+
+/**
+ * Per ADR 0001, CDATA sections are ordinary character data: wire both the SAX
+ * `text` and `cdata` events to `append`. Character data is joined, trimmed and
+ * handed to `onText` once at the next tag boundary, attributed to the innermost
+ * open element (which is not the last opened tag once a child has closed).
+ * An element whose character data exceeds LIMITS.MAX_PARSER_CHAR_DATA_LENGTH is
+ * dropped and reported through `onOverflow` to bound memory use.
+ */
+export function createCharDataBuffer({
+  onText,
+  onOverflow,
+}: CharDataHandlers): CharDataBuffer {
+  let charData = '';
+  let overflow = false;
+  const openTags: string[] = [];
+
+  const flush = (): void => {
+    const tag = openTags[openTags.length - 1];
+    const text = charData.trim();
+    charData = '';
+    if (overflow) {
+      overflow = false;
+      onOverflow(
+        `character data for ${tag} exceeds max length of ${LIMITS.MAX_PARSER_CHAR_DATA_LENGTH}`
+      );
+    } else if (text) {
+      onText(tag, text);
+    }
+  };
+
+  return {
+    openTag(name: string): void {
+      flush();
+      openTags.push(name);
+    },
+    append(text: string): void {
+      if (overflow) {
+        return;
+      }
+      if (charData.length + text.length > LIMITS.MAX_PARSER_CHAR_DATA_LENGTH) {
+        overflow = true;
+        charData = '';
+        return;
+      }
+      charData += text;
+    },
+    closeTag(): void {
+      flush();
+      openTags.pop();
+    },
+  };
+}
 
 /**
  * Combines multiple streams into one
