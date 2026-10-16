@@ -124,7 +124,9 @@
 
 - `SitemapAndIndexStream` errors with `ERR_STREAM_PREMATURE_CLOSE` instead of
   hanging when a sitemap's write stream is destroyed before it finishes, during
-  sitemap rotation or at the end of input.
+  sitemap rotation or at the end of input. A `SitemapAndIndexStream` destroyed
+  during rotation no longer opens another sitemap file once the current one
+  has finished.
 - `sitemap --validate` exits with code 1 when the sitemap is invalid and 2 when
   validation cannot run (xmllint missing or schema not found). It used to exit
   0 in every case, so scripts and CI could not detect a failed validation.

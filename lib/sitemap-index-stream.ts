@@ -242,8 +242,7 @@ type getSitemapStreamFunc = (
  *
  * @extends {SitemapIndexStreamOptions}
  */
-export interface SitemapAndIndexStreamOptions
-  extends SitemapIndexStreamOptions {
+export interface SitemapAndIndexStreamOptions extends SitemapIndexStreamOptions {
   /**
    * Max number of items in each sitemap XML file.
    *
@@ -333,22 +332,33 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     encoding: string,
     callback: TransformCallback
   ): void {
-    if (this.itemsWritten % this.limit === 0) {
-      if (this.currentSitemap) {
-        // Transform delivers items one at a time, so no other item can
-        // arrive until this rotation calls back.
-        this.closeCurrentSitemap()
-          .then(() => {
-            this.createSitemap(encoding);
-            this.writeItem(item, callback);
-          })
-          .catch(callback);
-        return;
-      }
-      this.createSitemap(encoding);
+    if (this.currentSitemap && this.itemsWritten % this.limit !== 0) {
+      this.writeItem(this.currentSitemap, item, callback);
+      return;
     }
 
-    this.writeItem(item, callback);
+    const startNextSitemap = (): void => {
+      // The stream may have been destroyed while the last sitemap closed.
+      if (this.destroyed) {
+        return;
+      }
+      let sitemap: SitemapStream;
+      try {
+        sitemap = this.createSitemap(encoding);
+      } catch (err) {
+        callback(err as Error);
+        return;
+      }
+      this.writeItem(sitemap, item, callback);
+    };
+
+    if (!this.currentSitemap) {
+      startNextSitemap();
+      return;
+    }
+    // Transform delivers items one at a time, so no other item can
+    // arrive until this rotation calls back.
+    this.closeCurrentSitemap().then(startNextSitemap, callback);
   }
 
   /**
@@ -363,21 +373,21 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
       return;
     }
     sitemap.end();
+    const opts = { readable: false, cleanup: true };
     await Promise.all([
-      finished(sitemap, { readable: false }),
+      finished(sitemap, opts),
       // The pipe target gets its end() call from the sitemap stream ending.
-      pipeline && finished(pipeline, { readable: false }),
+      pipeline && finished(pipeline, opts),
     ]);
   }
 
-  private writeItem(item: SitemapItemLoose, callback: TransformCallback): void {
-    if (!this.currentSitemap) {
-      callback(new Error('No sitemap stream available'));
-      return;
-    }
-
-    if (!this.currentSitemap.write(item)) {
-      this.currentSitemap.once('drain', callback);
+  private writeItem(
+    sitemap: SitemapStream,
+    item: SitemapItemLoose,
+    callback: TransformCallback
+  ): void {
+    if (!sitemap.write(item)) {
+      sitemap.once('drain', callback);
     } else {
       process.nextTick(callback);
     }
@@ -400,29 +410,28 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
       .catch(cb);
   }
 
-  private createSitemap(encoding: string): void {
+  /**
+   * Asks `getSitemapStream` for the next sitemap, adds it to the index and
+   * makes it current. Throws if the callback throws or returns an invalid
+   * tuple.
+   */
+  private createSitemap(encoding: string): SitemapStream {
     const sitemapIndex = this.itemsWritten / this.limit;
     let result: ReturnType<getSitemapStreamFunc>;
 
     try {
       result = this.getSitemapStream(sitemapIndex);
     } catch (err) {
-      this.destroy(
-        new Error(
-          `getSitemapStream callback threw an error for index ${sitemapIndex}: ${err instanceof Error ? err.message : String(err)}`
-        )
+      throw new Error(
+        `getSitemapStream callback threw an error for index ${sitemapIndex}: ${err instanceof Error ? err.message : String(err)}`
       );
-      return;
     }
 
     // Validate the return value
     if (!Array.isArray(result) || result.length !== 3) {
-      this.destroy(
-        new Error(
-          `getSitemapStream must return a 3-element array [IndexItem | string, SitemapStream, WriteStream], got: ${typeof result}`
-        )
+      throw new Error(
+        `getSitemapStream must return a 3-element array [IndexItem | string, SitemapStream, WriteStream], got: ${typeof result}`
       );
-      return;
     }
 
     const [idxItem, currentSitemap, currentSitemapPipeline] = result;
@@ -432,33 +441,24 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
       !idxItem ||
       (typeof idxItem !== 'string' && typeof idxItem !== 'object')
     ) {
-      this.destroy(
-        new Error(
-          'getSitemapStream must return an IndexItem or string as the first element'
-        )
+      throw new Error(
+        'getSitemapStream must return an IndexItem or string as the first element'
       );
-      return;
     }
 
     if (!currentSitemap || typeof currentSitemap.write !== 'function') {
-      this.destroy(
-        new Error(
-          'getSitemapStream must return a SitemapStream as the second element'
-        )
+      throw new Error(
+        'getSitemapStream must return a SitemapStream as the second element'
       );
-      return;
     }
 
     if (
       currentSitemapPipeline &&
       typeof currentSitemapPipeline.write !== 'function'
     ) {
-      this.destroy(
-        new Error(
-          'getSitemapStream must return a WriteStream or undefined as the third element'
-        )
+      throw new Error(
+        'getSitemapStream must return a WriteStream or undefined as the third element'
       );
-      return;
     }
 
     // Propagate errors from the sitemap stream
@@ -473,5 +473,6 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
       // volume tends to be small in comparison to sitemap writes.
       // noop
     });
+    return currentSitemap;
   }
 }
