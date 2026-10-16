@@ -6,10 +6,15 @@ import {
   type TransformOptions,
   type TransformCallback,
 } from 'node:stream';
-import { type IndexItem, ErrorLevel, IndexTagNames } from './types.js';
+import {
+  type IndexItem,
+  type Logger,
+  ErrorLevel,
+  IndexTagNames,
+} from './types.js';
 import { getURLError, isValidISODate } from './validation.js';
-import { createCharDataBuffer } from './utils.js';
 import { LIMITS } from './constants.js';
+import { createCharDataBuffer, resolveLogger } from './utils.js';
 
 function isValidTagName(tagName: string): tagName is IndexTagNames {
   // This only works because the enum name and value are the same
@@ -22,10 +27,6 @@ function tagTemplate(): IndexItem {
   };
 }
 
-type Logger = (
-  level: 'warn' | 'error' | 'info' | 'log',
-  ...message: Parameters<Console['log']>
-) => void;
 export interface XMLToSitemapIndexItemStreamOptions extends TransformOptions {
   level?: ErrorLevel;
   logger?: Logger | false;
@@ -37,10 +38,7 @@ export interface XMLToSitemapIndexItemStreamOptions extends TransformOptions {
    */
   maxEntries?: number;
 }
-const defaultLogger: Logger = (level, ...message) => console[level](...message);
-const defaultStreamOpts: XMLToSitemapIndexItemStreamOptions = {
-  logger: defaultLogger,
-};
+const defaultStreamOpts: XMLToSitemapIndexItemStreamOptions = {};
 
 /**
  * Takes a stream of xml and transforms it into a stream of IndexItems
@@ -78,11 +76,7 @@ export class XMLToSitemapIndexStream extends Transform {
       trim: false,
     });
     this.level = opts.level || ErrorLevel.WARN;
-    if (this.level !== ErrorLevel.SILENT && opts.logger !== false) {
-      this.logger = opts.logger ?? defaultLogger;
-    } else {
-      this.logger = () => undefined;
-    }
+    this.logger = resolveLogger(this.level, opts.logger);
     let currentItem: IndexItem = tagTemplate();
     let currentTag: string;
     this.saxStream.on('opentagstart', (tag): void => {

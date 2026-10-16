@@ -45,6 +45,7 @@ import type {
   NewsItem,
   VideoItem,
   ErrorHandler,
+  Logger,
 } from './types.js';
 import { LIMITS } from './constants.js';
 import { isAbsolute } from 'node:path';
@@ -457,34 +458,46 @@ export function validateXSLUrl(xslUrl: string): void {
  */
 function validate(
   subject: NewsItem | VideoItem | NewsItem['publication'],
-  name: string,
   url: string,
-  level: ErrorLevel
+  level: ErrorLevel,
+  errorHandler: ErrorHandler
 ): void {
   Object.keys(subject).forEach((key): void => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const val = subject[key];
     if (validators[key] && !validators[key].test(val)) {
+      const error = new InvalidAttrValue(key, val, validators[key], url);
       if (level === ErrorLevel.THROW) {
-        throw new InvalidAttrValue(key, val, validators[key]);
-      } else {
-        console.warn(`${url}: ${name} key ${key} has invalid value: ${val}`);
+        throw error;
       }
+      errorHandler(error, level);
     }
   });
 }
 
 /**
- * Internal helper to handle errors based on error level
+ * The logger streams use when none is given: forwards to the console
  */
-function handleError(error: Error, level: ErrorLevel): void {
-  if (level === ErrorLevel.THROW) {
-    throw error;
-  } else if (level === ErrorLevel.WARN) {
-    console.warn(error.name, error.message);
-  }
+export const defaultLogger: Logger = (level, ...message) =>
+  console[level](...message);
+
+/**
+ * An ErrorHandler for validateSMIOptions that throws at ErrorLevel.THROW and
+ * sends warnings to the given logger at ErrorLevel.WARN
+ */
+export function loggingErrorHandler(logger: Logger): ErrorHandler {
+  return (error, level) => {
+    if (level === ErrorLevel.THROW) {
+      throw error;
+    } else if (level === ErrorLevel.WARN) {
+      logger('warn', error.name, error.message);
+    }
+  };
 }
+
+// Default for direct validateSMIOptions() calls: warn through the console
+const handleError: ErrorHandler = loggingErrorHandler(defaultLogger);
 
 /**
  * Verifies all data passed in will comply with sitemap spec.
@@ -542,8 +555,8 @@ export function validateSMIOptions(
       errorHandler(new InvalidNewsFormat(url), level);
     }
 
-    validate(news, 'news', url, level);
-    validate(news.publication, 'publication', url, level);
+    validate(news, url, level, errorHandler);
+    validate(news.publication, url, level, errorHandler);
   }
 
   if (video) {
@@ -654,7 +667,7 @@ export function validateSMIOptions(
         );
       }
 
-      validate(vid, 'video', url, level);
+      validate(vid, url, level, errorHandler);
     });
   }
 

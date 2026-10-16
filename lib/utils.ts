@@ -21,12 +21,14 @@ import type {
   VideoItem,
   CharDataBuffer,
   CharDataHandlers,
+  Logger,
 } from './types.js';
-import { EnumYesNo } from './types.js';
+import { EnumYesNo, ErrorLevel } from './types.js';
 import { LIMITS } from './constants.js';
 
 // Re-export validateSMIOptions from validation.ts for backward compatibility
 export { validateSMIOptions } from './validation.js';
+import { defaultLogger } from './validation.js';
 
 /**
  * Per ADR 0001, CDATA sections are ordinary character data: wire both the SAX
@@ -79,6 +81,22 @@ export function createCharDataBuffer({
       openTags.pop();
     },
   };
+}
+
+const noopLogger: Logger = () => undefined;
+
+/**
+ * Pick the logger a stream should use: a no-op when the level is SILENT or the
+ * caller passed `false`, otherwise the caller's logger or the console.
+ */
+export function resolveLogger(
+  level: ErrorLevel,
+  logger: Logger | false | undefined
+): Logger {
+  if (level === ErrorLevel.SILENT || logger === false) {
+    return noopLogger;
+  }
+  return logger ?? defaultLogger;
 }
 
 /**

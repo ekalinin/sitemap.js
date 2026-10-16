@@ -29,7 +29,7 @@ import { SitemapStream } from 'sitemap'
 
 const sms = new SitemapStream({
   hostname: 'https://example.com', // optional only necessary if your paths are relative
-  lastmodDateOnly: false // defaults to false, flip to true for baidu
+  lastmodDateOnly: false, // defaults to false, flip to true for baidu
   xmlns: { // XML namespaces to turn on - all by default
     news: true,
     xhtml: true,
@@ -37,11 +37,16 @@ const sms = new SitemapStream({
     video: true,
     // custom: ['xmlns:custom="https://example.com"']
   },
-  errorHandler: undefined // defaults to a standard errorLogger that logs to console or throws if the errorLevel is set to throw
+  logger: (level, ...message) => myLogger[level](...message), // defaults to the console, pass false to silence
+  errorHandler: undefined // defaults to warning through `logger`, or throwing if level is ErrorLevel.THROW
 })
 const readable = // a readable stream of objects
 readable.pipe(sms).pipe(process.stdout)
 ```
+
+### Logging
+
+Every stream (`SitemapStream`, `SitemapIndexStream`, `SitemapAndIndexStream`, `XMLToSitemapItemStream` and `XMLToSitemapIndexStream`) and `simpleSitemapAndIndex` accept a `logger` option of type `Logger`. The library sends the warnings it would otherwise print to that function instead of the console. `simpleSitemapAndIndex` passes it to the streams it creates; with `SitemapAndIndexStream` the option covers the index only, so pass `logger` to each `SitemapStream` you create in `getSitemapStream`. An explicit `errorHandler` on `SitemapStream` replaces the logger for validation warnings, and `validateSMIOptions()` called directly warns through the console unless given a handler. The function receives a level (`'warn'`, `'error'`, `'info'` or `'log'`) followed by the message parts. Pass `logger: false`, or set `level: ErrorLevel.SILENT`, to log nothing.
 
 ## XMLToSitemapItemStream
 

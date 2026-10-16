@@ -7,9 +7,11 @@ import {
 import {
   type IndexItem,
   type SitemapItemLoose,
+  type Logger,
   ErrorLevel,
   IndexTagNames,
 } from './types.js';
+import { resolveLogger } from './utils.js';
 import { SitemapStream, stylesheetInclude } from './sitemap-stream.js';
 import { element, otag, ctag } from './sitemap-xml.js';
 import { LIMITS, DEFAULT_SITEMAP_ITEM_LIMIT } from './constants.js';
@@ -46,6 +48,12 @@ export interface SitemapIndexStreamOptions extends TransformOptions {
    * URL to an XSL stylesheet to include in the XML
    */
   xslUrl?: string;
+
+  /**
+   * Receives warnings about invalid index items. Defaults to the console;
+   * pass `false` to silence.
+   */
+  logger?: Logger | false;
 }
 const defaultStreamOpts: SitemapIndexStreamOptions = {};
 
@@ -63,6 +71,7 @@ export class SitemapIndexStream extends Transform {
   lastmodDateOnly: boolean;
   level: ErrorLevel;
   xslUrl?: string;
+  logger: Logger;
   private hasHeadOutput: boolean;
 
   /**
@@ -81,6 +90,7 @@ export class SitemapIndexStream extends Transform {
     this.hasHeadOutput = false;
     this.lastmodDateOnly = opts.lastmodDateOnly || false;
     this.level = opts.level ?? ErrorLevel.WARN;
+    this.logger = resolveLogger(this.level, opts.logger);
     if (opts.xslUrl !== undefined) {
       validateXSLUrl(opts.xslUrl);
     }
@@ -115,10 +125,10 @@ export class SitemapIndexStream extends Transform {
         if (this.level === ErrorLevel.THROW) {
           callback(error);
           return;
-        } else if (this.level === ErrorLevel.WARN) {
-          console.warn(error.message, item);
+        } else {
+          this.logger('warn', error.message, item);
         }
-        // For SILENT or after WARN, skip this item
+        // The logger is a no-op at SILENT; skip this item
         callback();
         return;
       }
@@ -135,10 +145,10 @@ export class SitemapIndexStream extends Transform {
         if (this.level === ErrorLevel.THROW) {
           callback(err);
           return;
-        } else if (this.level === ErrorLevel.WARN) {
-          console.warn(err.message);
+        } else {
+          this.logger('warn', err.message);
         }
-        // For SILENT or after WARN, skip this item
+        // The logger is a no-op at SILENT; skip this item
         callback();
         return;
       }
@@ -164,10 +174,10 @@ export class SitemapIndexStream extends Transform {
             if (this.level === ErrorLevel.THROW) {
               callback(error);
               return;
-            } else if (this.level === ErrorLevel.WARN) {
-              console.warn(error.message);
+            } else {
+              this.logger('warn', error.message);
             }
-            // Continue without lastmod for SILENT or after WARN
+            // The logger is a no-op at SILENT; continue without lastmod
           }
         }
       }

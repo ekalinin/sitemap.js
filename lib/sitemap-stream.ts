@@ -9,10 +9,12 @@ import {
   type SitemapItemLoose,
   ErrorLevel,
   type ErrorHandler,
+  type Logger,
 } from './types.js';
-import { normalizeURL } from './utils.js';
+import { normalizeURL, resolveLogger } from './utils.js';
 import {
   validateSMIOptions,
+  loggingErrorHandler,
   validateURL,
   validateXSLUrl,
 } from './validation.js';
@@ -137,6 +139,11 @@ export interface SitemapStreamOptions extends TransformOptions {
   xmlns?: NSArgs;
   xslUrl?: string;
   errorHandler?: ErrorHandler;
+  /**
+   * Receives validation warnings. Defaults to the console; pass `false` to
+   * silence. Ignored for validation when `errorHandler` is given.
+   */
+  logger?: Logger | false;
 }
 const defaultXMLNS: NSArgs = {
   news: true,
@@ -186,9 +193,21 @@ export class SitemapStream extends Transform {
   hostname?: string;
   level: ErrorLevel;
   hasHeadOutput: boolean;
-  xmlNS: NSArgs;
+  xmlns: NSArgs;
   xslUrl?: string;
-  errorHandler?: ErrorHandler;
+  errorHandler: ErrorHandler;
+  logger: Logger;
+  /**
+   * @deprecated Use `xmlns`
+   */
+  get xmlNS(): NSArgs {
+    return this.xmlns;
+  }
+
+  set xmlNS(value: NSArgs) {
+    this.xmlns = value;
+  }
+
   private smiStream: SitemapItemStream;
   lastmodDateOnly: boolean;
   constructor(opts = defaultStreamOpts) {
@@ -208,11 +227,17 @@ export class SitemapStream extends Transform {
     this.hasHeadOutput = false;
     this.hostname = opts.hostname;
     this.level = opts.level || ErrorLevel.WARN;
-    this.errorHandler = opts.errorHandler;
+    this.logger = resolveLogger(this.level, opts.logger);
+    // Read this.logger at call time so reassigning it later takes effect
+    this.errorHandler =
+      opts.errorHandler ??
+      loggingErrorHandler((level, ...message) =>
+        this.logger(level, ...message)
+      );
     this.smiStream = new SitemapItemStream({ level: opts.level });
     this.smiStream.on('data', (data) => this.push(data));
     this.lastmodDateOnly = opts.lastmodDateOnly || false;
-    this.xmlNS = opts.xmlns || defaultXMLNS;
+    this.xmlns = opts.xmlns || defaultXMLNS;
     this.xslUrl = opts.xslUrl;
   }
 
@@ -223,7 +248,7 @@ export class SitemapStream extends Transform {
   ): void {
     if (!this.hasHeadOutput) {
       this.hasHeadOutput = true;
-      this.push(getURLSetNs(this.xmlNS, this.xslUrl));
+      this.push(getURLSetNs(this.xmlns, this.xslUrl));
     }
     if (
       !this.smiStream.write(
@@ -245,7 +270,7 @@ export class SitemapStream extends Transform {
     // SitemapIndexStream does for an empty index
     if (!this.hasHeadOutput) {
       this.hasHeadOutput = true;
-      this.push(getURLSetNs(this.xmlNS, this.xslUrl));
+      this.push(getURLSetNs(this.xmlns, this.xslUrl));
     }
     this.push(closetag);
     cb();

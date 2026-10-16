@@ -13,6 +13,7 @@ import type {
   Img,
   LinkItem,
   NewsItem,
+  Logger,
 } from './types.js';
 import {
   isValidChangeFreq,
@@ -27,8 +28,8 @@ import {
   isValidISODate,
   getURLError,
 } from './validation.js';
-import { createCharDataBuffer } from './utils.js';
 import { LIMITS } from './constants.js';
+import { createCharDataBuffer, resolveLogger } from './utils.js';
 
 function isValidTagName(tagName: string): tagName is TagNames {
   // This only works because the enum name and value are the same
@@ -77,18 +78,11 @@ function newsTemplate(): NewsItem {
   };
 }
 
-type Logger = (
-  level: 'warn' | 'error' | 'info' | 'log',
-  ...message: Parameters<Console['log']>[0]
-) => void;
 export interface XMLToSitemapItemStreamOptions extends TransformOptions {
   level?: ErrorLevel;
   logger?: Logger | false;
 }
-const defaultLogger: Logger = (level, ...message) => console[level](...message);
-const defaultStreamOpts: XMLToSitemapItemStreamOptions = {
-  logger: defaultLogger,
-};
+const defaultStreamOpts: XMLToSitemapItemStreamOptions = {};
 
 // TODO does this need to end with `options`
 /**
@@ -125,11 +119,7 @@ export class XMLToSitemapItemStream extends Transform {
       trim: false,
     });
     this.level = opts.level || ErrorLevel.WARN;
-    if (this.level !== ErrorLevel.SILENT && opts.logger !== false) {
-      this.logger = opts.logger ?? defaultLogger;
-    } else {
-      this.logger = () => undefined;
-    }
+    this.logger = resolveLogger(this.level, opts.logger);
     let currentItem: SitemapItem = tagTemplate();
     let currentTag: string;
     let currentVideo: VideoItem = videoTemplate();
