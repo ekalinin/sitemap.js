@@ -7,7 +7,8 @@ import {
   type TransformCallback,
 } from 'node:stream';
 import { type IndexItem, ErrorLevel, IndexTagNames } from './types.js';
-import { validateURL } from './validation.js';
+import { getURLError, isValidISODate } from './validation.js';
+import { createCharDataBuffer } from './utils.js';
 import { LIMITS } from './constants.js';
 
 function isValidTagName(tagName: string): tagName is IndexTagNames {
@@ -42,17 +43,22 @@ export class XMLToSitemapIndexStream extends Transform {
   level: ErrorLevel;
   logger: Logger;
   error: Error | null;
+  /** Number of `<sitemap>` entries seen, including any past the cap */
+  entryCount: number;
   saxStream: SAXStream;
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
     this.error = null;
+    this.entryCount = 0;
     this.saxStream = sax.createStream(true, {
       xmlns: true,
 
       // @ts-expect-error - SAX types don't include strictEntities option
       strictEntities: true,
-      trim: true,
+      // No sax trim: it trims each text chunk separately, dropping whitespace
+      // between text and CDATA. The char-data buffer trims the joined value.
+      trim: false,
     });
     this.level = opts.level || ErrorLevel.WARN;
     if (this.level !== ErrorLevel.SILENT && opts.logger !== false) {
@@ -63,6 +69,7 @@ export class XMLToSitemapIndexStream extends Transform {
     let currentItem: IndexItem = tagTemplate();
     let currentTag: string;
     this.saxStream.on('opentagstart', (tag): void => {
+      charData.openTag(tag.name);
       currentTag = tag.name;
     });
 
@@ -73,23 +80,26 @@ export class XMLToSitemapIndexStream extends Transform {
       }
     });
 
-    this.saxStream.on('text', (text): void => {
-      switch (currentTag) {
+    // Per ADR 0001, CDATA sections are ordinary character data: both SAX
+    // events append to one buffer, which hands the joined value for an
+    // element to this handler.
+    const handleCharData = (tag: string, text: string): void => {
+      switch (tag) {
         case IndexTagNames.loc:
           // Validate URL for security: prevents protocol injection, checks length limits
-          try {
-            validateURL(text, 'Sitemap index URL');
-            currentItem.url = text;
-          } catch (error) {
-            const errMsg =
-              error instanceof Error ? error.message : String(error);
-            this.logger('warn', 'Invalid URL in sitemap index:', errMsg);
-            this.err(`Invalid URL in sitemap index: ${errMsg}`);
+          {
+            const errMsg = getURLError(text, 'Sitemap index URL');
+            if (errMsg) {
+              this.logger('warn', 'Invalid URL in sitemap index:', errMsg);
+              this.err(`Invalid URL in sitemap index: ${errMsg}`);
+            } else {
+              currentItem.url = text;
+            }
           }
           break;
         case IndexTagNames.lastmod:
           // Validate date format for security and spec compliance
-          if (text && !LIMITS.ISO_DATE_REGEX.test(text)) {
+          if (!isValidISODate(text)) {
             this.logger(
               'warn',
               'Invalid lastmod date format in sitemap index:',
@@ -101,50 +111,21 @@ export class XMLToSitemapIndexStream extends Transform {
           }
           break;
         default:
-          this.logger(
-            'log',
-            'unhandled text for tag:',
-            currentTag,
-            `'${text}'`
-          );
-          this.err(`unhandled text for tag: ${currentTag} '${text}'`);
+          this.logger('log', 'unhandled text for tag:', tag, `'${text}'`);
+          this.err(`unhandled text for tag: ${tag} '${text}'`);
           break;
       }
-    });
+    };
 
-    this.saxStream.on('cdata', (text): void => {
-      switch (currentTag) {
-        case IndexTagNames.loc:
-          // Validate URL for security: prevents protocol injection, checks length limits
-          try {
-            validateURL(text, 'Sitemap index URL');
-            currentItem.url = text;
-          } catch (error) {
-            const errMsg =
-              error instanceof Error ? error.message : String(error);
-            this.logger('warn', 'Invalid URL in sitemap index:', errMsg);
-            this.err(`Invalid URL in sitemap index: ${errMsg}`);
-          }
-          break;
-        case IndexTagNames.lastmod:
-          // Validate date format for security and spec compliance
-          if (text && !LIMITS.ISO_DATE_REGEX.test(text)) {
-            this.logger(
-              'warn',
-              'Invalid lastmod date format in sitemap index:',
-              text
-            );
-            this.err(`Invalid lastmod date format: ${text}`);
-          } else {
-            currentItem.lastmod = text;
-          }
-          break;
-        default:
-          this.logger('log', 'unhandled cdata for tag:', currentTag);
-          this.err(`unhandled cdata for tag: ${currentTag}`);
-          break;
-      }
+    const charData = createCharDataBuffer({
+      onText: handleCharData,
+      onOverflow: (msg): void => {
+        this.logger('warn', msg);
+        this.err(msg);
+      },
     });
+    this.saxStream.on('text', charData.append);
+    this.saxStream.on('cdata', charData.append);
 
     this.saxStream.on('attribute', (attr): void => {
       switch (currentTag) {
@@ -157,10 +138,19 @@ export class XMLToSitemapIndexStream extends Transform {
     });
 
     this.saxStream.on('closetag', (tag): void => {
+      charData.closeTag();
       switch (tag) {
         case IndexTagNames.sitemap:
-          // Only push items with valid URLs (non-empty after validation)
-          if (currentItem.url) {
+          this.entryCount++;
+          if (this.entryCount > LIMITS.MAX_SITEMAP_ITEM_LIMIT) {
+            // Report once rather than for every dropped entry
+            if (this.entryCount === LIMITS.MAX_SITEMAP_ITEM_LIMIT + 1) {
+              const msg = `Sitemap index exceeds maximum of ${LIMITS.MAX_SITEMAP_ITEM_LIMIT} entries`;
+              this.logger('error', msg);
+              this.err(msg);
+            }
+          } else if (currentItem.url) {
+            // Only push items with valid URLs (non-empty after validation)
             this.push(currentItem);
           }
           currentItem = tagTemplate();
@@ -213,7 +203,8 @@ export class XMLToSitemapIndexStream extends Transform {
   )
   ```
   @param {Readable} xml what to parse
-  @param {number} maxEntries Maximum number of sitemap entries to parse (default: 50,000 per sitemaps.org spec)
+  @param {number} maxEntries Maximum number of sitemap entries to parse (default: 50,000 per sitemaps.org spec).
+    Values above 50,000 have no effect: the spec caps a sitemap index at 50,000 entries, and larger sets must be split.
   @return {Promise<IndexItem[]>} resolves with list of index items that can be fed into a SitemapIndexStream. Rejects with an Error object.
  */
 export async function parseSitemapIndex(
@@ -234,21 +225,33 @@ export async function parseSitemapIndex(
       }
     });
 
+    const rejectOverLimit = (limit: number): void => {
+      settled = true;
+      reject(
+        new Error(`Sitemap index exceeds maximum allowed entries (${limit})`)
+      );
+      // Immediately destroy both streams to stop further processing (BB-05)
+      parser.destroy();
+      xml.destroy();
+    };
+
+    // The stream drops entries past the spec limit instead of pushing them,
+    // so the 'data' count below never sees them. Watch the parser's own
+    // entry count, which its closetag handler (registered first) has already
+    // updated, to stop as soon as the limit is crossed.
+    parser.saxStream.on('closetag', (): void => {
+      if (!settled && parser.entryCount > LIMITS.MAX_SITEMAP_ITEM_LIMIT) {
+        rejectOverLimit(Math.min(maxEntries, LIMITS.MAX_SITEMAP_ITEM_LIMIT));
+      }
+    });
+
     xml
       .pipe(parser)
       .on('data', (smi: IndexItem) => {
         if (settled) return;
         // Security: Prevent memory exhaustion by limiting number of entries
         if (urls.length >= maxEntries) {
-          settled = true;
-          reject(
-            new Error(
-              `Sitemap index exceeds maximum allowed entries (${maxEntries})`
-            )
-          );
-          // Immediately destroy both streams to stop further processing (BB-05)
-          parser.destroy();
-          xml.destroy();
+          rejectOverLimit(maxEntries);
           return;
         }
         urls.push(smi);

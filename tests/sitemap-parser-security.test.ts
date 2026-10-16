@@ -36,12 +36,47 @@ describe('sitemap-parser security tests', () => {
       );
 
       assert.strictEqual(logger.mock.calls.length, 1);
-      assert.strictEqual(logger.mock.calls[0].arguments[0], 'warn');
+      assert.deepStrictEqual(logger.mock.calls[0].arguments.slice(0, 2), [
+        'warn',
+        'Invalid URL in sitemap:',
+      ]);
+
       assert.ok(
-        (logger.mock.calls[0].arguments[1] as string).includes(
-          'URL exceeds max length'
+        (logger.mock.calls[0].arguments[2] as string).includes(
+          'exceeds maximum length'
         )
       );
+    });
+
+    it('keeps invalid-URL messages short and labels them as URLs', async () => {
+      const longUrl = 'http://example.com/' + 'a'.repeat(3000);
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${longUrl}</loc>
+  </url>
+</urlset>`;
+
+      const logger = mock.fn();
+      const parser = new XMLToSitemapItemStream({ logger });
+      await pipeline(
+        Readable.from([xml]),
+        parser,
+        new Writable({
+          objectMode: true,
+          write(chunk, a, cb): void {
+            cb();
+          },
+        })
+      );
+
+      const logged = logger.mock.calls[0].arguments[2] as string;
+      const stored = parser.errors[0].message;
+      for (const msg of [logged, stored]) {
+        assert.ok(msg.length < 300, `message too long: ${msg.length}`);
+        assert.ok(!msg.includes('hostname'), msg);
+        assert.ok(msg.includes('http://example.com/aaaa'), msg);
+      }
     });
 
     it('should reject non-http/https URLs', async () => {
@@ -71,11 +106,15 @@ describe('sitemap-parser security tests', () => {
       );
 
       const warnCalls = logger.mock.calls.filter(
-        (c: { arguments: unknown[] }) => c.arguments[0] === 'warn'
+        (c: { arguments: unknown[] }) =>
+          c.arguments[0] === 'warn' &&
+          c.arguments[1] === 'Invalid URL in sitemap:'
       );
       assert.ok(
         warnCalls.some((c: { arguments: unknown[] }) =>
-          (c.arguments[1] as string).includes('must start with http://')
+          (c.arguments[2] as string).includes(
+            'must use http:// or https:// protocol'
+          )
         )
       );
       assert.notStrictEqual(sitemap[0].url, 'javascript:alert(1)');
@@ -647,7 +686,7 @@ describe('sitemap-parser security tests', () => {
       assert.ok(parser.errors.length > 1);
       assert.ok(
         parser.errors.some((e: Error) =>
-          e.message.includes('URL must start with http')
+          e.message.includes('must use http:// or https:// protocol')
         )
       );
 
@@ -658,6 +697,39 @@ describe('sitemap-parser security tests', () => {
       assert.ok(
         parser.errors.some((e: Error) =>
           e.message.includes('Invalid lastmod date')
+        )
+      );
+    });
+
+    it('reports stray CDATA between elements instead of assigning it to the previous element', async () => {
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://example.com/</loc>
+    <priority>0.2</priority><![CDATA[0.9]]>
+    <changefreq>daily</changefreq>
+  </url>
+</urlset>`;
+
+      const parser = new XMLToSitemapItemStream({ logger: false });
+      const sitemap: SitemapItem[] = [];
+
+      await pipeline(
+        Readable.from([xml]),
+        parser,
+        new Writable({
+          objectMode: true,
+          write(chunk, a, cb): void {
+            sitemap.push(chunk);
+            cb();
+          },
+        })
+      );
+
+      assert.strictEqual(sitemap[0].priority, 0.2);
+      assert.ok(
+        parser.errors.some(
+          (e: Error) => e.message === "unhandled text for tag: url '0.9'"
         )
       );
     });
@@ -1202,6 +1274,46 @@ describe('sitemap-parser security tests', () => {
 
       assert.ok(parser.errors.length <= LIMITS.MAX_PARSER_ERRORS);
       assert.ok(parser.errorCount > LIMITS.MAX_PARSER_ERRORS);
+    });
+
+    it('drops element character data that exceeds the buffer cap', async () => {
+      const huge = 'k'.repeat(200_000);
+      const xml = `<?xml version="1.0"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+  <url>
+    <loc>https://example.com/</loc>
+    <news:news>
+      <news:publication><news:name>n</news:name><news:language>en</news:language></news:publication>
+      <news:publication_date>2024-01-01</news:publication_date>
+      <news:title>t</news:title>
+      <news:keywords>${huge}</news:keywords>
+    </news:news>
+  </url>
+</urlset>`;
+
+      const parser = new XMLToSitemapItemStream({ logger: false });
+      const sitemap: SitemapItem[] = [];
+      await pipeline(
+        Readable.from([xml]),
+        parser,
+        new Writable({
+          objectMode: true,
+          write(chunk, _enc, cb) {
+            sitemap.push(chunk);
+            cb();
+          },
+        })
+      );
+
+      assert.strictEqual(sitemap[0].news?.keywords, undefined);
+      assert.ok(
+        parser.errors.some((e: Error) =>
+          e.message.startsWith(
+            'character data for news:keywords exceeds max length of'
+          )
+        )
+      );
     });
   });
 });

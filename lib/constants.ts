@@ -29,6 +29,17 @@ export const LIMITS = {
   MIN_SITEMAP_ITEM_LIMIT: 1,
   MAX_SITEMAP_ITEM_LIMIT: 50000,
 
+  // Priority bounds per sitemaps.org spec
+  MIN_PRIORITY: 0,
+  MAX_PRIORITY: 1,
+
+  // Video value bounds per Google spec
+  MIN_VIDEO_DURATION: 0,
+  MAX_VIDEO_DURATION: 28800, // 8 hours
+  MIN_VIDEO_RATING: 0,
+  MAX_VIDEO_RATING: 5,
+  MIN_VIDEO_VIEW_COUNT: 0,
+
   // Video field length constraints per Google spec
   MAX_VIDEO_TITLE_LENGTH: 100,
   MAX_VIDEO_DESCRIPTION_LENGTH: 2048,
@@ -58,6 +69,10 @@ export const LIMITS = {
   // Custom namespace limits to prevent DoS
   MAX_CUSTOM_NAMESPACES: 20,
   MAX_NAMESPACE_LENGTH: 512,
+
+  // Cap on buffered character data per element in the parser, matching sax's
+  // default buffer size. Larger values are dropped to bound memory use.
+  MAX_PARSER_CHAR_DATA_LENGTH: 65536,
 
   // Cap on stored parser errors to prevent memory DoS (BB-03)
   // Errors beyond this limit are counted in errorCount but not retained as objects

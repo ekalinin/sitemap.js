@@ -417,3 +417,22 @@ export interface StringObj {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [index: string]: any;
 }
+
+/**
+ * Receives the joined character data for an element, or a message when the
+ * element's character data was dropped for exceeding the buffer cap.
+ */
+export interface CharDataHandlers {
+  onText: (tag: string, text: string) => void;
+  onOverflow: (message: string) => void;
+}
+
+/**
+ * Buffers a SAX parser's character data (text and CDATA) per element and
+ * hands it to CharDataHandlers at each tag boundary.
+ */
+export interface CharDataBuffer {
+  openTag: (name: string) => void;
+  append: (text: string) => void;
+  closeTag: () => void;
+}

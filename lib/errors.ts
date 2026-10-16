@@ -285,6 +285,24 @@ export class InvalidHostnameError extends Error {
   }
 }
 
+/**
+ * A URL failed validateURL. Extends InvalidHostnameError so existing
+ * `instanceof InvalidHostnameError` checks keep working; the offending value
+ * is truncated so attacker-sized input is not copied into every message.
+ */
+export class InvalidURLError extends InvalidHostnameError {
+  constructor(url: string, reason: string) {
+    super(url, reason);
+    const shown =
+      typeof url === 'string' && url.length > 100
+        ? `${url.substring(0, 100)}...`
+        : url;
+    this.message = `Invalid URL "${shown}": ${reason}`;
+    this.name = 'InvalidURLError';
+    Error.captureStackTrace(this, InvalidURLError);
+  }
+}
+
 export class InvalidLimitError extends Error {
   constructor(limit: any) {
     super(

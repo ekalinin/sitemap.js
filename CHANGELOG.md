@@ -23,9 +23,56 @@
   enforced in CI by a dedicated job.
 - CI now runs on Linux, Windows and macOS across Node 22/24/26. Lint, formatting
   and typechecking run once rather than on every matrix leg.
+- **Stricter `<loc>` validation in the sitemap parser**: `XMLToSitemapItemStream`
+  now validates `<loc>` values with the same `validateURL` used by the sitemap
+  index parser, adding a URL-parseability check on top of the existing length
+  and protocol checks. A malformed URL that passed the old checks but fails
+  `new URL()` is now dropped with a warning (or throws under
+  `ErrorLevel.THROW`). Warn/error messages for invalid `<loc>` values changed to
+  the `Invalid URL in sitemap: …` form.
+- **`validateURL` throws `InvalidURLError`**, a new subclass of
+  `InvalidHostnameError` (so `instanceof InvalidHostnameError` still matches).
+  Its message reads `Invalid URL "…": …` instead of `Invalid hostname "…": …`,
+  and it shows at most the first 100 characters of the offending value.
+- **Stricter video validation in `validateSMIOptions`**: a video `duration`,
+  `rating` or `view_count` that is `NaN`, `Infinity` or otherwise non-numeric
+  is now reported as invalid (and throws under `ErrorLevel.THROW`). Previously
+  only out-of-range finite numbers were caught, so `NaN` slipped through.
+- `XMLToSitemapItemStream` now buffers each element's character data and
+  handles it once at the next tag boundary: text and CDATA chunks within one
+  element are joined, surrounding whitespace is trimmed for CDATA as it already
+  was for text, whitespace between chunks is kept (`Episode <![CDATA[One]]>`
+  now parses as `Episode One`, not `EpisodeOne`), and stray character data
+  between elements is reported against
+  the enclosing element instead of overwriting the previous one. Character data
+  longer than `LIMITS.MAX_PARSER_CHAR_DATA_LENGTH` (64 KiB) for one element is
+  dropped with a warning.
+- Internal: the parser's duplicated `text`/`cdata` SAX handlers were collapsed
+  into one, and its inline bounds checks (priority, video duration/rating/view
+  count, ISO dates) now delegate to shared guards in `lib/validation.ts`, with
+  the bounds defined once in `LIMITS`.
+- `XMLToSitemapIndexStream` now handles character data the same way: text and
+  CDATA within one `<loc>` or `<lastmod>` are joined and trimmed, stray
+  character data is reported against the enclosing element, and values longer
+  than `LIMITS.MAX_PARSER_CHAR_DATA_LENGTH` are dropped with a warning.
+  Unhandled CDATA is now logged as `unhandled text for tag:` instead of
+  `unhandled cdata for tag:`. Both parsers share one buffer,
+  `createCharDataBuffer` in `lib/utils.ts`.
+- **`XMLToSitemapIndexStream` enforces the 50,000-entry spec limit itself.**
+  Entries past `LIMITS.MAX_SITEMAP_ITEM_LIMIT` are dropped with a single error
+  (which throws under `ErrorLevel.THROW`), and a new `entryCount` property counts
+  every `<sitemap>` seen. Previously only the `parseSitemapIndex` wrapper capped
+  entries, so piping the stream directly had no limit. `parseSitemapIndex` still
+  rejects an over-limit index and stops reading as soon as the limit is crossed,
+  but a `maxEntries` above 50,000 no longer raises the limit.
 
 ### Fixed
 
+- `XMLToSitemapItemStream` now treats CDATA sections as ordinary character data
+  in every tag. Previously only the 8 tags from issue #445 (`loc`, `image:loc`,
+  `video:title`, `video:description`, `news:name`, `news:title`,
+  `image:caption`, `image:title`) accepted CDATA; content in any other tag was
+  logged as unhandled. See `docs/adr/0001-cdata-is-character-data.md`.
 - `xmlLint()` no longer probes for the binary with `which`, which is not a
   command on Windows and made validation report `XMLLintUnavailable` there even
   when xmllint was installed. A missing binary is now detected via `ENOENT` from
