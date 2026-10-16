@@ -62,7 +62,8 @@ createReadStream('./some/sitemap.xml')
 .pipe(new XMLToSitemapItemStream({
   // optional
   level: ErrorLevel.WARN, // default is WARN pass SILENT to silence
-  logger: false // default is console log, pass false as another way to silence or your own custom logger
+  logger: false, // default is console log, pass false as another way to silence or your own custom logger
+  maxEntries: 50000 // default; the most <url> entries to emit, Infinity turns the cap off
 }))
 // convert the object stream to JSON
 .pipe(new ObjectStreamToJSON())
@@ -72,8 +73,8 @@ createReadStream('./some/sitemap.xml')
 
 The parser enforces the sitemaps.org limits while it reads, so untrusted input can't exhaust memory:
 
-- After 50,000 `<url>` entries (`LIMITS.MAX_URL_ENTRIES`) it stops emitting items and records an error.
-- It keeps at most 100 messages (`LIMITS.MAX_PARSER_ERRORS`) in its `errors` array; `errorCount` holds the full count.
+- After `maxEntries` `<url>` entries (default 50,000) it stops emitting items. The first time it drops an entry it records one error and emits `'maxEntriesExceeded'` with the cap. If nothing listens for that event, it logs the overflow through `logger` instead. `entryCount` counts every `<url>` seen, including dropped ones.
+- It keeps at most 100 errors (`LIMITS.MAX_PARSER_ERRORS`) in its `errors` array; `errorCount` holds the full count, and `error` is the first error, or `null`.
 
 ## SitemapAndIndexStream
 
@@ -280,7 +281,7 @@ The parser stops emitting items after 50,000 `<url>` entries, so `parseSitemap` 
 
 ## XMLToSitemapIndexStream
 
-Takes a stream of sitemap index xml and transforms it into a stream of `IndexItem` objects (`{ url, lastmod? }`). Accepts the same `level` and `logger` options as [XMLToSitemapItemStream](#xmltositemapitemstream).
+Takes a stream of sitemap index xml and transforms it into a stream of `IndexItem` objects (`{ url, lastmod? }`). Accepts the same `level`, `logger` and `maxEntries` options, and exposes the same `errors`, `errorCount`, `error` and `entryCount` fields, as [XMLToSitemapItemStream](#xmltositemapitemstream).
 
 ```js
 import { createReadStream } from 'fs';

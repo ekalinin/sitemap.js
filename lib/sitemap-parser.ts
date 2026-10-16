@@ -1,19 +1,18 @@
-import sax from 'sax';
-import type { SAXStream } from 'sax';
+import type { QualifiedAttribute, QualifiedTag } from 'sax';
 import {
   Readable,
   Transform,
   type TransformOptions,
   type TransformCallback,
 } from 'node:stream';
-import { ErrorLevel, TagNames } from './types.js';
+import { TagNames } from './types.js';
 import type {
   SitemapItem,
   VideoItem,
   Img,
   LinkItem,
   NewsItem,
-  Logger,
+  SaxParserStreamOptions,
 } from './types.js';
 import {
   isValidChangeFreq,
@@ -29,7 +28,7 @@ import {
   getURLError,
 } from './validation.js';
 import { LIMITS } from './constants.js';
-import { createCharDataBuffer, resolveLogger } from './utils.js';
+import { SaxParserStream } from './sax-parser-stream.js';
 
 function isValidTagName(tagName: string): tagName is TagNames {
   // This only works because the enum name and value are the same
@@ -78,625 +77,531 @@ function newsTemplate(): NewsItem {
   };
 }
 
-export interface XMLToSitemapItemStreamOptions extends TransformOptions {
-  level?: ErrorLevel;
-  logger?: Logger | false;
-}
+// Kept as a named interface for backward compatibility and declaration merging
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface XMLToSitemapItemStreamOptions extends SaxParserStreamOptions {}
 const defaultStreamOpts: XMLToSitemapItemStreamOptions = {};
 
 // TODO does this need to end with `options`
 /**
  * Takes a stream of xml and transforms it into a stream of SitemapItems
  * Use this to parse existing sitemaps into config options compatible with this library
+ *
+ * Emits `'maxEntriesExceeded'` (with the cap) once, when the first `<url>` past
+ * `maxEntries` is seen. If nothing listens for that event, the stream logs the
+ * overflow through its logger instead.
  */
-export class XMLToSitemapItemStream extends Transform {
-  level: ErrorLevel;
-  logger: Logger;
-  /**
-   * Errors encountered during parsing, capped at LIMITS.MAX_PARSER_ERRORS entries
-   * to prevent memory DoS from malformed XML (BB-03).
-   * Use errorCount for the total number of errors regardless of the cap.
-   */
-  errors: Error[];
-  /** Total number of errors seen, including those beyond the stored cap. */
-  errorCount: number;
-  saxStream: SAXStream;
-  urlCount: number;
+export class XMLToSitemapItemStream extends SaxParserStream<SitemapItem> {
+  private currentItem: SitemapItem = tagTemplate();
+  private currentVideo: VideoItem = videoTemplate();
+  private currentImage: Img = { ...imageTemplate };
+  private currentLink: LinkItem = { ...linkTemplate };
+  private dontpushCurrentLink = false;
 
   constructor(opts = defaultStreamOpts) {
-    opts.objectMode = true;
-    super(opts);
-    this.errors = [];
-    this.errorCount = 0;
-    this.urlCount = 0;
-    this.saxStream = sax.createStream(true, {
-      xmlns: true,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      strictEntities: true,
-      // No sax trim: it trims each text chunk separately, dropping whitespace
-      // between text and CDATA. The char-data buffer trims the joined value.
-      trim: false,
+    super(opts, {
+      isKnownTag: isValidTagName,
+      overflowMessage: (max) => `Sitemap exceeds maximum of ${max} URLs`,
     });
-    this.level = opts.level || ErrorLevel.WARN;
-    this.logger = resolveLogger(this.level, opts.logger);
-    let currentItem: SitemapItem = tagTemplate();
-    let currentTag: string;
-    let currentVideo: VideoItem = videoTemplate();
-    let currentImage: Img = { ...imageTemplate };
-    let currentLink: LinkItem = { ...linkTemplate };
-    let dontpushCurrentLink = false;
-    this.saxStream.on('opentagstart', (tag): void => {
-      charData.openTag(tag.name);
-      currentTag = tag.name;
-      if (currentTag.startsWith('news:') && !currentItem.news) {
-        currentItem.news = newsTemplate();
+  }
+
+  /**
+   * Number of `<url>` entries seen, including any past `maxEntries`
+   * @deprecated Use entryCount
+   */
+  get urlCount(): number {
+    return this.entryCount;
+  }
+
+  protected onOpenTag(tag: QualifiedTag): void {
+    if (tag.name.startsWith('news:') && !this.currentItem.news) {
+      this.currentItem.news = newsTemplate();
+    }
+    if (tag.name === 'xhtml:link') {
+      // SAX returns attributes as objects with {name, value, prefix, local, uri}
+      // Check if required attributes exist and have values
+      const rel = getAttrValue(tag.attributes.rel);
+      const href = getAttrValue(tag.attributes.href);
+      const hreflang = getAttrValue(tag.attributes.hreflang);
+
+      if (!rel || !href) {
+        this.report(
+          'warn',
+          'xhtml:link missing required rel or href attribute'
+        );
+        return;
       }
-    });
 
-    this.saxStream.on('opentag', (tag): void => {
-      if (isValidTagName(tag.name)) {
-        if (tag.name === 'xhtml:link') {
-          // SAX returns attributes as objects with {name, value, prefix, local, uri}
-          // Check if required attributes exist and have values
-          const rel = getAttrValue(tag.attributes.rel);
-          const href = getAttrValue(tag.attributes.href);
-          const hreflang = getAttrValue(tag.attributes.hreflang);
+      if (rel === 'alternate' && hreflang) {
+        this.currentLink.url = href;
+        this.currentLink.lang = hreflang;
+      } else if (rel === 'alternate') {
+        this.dontpushCurrentLink = true;
+        this.currentItem.androidLink = href;
+      } else if (rel === 'amphtml') {
+        this.dontpushCurrentLink = true;
+        this.currentItem.ampLink = href;
+      } else {
+        this.logger('log', 'unhandled attr for xhtml:link', tag.attributes);
+        this.err(
+          `unhandled attr for xhtml:link ${JSON.stringify(tag.attributes)}`
+        );
+      }
+    }
+  }
 
-          if (!rel || !href) {
-            this.report(
-              'warn',
-              'xhtml:link missing required rel or href attribute'
-            );
-            return;
-          }
-
-          if (rel === 'alternate' && hreflang) {
-            currentLink.url = href;
-            currentLink.lang = hreflang;
-          } else if (rel === 'alternate') {
-            dontpushCurrentLink = true;
-            currentItem.androidLink = href;
-          } else if (rel === 'amphtml') {
-            dontpushCurrentLink = true;
-            currentItem.ampLink = href;
+  protected onCharData(tag: string, text: string): void {
+    switch (tag) {
+      case 'mobile:mobile':
+        break;
+      case TagNames.loc:
+        {
+          const errMsg = getURLError(text, 'Sitemap URL');
+          if (errMsg) {
+            this.logger('warn', 'Invalid URL in sitemap:', errMsg);
+            this.err(`Invalid URL in sitemap: ${errMsg}`);
           } else {
-            this.logger('log', 'unhandled attr for xhtml:link', tag.attributes);
-            this.err(
-              `unhandled attr for xhtml:link ${JSON.stringify(tag.attributes)}`
-            );
+            this.currentItem.url = text;
           }
         }
-      } else {
-        this.logger('warn', 'unhandled tag', tag.name);
-        this.err(`unhandled tag: ${tag.name}`);
-      }
-    });
-
-    // Per ADR 0001, CDATA sections are ordinary character data: both SAX
-    // events append to one buffer, which hands the joined value for an
-    // element to this handler.
-    const handleCharData = (tag: string, text: string): void => {
-      switch (tag) {
-        case 'mobile:mobile':
-          break;
-        case TagNames.loc:
-          {
-            const errMsg = getURLError(text, 'Sitemap URL');
-            if (errMsg) {
-              this.logger('warn', 'Invalid URL in sitemap:', errMsg);
-              this.err(`Invalid URL in sitemap: ${errMsg}`);
-            } else {
-              currentItem.url = text;
-            }
-          }
-          break;
-        case TagNames.changefreq:
-          if (isValidChangeFreq(text)) {
-            currentItem.changefreq = text;
-          }
-          break;
-        case TagNames.priority:
-          {
-            const priority = parseFloat(text);
-            if (!isValidPriority(priority)) {
-              this.report(
-                'warn',
-                `Invalid priority "${text}" - must be between ${LIMITS.MIN_PRIORITY} and ${LIMITS.MAX_PRIORITY}`
-              );
-            } else {
-              currentItem.priority = priority;
-            }
-          }
-          break;
-        case TagNames.lastmod:
-          if (isValidISODate(text)) {
-            currentItem.lastmod = text;
-          } else {
+        break;
+      case TagNames.changefreq:
+        if (isValidChangeFreq(text)) {
+          this.currentItem.changefreq = text;
+        }
+        break;
+      case TagNames.priority:
+        {
+          const priority = parseFloat(text);
+          if (!isValidPriority(priority)) {
             this.report(
               'warn',
-              `Invalid lastmod date format "${text}" - expected ISO 8601 format`
+              `Invalid priority "${text}" - must be between ${LIMITS.MIN_PRIORITY} and ${LIMITS.MAX_PRIORITY}`
             );
-          }
-          break;
-        case TagNames['video:thumbnail_loc']:
-          currentVideo.thumbnail_loc = text;
-          break;
-        case TagNames['video:tag']:
-          if (currentVideo.tag.length < LIMITS.MAX_TAGS_PER_VIDEO) {
-            currentVideo.tag.push(text);
           } else {
+            this.currentItem.priority = priority;
+          }
+        }
+        break;
+      case TagNames.lastmod:
+        if (isValidISODate(text)) {
+          this.currentItem.lastmod = text;
+        } else {
+          this.report(
+            'warn',
+            `Invalid lastmod date format "${text}" - expected ISO 8601 format`
+          );
+        }
+        break;
+      case TagNames['video:thumbnail_loc']:
+        this.currentVideo.thumbnail_loc = text;
+        break;
+      case TagNames['video:tag']:
+        if (this.currentVideo.tag.length < LIMITS.MAX_TAGS_PER_VIDEO) {
+          this.currentVideo.tag.push(text);
+        } else {
+          this.report(
+            'warn',
+            `video has too many tags (max ${LIMITS.MAX_TAGS_PER_VIDEO})`
+          );
+        }
+        break;
+      case TagNames['video:duration']:
+        {
+          const duration = parseInt(text, 10);
+          if (!isValidVideoDuration(duration)) {
             this.report(
               'warn',
-              `video has too many tags (max ${LIMITS.MAX_TAGS_PER_VIDEO})`
+              `Invalid video duration "${text}" - must be between ${LIMITS.MIN_VIDEO_DURATION} and ${LIMITS.MAX_VIDEO_DURATION} seconds`
             );
-          }
-          break;
-        case TagNames['video:duration']:
-          {
-            const duration = parseInt(text, 10);
-            if (!isValidVideoDuration(duration)) {
-              this.report(
-                'warn',
-                `Invalid video duration "${text}" - must be between ${LIMITS.MIN_VIDEO_DURATION} and ${LIMITS.MAX_VIDEO_DURATION} seconds`
-              );
-            } else {
-              currentVideo.duration = duration;
-            }
-          }
-          break;
-        case TagNames['video:player_loc']:
-          currentVideo.player_loc = text;
-          break;
-        case TagNames['video:content_loc']:
-          currentVideo.content_loc = text;
-          break;
-        case TagNames['video:requires_subscription']:
-          if (isValidYesNo(text)) {
-            currentVideo.requires_subscription = text;
-          }
-          break;
-        case TagNames['video:publication_date']:
-          if (isValidISODate(text)) {
-            currentVideo.publication_date = text;
           } else {
+            this.currentVideo.duration = duration;
+          }
+        }
+        break;
+      case TagNames['video:player_loc']:
+        this.currentVideo.player_loc = text;
+        break;
+      case TagNames['video:content_loc']:
+        this.currentVideo.content_loc = text;
+        break;
+      case TagNames['video:requires_subscription']:
+        if (isValidYesNo(text)) {
+          this.currentVideo.requires_subscription = text;
+        }
+        break;
+      case TagNames['video:publication_date']:
+        if (isValidISODate(text)) {
+          this.currentVideo.publication_date = text;
+        } else {
+          this.report(
+            'warn',
+            `Invalid video publication_date format "${text}" - expected ISO 8601 format`
+          );
+        }
+        break;
+      case TagNames['video:id']:
+        this.currentVideo.id = text;
+        break;
+      case TagNames['video:restriction']:
+        this.currentVideo.restriction = text;
+        break;
+      case TagNames['video:view_count']:
+        {
+          const viewCount = parseInt(text, 10);
+          if (!isValidVideoViewCount(viewCount)) {
             this.report(
               'warn',
-              `Invalid video publication_date format "${text}" - expected ISO 8601 format`
+              `Invalid video view_count "${text}" - must be a positive integer`
             );
-          }
-          break;
-        case TagNames['video:id']:
-          currentVideo.id = text;
-          break;
-        case TagNames['video:restriction']:
-          currentVideo.restriction = text;
-          break;
-        case TagNames['video:view_count']:
-          {
-            const viewCount = parseInt(text, 10);
-            if (!isValidVideoViewCount(viewCount)) {
-              this.report(
-                'warn',
-                `Invalid video view_count "${text}" - must be a positive integer`
-              );
-            } else {
-              currentVideo.view_count = viewCount;
-            }
-          }
-          break;
-        case TagNames['video:uploader']:
-          currentVideo.uploader = text;
-          break;
-        case TagNames['video:family_friendly']:
-          if (isValidYesNo(text)) {
-            currentVideo.family_friendly = text;
-          }
-          break;
-        case TagNames['video:expiration_date']:
-          if (isValidISODate(text)) {
-            currentVideo.expiration_date = text;
           } else {
+            this.currentVideo.view_count = viewCount;
+          }
+        }
+        break;
+      case TagNames['video:uploader']:
+        this.currentVideo.uploader = text;
+        break;
+      case TagNames['video:family_friendly']:
+        if (isValidYesNo(text)) {
+          this.currentVideo.family_friendly = text;
+        }
+        break;
+      case TagNames['video:expiration_date']:
+        if (isValidISODate(text)) {
+          this.currentVideo.expiration_date = text;
+        } else {
+          this.report(
+            'warn',
+            `Invalid video expiration_date format "${text}" - expected ISO 8601 format`
+          );
+        }
+        break;
+      case TagNames['video:platform']:
+        this.currentVideo.platform = text;
+        break;
+      case TagNames['video:price']:
+        this.currentVideo.price = text;
+        break;
+      case TagNames['video:rating']:
+        {
+          const rating = parseFloat(text);
+          if (!isValidVideoRating(rating)) {
             this.report(
               'warn',
-              `Invalid video expiration_date format "${text}" - expected ISO 8601 format`
+              `Invalid video rating "${text}" - must be between ${LIMITS.MIN_VIDEO_RATING} and ${LIMITS.MAX_VIDEO_RATING}`
             );
-          }
-          break;
-        case TagNames['video:platform']:
-          currentVideo.platform = text;
-          break;
-        case TagNames['video:price']:
-          currentVideo.price = text;
-          break;
-        case TagNames['video:rating']:
-          {
-            const rating = parseFloat(text);
-            if (!isValidVideoRating(rating)) {
-              this.report(
-                'warn',
-                `Invalid video rating "${text}" - must be between ${LIMITS.MIN_VIDEO_RATING} and ${LIMITS.MAX_VIDEO_RATING}`
-              );
-            } else {
-              currentVideo.rating = rating;
-            }
-          }
-          break;
-        case TagNames['video:category']:
-          currentVideo.category = text;
-          break;
-        case TagNames['video:live']:
-          if (isValidYesNo(text)) {
-            currentVideo.live = text;
-          }
-          break;
-        case TagNames['video:gallery_loc']:
-          currentVideo.gallery_loc = text;
-          break;
-        case TagNames['image:loc']:
-          currentImage.url = text;
-          break;
-        case TagNames['image:geo_location']:
-          currentImage.geoLocation = text;
-          break;
-        case TagNames['image:license']:
-          currentImage.license = text;
-          break;
-        case TagNames['news:access']:
-          if (!currentItem.news) {
-            currentItem.news = newsTemplate();
-          }
-          if (text === 'Registration' || text === 'Subscription') {
-            currentItem.news.access = text;
           } else {
-            this.report(
-              'warn',
-              `Invalid news:access value "${text}" - must be "Registration" or "Subscription"`
-            );
+            this.currentVideo.rating = rating;
           }
-          break;
-        case TagNames['news:genres']:
-          if (!currentItem.news) {
-            currentItem.news = newsTemplate();
-          }
-          currentItem.news.genres = text;
-          break;
-        case TagNames['news:publication_date']:
-          if (!currentItem.news) {
-            currentItem.news = newsTemplate();
-          }
-          if (isValidISODate(text)) {
-            currentItem.news.publication_date = text;
-          } else {
-            this.report(
-              'warn',
-              `Invalid news publication_date format "${text}" - expected ISO 8601 format`
-            );
-          }
-          break;
-        case TagNames['news:keywords']:
-          if (!currentItem.news) {
-            currentItem.news = newsTemplate();
-          }
-          currentItem.news.keywords = text;
-          break;
-        case TagNames['news:stock_tickers']:
-          if (!currentItem.news) {
-            currentItem.news = newsTemplate();
-          }
-          currentItem.news.stock_tickers = text;
-          break;
-        case TagNames['news:language']:
-          if (!currentItem.news) {
-            currentItem.news = newsTemplate();
-          }
-          currentItem.news.publication.language = text;
-          break;
-        case TagNames['video:title']:
-          if (
-            currentVideo.title.length + text.length <=
-            LIMITS.MAX_VIDEO_TITLE_LENGTH
-          ) {
-            currentVideo.title += text;
-          } else {
-            this.report(
-              'warn',
-              `video title exceeds max length of ${LIMITS.MAX_VIDEO_TITLE_LENGTH}`
-            );
-          }
-          break;
-        case TagNames['video:description']:
-          if (
-            currentVideo.description.length + text.length <=
-            LIMITS.MAX_VIDEO_DESCRIPTION_LENGTH
-          ) {
-            currentVideo.description += text;
-          } else {
-            this.report(
-              'warn',
-              `video description exceeds max length of ${LIMITS.MAX_VIDEO_DESCRIPTION_LENGTH}`
-            );
-          }
-          break;
-        case TagNames['news:name']:
-          if (!currentItem.news) {
-            currentItem.news = newsTemplate();
-          }
-          if (
-            currentItem.news.publication.name.length + text.length <=
-            LIMITS.MAX_NEWS_NAME_LENGTH
-          ) {
-            currentItem.news.publication.name += text;
-          } else {
-            this.report(
-              'warn',
-              `news name exceeds max length of ${LIMITS.MAX_NEWS_NAME_LENGTH}`
-            );
-          }
-          break;
-        case TagNames['news:title']:
-          if (!currentItem.news) {
-            currentItem.news = newsTemplate();
-          }
-          if (
-            currentItem.news.title.length + text.length <=
-            LIMITS.MAX_NEWS_TITLE_LENGTH
-          ) {
-            currentItem.news.title += text;
-          } else {
-            this.report(
-              'warn',
-              `news title exceeds max length of ${LIMITS.MAX_NEWS_TITLE_LENGTH}`
-            );
-          }
-          break;
-        case TagNames['image:caption']:
-          if (!currentImage.caption) {
-            currentImage.caption =
-              text.length <= LIMITS.MAX_IMAGE_CAPTION_LENGTH
-                ? text
-                : text.substring(0, LIMITS.MAX_IMAGE_CAPTION_LENGTH);
-            if (text.length > LIMITS.MAX_IMAGE_CAPTION_LENGTH) {
-              this.report(
-                'warn',
-                `image caption exceeds max length of ${LIMITS.MAX_IMAGE_CAPTION_LENGTH}`
-              );
-            }
-          } else if (
-            currentImage.caption.length + text.length <=
-            LIMITS.MAX_IMAGE_CAPTION_LENGTH
-          ) {
-            currentImage.caption += text;
-          } else {
+        }
+        break;
+      case TagNames['video:category']:
+        this.currentVideo.category = text;
+        break;
+      case TagNames['video:live']:
+        if (isValidYesNo(text)) {
+          this.currentVideo.live = text;
+        }
+        break;
+      case TagNames['video:gallery_loc']:
+        this.currentVideo.gallery_loc = text;
+        break;
+      case TagNames['image:loc']:
+        this.currentImage.url = text;
+        break;
+      case TagNames['image:geo_location']:
+        this.currentImage.geoLocation = text;
+        break;
+      case TagNames['image:license']:
+        this.currentImage.license = text;
+        break;
+      case TagNames['news:access']:
+        if (!this.currentItem.news) {
+          this.currentItem.news = newsTemplate();
+        }
+        if (text === 'Registration' || text === 'Subscription') {
+          this.currentItem.news.access = text;
+        } else {
+          this.report(
+            'warn',
+            `Invalid news:access value "${text}" - must be "Registration" or "Subscription"`
+          );
+        }
+        break;
+      case TagNames['news:genres']:
+        if (!this.currentItem.news) {
+          this.currentItem.news = newsTemplate();
+        }
+        this.currentItem.news.genres = text;
+        break;
+      case TagNames['news:publication_date']:
+        if (!this.currentItem.news) {
+          this.currentItem.news = newsTemplate();
+        }
+        if (isValidISODate(text)) {
+          this.currentItem.news.publication_date = text;
+        } else {
+          this.report(
+            'warn',
+            `Invalid news publication_date format "${text}" - expected ISO 8601 format`
+          );
+        }
+        break;
+      case TagNames['news:keywords']:
+        if (!this.currentItem.news) {
+          this.currentItem.news = newsTemplate();
+        }
+        this.currentItem.news.keywords = text;
+        break;
+      case TagNames['news:stock_tickers']:
+        if (!this.currentItem.news) {
+          this.currentItem.news = newsTemplate();
+        }
+        this.currentItem.news.stock_tickers = text;
+        break;
+      case TagNames['news:language']:
+        if (!this.currentItem.news) {
+          this.currentItem.news = newsTemplate();
+        }
+        this.currentItem.news.publication.language = text;
+        break;
+      case TagNames['video:title']:
+        if (
+          this.currentVideo.title.length + text.length <=
+          LIMITS.MAX_VIDEO_TITLE_LENGTH
+        ) {
+          this.currentVideo.title += text;
+        } else {
+          this.report(
+            'warn',
+            `video title exceeds max length of ${LIMITS.MAX_VIDEO_TITLE_LENGTH}`
+          );
+        }
+        break;
+      case TagNames['video:description']:
+        if (
+          this.currentVideo.description.length + text.length <=
+          LIMITS.MAX_VIDEO_DESCRIPTION_LENGTH
+        ) {
+          this.currentVideo.description += text;
+        } else {
+          this.report(
+            'warn',
+            `video description exceeds max length of ${LIMITS.MAX_VIDEO_DESCRIPTION_LENGTH}`
+          );
+        }
+        break;
+      case TagNames['news:name']:
+        if (!this.currentItem.news) {
+          this.currentItem.news = newsTemplate();
+        }
+        if (
+          this.currentItem.news.publication.name.length + text.length <=
+          LIMITS.MAX_NEWS_NAME_LENGTH
+        ) {
+          this.currentItem.news.publication.name += text;
+        } else {
+          this.report(
+            'warn',
+            `news name exceeds max length of ${LIMITS.MAX_NEWS_NAME_LENGTH}`
+          );
+        }
+        break;
+      case TagNames['news:title']:
+        if (!this.currentItem.news) {
+          this.currentItem.news = newsTemplate();
+        }
+        if (
+          this.currentItem.news.title.length + text.length <=
+          LIMITS.MAX_NEWS_TITLE_LENGTH
+        ) {
+          this.currentItem.news.title += text;
+        } else {
+          this.report(
+            'warn',
+            `news title exceeds max length of ${LIMITS.MAX_NEWS_TITLE_LENGTH}`
+          );
+        }
+        break;
+      case TagNames['image:caption']:
+        if (!this.currentImage.caption) {
+          this.currentImage.caption =
+            text.length <= LIMITS.MAX_IMAGE_CAPTION_LENGTH
+              ? text
+              : text.substring(0, LIMITS.MAX_IMAGE_CAPTION_LENGTH);
+          if (text.length > LIMITS.MAX_IMAGE_CAPTION_LENGTH) {
             this.report(
               'warn',
               `image caption exceeds max length of ${LIMITS.MAX_IMAGE_CAPTION_LENGTH}`
             );
           }
-          break;
-        case TagNames['image:title']:
-          if (!currentImage.title) {
-            currentImage.title =
-              text.length <= LIMITS.MAX_IMAGE_TITLE_LENGTH
-                ? text
-                : text.substring(0, LIMITS.MAX_IMAGE_TITLE_LENGTH);
-            if (text.length > LIMITS.MAX_IMAGE_TITLE_LENGTH) {
-              this.report(
-                'warn',
-                `image title exceeds max length of ${LIMITS.MAX_IMAGE_TITLE_LENGTH}`
-              );
-            }
-          } else if (
-            currentImage.title.length + text.length <=
-            LIMITS.MAX_IMAGE_TITLE_LENGTH
-          ) {
-            currentImage.title += text;
-          } else {
+        } else if (
+          this.currentImage.caption.length + text.length <=
+          LIMITS.MAX_IMAGE_CAPTION_LENGTH
+        ) {
+          this.currentImage.caption += text;
+        } else {
+          this.report(
+            'warn',
+            `image caption exceeds max length of ${LIMITS.MAX_IMAGE_CAPTION_LENGTH}`
+          );
+        }
+        break;
+      case TagNames['image:title']:
+        if (!this.currentImage.title) {
+          this.currentImage.title =
+            text.length <= LIMITS.MAX_IMAGE_TITLE_LENGTH
+              ? text
+              : text.substring(0, LIMITS.MAX_IMAGE_TITLE_LENGTH);
+          if (text.length > LIMITS.MAX_IMAGE_TITLE_LENGTH) {
             this.report(
               'warn',
               `image title exceeds max length of ${LIMITS.MAX_IMAGE_TITLE_LENGTH}`
             );
           }
-          break;
+        } else if (
+          this.currentImage.title.length + text.length <=
+          LIMITS.MAX_IMAGE_TITLE_LENGTH
+        ) {
+          this.currentImage.title += text;
+        } else {
+          this.report(
+            'warn',
+            `image title exceeds max length of ${LIMITS.MAX_IMAGE_TITLE_LENGTH}`
+          );
+        }
+        break;
 
-        default:
-          this.logger('log', 'unhandled text for tag:', tag, `'${text}'`);
+      default:
+        this.logger('log', 'unhandled text for tag:', tag, `'${text}'`);
 
-          this.err(`unhandled text for tag: ${tag} '${text}'`);
-          break;
-      }
-    };
-
-    const charData = createCharDataBuffer({
-      onText: handleCharData,
-      onOverflow: (msg): void => {
-        this.report('warn', msg);
-      },
-    });
-    this.saxStream.on('text', charData.append);
-    this.saxStream.on('cdata', charData.append);
-
-    this.saxStream.on('attribute', (attr): void => {
-      switch (currentTag) {
-        case TagNames['urlset']:
-        case TagNames['xhtml:link']:
-        case TagNames['video:id']:
-          break;
-        case TagNames['video:restriction']:
-          if (attr.name === 'relationship' && isAllowDeny(attr.value)) {
-            currentVideo['restriction:relationship'] = attr.value;
-          } else {
-            this.logger('log', 'unhandled attr', currentTag, attr.name);
-            this.err(`unhandled attr: ${currentTag} ${attr.name}`);
-          }
-          break;
-        case TagNames['video:price']:
-          if (attr.name === 'type' && isPriceType(attr.value)) {
-            currentVideo['price:type'] = attr.value;
-          } else if (attr.name === 'currency') {
-            currentVideo['price:currency'] = attr.value;
-          } else if (attr.name === 'resolution' && isResolution(attr.value)) {
-            currentVideo['price:resolution'] = attr.value;
-          } else {
-            this.logger('log', 'unhandled attr for video:price', attr.name);
-            this.err(`unhandled attr: ${currentTag} ${attr.name}`);
-          }
-          break;
-        case TagNames['video:player_loc']:
-          if (attr.name === 'autoplay') {
-            currentVideo['player_loc:autoplay'] = attr.value;
-          } else if (attr.name === 'allow_embed' && isValidYesNo(attr.value)) {
-            currentVideo['player_loc:allow_embed'] = attr.value;
-          } else {
-            this.logger(
-              'log',
-              'unhandled attr for video:player_loc',
-              attr.name
-            );
-
-            this.err(`unhandled attr: ${currentTag} ${attr.name}`);
-          }
-          break;
-        case TagNames['video:platform']:
-          if (attr.name === 'relationship' && isAllowDeny(attr.value)) {
-            currentVideo['platform:relationship'] = attr.value;
-          } else {
-            this.logger(
-              'log',
-              'unhandled attr for video:platform',
-              attr.name,
-              attr.value
-            );
-
-            this.err(
-              `unhandled attr: ${currentTag} ${attr.name} ${attr.value}`
-            );
-          }
-          break;
-        case TagNames['video:gallery_loc']:
-          if (attr.name === 'title') {
-            currentVideo['gallery_loc:title'] = attr.value;
-          } else {
-            this.logger(
-              'log',
-              'unhandled attr for video:galler_loc',
-              attr.name
-            );
-
-            this.err(`unhandled attr: ${currentTag} ${attr.name}`);
-          }
-          break;
-        case TagNames['video:uploader']:
-          if (attr.name === 'info') {
-            currentVideo['uploader:info'] = attr.value;
-          } else {
-            this.logger('log', 'unhandled attr for video:uploader', attr.name);
-
-            this.err(`unhandled attr: ${currentTag} ${attr.name}`);
-          }
-          break;
-        default:
-          this.logger('log', 'unhandled attr', currentTag, attr.name);
-
-          this.err(`unhandled attr: ${currentTag} ${attr.name}`);
-      }
-    });
-
-    this.saxStream.on('closetag', (tag): void => {
-      charData.closeTag();
-      switch (tag) {
-        case TagNames.url:
-          this.urlCount++;
-          if (this.urlCount > LIMITS.MAX_URL_ENTRIES) {
-            this.report(
-              'error',
-              `Sitemap exceeds maximum of ${LIMITS.MAX_URL_ENTRIES} URLs`
-            );
-            currentItem = tagTemplate();
-            break;
-          }
-          this.push(currentItem);
-          currentItem = tagTemplate();
-          break;
-        case TagNames['video:video']:
-          if (currentItem.video.length < LIMITS.MAX_VIDEOS_PER_URL) {
-            currentItem.video.push(currentVideo);
-          } else {
-            this.report(
-              'warn',
-              `URL has too many videos (max ${LIMITS.MAX_VIDEOS_PER_URL})`
-            );
-          }
-          currentVideo = videoTemplate();
-          break;
-        case TagNames['image:image']:
-          if (currentItem.img.length < LIMITS.MAX_IMAGES_PER_URL) {
-            currentItem.img.push(currentImage);
-          } else {
-            this.report(
-              'warn',
-              `URL has too many images (max ${LIMITS.MAX_IMAGES_PER_URL})`
-            );
-          }
-          currentImage = { ...imageTemplate };
-          break;
-        case TagNames['xhtml:link']:
-          if (!dontpushCurrentLink) {
-            if (currentItem.links.length < LIMITS.MAX_LINKS_PER_URL) {
-              currentItem.links.push(currentLink);
-            } else {
-              this.report(
-                'warn',
-                `URL has too many links (max ${LIMITS.MAX_LINKS_PER_URL})`
-              );
-            }
-          }
-          currentLink = { ...linkTemplate };
-          dontpushCurrentLink = false; // Reset flag for next link
-          break;
-
-        default:
-          break;
-      }
-    });
-  }
-
-  _transform(
-    data: string,
-    encoding: string,
-    callback: TransformCallback
-  ): void {
-    try {
-      const cb = () =>
-        callback(
-          this.level === ErrorLevel.THROW && this.errors.length > 0
-            ? this.errors[0]
-            : null
-        );
-      // correcting the type here can be done without making it a breaking change
-      // TODO fix this
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      if (!this.saxStream.write(data, encoding)) {
-        this.saxStream.once('drain', cb);
-      } else {
-        process.nextTick(cb);
-      }
-    } catch (error) {
-      callback(error as Error);
+        this.err(`unhandled text for tag: ${tag} '${text}'`);
+        break;
     }
   }
 
-  /** Log a message and record it as a parse error, with the same text */
-  private report(level: Parameters<Logger>[0], msg: string): void {
-    this.logger(level, msg);
-    this.err(msg);
+  protected onAttribute(currentTag: string, attr: QualifiedAttribute): void {
+    switch (currentTag) {
+      case TagNames['urlset']:
+      case TagNames['xhtml:link']:
+      case TagNames['video:id']:
+        break;
+      case TagNames['video:restriction']:
+        if (attr.name === 'relationship' && isAllowDeny(attr.value)) {
+          this.currentVideo['restriction:relationship'] = attr.value;
+        } else {
+          this.logger('log', 'unhandled attr', currentTag, attr.name);
+          this.err(`unhandled attr: ${currentTag} ${attr.name}`);
+        }
+        break;
+      case TagNames['video:price']:
+        if (attr.name === 'type' && isPriceType(attr.value)) {
+          this.currentVideo['price:type'] = attr.value;
+        } else if (attr.name === 'currency') {
+          this.currentVideo['price:currency'] = attr.value;
+        } else if (attr.name === 'resolution' && isResolution(attr.value)) {
+          this.currentVideo['price:resolution'] = attr.value;
+        } else {
+          this.logger('log', 'unhandled attr for video:price', attr.name);
+          this.err(`unhandled attr: ${currentTag} ${attr.name}`);
+        }
+        break;
+      case TagNames['video:player_loc']:
+        if (attr.name === 'autoplay') {
+          this.currentVideo['player_loc:autoplay'] = attr.value;
+        } else if (attr.name === 'allow_embed' && isValidYesNo(attr.value)) {
+          this.currentVideo['player_loc:allow_embed'] = attr.value;
+        } else {
+          this.logger('log', 'unhandled attr for video:player_loc', attr.name);
+
+          this.err(`unhandled attr: ${currentTag} ${attr.name}`);
+        }
+        break;
+      case TagNames['video:platform']:
+        if (attr.name === 'relationship' && isAllowDeny(attr.value)) {
+          this.currentVideo['platform:relationship'] = attr.value;
+        } else {
+          this.logger(
+            'log',
+            'unhandled attr for video:platform',
+            attr.name,
+            attr.value
+          );
+
+          this.err(`unhandled attr: ${currentTag} ${attr.name} ${attr.value}`);
+        }
+        break;
+      case TagNames['video:gallery_loc']:
+        if (attr.name === 'title') {
+          this.currentVideo['gallery_loc:title'] = attr.value;
+        } else {
+          this.logger('log', 'unhandled attr for video:galler_loc', attr.name);
+
+          this.err(`unhandled attr: ${currentTag} ${attr.name}`);
+        }
+        break;
+      case TagNames['video:uploader']:
+        if (attr.name === 'info') {
+          this.currentVideo['uploader:info'] = attr.value;
+        } else {
+          this.logger('log', 'unhandled attr for video:uploader', attr.name);
+
+          this.err(`unhandled attr: ${currentTag} ${attr.name}`);
+        }
+        break;
+      default:
+        this.logger('log', 'unhandled attr', currentTag, attr.name);
+
+        this.err(`unhandled attr: ${currentTag} ${attr.name}`);
+    }
   }
 
-  private err(msg: string) {
-    this.errorCount++;
-    if (this.errors.length < LIMITS.MAX_PARSER_ERRORS) {
-      this.errors.push(new Error(msg));
+  protected onCloseTag(tag: string): void {
+    switch (tag) {
+      case TagNames.url:
+        this.emitEntry(this.currentItem);
+        this.currentItem = tagTemplate();
+        break;
+      case TagNames['video:video']:
+        if (this.currentItem.video.length < LIMITS.MAX_VIDEOS_PER_URL) {
+          this.currentItem.video.push(this.currentVideo);
+        } else {
+          this.report(
+            'warn',
+            `URL has too many videos (max ${LIMITS.MAX_VIDEOS_PER_URL})`
+          );
+        }
+        this.currentVideo = videoTemplate();
+        break;
+      case TagNames['image:image']:
+        if (this.currentItem.img.length < LIMITS.MAX_IMAGES_PER_URL) {
+          this.currentItem.img.push(this.currentImage);
+        } else {
+          this.report(
+            'warn',
+            `URL has too many images (max ${LIMITS.MAX_IMAGES_PER_URL})`
+          );
+        }
+        this.currentImage = { ...imageTemplate };
+        break;
+      case TagNames['xhtml:link']:
+        if (!this.dontpushCurrentLink) {
+          if (this.currentItem.links.length < LIMITS.MAX_LINKS_PER_URL) {
+            this.currentItem.links.push(this.currentLink);
+          } else {
+            this.report(
+              'warn',
+              `URL has too many links (max ${LIMITS.MAX_LINKS_PER_URL})`
+            );
+          }
+        }
+        this.currentLink = { ...linkTemplate };
+        this.dontpushCurrentLink = false; // Reset flag for next link
+        break;
+
+      default:
+        break;
     }
   }
 }

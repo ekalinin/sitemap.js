@@ -1317,3 +1317,86 @@ describe('sitemap-parser security tests', () => {
     });
   });
 });
+
+describe('XMLToSitemapItemStream entry cap', () => {
+  const urlsetXml = (n: number): string =>
+    '<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
+    Array.from(
+      { length: n },
+      (_, i) => `<url><loc>https://e.com/${i}</loc></url>`
+    ).join('') +
+    '</urlset>';
+
+  const collect = async (stream: XMLToSitemapItemStream, xml: string) => {
+    const items: SitemapItem[] = [];
+    await pipeline(
+      Readable.from([xml]),
+      stream,
+      new Writable({
+        objectMode: true,
+        write(chunk, _enc, next) {
+          items.push(chunk);
+          next();
+        },
+      })
+    );
+    return items;
+  };
+
+  it('stops emitting past maxEntries and reports the overflow once', async () => {
+    const logger = mock.fn();
+    const stream = new XMLToSitemapItemStream({ maxEntries: 2, logger });
+    const items = await collect(stream, urlsetXml(5));
+
+    assert.strictEqual(items.length, 2);
+    assert.strictEqual(stream.entryCount, 5);
+    assert.strictEqual(stream.errorCount, 1);
+    assert.strictEqual(
+      stream.errors[0].message,
+      'Sitemap exceeds maximum of 2 URLs'
+    );
+    const capLogs = logger.mock.calls.filter((c) => c.arguments[0] === 'error');
+    assert.strictEqual(capLogs.length, 1);
+  });
+
+  it('emits maxEntriesExceeded once and skips logging when handled', async () => {
+    const logger = mock.fn();
+    const stream = new XMLToSitemapItemStream({ maxEntries: 2, logger });
+    const seen: number[] = [];
+    stream.on('maxEntriesExceeded', (cap: number) => seen.push(cap));
+    const items = await collect(stream, urlsetXml(5));
+
+    assert.strictEqual(items.length, 2);
+    assert.deepStrictEqual(seen, [2]);
+    assert.strictEqual(logger.mock.callCount(), 0);
+  });
+
+  it('rejects an invalid maxEntries', () => {
+    for (const maxEntries of [-1, 1.5, NaN]) {
+      assert.throws(
+        () => new XMLToSitemapItemStream({ maxEntries }),
+        /maxEntries must be a non-negative integer or Infinity/
+      );
+    }
+  });
+
+  it('exposes the first error as error, or null when there is none', async () => {
+    const clean = new XMLToSitemapItemStream({ logger: false });
+    await collect(clean, urlsetXml(1));
+    assert.strictEqual(clean.error, null);
+
+    const capped = new XMLToSitemapItemStream({ maxEntries: 0, logger: false });
+    await collect(capped, urlsetXml(1));
+    assert.strictEqual(
+      capped.error?.message,
+      'Sitemap exceeds maximum of 0 URLs'
+    );
+  });
+
+  it('keeps urlCount as an alias for entryCount', async () => {
+    const stream = new XMLToSitemapItemStream({ maxEntries: 1, logger: false });
+    await collect(stream, urlsetXml(3));
+    assert.strictEqual(stream.urlCount, 3);
+    assert.strictEqual(stream.entryCount, 3);
+  });
+});

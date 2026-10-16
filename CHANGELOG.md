@@ -49,6 +49,24 @@
   name (#300). `xmlNS` still works as a deprecated alias. `SitemapStream.errorHandler` is always set now; it defaults to
   a handler that warns through `logger`.
 
+#### Both XML parsers share one error store and entry cap
+
+`XMLToSitemapItemStream` and `XMLToSitemapIndexStream` now extend one internal
+base class, so they report errors and cap entries the same way.
+
+- `XMLToSitemapIndexStream.error` is a read-only getter for the first error
+  (`errors[0]`, or `null`). Assigning to it now throws a `TypeError` in strict
+  mode. The index parser also gains the `errors` array (capped at
+  `LIMITS.MAX_PARSER_ERRORS`) and `errorCount`, where it previously kept only
+  the first error.
+- `XMLToSitemapItemStream` reports a sitemap with more than 50,000 `<url>`
+  entries once, instead of logging and recording an error for every dropped
+  entry, so `errorCount` and the log no longer grow with the overflow. It
+  gains the index parser's `maxEntries` option, `entryCount` property and
+  `'maxEntriesExceeded'` event, and an `error` getter. `urlCount` still works
+  as a deprecated alias for `entryCount`. `parseSitemap` is unchanged: it
+  still resolves with the first 50,000 items.
+
 ### Changed
 
 - The CLI parses arguments with Node's built-in `util.parseArgs` instead of
