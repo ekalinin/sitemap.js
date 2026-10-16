@@ -232,7 +232,8 @@ type getSitemapStreamFunc = (
  *
  * @extends {SitemapIndexStreamOptions}
  */
-export interface SitemapAndIndexStreamOptions extends SitemapIndexStreamOptions {
+export interface SitemapAndIndexStreamOptions
+  extends SitemapIndexStreamOptions {
   /**
    * Max number of items in each sitemap XML file.
    *
