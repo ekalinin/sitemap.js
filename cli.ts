@@ -136,11 +136,15 @@ Use XMLLib to validate your sitemap (requires xmllib)
     .catch(([error, stderr]: [Error | null, Buffer?]): void => {
       if (error instanceof XMLLintUnavailable || stderr === undefined) {
         // No xmllint output to show (xmllint missing, or the schema could
-        // not be found), so report the error itself
+        // not be found), so report the error itself. Exit 2: validation
+        // could not run, as distinct from a file that failed it.
         console.error(error?.message);
+        process.exitCode = 2;
         return;
       } else {
         console.log(stderr);
+        // Exit 1 so scripts and CI can detect an invalid sitemap
+        process.exitCode = 1;
       }
     });
 } else if (argv.index) {

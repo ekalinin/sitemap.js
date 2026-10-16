@@ -113,6 +113,9 @@
 
 ### Fixed
 
+- `sitemap --validate` exits with code 1 when the sitemap is invalid and 2 when
+  validation cannot run (xmllint missing or schema not found). It used to exit
+  0 in every case, so scripts and CI could not detect a failed validation.
 - `xmlLint()` and `sitemap --validate` find the bundled `schema/` directory
   when the package is installed as a dependency. The lookup searched relative
   to `process.cwd()`, so outside this repository it threw a synchronous
