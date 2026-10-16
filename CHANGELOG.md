@@ -49,6 +49,20 @@
   into one, and its inline bounds checks (priority, video duration/rating/view
   count, ISO dates) now delegate to shared guards in `lib/validation.ts`, with
   the bounds defined once in `LIMITS`.
+- `XMLToSitemapIndexStream` now handles character data the same way: text and
+  CDATA within one `<loc>` or `<lastmod>` are joined and trimmed, stray
+  character data is reported against the enclosing element, and values longer
+  than `LIMITS.MAX_PARSER_CHAR_DATA_LENGTH` are dropped with a warning.
+  Unhandled CDATA is now logged as `unhandled text for tag:` instead of
+  `unhandled cdata for tag:`. Both parsers share one buffer,
+  `createCharDataBuffer` in `lib/utils.ts`.
+- **`XMLToSitemapIndexStream` enforces the 50,000-entry spec limit itself.**
+  Entries past `LIMITS.MAX_SITEMAP_ITEM_LIMIT` are dropped with an error (which
+  throws under `ErrorLevel.THROW`), and a new `entryCount` property counts every
+  `<sitemap>` seen. Previously only the `parseSitemapIndex` wrapper capped
+  entries, so piping the stream directly had no limit. `parseSitemapIndex` still
+  rejects an over-limit index, but a `maxEntries` above 50,000 no longer raises
+  the limit.
 
 ### Fixed
 

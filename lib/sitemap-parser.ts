@@ -27,6 +27,7 @@ import {
   isValidISODate,
   getURLError,
 } from './validation.js';
+import { createCharDataBuffer } from './utils.js';
 import { LIMITS } from './constants.js';
 
 function isValidTagName(tagName: string): tagName is TagNames {
@@ -133,15 +134,8 @@ export class XMLToSitemapItemStream extends Transform {
     let currentImage: Img = { ...imageTemplate };
     let currentLink: LinkItem = { ...linkTemplate };
     let dontpushCurrentLink = false;
-    // Character data (text and CDATA) is buffered and handled once at the next
-    // tag boundary, so values split across chunks are joined. It belongs to the
-    // innermost open element, which is not currentTag once a child has closed.
-    let charData = '';
-    let charDataOverflow = false;
-    const openTags: string[] = [];
     this.saxStream.on('opentagstart', (tag): void => {
-      flushCharData();
-      openTags.push(tag.name);
+      charData.openTag(tag.name);
       currentTag = tag.name;
       if (currentTag.startsWith('news:') && !currentItem.news) {
         currentItem.news = newsTemplate();
@@ -189,8 +183,8 @@ export class XMLToSitemapItemStream extends Transform {
     });
 
     // Per ADR 0001, CDATA sections are ordinary character data: both SAX
-    // events append to one buffer, and flushCharData hands the joined value
-    // for an element to this handler.
+    // events append to one buffer, which hands the joined value for an
+    // element to this handler.
     const handleCharData = (tag: string, text: string): void => {
       switch (tag) {
         case 'mobile:mobile':
@@ -594,33 +588,15 @@ export class XMLToSitemapItemStream extends Transform {
       }
     };
 
-    const appendCharData = (text: string): void => {
-      if (charDataOverflow) {
-        return;
-      }
-      if (charData.length + text.length > LIMITS.MAX_PARSER_CHAR_DATA_LENGTH) {
-        charDataOverflow = true;
-        charData = '';
-        return;
-      }
-      charData += text;
-    };
-    const flushCharData = (): void => {
-      const tag = openTags[openTags.length - 1];
-      const text = charData.trim();
-      charData = '';
-      if (charDataOverflow) {
-        charDataOverflow = false;
-        const msg = `character data for ${tag} exceeds max length of ${LIMITS.MAX_PARSER_CHAR_DATA_LENGTH}`;
+    const charData = createCharDataBuffer({
+      onText: handleCharData,
+      onOverflow: (msg): void => {
         this.logger('warn', msg);
         this.err(msg);
-      } else if (text) {
-        handleCharData(tag, text);
-      }
-    };
-
-    this.saxStream.on('text', appendCharData);
-    this.saxStream.on('cdata', appendCharData);
+      },
+    });
+    this.saxStream.on('text', charData.append);
+    this.saxStream.on('cdata', charData.append);
 
     this.saxStream.on('attribute', (attr): void => {
       switch (currentTag) {
@@ -709,8 +685,7 @@ export class XMLToSitemapItemStream extends Transform {
     });
 
     this.saxStream.on('closetag', (tag): void => {
-      flushCharData();
-      openTags.pop();
+      charData.closeTag();
       switch (tag) {
         case TagNames.url:
           this.urlCount++;
