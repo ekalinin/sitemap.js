@@ -260,11 +260,10 @@ export function normalizeURL(
 
   if (img) {
     // prepend hostname to all image urls
-    smi.img = (Array.isArray(img) ? img : [img]).map(
-      (el): Img =>
-        typeof el === 'string'
-          ? { url: new URL(el, hostname).toString() }
-          : { ...el, url: new URL(el.url, hostname).toString() }
+    smi.img = (Array.isArray(img) ? img : [img]).map((el): Img =>
+      typeof el === 'string'
+        ? { url: new URL(el, hostname).toString() }
+        : { ...el, url: new URL(el.url, hostname).toString() }
     );
   }
 
