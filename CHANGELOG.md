@@ -123,10 +123,18 @@
 ### Fixed
 
 - `SitemapAndIndexStream` errors with `ERR_STREAM_PREMATURE_CLOSE` instead of
-  hanging when a sitemap's write stream is destroyed before it finishes, during
-  sitemap rotation or at the end of input. A `SitemapAndIndexStream` destroyed
-  during rotation no longer opens another sitemap file once the current one
-  has finished.
+  hanging when a sitemap's write stream is destroyed before it finishes, at any
+  point in the sitemap. A `SitemapAndIndexStream` destroyed during rotation no
+  longer opens another sitemap file once the current one has finished.
+- `SitemapAndIndexStream` destroys itself with the error when a sitemap's write
+  stream fails while the sitemap is still open, such as `EACCES` or `EISDIR`
+  when opening the file. It used to crash the process with an unhandled
+  `error` event. `simpleSitemapAndIndex` now rejects in that case.
+- Destroying a `SitemapAndIndexStream` also destroys the open sitemap and its
+  write stream, so the file descriptor is released.
+- `simpleSitemapAndIndex` and the CLI connect each sitemap to its gzip and file
+  streams with `pipeline()`, so a gzip failure fails the sitemap instead of
+  leaving the write stream open.
 - `sitemap --validate` exits with code 1 when the sitemap is invalid and 2 when
   validation cannot run (xmllint missing or schema not found). It used to exit
   0 in every case, so scripts and CI could not detect a failed validation.

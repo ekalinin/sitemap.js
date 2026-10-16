@@ -10,7 +10,7 @@ import {
   WriteStream,
 } from 'node:fs';
 import { normalize, resolve } from 'node:path';
-import { Readable } from 'node:stream';
+import { Readable, pipeline as pipelineCallback } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import type { SitemapItemLoose, Logger } from './types.js';
 import { URL } from 'node:url';
@@ -149,13 +149,14 @@ export const simpleSitemapAndIndex = async ({
         );
       }
 
-      let writeStream: WriteStream;
+      const writeStream: WriteStream = createWriteStream(writePath); // write it to sitemap-NUMBER.xml
+      // pipeline() destroys every stream when one fails, so a gzip failure
+      // also fails writeStream, which SitemapAndIndexStream watches and
+      // reports. The callback has nothing left to do.
       if (gzip) {
-        writeStream = sitemapStream
-          .pipe(createGzip()) // compress the output of the sitemap
-          .pipe(createWriteStream(writePath)); // write it to sitemap-NUMBER.xml
+        pipelineCallback(sitemapStream, createGzip(), writeStream, () => {});
       } else {
-        writeStream = sitemapStream.pipe(createWriteStream(writePath)); // write it to sitemap-NUMBER.xml
+        pipelineCallback(sitemapStream, writeStream, () => {});
       }
 
       return [sitemapUrl, sitemapStream, writeStream];

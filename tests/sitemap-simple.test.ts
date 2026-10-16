@@ -5,8 +5,15 @@ import {
   streamToPromise,
   DEFAULT_SITEMAP_ITEM_LIMIT,
 } from '../dist/index.js';
-import { existsSync, createReadStream, mkdtempSync, rmSync } from 'node:fs';
+import {
+  existsSync,
+  createReadStream,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+} from 'node:fs';
 import { resolve } from 'node:path';
+import { Readable } from 'node:stream';
 import { createGunzip } from 'node:zlib';
 
 describe('simpleSitemapAndIndex', () => {
@@ -225,6 +232,30 @@ describe('simpleSitemapAndIndex', () => {
     );
     assert.ok(xml.toString().includes('1.example.com'));
   });
+
+  for (const gzip of [true, false]) {
+    it(`rejects when a sitemap file cannot be written (gzip: ${gzip})`, async () => {
+      // A directory where the first sitemap file should go makes its
+      // write stream fail.
+      mkdirSync(resolve(targetFolder, `sitemap-0.xml${gzip ? '.gz' : ''}`));
+
+      // Hold the source open so the error arrives while the sitemap is
+      // still being written, not while it closes.
+      const sourceData = new Readable({ objectMode: true, read() {} });
+      sourceData.push('https://example.com/a');
+      setTimeout(() => sourceData.push(null), 50);
+
+      await assert.rejects(
+        simpleSitemapAndIndex({
+          hostname: 'https://example.com/',
+          sourceData,
+          destinationDir: targetFolder,
+          gzip,
+        }),
+        /EISDIR/
+      );
+    });
+  }
 
   it('throws on bad data', async () => {
     const baseURL = 'http://example.com';

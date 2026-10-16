@@ -6,7 +6,7 @@ import {
   readFileSync,
   existsSync,
 } from 'node:fs';
-import { Readable } from 'node:stream';
+import { Readable, pipeline } from 'node:stream';
 import { resolve, dirname } from 'node:path';
 import { URL } from 'node:url';
 import { createGzip, type Gzip } from 'node:zlib';
@@ -165,11 +165,13 @@ Use XMLLib to validate your sitemap (requires xmllib)
       const sm = new SitemapStream();
       const path = `./sitemap-${i}.xml`;
 
-      let ws: WriteStream;
+      const ws: WriteStream = createWriteStream(path);
+      // pipeline() destroys every stream when one fails, so a gzip failure
+      // also fails ws, which SitemapAndIndexStream watches and reports.
       if (argv.gzip) {
-        ws = sm.pipe(createGzip()).pipe(createWriteStream(path));
+        pipeline(sm, createGzip(), ws, () => {});
       } else {
-        ws = sm.pipe(createWriteStream(path));
+        pipeline(sm, ws, () => {});
       }
       return [new URL(path, baseURL).toString(), sm, ws];
     },

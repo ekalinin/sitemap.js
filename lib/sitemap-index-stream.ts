@@ -222,6 +222,10 @@ export class SitemapIndexStream extends Transform {
  *          - [2]: WriteStream where the sitemap will be piped (the stream will be
  *                 awaited for 'finish' before creating the next sitemap)
  *
+ * If other streams sit between the sitemap and the WriteStream, such as
+ * `createGzip()`, connect them with `pipeline()` from `node:stream` rather than
+ * `pipe()`, so a failure in any of them also fails the WriteStream.
+ *
  * @example
  * ```typescript
  * const getSitemapStream = (i: number) => {
@@ -293,6 +297,11 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
   private currentSitemap?: SitemapStream;
   private limit: number;
   private currentSitemapPipeline?: WriteStream;
+  /**
+   * Settles once the current sitemap and its pipe target have both finished.
+   * Rejects if either errors or is destroyed first.
+   */
+  private currentSitemapFinished?: Promise<void>;
 
   /**
    * `SitemapAndIndexStream` is a Transform stream that takes in sitemap items,
@@ -368,17 +377,15 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
    */
   private async closeCurrentSitemap(): Promise<void> {
     const sitemap = this.currentSitemap;
-    const pipeline = this.currentSitemapPipeline;
     if (!sitemap) {
       return;
     }
+    // The pipe target gets its end() call from the sitemap stream ending.
     sitemap.end();
-    const opts = { readable: false, cleanup: true };
-    await Promise.all([
-      finished(sitemap, opts),
-      // The pipe target gets its end() call from the sitemap stream ending.
-      pipeline && finished(pipeline, opts),
-    ]);
+    await this.currentSitemapFinished;
+    this.currentSitemap = undefined;
+    this.currentSitemapPipeline = undefined;
+    this.currentSitemapFinished = undefined;
   }
 
   private writeItem(
@@ -394,6 +401,16 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
 
     // Increment the count of items written
     this.itemsWritten++;
+  }
+
+  /**
+   * Destroys the open sitemap and its target, if any, so a stopped stream
+   * does not leave a file descriptor open.
+   */
+  _destroy(err: Error | null, cb: (error?: Error | null) => void): void {
+    this.currentSitemap?.destroy();
+    this.currentSitemapPipeline?.destroy();
+    super._destroy(err, cb);
   }
 
   /**
@@ -466,6 +483,15 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
 
     this.currentSitemap = currentSitemap;
     this.currentSitemapPipeline = currentSitemapPipeline;
+    // Watch both streams from the start, not only while closing, so a target
+    // that fails or goes away mid-sitemap stops this stream instead of
+    // leaving a write waiting for 'drain' or crashing on an unhandled error.
+    const opts = { readable: false, cleanup: true };
+    this.currentSitemapFinished = Promise.all([
+      finished(currentSitemap, opts),
+      currentSitemapPipeline && finished(currentSitemapPipeline, opts),
+    ]).then(() => undefined);
+    this.currentSitemapFinished.catch((err: Error) => this.destroy(err));
 
     super._transform(idxItem, encoding, () => {
       // We are not too concerned about waiting for the index item to be written
