@@ -64,8 +64,17 @@ base class, so they report errors and cap entries the same way.
   entry, so `errorCount` and the log no longer grow with the overflow. It
   gains the index parser's `maxEntries` option, `entryCount` property and
   `'maxEntriesExceeded'` event, and an `error` getter. `urlCount` still works
-  as a deprecated alias for `entryCount`. `parseSitemap` is unchanged: it
-  still resolves with the first 50,000 items.
+  as a deprecated alias for `entryCount`. `parseSitemap` still resolves with
+  the first 50,000 items, but it now stops reading once the cap is crossed
+  and destroys the source stream, as `parseSitemapIndex` already did.
+- Both parsers now fail on a truncated document (an element left unclosed
+  when the input ends), like any other malformed XML. Before, the
+  unfinished entry was dropped silently. `parseSitemap` and
+  `parseSitemapIndex` reject in that case, and `parseSitemap` now also
+  rejects when the source stream fails instead of never settling.
+- The index parser's warnings for an invalid `<loc>` or `<lastmod>` are now
+  logged as one message, the same text recorded in `errors`. The recorded
+  lastmod error now reads `Invalid lastmod date format in sitemap index: …`.
 
 ### Changed
 

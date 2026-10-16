@@ -28,7 +28,7 @@ import {
   getURLError,
 } from './validation.js';
 import { LIMITS } from './constants.js';
-import { SaxParserStream } from './sax-parser-stream.js';
+import { SaxParserStream, collectEntries } from './sax-parser-stream.js';
 
 function isValidTagName(tagName: string): tagName is TagNames {
   // This only works because the enum name and value are the same
@@ -618,35 +618,18 @@ export class XMLToSitemapItemStream extends SaxParserStream<SitemapItem> {
   Readable.from(items).pipe(sms)
   console.log((await streamToPromise(sms)).toString())
   ```
+  Once the sitemap passes 50,000 `<url>` entries, parsing stops: `xml` is
+  destroyed and the promise resolves with the first 50,000 items.
   @param {Readable} xml what to parse
-  @return {Promise<SitemapItem[]>} resolves with list of sitemap items that can be fed into a SitemapStream. Rejects with an Error object.
+  @return {Promise<SitemapItem[]>} resolves with list of sitemap items that can be fed into a SitemapStream. Rejects with an Error object if `xml` or the parser fails, including on truncated XML.
  */
 export async function parseSitemap(xml: Readable): Promise<SitemapItem[]> {
-  const urls: SitemapItem[] = [];
-  return new Promise((resolve, reject): void => {
-    const parser = new XMLToSitemapItemStream();
-    // Entries past the cap are dropped, so stop reading the source once it is
-    // crossed instead of parsing the rest of it (BB-05). Ending the parser
-    // still delivers the entries it already emitted.
-    parser.once('maxEntriesExceeded', (max: number): void => {
-      parser.logger(
-        'error',
-        `Sitemap exceeds maximum of ${max} URLs; ignoring the rest`
-      );
-      xml.unpipe(parser);
-      xml.destroy();
-      parser.end();
-    });
-
-    xml
-      .pipe(parser)
-      .on('data', (smi: SitemapItem) => urls.push(smi))
-      .on('end', (): void => {
-        resolve(urls);
-      })
-      .on('error', (error: Error): void => {
-        reject(error);
-      });
+  const parser = new XMLToSitemapItemStream();
+  return collectEntries(xml, parser, (max): void => {
+    parser.logger(
+      'error',
+      `Sitemap exceeds maximum of ${max} URLs; ignoring the rest`
+    );
   });
 }
 

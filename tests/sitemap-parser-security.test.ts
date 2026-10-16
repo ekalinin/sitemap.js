@@ -623,7 +623,7 @@ describe('sitemap-parser security tests', () => {
             (c.arguments[1] as string).includes('exceeds maximum of 50000 URLs')
           )
         );
-        assert.ok(sitemap.length <= LIMITS.MAX_URL_ENTRIES);
+        assert.ok(sitemap.length <= LIMITS.MAX_SITEMAP_ITEM_LIMIT);
       }
     );
   });
@@ -1433,6 +1433,27 @@ describe('XMLToSitemapItemStream entry cap', () => {
     } finally {
       errorSpy.mock.restore();
     }
+  });
+
+  it('parseSitemap rejects when the source stream fails', async () => {
+    const xml = new Readable({ read(): void {} });
+    const parsed = parseSitemap(xml);
+    xml.destroy(new Error('disk on fire'));
+    await assert.rejects(parsed, /disk on fire/);
+  });
+
+  it('parseSitemap rejects truncated XML', async () => {
+    const xml =
+      '<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
+      '<url><loc>https://e.com/1</loc></url><url><loc>https://e.com/2</loc>';
+    await assert.rejects(parseSitemap(Readable.from([xml])), /Unclosed/);
+  });
+
+  it('does not report a truncated tail past the cap as an error', async () => {
+    const stream = new XMLToSitemapItemStream({ maxEntries: 1, logger: false });
+    const truncated = urlsetXml(3).replace('</urlset>', '<url><loc>');
+    const items = await collect(stream, truncated);
+    assert.strictEqual(items.length, 1);
   });
 
   it('keeps urlCount as an alias for entryCount', async () => {

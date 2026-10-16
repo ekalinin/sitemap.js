@@ -1,26 +1,15 @@
 import sax from 'sax';
 import type { QualifiedAttribute, QualifiedTag, SAXStream } from 'sax';
-import { Transform, type TransformCallback } from 'node:stream';
+import { type Readable, Transform, type TransformCallback } from 'node:stream';
 import {
   type Logger,
+  type SaxParserStreamConfig,
   type SaxParserStreamOptions,
   ErrorLevel,
 } from './types.js';
 import { isValidMaxEntries } from './validation.js';
 import { LIMITS } from './constants.js';
 import { createCharDataBuffer, resolveLogger } from './utils.js';
-
-/**
- * What a parser subclass tells the shared SaxParserStream base. Declared here
- * rather than in types.ts so it stays out of the public API: this module is
- * not re-exported from index.ts.
- */
-export interface SaxParserStreamConfig {
-  /** Whether a tag belongs to the parsed format; others are reported */
-  isKnownTag: (name: string) => boolean;
-  /** Error text for the first entry past the entry cap */
-  overflowMessage: (maxEntries: number) => string;
-}
 
 /**
  * Shared plumbing for the XML parser streams: sax setup, character-data
@@ -165,6 +154,26 @@ export abstract class SaxParserStream<T> extends Transform {
     }
   }
 
+  /**
+   * Tell sax the document has ended, so a truncated document (an unclosed
+   * element) fails the stream like any other malformed XML.
+   */
+  _flush(callback: TransformCallback): void {
+    // Past the entry cap the rest of the document is ignored, and a caller
+    // such as parseSitemap may have stopped reading the source on purpose,
+    // so a missing end is not an error then.
+    if (this.entryCount > this.maxEntries) {
+      callback();
+      return;
+    }
+    try {
+      this.saxStream.end();
+      callback();
+    } catch (error) {
+      callback(error as Error);
+    }
+  }
+
   /** Log a message and record it as a parse error, with the same text */
   protected report(level: Parameters<Logger>[0], msg: string): void {
     this.logger(level, msg);
@@ -178,4 +187,61 @@ export abstract class SaxParserStream<T> extends Transform {
       this.errors.push(new Error(msg));
     }
   }
+}
+
+/**
+ * Pipe `xml` through `parser` and resolve with every entry it emits. Rejects
+ * if either stream fails.
+ *
+ * Entries past the parser's cap are dropped, so once the cap is crossed this
+ * stops reading `xml` and destroys it instead of parsing the rest (BB-05).
+ * `onOverflow` then picks the outcome: return an Error to reject with it, or
+ * nothing to resolve with the entries emitted before the cap.
+ */
+export function collectEntries<T>(
+  xml: Readable,
+  parser: SaxParserStream<T>,
+  onOverflow: (maxEntries: number) => Error | void
+): Promise<T[]> {
+  return new Promise((resolve, reject): void => {
+    const items: T[] = [];
+    let settled = false;
+    const settle = (error?: Error | null): void => {
+      if (settled) return;
+      settled = true;
+      if (error) {
+        reject(error);
+      } else {
+        resolve(items);
+      }
+    };
+
+    // pipe() does not forward source errors, so watch the source too
+    xml.on('error', (error: Error): void => {
+      settle(error);
+      parser.destroy();
+    });
+
+    parser.once('maxEntriesExceeded', (max: number): void => {
+      xml.unpipe(parser);
+      xml.destroy();
+      const error = onOverflow(max);
+      if (error) {
+        settle(error);
+        parser.destroy();
+      } else {
+        // Ending the parser still delivers the entries it already emitted
+        parser.end();
+      }
+    });
+
+    parser
+      .on('data', (item: T): void => {
+        if (!settled) items.push(item);
+      })
+      .on('end', (): void => settle())
+      .on('error', (error: Error): void => settle(error));
+
+    xml.pipe(parser);
+  });
 }
