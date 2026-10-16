@@ -49,6 +49,15 @@
   name (#300). `xmlNS` still works as a deprecated alias. `SitemapStream.errorHandler` is always set now; it defaults to
   a handler that warns through `logger`.
 
+#### `SitemapAndIndexStream` destroys itself on error
+
+- When a sitemap stream errors, or `getSitemapStream` throws or returns an
+  invalid tuple, `SitemapAndIndexStream` now destroys itself and emits the
+  error once. It used to emit the error without stopping, so the same failure
+  could be emitted twice, and a `getSitemapStream` failure was followed by a
+  generic `No sitemap stream available` error. Code that listened for `error`
+  and kept writing now gets write-after-destroy errors instead.
+
 ### Changed
 
 - The CLI parses arguments with Node's built-in `util.parseArgs` instead of
@@ -113,6 +122,9 @@
 
 ### Fixed
 
+- `SitemapAndIndexStream` errors with `ERR_STREAM_PREMATURE_CLOSE` instead of
+  hanging when a sitemap's write stream is destroyed before it finishes, during
+  sitemap rotation or at the end of input.
 - `sitemap --validate` exits with code 1 when the sitemap is invalid and 2 when
   validation cannot run (xmllint missing or schema not found). It used to exit
   0 in every case, so scripts and CI could not detect a failed validation.

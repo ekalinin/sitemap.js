@@ -14,7 +14,7 @@ import {
   SitemapAndIndexStream,
 } from '../dist/lib/sitemap-index-stream.js';
 import { streamToPromise } from '../dist/lib/sitemap-stream.js';
-import { finished as finishedCallback } from 'node:stream';
+import { finished as finishedCallback, Writable } from 'node:stream';
 import { readFileSync, WriteStream } from 'node:fs';
 import { promisify } from 'node:util';
 import { ErrorLevel } from '../dist/lib/types.js';
@@ -514,6 +514,132 @@ describe('sitemapAndIndex', () => {
       !existsSync(
         resolve(join(targetFolder, 'does', 'not', 'exist'), `./sitemap-0.xml`)
       )
+    );
+  });
+
+  describe('sitemap rotation', () => {
+    // A target that goes away without finishing or erroring, like a socket
+    // closed by the other end.
+    function targetDestroyedOnFirstWrite(): WriteStream {
+      return new Writable({
+        write(_chunk, _encoding, callback): void {
+          this.destroy();
+          callback();
+        },
+      }) as unknown as WriteStream;
+    }
+
+    it(
+      'errors instead of hanging when a sitemap target is destroyed before rotation',
+      { timeout: 2000 },
+      async () => {
+        const sms = new SitemapAndIndexStream({
+          limit: 1,
+          getSitemapStream: (
+            i: number
+          ): [string, SitemapStream, WriteStream] => {
+            const sm = new SitemapStream();
+            const ws =
+              i === 0
+                ? targetDestroyedOnFirstWrite()
+                : createWriteStream(devNull);
+            sm.pipe(ws);
+            return [`https://example.com/sitemap-${i}.xml`, sm, ws];
+          },
+        });
+        sms.resume();
+        sms.write('https://1.example.com/a');
+        sms.write('https://2.example.com/a');
+        sms.end();
+
+        await assert.rejects(finished(sms), {
+          code: 'ERR_STREAM_PREMATURE_CLOSE',
+        });
+      }
+    );
+
+    it(
+      'errors instead of hanging when the last sitemap target is destroyed',
+      { timeout: 2000 },
+      async () => {
+        const sms = new SitemapAndIndexStream({
+          getSitemapStream: (
+            i: number
+          ): [string, SitemapStream, WriteStream] => {
+            const sm = new SitemapStream();
+            const ws = targetDestroyedOnFirstWrite();
+            sm.pipe(ws);
+            return [`https://example.com/sitemap-${i}.xml`, sm, ws];
+          },
+        });
+        sms.resume();
+        sms.write('https://1.example.com/a');
+        sms.end();
+
+        await assert.rejects(finished(sms), {
+          code: 'ERR_STREAM_PREMATURE_CLOSE',
+        });
+      }
+    );
+
+    it(
+      'emits a sitemap error once and stops when a sitemap fails while closing',
+      { timeout: 2000 },
+      async () => {
+        const sms = new SitemapAndIndexStream({
+          limit: 1,
+          getSitemapStream: (
+            i: number
+          ): [string, SitemapStream, WriteStream] => {
+            const sm = new SitemapStream();
+            const ws = new Writable({
+              write(_chunk, _encoding, callback): void {
+                callback();
+              },
+              final(callback): void {
+                callback(new Error('disk full'));
+              },
+            }) as unknown as WriteStream;
+            ws.on('error', (err) => sm.emit('error', err));
+            sm.pipe(ws);
+            return [`https://example.com/sitemap-${i}.xml`, sm, ws];
+          },
+        });
+        const errors: Error[] = [];
+        sms.on('error', (err) => errors.push(err));
+        sms.resume();
+        sms.write('https://1.example.com/a');
+        sms.write('https://2.example.com/a');
+        sms.end();
+
+        await assert.rejects(finished(sms), /disk full/);
+        await new Promise((resolve) => setImmediate(resolve));
+        assert.equal(errors.length, 1);
+        assert.equal(sms.destroyed, true);
+      }
+    );
+
+    it(
+      'emits a getSitemapStream failure once and stops',
+      { timeout: 2000 },
+      async () => {
+        const sms = new SitemapAndIndexStream({
+          limit: 1,
+          getSitemapStream: () => {
+            throw new Error('callback error');
+          },
+        });
+        const errors: Error[] = [];
+        sms.on('error', (err) => errors.push(err));
+        sms.resume();
+        sms.write('https://1.example.com/a');
+        sms.end();
+
+        await assert.rejects(finished(sms), /getSitemapStream callback threw/);
+        await new Promise((resolve) => setImmediate(resolve));
+        assert.equal(errors.length, 1);
+        assert.equal(sms.destroyed, true);
+      }
     );
   });
 
