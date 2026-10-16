@@ -29,6 +29,17 @@ export const LIMITS = {
   MIN_SITEMAP_ITEM_LIMIT: 1,
   MAX_SITEMAP_ITEM_LIMIT: 50000,
 
+  // Priority bounds per sitemaps.org spec
+  MIN_PRIORITY: 0,
+  MAX_PRIORITY: 1,
+
+  // Video value bounds per Google spec
+  MIN_VIDEO_DURATION: 0,
+  MAX_VIDEO_DURATION: 28800, // 8 hours
+  MIN_VIDEO_RATING: 0,
+  MAX_VIDEO_RATING: 5,
+  MIN_VIDEO_VIEW_COUNT: 0,
+
   // Video field length constraints per Google spec
   MAX_VIDEO_TITLE_LENGTH: 100,
   MAX_VIDEO_DESCRIPTION_LENGTH: 2048,
@@ -59,14 +70,20 @@ export const LIMITS = {
   MAX_CUSTOM_NAMESPACES: 20,
   MAX_NAMESPACE_LENGTH: 512,
 
+  // Cap on buffered character data per element in the parser, matching sax's
+  // default buffer size. Larger values are dropped to bound memory use.
+  MAX_PARSER_CHAR_DATA_LENGTH: 65536,
+
   // Cap on stored parser errors to prevent memory DoS (BB-03)
   // Errors beyond this limit are counted in errorCount but not retained as objects
   MAX_PARSER_ERRORS: 100,
 } as const;
 
 /**
- * Default maximum number of items in each sitemap XML file
- * Set below the max to leave room for URLs added during processing
+ * Default maximum number of items in each sitemap XML file, shared by
+ * SitemapAndIndexStream, simpleSitemapAndIndex and the CLI.
+ * Set below the 50,000 max to leave headroom under the 50MB uncompressed
+ * file-size limit, which entries with images, video or news can approach.
  *
  * @see https://www.sitemaps.org/protocol.html#index
  */

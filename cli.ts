@@ -10,8 +10,7 @@ import { Readable } from 'node:stream';
 import { resolve, dirname } from 'node:path';
 import { URL } from 'node:url';
 import { createGzip, type Gzip } from 'node:zlib';
-
-import arg from 'arg';
+import { parseArgs } from 'node:util';
 
 import { xmlLint } from './lib/xmllint.js';
 import { XMLLintUnavailable } from './lib/errors.js';
@@ -49,32 +48,42 @@ const findPackageJson = (): string => {
 
 const packageJson = JSON.parse(readFileSync(findPackageJson(), 'utf8'));
 
-const pickStreamOrArg = (argv: { _: string[] }): Readable => {
-  if (!argv._.length) {
+const parseCliArgs = () => {
+  try {
+    return parseArgs({
+      allowPositionals: true,
+      options: {
+        help: { type: 'boolean', short: 'h' },
+        version: { type: 'boolean' },
+        validate: { type: 'boolean' },
+        index: { type: 'boolean' },
+        'index-base-url': { type: 'string' },
+        limit: { type: 'string' },
+        parse: { type: 'boolean' },
+        'single-line-json': { type: 'boolean' },
+        prepend: { type: 'string' },
+        gzip: { type: 'boolean' },
+      },
+    });
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : String(err));
+    console.error('Run `sitemap --help` for a list of options.');
+    process.exit(2);
+  }
+};
+const { values: argv, positionals } = parseCliArgs();
+
+const pickStreamOrArg = (): Readable => {
+  if (!positionals.length) {
     return process.stdin;
   } else {
-    return createReadStream(argv._[0], { encoding: 'utf8' });
+    return createReadStream(positionals[0], { encoding: 'utf8' });
   }
 };
 
-const argSpec = {
-  '--help': Boolean,
-  '--version': Boolean,
-  '--validate': Boolean,
-  '--index': Boolean,
-  '--index-base-url': String,
-  '--limit': Number,
-  '--parse': Boolean,
-  '--single-line-json': Boolean,
-  '--prepend': String,
-  '--gzip': Boolean,
-  '-h': '--help',
-};
-const argv = arg(argSpec);
-
 function getStream(): Readable {
-  if (argv._ && argv._.length) {
-    return createReadStream(argv._[0]);
+  if (positionals.length) {
+    return createReadStream(positionals[0]);
   } else {
     console.warn(
       'Reading from stdin. If you are not piping anything in, this command is not doing anything'
@@ -82,9 +91,9 @@ function getStream(): Readable {
     return process.stdin;
   }
 }
-if (argv['--version']) {
+if (argv.version) {
   console.log(packageJson.version);
-} else if (argv['--help']) {
+} else if (argv.help) {
   console.log(`
 Turn a list of urls into a sitemap xml.
 Options:
@@ -113,30 +122,38 @@ Turn an existing sitemap into configuration understood by the sitemap library
 Use XMLLib to validate your sitemap (requires xmllib)
   npx sitemap --validate sitemap.xml
 `);
-} else if (argv['--parse']) {
+} else if (argv.parse) {
   let oStream: ObjectStreamToJSON | Gzip = getStream()
     .pipe(new XMLToSitemapItemStream({ level: ErrorLevel.THROW }))
-    .pipe(
-      new ObjectStreamToJSON({ lineSeparated: !argv['--single-line-json'] })
-    );
-  if (argv['--gzip']) {
+    .pipe(new ObjectStreamToJSON({ lineSeparated: !argv['single-line-json'] }));
+  if (argv.gzip) {
     oStream = oStream.pipe(createGzip());
   }
   oStream.pipe(process.stdout);
-} else if (argv['--validate']) {
+} else if (argv.validate) {
   xmlLint(getStream())
     .then((): void => console.log('valid'))
-    .catch(([error, stderr]: [Error | null, Buffer]): void => {
-      if (error instanceof XMLLintUnavailable) {
-        console.error(error.message);
+    .catch(([error, stderr]: [Error | null, Buffer?]): void => {
+      if (error instanceof XMLLintUnavailable || stderr === undefined) {
+        // No xmllint output to show (xmllint missing, or the schema could
+        // not be found), so report the error itself. Exit 2: validation
+        // could not run, as distinct from a file that failed it.
+        console.error(error?.message);
+        process.exitCode = 2;
         return;
       } else {
         console.log(stderr);
+        // Exit 1 so scripts and CI can detect an invalid sitemap
+        process.exitCode = 1;
       }
     });
-} else if (argv['--index']) {
-  const limit: number | undefined = argv['--limit'];
-  const baseURL: string | undefined = argv['--index-base-url'];
+} else if (argv.index) {
+  const limit = argv.limit === undefined ? undefined : Number(argv.limit);
+  if (limit !== undefined && !Number.isInteger(limit)) {
+    console.error(`--limit must be an integer, got "${argv.limit}"`);
+    process.exit(2);
+  }
+  const baseURL = argv['index-base-url'];
   if (!baseURL) {
     throw new Error(
       "You must specify where the sitemaps will be hosted. use --index-base-url 'https://example.com/path'"
@@ -149,7 +166,7 @@ Use XMLLib to validate your sitemap (requires xmllib)
       const path = `./sitemap-${i}.xml`;
 
       let ws: WriteStream;
-      if (argv['--gzip']) {
+      if (argv.gzip) {
         ws = sm.pipe(createGzip()).pipe(createWriteStream(path));
       } else {
         ws = sm.pipe(createWriteStream(path));
@@ -157,26 +174,22 @@ Use XMLLib to validate your sitemap (requires xmllib)
       return [new URL(path, baseURL).toString(), sm, ws];
     },
   });
-  let oStream: SitemapAndIndexStream | Gzip = lineSeparatedURLsToSitemapOptions(
-    pickStreamOrArg(argv)
-  ).pipe(sms);
-  if (argv['--gzip']) {
+  let oStream: SitemapAndIndexStream | Gzip =
+    lineSeparatedURLsToSitemapOptions(pickStreamOrArg()).pipe(sms);
+  if (argv.gzip) {
     oStream = oStream.pipe(createGzip());
   }
   oStream.pipe(process.stdout);
 } else {
   const sms = new SitemapStream();
 
-  if (argv['--prepend']) {
-    createReadStream(argv['--prepend'])
-      .pipe(new XMLToSitemapItemStream())
-      .pipe(sms);
+  if (argv.prepend) {
+    createReadStream(argv.prepend).pipe(new XMLToSitemapItemStream()).pipe(sms);
   }
-  const oStream: SitemapStream = lineSeparatedURLsToSitemapOptions(
-    pickStreamOrArg(argv)
-  ).pipe(sms);
+  const oStream: SitemapStream =
+    lineSeparatedURLsToSitemapOptions(pickStreamOrArg()).pipe(sms);
 
-  if (argv['--gzip']) {
+  if (argv.gzip) {
     oStream.pipe(createGzip()).pipe(process.stdout);
   } else {
     oStream.pipe(process.stdout);

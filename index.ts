@@ -24,7 +24,6 @@ export * from './lib/types.js';
 export {
   lineSeparatedURLsToSitemapOptions,
   mergeStreams,
-  validateSMIOptions,
   normalizeURL,
   ReadlineStream,
   type ReadlineStreamOptions,
@@ -51,6 +50,7 @@ export {
 } from './lib/sitemap-simple.js';
 
 export {
+  validateSMIOptions,
   validateURL,
   validatePath,
   validateLimit,

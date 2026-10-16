@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { Readable, Writable } from 'node:stream';
 import { promisify } from 'node:util';
@@ -472,6 +472,138 @@ describe('Sitemap Index Security', () => {
 
       assert.ok(src.destroyed);
       assert.ok(i < max / 2);
+    });
+  });
+
+  describe('XMLToSitemapIndexStream entry cap', () => {
+    const indexXml = (n: number) =>
+      '<?xml version="1.0"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
+      Array.from(
+        { length: n },
+        (_, i) => `<sitemap><loc>https://e.com/${i}.xml</loc></sitemap>`
+      ).join('') +
+      '</sitemapindex>';
+
+    const collect = async (stream: XMLToSitemapIndexStream, xml: string) => {
+      const items: IndexItem[] = [];
+      await pipeline(
+        Readable.from([xml]),
+        stream,
+        new Writable({
+          objectMode: true,
+          write(chunk, _enc, next) {
+            items.push(chunk);
+            next();
+          },
+        })
+      );
+      return items;
+    };
+
+    it('stops emitting past maxEntries and records an error', async () => {
+      const logger = mock.fn();
+      const stream = new XMLToSitemapIndexStream({ maxEntries: 2, logger });
+      const items = await collect(stream, indexXml(5));
+
+      assert.strictEqual(items.length, 2);
+      assert.strictEqual(stream.entryCount, 5);
+      assert.match(stream.error?.message ?? '', /exceeds maximum of 2 entries/);
+      // logs once at the boundary, not once per dropped entry
+      const capLogs = logger.mock.calls.filter(
+        (c) => c.arguments[0] === 'error'
+      );
+      assert.strictEqual(capLogs.length, 1);
+    });
+
+    it('rejects the pipeline when level is THROW', async () => {
+      const stream = new XMLToSitemapIndexStream({
+        maxEntries: 2,
+        level: ErrorLevel.THROW,
+      });
+      await assert.rejects(
+        () => collect(stream, indexXml(5)),
+        /exceeds maximum of 2 entries/
+      );
+    });
+
+    it('defaults to the sitemaps.org limit of 50,000', async () => {
+      const stream = new XMLToSitemapIndexStream({ logger: false });
+      const items = await collect(stream, indexXml(50001));
+      assert.strictEqual(items.length, 50000);
+    });
+
+    it('rejects an invalid maxEntries', () => {
+      for (const maxEntries of [-1, 1.5, NaN]) {
+        assert.throws(
+          () => new XMLToSitemapIndexStream({ maxEntries }),
+          /maxEntries must be a non-negative integer or Infinity/
+        );
+      }
+    });
+
+    it('accepts maxEntries of 0 and emits nothing', async () => {
+      const stream = new XMLToSitemapIndexStream({
+        maxEntries: 0,
+        logger: false,
+      });
+      const items = await collect(stream, indexXml(3));
+      assert.strictEqual(items.length, 0);
+    });
+
+    it('emits maxEntriesExceeded once and skips logging when handled', async () => {
+      const logger = mock.fn();
+      const stream = new XMLToSitemapIndexStream({ maxEntries: 2, logger });
+      const seen: number[] = [];
+      stream.on('maxEntriesExceeded', (cap: number) => seen.push(cap));
+      const items = await collect(stream, indexXml(5));
+
+      assert.strictEqual(items.length, 2);
+      assert.deepStrictEqual(seen, [2]);
+      assert.strictEqual(logger.mock.callCount(), 0);
+      assert.match(stream.error?.message ?? '', /exceeds maximum of 2 entries/);
+    });
+  });
+
+  describe('parseSitemapIndex maxEntries edge cases', () => {
+    const smallIndex =
+      '<?xml version="1.0"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><sitemap><loc>https://e.com/1.xml</loc></sitemap></sitemapindex>';
+
+    it('rejects on the first entry when maxEntries is 0', async () => {
+      await assert.rejects(
+        () => parseSitemapIndex(Readable.from([smallIndex]), 0),
+        /exceeds maximum allowed entries \(0\)/
+      );
+    });
+
+    it('rejects an invalid maxEntries and destroys the source', async () => {
+      for (const maxEntries of [-1, 1.5, NaN]) {
+        const src = Readable.from([smallIndex]);
+        await assert.rejects(
+          () => parseSitemapIndex(src, maxEntries),
+          /maxEntries must be a non-negative integer or Infinity/
+        );
+        assert.ok(src.destroyed);
+      }
+    });
+
+    it('does not log when rejecting an over-limit index', async () => {
+      const consoleError = mock.method(console, 'error', () => undefined);
+      try {
+        await assert.rejects(
+          () =>
+            parseSitemapIndex(
+              Readable.from([
+                smallIndex.replace('</sitemapindex>', '') +
+                  '<sitemap><loc>https://e.com/2.xml</loc></sitemap></sitemapindex>',
+              ]),
+              1
+            ),
+          /exceeds maximum allowed entries \(1\)/
+        );
+        assert.strictEqual(consoleError.mock.callCount(), 0);
+      } finally {
+        consoleError.mock.restore();
+      }
     });
   });
 

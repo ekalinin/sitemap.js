@@ -126,7 +126,7 @@ simpleSitemapAndIndex({
   // sourceData: [{ url: '/page-1/', changefreq: 'daily'}, ...],
   // or
   // sourceData: './your-data.json.txt',
-  limit: 45000, // optional, default: 50000
+  limit: 45000, // optional, default: 45000
   gzip: true, // optional, default: true
   publicBasePath: '/sitemaps/', // optional, default: './'
   xslUrl: 'https://example.com/sitemap.xsl', // optional XSL stylesheet
@@ -145,7 +145,7 @@ import { Readable } from 'stream'
 import { SitemapAndIndexStream, SitemapStream, lineSeparatedURLsToSitemapOptions } from 'sitemap'
 
 const sms = new SitemapAndIndexStream({
-  limit: 50000, // defaults to 45k
+  limit: 50000, // defaults to 45000
   lastmodDateOnly: false, // print date not time
   // SitemapAndIndexStream will call this user provided function every time
   // it needs to create a new sitemap file. You merely need to return a stream

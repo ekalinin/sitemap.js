@@ -16,25 +16,152 @@
 - Build output flattened from `dist/esm/*` and `dist/cjs/*` to `dist/*`. The
   `bin` entry is now `dist/cli.js`.
 
+#### `simpleSitemapAndIndex` defaults to 45,000 URLs per sitemap
+
+- The default `limit` drops from 50,000 to 45,000, the same default
+  `SitemapAndIndexStream` and the CLI already use (`DEFAULT_SITEMAP_ITEM_LIMIT`).
+  The headroom keeps rich entries (images, video, news) under the 50MB
+  uncompressed file-size limit. A 50,000-URL input now produces two sitemap
+  files instead of one; pass `limit: 50000` to keep the old output.
+
+#### `SitemapStream` writes an empty sitemap instead of erroring
+
+- Ending a `SitemapStream` without writing any items now produces a
+  well-formed empty `<urlset>` instead of failing with `EmptySitemap`
+  (#394, #421). This matches `SitemapIndexStream`, which already wrote an empty
+  `<sitemapindex>`. `EmptySitemap` is still exported but deprecated and no
+  longer thrown. An empty `<urlset>` does not pass strict `sitemap.xsd`
+  validation, which requires at least one `<url>`; search engines accept it.
+
+#### One `logger` option across the library; `xmlNS` renamed to `xmlns`
+
+- `SitemapStream`, `SitemapIndexStream`, `SitemapAndIndexStream` and
+  `simpleSitemapAndIndex` accept the same `logger` option the parsers already
+  had (#348). Validation warnings that went straight to `console.warn` now go
+  through it. Pass `false` to silence. The `Logger` type is now exported.
+- Invalid news and video attribute values now go through `errorHandler` (and
+  so the logger) like every other validation error, instead of a hardcoded
+  `console.warn`. The warning text is now the error's name and message, which starts with
+  the item's URL. Under `ErrorLevel.THROW` a custom `errorHandler` receives
+  these errors too, like every other validation error; the default handler
+  still throws.
+- The `SitemapStream` property `xmlNS` is now `xmlns`, matching the option
+  name (#300). `xmlNS` still works as a deprecated alias. `SitemapStream.errorHandler` is always set now; it defaults to
+  a handler that warns through `logger`.
+
 ### Changed
 
+- The CLI parses arguments with Node's built-in `util.parseArgs` instead of
+  the `arg` package, which is no longer a dependency (#471). Unknown options
+  and a non-integer `--limit` now print a message and exit with code 2 instead
+  of throwing an uncaught error.
 - Test suite migrated from Jest to the built-in Node.js test runner. Coverage
   thresholds moved from `jest.config.cjs` into the `test:coverage` script and are
   enforced in CI by a dedicated job.
 - CI now runs on Linux, Windows and macOS across Node 22/24/26. Lint, formatting
   and typechecking run once rather than on every matrix leg.
+- **Stricter `<loc>` validation in the sitemap parser**: `XMLToSitemapItemStream`
+  now validates `<loc>` values with the same `validateURL` used by the sitemap
+  index parser, adding a URL-parseability check on top of the existing length
+  and protocol checks. A malformed URL that passed the old checks but fails
+  `new URL()` is now dropped with a warning (or throws under
+  `ErrorLevel.THROW`). Warn/error messages for invalid `<loc>` values changed to
+  the `Invalid URL in sitemap: …` form.
+- **`validateURL` throws `InvalidURLError`**, a new subclass of
+  `InvalidHostnameError` (so `instanceof InvalidHostnameError` still matches).
+  Its message reads `Invalid URL "…": …` instead of `Invalid hostname "…": …`,
+  and it shows at most the first 100 characters of the offending value.
+- **Stricter video validation in `validateSMIOptions`**: a video `duration`,
+  `rating` or `view_count` that is `NaN`, `Infinity` or otherwise non-numeric
+  is now reported as invalid (and throws under `ErrorLevel.THROW`). Previously
+  only out-of-range finite numbers were caught, so `NaN` slipped through.
+- `XMLToSitemapItemStream` now buffers each element's character data and
+  handles it once at the next tag boundary: text and CDATA chunks within one
+  element are joined, surrounding whitespace is trimmed for CDATA as it already
+  was for text, whitespace between chunks is kept (`Episode <![CDATA[One]]>`
+  now parses as `Episode One`, not `EpisodeOne`), and stray character data
+  between elements is reported against
+  the enclosing element instead of overwriting the previous one. Character data
+  longer than `LIMITS.MAX_PARSER_CHAR_DATA_LENGTH` (64 KiB) for one element is
+  dropped with a warning.
+- Internal: the parser's duplicated `text`/`cdata` SAX handlers were collapsed
+  into one, and its inline bounds checks (priority, video duration/rating/view
+  count, ISO dates) now delegate to shared guards in `lib/validation.ts`, with
+  the bounds defined once in `LIMITS`.
+- `XMLToSitemapIndexStream` now handles character data the same way: text and
+  CDATA within one `<loc>` or `<lastmod>` are joined and trimmed, stray
+  character data is reported against the enclosing element, and values longer
+  than `LIMITS.MAX_PARSER_CHAR_DATA_LENGTH` are dropped with a warning.
+  Unhandled CDATA is now logged as `unhandled text for tag:` instead of
+  `unhandled cdata for tag:`. Both parsers share one buffer,
+  `createCharDataBuffer` in `lib/utils.ts`.
+- **`XMLToSitemapIndexStream` enforces the 50,000-entry spec limit itself.**
+  Entries past `LIMITS.MAX_SITEMAP_ITEM_LIMIT` are dropped with a single error
+  (which throws under `ErrorLevel.THROW`), and a new `entryCount` property counts
+  every `<sitemap>` seen. Previously only the `parseSitemapIndex` wrapper capped
+  entries, so piping the stream directly had no limit. `parseSitemapIndex` still
+  rejects an over-limit index and stops reading as soon as the limit is crossed,
+  but a `maxEntries` above 50,000 no longer raises the limit. A new
+  `maxEntries` stream option lowers the cap, or raises it (`Infinity` turns it
+  off) for callers that knowingly parse oversized indexes. When the cap is
+  crossed the stream emits `'maxEntriesExceeded'`, and logs the overflow only
+  if nothing listens for that event, so `parseSitemapIndex` rejects without
+  also logging. `maxEntries: 0` is allowed (nothing is emitted, and
+  `parseSitemapIndex` rejects on the first entry); a negative, fractional or
+  `NaN` value is rejected, and `parseSitemapIndex` destroys the source stream
+  before rejecting.
 
 ### Fixed
 
+- `sitemap --validate` exits with code 1 when the sitemap is invalid and 2 when
+  validation cannot run (xmllint missing or schema not found). It used to exit
+  0 in every case, so scripts and CI could not detect a failed validation.
+- `xmlLint()` and `sitemap --validate` find the bundled `schema/` directory
+  when the package is installed as a dependency. The lookup searched relative
+  to `process.cwd()`, so outside this repository it threw a synchronous
+  "Schema directory not found" error that crashed the CLI. It now walks up from
+  the module's own directory, and a missing schema rejects the promise instead
+  of throwing.
+- `xmlLint()` destroys a `Readable` input if xmllint exits or fails to start
+  before reading all of it, so the source no longer stays paused with its file
+  descriptor open.
+- `SitemapStream` and `SitemapIndexStream` check their public `level` field
+  when they warn, so changing `level` after construction takes effect again,
+  as it did in 9.0.1.
+- `@types/node` is a runtime dependency again, as it was in 9.0.1, because the
+  published type definitions import Node's stream types. The range now covers
+  every supported Node major (`^22 || ^24 || ^26`), so npm can share a
+  consumer's own copy.
+- `XMLToSitemapItemStream` now treats CDATA sections as ordinary character data
+  in every tag. Previously only the 8 tags from issue #445 (`loc`, `image:loc`,
+  `video:title`, `video:description`, `news:name`, `news:title`,
+  `image:caption`, `image:title`) accepted CDATA; content in any other tag was
+  logged as unhandled. See `docs/adr/0001-cdata-is-character-data.md`.
 - `xmlLint()` no longer probes for the binary with `which`, which is not a
   command on Windows and made validation report `XMLLintUnavailable` there even
   when xmllint was installed. A missing binary is now detected via `ENOENT` from
   the spawn itself, which is correct on every platform.
+- The published tarball now contains only `dist/` and `schema/` (via a `files`
+  allowlist), so maintainer files such as `CLAUDE.md` no longer ship to
+  consumers (#480).
 - The CLI locates `package.json` by walking up from its own directory instead of
   a hardcoded relative depth, so `--version` no longer breaks when the build
   output layout changes.
 
-## 9.0.1 — Security Patch
+### Documentation
+
+- `api.md` now documents `XMLToSitemapIndexStream` and `parseSitemapIndex`, and
+  the 50,000-entry and error-array caps the parsers enforce.
+- `api.md` no longer claims `simpleSitemapAndIndex` accepts an absolute
+  `destinationDir`; absolute paths have been rejected since 9.0.1 (#478).
+- JSDoc examples for `parseSitemap` and `parseSitemapIndex` use `import` and
+  current APIs instead of `require()` and the removed `createSitemap`.
+
+## 9.0.1 - 2026-02-27 — Security Patch
+
+**Behavior change:** `simpleSitemapAndIndex` now throws `InvalidPathError` when
+`destinationDir` is an absolute path (BB-04). Pass a path relative to the
+working directory, or use `SitemapAndIndexStream` directly.
 
 - **BB-01**: Fix XML injection via unescaped `xslUrl` in stylesheet processing instruction — special characters (`&`, `"`, `<`, `>`) in the XSL URL are now escaped before being interpolated into the `<?xml-stylesheet?>` processing instruction
 - **BB-02**: Enforce 50,000 URL hard limit in `XMLToSitemapItemStream` — the parser now stops emitting items and emits an error when the limit is exceeded, rather than merely logging a warning

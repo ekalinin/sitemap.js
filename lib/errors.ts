@@ -102,9 +102,10 @@ export class InvalidVideoRating extends Error {
 }
 
 export class InvalidAttrValue extends Error {
-  constructor(key: string, val: any, validator: RegExp) {
+  constructor(key: string, val: any, validator: RegExp, url?: string) {
     super(
-      '"' +
+      (url ? `${url}: ` : '') +
+        '"' +
         val +
         '" tested against: ' +
         validator +
@@ -261,11 +262,15 @@ export class EmptyStream extends Error {
   }
 }
 
+/**
+ * @deprecated No longer thrown: since 10.0.0, `SitemapStream` emits an empty
+ * `<urlset>` when it ends without items. Kept so existing imports still resolve.
+ */
 export class EmptySitemap extends Error {
   constructor() {
     super('You ended the stream without writing anything.');
     this.name = 'EmptySitemap';
-    Error.captureStackTrace(this, EmptyStream);
+    Error.captureStackTrace(this, EmptySitemap);
   }
 }
 
@@ -282,6 +287,24 @@ export class InvalidHostnameError extends Error {
     super(`Invalid hostname "${hostname}": ${reason}`);
     this.name = 'InvalidHostnameError';
     Error.captureStackTrace(this, InvalidHostnameError);
+  }
+}
+
+/**
+ * A URL failed validateURL. Extends InvalidHostnameError so existing
+ * `instanceof InvalidHostnameError` checks keep working; the offending value
+ * is truncated so attacker-sized input is not copied into every message.
+ */
+export class InvalidURLError extends InvalidHostnameError {
+  constructor(url: string, reason: string) {
+    super(url, reason);
+    const shown =
+      typeof url === 'string' && url.length > 100
+        ? `${url.substring(0, 100)}...`
+        : url;
+    this.message = `Invalid URL "${shown}": ${reason}`;
+    this.name = 'InvalidURLError';
+    Error.captureStackTrace(this, InvalidURLError);
   }
 }
 

@@ -19,11 +19,102 @@ import type {
   Img,
   LinkItem,
   VideoItem,
+  CharDataBuffer,
+  CharDataHandlers,
+  ErrorHandler,
+  Logger,
 } from './types.js';
-import { EnumYesNo } from './types.js';
+import { EnumYesNo, ErrorLevel } from './types.js';
+import { LIMITS } from './constants.js';
 
-// Re-export validateSMIOptions from validation.ts for backward compatibility
-export { validateSMIOptions } from './validation.js';
+/**
+ * Per ADR 0001, CDATA sections are ordinary character data: wire both the SAX
+ * `text` and `cdata` events to `append`. Character data is joined, trimmed and
+ * handed to `onText` once at the next tag boundary, attributed to the innermost
+ * open element (which is not the last opened tag once a child has closed).
+ * An element whose character data exceeds LIMITS.MAX_PARSER_CHAR_DATA_LENGTH is
+ * dropped and reported through `onOverflow` to bound memory use.
+ */
+export function createCharDataBuffer({
+  onText,
+  onOverflow,
+}: CharDataHandlers): CharDataBuffer {
+  let charData = '';
+  let overflow = false;
+  const openTags: string[] = [];
+
+  const flush = (): void => {
+    const tag = openTags[openTags.length - 1];
+    const text = charData.trim();
+    charData = '';
+    if (overflow) {
+      overflow = false;
+      onOverflow(
+        `character data for ${tag} exceeds max length of ${LIMITS.MAX_PARSER_CHAR_DATA_LENGTH}`
+      );
+    } else if (text) {
+      onText(tag, text);
+    }
+  };
+
+  return {
+    openTag(name: string): void {
+      flush();
+      openTags.push(name);
+    },
+    append(text: string): void {
+      if (overflow) {
+        return;
+      }
+      if (charData.length + text.length > LIMITS.MAX_PARSER_CHAR_DATA_LENGTH) {
+        overflow = true;
+        charData = '';
+        return;
+      }
+      charData += text;
+    },
+    closeTag(): void {
+      flush();
+      openTags.pop();
+    },
+  };
+}
+
+/**
+ * The logger streams use when none is given: forwards to the console
+ */
+export const defaultLogger: Logger = (level, ...message) =>
+  console[level](...message);
+
+const noopLogger: Logger = () => undefined;
+
+/**
+ * An ErrorHandler for validateSMIOptions that throws at ErrorLevel.THROW and
+ * sends warnings to the given logger at ErrorLevel.WARN
+ */
+export function loggingErrorHandler(logger: Logger): ErrorHandler {
+  return (error, level) => {
+    if (level === ErrorLevel.THROW) {
+      throw error;
+    } else if (level === ErrorLevel.WARN) {
+      logger('warn', error.name, error.message);
+    }
+  };
+}
+
+/**
+ * Pick the logger a stream should use: a no-op when the level is SILENT or the
+ * caller passed `false`, otherwise the caller's logger or the console.
+ */
+export function resolveLogger(
+  level: ErrorLevel,
+  logger: Logger | false | undefined
+): Logger {
+  if (level === ErrorLevel.SILENT || logger === false) {
+    return noopLogger;
+  }
+  return logger ?? defaultLogger;
+}
 
 /**
  * Combines multiple streams into one

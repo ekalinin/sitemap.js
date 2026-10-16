@@ -6,7 +6,7 @@
 
 import {
   InvalidPathError,
-  InvalidHostnameError,
+  InvalidURLError,
   InvalidLimitError,
   InvalidPublicBasePathError,
   InvalidXSLUrlError,
@@ -47,6 +47,7 @@ import type {
   ErrorHandler,
 } from './types.js';
 import { LIMITS } from './constants.js';
+import { defaultLogger, loggingErrorHandler } from './utils.js';
 import { isAbsolute } from 'node:path';
 
 /**
@@ -98,6 +99,55 @@ export function isValidYesNo(yn: string): yn is EnumYesNo {
 }
 
 /**
+ * Checks that a priority is a finite number within sitemaps.org bounds (0–1)
+ */
+export function isValidPriority(priority: number): boolean {
+  return (
+    isFinite(priority) &&
+    priority >= LIMITS.MIN_PRIORITY &&
+    priority <= LIMITS.MAX_PRIORITY
+  );
+}
+
+/**
+ * Checks that a video duration is a finite number of seconds within Google's
+ * video sitemap bounds (0–28800)
+ */
+export function isValidVideoDuration(duration: number): boolean {
+  return (
+    isFinite(duration) &&
+    duration >= LIMITS.MIN_VIDEO_DURATION &&
+    duration <= LIMITS.MAX_VIDEO_DURATION
+  );
+}
+
+/**
+ * Checks that a video rating is a finite number within Google's video sitemap
+ * bounds (0–5)
+ */
+export function isValidVideoRating(rating: number): boolean {
+  return (
+    isFinite(rating) &&
+    rating >= LIMITS.MIN_VIDEO_RATING &&
+    rating <= LIMITS.MAX_VIDEO_RATING
+  );
+}
+
+/**
+ * Checks that a video view count is a finite, non-negative number
+ */
+export function isValidVideoViewCount(count: number): boolean {
+  return isFinite(count) && count >= LIMITS.MIN_VIDEO_VIEW_COUNT;
+}
+
+/**
+ * Checks that a date string is in ISO 8601 / W3C format
+ */
+export function isValidISODate(date: string): boolean {
+  return LIMITS.ISO_DATE_REGEX.test(date);
+}
+
+/**
  * Type guard to check if a string is a valid allow/deny value
  */
 export function isAllowDeny(ad: string): ad is EnumAllowDeny {
@@ -114,25 +164,22 @@ export function isAllowDeny(ad: string): ad is EnumAllowDeny {
  *
  * @param url - The URL to validate
  * @param paramName - The parameter name for error messages
- * @throws {InvalidHostnameError} If the URL is invalid
+ * @throws {InvalidURLError} If the URL is invalid (a subclass of InvalidHostnameError)
  */
 export function validateURL(url: string, paramName: string): void {
   if (!url || typeof url !== 'string') {
-    throw new InvalidHostnameError(
-      url,
-      `${paramName} must be a non-empty string`
-    );
+    throw new InvalidURLError(url, `${paramName} must be a non-empty string`);
   }
 
   if (url.length > LIMITS.MAX_URL_LENGTH) {
-    throw new InvalidHostnameError(
+    throw new InvalidURLError(
       url,
       `${paramName} exceeds maximum length of ${LIMITS.MAX_URL_LENGTH} characters`
     );
   }
 
   if (!LIMITS.URL_PROTOCOL_REGEX.test(url)) {
-    throw new InvalidHostnameError(
+    throw new InvalidURLError(
       url,
       `${paramName} must use http:// or https:// protocol`
     );
@@ -142,10 +189,28 @@ export function validateURL(url: string, paramName: string): void {
   try {
     new URL(url);
   } catch (err) {
-    throw new InvalidHostnameError(
+    throw new InvalidURLError(
       url,
       `${paramName} is not a valid URL: ${err instanceof Error ? err.message : String(err)}`
     );
+  }
+}
+
+/**
+ * Runs validateURL and returns its error message instead of throwing, for
+ * parsers that report invalid values and keep going.
+ *
+ * @returns The validation error message, or undefined if the URL is valid
+ */
+export function getURLError(
+  url: string,
+  paramName: string
+): string | undefined {
+  try {
+    validateURL(url, paramName);
+    return undefined;
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
   }
 }
 
@@ -393,34 +458,22 @@ export function validateXSLUrl(xslUrl: string): void {
  */
 function validate(
   subject: NewsItem | VideoItem | NewsItem['publication'],
-  name: string,
   url: string,
-  level: ErrorLevel
+  level: ErrorLevel,
+  errorHandler: ErrorHandler
 ): void {
   Object.keys(subject).forEach((key): void => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const val = subject[key];
     if (validators[key] && !validators[key].test(val)) {
-      if (level === ErrorLevel.THROW) {
-        throw new InvalidAttrValue(key, val, validators[key]);
-      } else {
-        console.warn(`${url}: ${name} key ${key} has invalid value: ${val}`);
-      }
+      errorHandler(new InvalidAttrValue(key, val, validators[key], url), level);
     }
   });
 }
 
-/**
- * Internal helper to handle errors based on error level
- */
-function handleError(error: Error, level: ErrorLevel): void {
-  if (level === ErrorLevel.THROW) {
-    throw error;
-  } else if (level === ErrorLevel.WARN) {
-    console.warn(error.name, error.message);
-  }
-}
+// Default for direct validateSMIOptions() calls: warn through the console
+const handleError: ErrorHandler = loggingErrorHandler(defaultLogger);
 
 /**
  * Verifies all data passed in will comply with sitemap spec.
@@ -454,7 +507,7 @@ export function validateSMIOptions(
   }
 
   if (priority) {
-    if (!(priority >= 0.0 && priority <= 1.0)) {
+    if (!isValidPriority(priority)) {
       errorHandler(new PriorityInvalidError(url, priority), level);
     }
   }
@@ -478,18 +531,18 @@ export function validateSMIOptions(
       errorHandler(new InvalidNewsFormat(url), level);
     }
 
-    validate(news, 'news', url, level);
-    validate(news.publication, 'publication', url, level);
+    validate(news, url, level, errorHandler);
+    validate(news.publication, url, level, errorHandler);
   }
 
   if (video) {
     video.forEach((vid): void => {
       if (vid.duration !== undefined) {
-        if (vid.duration < 0 || vid.duration > 28800) {
+        if (!isValidVideoDuration(vid.duration)) {
           errorHandler(new InvalidVideoDuration(url, vid.duration), level);
         }
       }
-      if (vid.rating !== undefined && (vid.rating < 0 || vid.rating > 5)) {
+      if (vid.rating !== undefined && !isValidVideoRating(vid.rating)) {
         errorHandler(new InvalidVideoRating(url, vid.title, vid.rating), level);
       }
 
@@ -514,7 +567,10 @@ export function validateSMIOptions(
         );
       }
 
-      if (vid.view_count !== undefined && vid.view_count < 0) {
+      if (
+        vid.view_count !== undefined &&
+        !isValidVideoViewCount(vid.view_count)
+      ) {
         errorHandler(new InvalidVideoViewCount(url, vid.view_count), level);
       }
 
@@ -587,7 +643,7 @@ export function validateSMIOptions(
         );
       }
 
-      validate(vid, 'video', url, level);
+      validate(vid, url, level, errorHandler);
     });
   }
 

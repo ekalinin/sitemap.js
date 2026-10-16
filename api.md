@@ -8,6 +8,8 @@
   - [SitemapIndexStream](#sitemapindexstream)
   - [xmlLint](#xmllint)
   - [parseSitemap](#parsesitemap)
+  - [XMLToSitemapIndexStream](#xmltositemapindexstream)
+  - [parseSitemapIndex](#parsesitemapindex)
   - [lineSeparatedURLsToSitemapOptions](#lineseparatedurlstositemapoptions)
   - [streamToPromise](#streamtopromise)
   - [ObjectStreamToJSON](#objectstreamtojson)
@@ -27,7 +29,7 @@ import { SitemapStream } from 'sitemap'
 
 const sms = new SitemapStream({
   hostname: 'https://example.com', // optional only necessary if your paths are relative
-  lastmodDateOnly: false // defaults to false, flip to true for baidu
+  lastmodDateOnly: false, // defaults to false, flip to true for baidu
   xmlns: { // XML namespaces to turn on - all by default
     news: true,
     xhtml: true,
@@ -35,11 +37,16 @@ const sms = new SitemapStream({
     video: true,
     // custom: ['xmlns:custom="https://example.com"']
   },
-  errorHandler: undefined // defaults to a standard errorLogger that logs to console or throws if the errorLevel is set to throw
+  logger: (level, ...message) => myLogger[level](...message), // defaults to the console, pass false to silence
+  errorHandler: undefined // defaults to warning through `logger`, or throwing if level is ErrorLevel.THROW
 })
 const readable = // a readable stream of objects
 readable.pipe(sms).pipe(process.stdout)
 ```
+
+### Logging
+
+Every stream (`SitemapStream`, `SitemapIndexStream`, `SitemapAndIndexStream`, `XMLToSitemapItemStream` and `XMLToSitemapIndexStream`) and `simpleSitemapAndIndex` accept a `logger` option of type `Logger`. The library sends the warnings it would otherwise print to that function instead of the console. `simpleSitemapAndIndex` passes it to the streams it creates; with `SitemapAndIndexStream` the option covers the index only, so pass `logger` to each `SitemapStream` you create in `getSitemapStream`. An explicit `errorHandler` on `SitemapStream` replaces the logger for validation warnings, and `validateSMIOptions()` called directly warns through the console unless given a handler. The function receives a level (`'warn'`, `'error'`, `'info'` or `'log'`) followed by the message parts. Pass `logger: false`, or set `level: ErrorLevel.SILENT`, to log nothing.
 
 ## XMLToSitemapItemStream
 
@@ -54,7 +61,7 @@ createReadStream('./some/sitemap.xml')
 // turn the xml into sitemap option item options
 .pipe(new XMLToSitemapItemStream({
   // optional
-  level: ErrorLevel.WARN // default is WARN pass SILENT to silence
+  level: ErrorLevel.WARN, // default is WARN pass SILENT to silence
   logger: false // default is console log, pass false as another way to silence or your own custom logger
 }))
 // convert the object stream to JSON
@@ -62,6 +69,11 @@ createReadStream('./some/sitemap.xml')
 // write the library compatible options to disk
 .pipe(createWriteStream('./sitemapOptions.json'))
 ```
+
+The parser enforces the sitemaps.org limits while it reads, so untrusted input can't exhaust memory:
+
+- After 50,000 `<url>` entries (`LIMITS.MAX_URL_ENTRIES`) it stops emitting items and records an error.
+- It keeps at most 100 messages (`LIMITS.MAX_PARSER_ERRORS`) in its `errors` array; `errorCount` holds the full count.
 
 ## SitemapAndIndexStream
 
@@ -80,7 +92,7 @@ import {
 } from 'sitemap';
 
 const sms = new SitemapAndIndexStream({
-  limit: 10000, // defaults to 45k
+  limit: 10000, // defaults to 45000
   // SitemapAndIndexStream will call this user provided function every time
   // it needs to create a new sitemap file. You merely need to return a stream
   // for it to write the sitemap urls to and the expected url where that sitemap will be hosted
@@ -120,7 +132,7 @@ await simpleSitemapAndIndex({
     { url: '/page-2/', changefreq: 'weekly', priority: 0.7 },
     // ... more URLs
   ],
-  // optional: limit URLs per sitemap (default: 50000, must be 1-50000)
+  // optional: limit URLs per sitemap (default: 45000, must be 1-50000)
   limit: 45000,
   // optional: gzip the output files (default: true)
   gzip: true,
@@ -139,13 +151,13 @@ await simpleSitemapAndIndex({
 
 - **hostname** (required): The base URL for all sitemap entries. Must be a valid `http://` or `https://` URL.
 - **sitemapHostname** (optional): The base URL for sitemap index entries if different from `hostname`. Must be a valid `http://` or `https://` URL.
-- **destinationDir** (required): Directory where sitemaps and index will be written. Can be relative or absolute, but must not contain path traversal sequences (`..`).
+- **destinationDir** (required): Directory where sitemaps and index will be written, relative to the current working directory. Absolute paths are rejected, as are path traversal sequences (`..`). If you need to write to an absolute path, use [SitemapAndIndexStream](#sitemapandindexstream) and validate the destination yourself.
 - **sourceData** (required): URL source data. Can be:
   - Array of strings (URLs)
   - Array of `SitemapItemLoose` objects
   - String (file path to line-separated URLs)
   - Readable stream
-- **limit** (optional): Maximum URLs per sitemap file. Must be between 1 and 50,000 per [sitemaps.org spec](https://www.sitemaps.org/protocol.html). Default: 50000
+- **limit** (optional): Maximum URLs per sitemap file. Must be between 1 and 50,000 per [sitemaps.org spec](https://www.sitemaps.org/protocol.html). Default: 45000
 - **gzip** (optional): Whether to gzip compress the output files. Default: true
 - **publicBasePath** (optional): Base path for sitemap URLs in the index. Must not contain path traversal sequences. Default: './'
 - **xslUrl** (optional): URL to an XSL stylesheet for XML display. Must be a valid `http://` or `https://` URL.
@@ -160,6 +172,7 @@ await simpleSitemapAndIndex({
 - URLs are parsed and validated to ensure they are well-formed
 
 **Path Traversal Protection:**
+- `destinationDir` must be a relative path; absolute paths such as `/tmp/sitemaps` or `C:\sitemaps` are rejected
 - `destinationDir` and `publicBasePath` are checked for path traversal sequences (`..`)
 - Validation detects `..` in all positions (beginning, middle, end, standalone)
 - Both Unix-style (`/`) and Windows-style (`\`) path separators are normalized and checked
@@ -187,7 +200,7 @@ await simpleSitemapAndIndex({
 May throw:
 
 - `InvalidHostnameError`: Invalid or malformed hostname/sitemapHostname
-- `InvalidPathError`: destinationDir contains path traversal or invalid characters
+- `InvalidPathError`: destinationDir is absolute, or contains path traversal or invalid characters
 - `InvalidPublicBasePathError`: publicBasePath contains path traversal or invalid characters
 - `InvalidLimitError`: limit is out of range (not 1-50,000)
 - `InvalidXSLUrlError`: xslUrl is invalid or potentially malicious
@@ -263,6 +276,47 @@ parseSitemap(createReadStream('./example.xml')).then(
 )
 ```
 
+The parser stops emitting items after 50,000 `<url>` entries, so `parseSitemap` never resolves with more than that.
+
+## XMLToSitemapIndexStream
+
+Takes a stream of sitemap index xml and transforms it into a stream of `IndexItem` objects (`{ url, lastmod? }`). Accepts the same `level` and `logger` options as [XMLToSitemapItemStream](#xmltositemapitemstream).
+
+```js
+import { createReadStream } from 'fs';
+import { XMLToSitemapIndexStream, IndexObjectStreamToJSON } from 'sitemap';
+
+createReadStream('./sitemap-index.xml')
+  .pipe(new XMLToSitemapIndexStream())
+  .pipe(new IndexObjectStreamToJSON())
+  .pipe(process.stdout)
+```
+
+The stream emits at most `maxEntries` items (default 50,000, the sitemaps.org limit; `Infinity` turns the cap off) and drops the rest. The first time it drops an entry it records an error and emits `'maxEntriesExceeded'` with the cap. If nothing listens for that event, it logs the overflow through `logger` instead.
+
+```js
+const parser = new XMLToSitemapIndexStream({ maxEntries: 1000 });
+parser.on('maxEntriesExceeded', (cap) => {
+  console.error(`index has more than ${cap} entries`);
+});
+```
+
+## parseSitemapIndex
+
+Read sitemap index xml and resolve with an array of `IndexItem` objects, or reject with an error.
+
+```js
+import { createReadStream } from 'fs';
+import { parseSitemapIndex } from 'sitemap';
+
+const items = await parseSitemapIndex(
+  createReadStream('./sitemap-index.xml'),
+  1000 // optional maxEntries, default: 50000
+);
+```
+
+If the index has more than `maxEntries` entries, `parseSitemapIndex` rejects and destroys both the source stream and the parser so no more input is read.
+
 ## lineSeparatedURLsToSitemapOptions
 
 Takes a stream of urls or sitemapoptions likely from fs.createReadStream('./path') and returns an object stream of sitemap items.
@@ -290,11 +344,10 @@ A Transform that converts a stream of objects into a JSON Array or a line separa
 import { Readable } from 'stream';
 import { ObjectStreamToJSON } from 'sitemap';
 
-const stream = Readable.from([{a: 'b'}])
+Readable.from([{a: 'b'}])
   .pipe(new ObjectStreamToJSON())
   .pipe(process.stdout)
-stream.end()
-// prints {"a":"b"}
+// prints [{"a":"b"}]
 ```
 
 ## SitemapItemStream

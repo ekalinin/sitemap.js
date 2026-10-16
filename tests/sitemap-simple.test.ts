@@ -1,6 +1,10 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { simpleSitemapAndIndex, streamToPromise } from '../dist/index.js';
+import {
+  simpleSitemapAndIndex,
+  streamToPromise,
+  DEFAULT_SITEMAP_ITEM_LIMIT,
+} from '../dist/index.js';
 import { existsSync, createReadStream, mkdtempSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createGunzip } from 'node:zlib';
@@ -18,6 +22,21 @@ describe('simpleSitemapAndIndex', () => {
     if (targetFolder && existsSync(targetFolder)) {
       rmSync(targetFolder, { recursive: true, force: true });
     }
+  });
+
+  it('defaults to DEFAULT_SITEMAP_ITEM_LIMIT URLs per sitemap', async () => {
+    await simpleSitemapAndIndex({
+      hostname: 'https://example.com/',
+      sourceData: Array.from(
+        { length: DEFAULT_SITEMAP_ITEM_LIMIT + 1 },
+        (_, i) => `https://example.com/${i}`
+      ),
+      destinationDir: targetFolder,
+      gzip: false,
+    });
+
+    assert.ok(existsSync(resolve(targetFolder, './sitemap-1.xml')));
+    assert.ok(!existsSync(resolve(targetFolder, './sitemap-2.xml')));
   });
 
   it('writes both a sitemap and index', async () => {

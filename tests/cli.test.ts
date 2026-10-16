@@ -38,6 +38,38 @@ describe('cli', () => {
     assert.ok(stdout.length > 1);
   });
 
+  it('accepts -h as an alias for --help', async () => {
+    const { stdout } = await exec('node ./dist/cli.js -h', {
+      encoding: 'utf8',
+    });
+    assert.ok(stdout.includes('--index-base-url'));
+  });
+
+  it('exits with code 2 on an unknown option', async () => {
+    await assert.rejects(
+      exec('node ./dist/cli.js --no-such-flag', { encoding: 'utf8' }),
+      (err: { code: number; stderr: string }) => {
+        assert.strictEqual(err.code, 2);
+        assert.ok(err.stderr.includes('--no-such-flag'));
+        return true;
+      }
+    );
+  });
+
+  it('exits with code 2 on a non-integer --limit', async () => {
+    await assert.rejects(
+      exec(
+        'node ./dist/cli.js --index --limit=abc --index-base-url https://example.com/',
+        { encoding: 'utf8' }
+      ),
+      (err: { code: number; stderr: string }) => {
+        assert.strictEqual(err.code, 2);
+        assert.ok(err.stderr.includes('--limit must be an integer'));
+        return true;
+      }
+    );
+  });
+
   it('accepts line separated urls', async () => {
     const { stdout } = await exec(
       'node ./dist/cli.js < ./tests/mocks/cli-urls.txt',
@@ -168,6 +200,30 @@ describe('cli', () => {
         { encoding: 'utf8' }
       );
       assert.strictEqual(stdout, 'valid\n');
+    }
+  );
+
+  it(
+    'exits with code 1 when the xml is invalid',
+    { timeout: 60000, skip: skipWithoutXMLLint },
+    async () => {
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sitemap-cli-'));
+      const bad = path.join(dir, 'bad.xml');
+      fs.writeFileSync(
+        bad,
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><bogus/></urlset>'
+      );
+      try {
+        await assert.rejects(
+          exec(`node ./dist/cli.js --validate ${bad}`, { encoding: 'utf8' }),
+          (err: { code: number }) => {
+            assert.strictEqual(err.code, 1);
+            return true;
+          }
+        );
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
     }
   );
 

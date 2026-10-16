@@ -341,7 +341,8 @@ export enum ErrorLevel {
    */
   SILENT = 'silent',
   /**
-   * If an invalid value is encountered, a console.warn will be called with details
+   * If an invalid value is encountered, the stream's `logger` is called with
+   * details (console.warn by default)
    */
   WARN = 'warn',
   /**
@@ -351,6 +352,15 @@ export enum ErrorLevel {
 }
 
 export type ErrorHandler = (error: Error, level: ErrorLevel) => void;
+
+/**
+ * Receives every message the library would otherwise print to the console.
+ * Pass one as the `logger` option of any stream, or pass `false` to silence it.
+ */
+export type Logger = (
+  level: 'warn' | 'error' | 'info' | 'log',
+  ...message: Parameters<Console['log']>
+) => void;
 
 export enum TagNames {
   url = 'url',
@@ -416,4 +426,23 @@ export enum IndexTagNames {
 export interface StringObj {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [index: string]: any;
+}
+
+/**
+ * Receives the joined character data for an element, or a message when the
+ * element's character data was dropped for exceeding the buffer cap.
+ */
+export interface CharDataHandlers {
+  onText: (tag: string, text: string) => void;
+  onOverflow: (message: string) => void;
+}
+
+/**
+ * Buffers a SAX parser's character data (text and CDATA) per element and
+ * hands it to CharDataHandlers at each tag boundary.
+ */
+export interface CharDataBuffer {
+  openTag: (name: string) => void;
+  append: (text: string) => void;
+  closeTag: () => void;
 }

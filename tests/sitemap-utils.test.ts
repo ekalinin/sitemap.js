@@ -9,11 +9,11 @@ import {
 } from '../dist/index.js';
 import * as testUtil from './util.ts';
 import {
-  validateSMIOptions,
   lineSeparatedURLsToSitemapOptions,
   normalizeURL,
   mergeStreams,
 } from '../dist/lib/utils.js';
+import { validateSMIOptions } from '../dist/lib/validation.js';
 import MemoryStream from 'memorystream';
 import { promisify } from 'node:util';
 import { Readable, Writable, finished } from 'node:stream';
@@ -338,6 +338,35 @@ describe('utils', () => {
         },
         { message: /must be an integer of seconds/ }
       );
+    });
+
+    it('rejects non-finite video duration, rating and view_count', () => {
+      const video = {
+        title: 'title',
+        description: 'description',
+        thumbnail_loc: 'https://example.com/t.jpg',
+        tag: [],
+      };
+      const cases: [Record<string, number>, RegExp][] = [
+        [{ duration: NaN }, /must be an integer of seconds/],
+        [{ rating: Infinity }, /must be between 0 and 5 inclusive/],
+        [{ view_count: NaN }, /view count must be positive/],
+      ];
+      for (const [field, message] of cases) {
+        assert.throws(
+          () =>
+            validateSMIOptions(
+              {
+                ...itemTemplate,
+                url: 'https://example.com/',
+                video: [{ ...video, ...field }],
+              },
+              ErrorLevel.THROW
+            ),
+          { message },
+          JSON.stringify(field)
+        );
+      }
     });
 
     it('video description limit', () => {
