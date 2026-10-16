@@ -430,7 +430,8 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
   /**
    * Asks `getSitemapStream` for the next sitemap, adds it to the index and
    * makes it current. Throws if the callback throws or returns an invalid
-   * tuple.
+   * tuple, or if the index rejects the sitemap's index item, after destroying
+   * any streams the callback returned.
    */
   private createSitemap(encoding: string): SitemapStream {
     const sitemapIndex = this.itemsWritten / this.limit;
@@ -452,20 +453,34 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     }
 
     const [idxItem, currentSitemap, currentSitemapPipeline] = result;
+    // The callback has already opened these streams, so a tuple rejected
+    // below must not leave them, or the file they write to, open.
+    const discard = (err: Error): Error => {
+      for (const stream of [currentSitemap, currentSitemapPipeline]) {
+        if (stream && typeof stream.destroy === 'function') {
+          stream.destroy();
+        }
+      }
+      return err;
+    };
 
     // Validate each element
     if (
       !idxItem ||
       (typeof idxItem !== 'string' && typeof idxItem !== 'object')
     ) {
-      throw new Error(
-        'getSitemapStream must return an IndexItem or string as the first element'
+      throw discard(
+        new Error(
+          'getSitemapStream must return an IndexItem or string as the first element'
+        )
       );
     }
 
     if (!currentSitemap || typeof currentSitemap.write !== 'function') {
-      throw new Error(
-        'getSitemapStream must return a SitemapStream as the second element'
+      throw discard(
+        new Error(
+          'getSitemapStream must return a SitemapStream as the second element'
+        )
       );
     }
 
@@ -473,12 +488,26 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
       currentSitemapPipeline &&
       typeof currentSitemapPipeline.write !== 'function'
     ) {
-      throw new Error(
-        'getSitemapStream must return a WriteStream or undefined as the third element'
+      throw discard(
+        new Error(
+          'getSitemapStream must return a WriteStream or undefined as the third element'
+        )
       );
     }
 
-    // Propagate errors from the sitemap stream
+    // Add the sitemap to the index. SitemapIndexStream._transform calls back
+    // synchronously, and at ErrorLevel.THROW it calls back with an error for
+    // an invalid index item, which fails this sitemap too.
+    let indexItemError: Error | null | undefined;
+    super._transform(idxItem, encoding, (err) => {
+      indexItemError = err;
+    });
+    if (indexItemError) {
+      throw discard(indexItemError);
+    }
+
+    // Stays attached after rotation too, so an error a retired sitemap emits
+    // later is reported rather than crashing the process as unhandled.
     currentSitemap.on('error', (err) => this.destroy(err));
 
     this.currentSitemap = currentSitemap;
@@ -493,12 +522,6 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     ]).then(() => undefined);
     this.currentSitemapFinished.catch((err: Error) => this.destroy(err));
 
-    super._transform(idxItem, encoding, () => {
-      // We are not too concerned about waiting for the index item to be written
-      // as we'll wait for the file to finish at the end, and index file write
-      // volume tends to be small in comparison to sitemap writes.
-      // noop
-    });
     return currentSitemap;
   }
 }

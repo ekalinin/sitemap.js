@@ -141,7 +141,7 @@ Want to customize that?
 import { createReadStream, createWriteStream } from 'fs'
 import { resolve } from 'path'
 import { createGzip } from 'zlib'
-import { Readable } from 'stream'
+import { Readable, pipeline } from 'stream'
 import { SitemapAndIndexStream, SitemapStream, lineSeparatedURLsToSitemapOptions } from 'sitemap'
 
 const sms = new SitemapAndIndexStream({
@@ -157,9 +157,10 @@ const sms = new SitemapAndIndexStream({
     // and the actual file have a .gz extension
     const path = `./sitemap-${i}.xml`; 
 
-    const ws = sitemapStream
-      .pipe(createGzip()) // compress the output of the sitemap
-      .pipe(createWriteStream(resolve(path + '.gz'))); // write it to sitemap-NUMBER.xml
+    const ws = createWriteStream(resolve(path + '.gz')); // write it to sitemap-NUMBER.xml
+    // Use pipeline() rather than pipe() so a gzip failure also fails ws,
+    // which SitemapAndIndexStream watches. Its own error is reported there.
+    pipeline(sitemapStream, createGzip(), ws, () => {}); // compress the output of the sitemap
 
     return [new URL(path, 'https://example.com/subdir/').toString(), sitemapStream, ws];
   },

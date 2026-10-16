@@ -643,6 +643,52 @@ describe('sitemapAndIndex', () => {
     );
 
     it(
+      'destroys the streams of a rejected getSitemapStream tuple',
+      { timeout: 2000 },
+      async () => {
+        const sm = new SitemapStream();
+        const ws = createWriteStream(devNull);
+        sm.pipe(ws);
+        const sms = new SitemapAndIndexStream({
+          getSitemapStream: () =>
+            ['', sm, ws] as unknown as [string, SitemapStream, WriteStream],
+        });
+        sms.on('error', () => undefined);
+        sms.resume();
+        sms.write('https://1.example.com/a');
+
+        await assert.rejects(finished(sms), /IndexItem or string/);
+        assert.equal(sm.destroyed, true);
+        assert.equal(ws.destroyed, true);
+      }
+    );
+
+    it(
+      'fails at ErrorLevel.THROW when the index rejects a sitemap URL',
+      { timeout: 2000 },
+      async () => {
+        let sm: SitemapStream | undefined;
+        let ws: WriteStream | undefined;
+        const sms = new SitemapAndIndexStream({
+          level: ErrorLevel.THROW,
+          getSitemapStream: (): [string, SitemapStream, WriteStream] => {
+            sm = new SitemapStream();
+            ws = createWriteStream(devNull);
+            sm.pipe(ws);
+            return ['ftp://example.com/sitemap-0.xml', sm, ws];
+          },
+        });
+        sms.on('error', () => undefined);
+        sms.resume();
+        sms.write('https://1.example.com/a');
+
+        await assert.rejects(finished(sms), /Invalid URL in sitemap index/);
+        assert.equal(sm?.destroyed, true);
+        assert.equal(ws?.destroyed, true);
+      }
+    );
+
+    it(
       'leaves the closed sitemap alone when the next getSitemapStream fails',
       { timeout: 2000 },
       async () => {

@@ -234,27 +234,30 @@ describe('simpleSitemapAndIndex', () => {
   });
 
   for (const gzip of [true, false]) {
-    it(`rejects when a sitemap file cannot be written (gzip: ${gzip})`, async () => {
-      // A directory where the first sitemap file should go makes its
-      // write stream fail.
-      mkdirSync(resolve(targetFolder, `sitemap-0.xml${gzip ? '.gz' : ''}`));
+    it(
+      `rejects when a sitemap file cannot be written (gzip: ${gzip})`,
+      { timeout: 2000 },
+      async () => {
+        // A directory where the first sitemap file should go makes its
+        // write stream fail.
+        mkdirSync(resolve(targetFolder, `sitemap-0.xml${gzip ? '.gz' : ''}`));
 
-      // Hold the source open so the error arrives while the sitemap is
-      // still being written, not while it closes.
-      const sourceData = new Readable({ objectMode: true, read() {} });
-      sourceData.push('https://example.com/a');
-      setTimeout(() => sourceData.push(null), 50);
+        // Never end the source, so the error can only arrive while the
+        // sitemap is still open; if it is not reported then, this times out.
+        const sourceData = new Readable({ objectMode: true, read() {} });
+        sourceData.push('https://example.com/a');
 
-      await assert.rejects(
-        simpleSitemapAndIndex({
-          hostname: 'https://example.com/',
-          sourceData,
-          destinationDir: targetFolder,
-          gzip,
-        }),
-        /EISDIR/
-      );
-    });
+        await assert.rejects(
+          simpleSitemapAndIndex({
+            hostname: 'https://example.com/',
+            sourceData,
+            destinationDir: targetFolder,
+            gzip,
+          }),
+          /EISDIR/
+        );
+      }
+    );
   }
 
   it('throws on bad data', async () => {

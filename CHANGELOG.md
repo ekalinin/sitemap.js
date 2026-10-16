@@ -132,6 +132,11 @@
   `error` event. `simpleSitemapAndIndex` now rejects in that case.
 - Destroying a `SitemapAndIndexStream` also destroys the open sitemap and its
   write stream, so the file descriptor is released.
+- `SitemapAndIndexStream` destroys the streams `getSitemapStream` returned when
+  it rejects the tuple, instead of leaving their file open.
+- At `ErrorLevel.THROW`, `SitemapAndIndexStream` fails when the index rejects a
+  sitemap's index item, such as a non-http(s) URL. It used to drop the error,
+  writing the sitemap file without listing it in the index.
 - `simpleSitemapAndIndex` and the CLI connect each sitemap to its gzip and file
   streams with `pipeline()`, so a gzip failure fails the sitemap instead of
   leaving the write stream open.

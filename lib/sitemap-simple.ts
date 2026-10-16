@@ -1,6 +1,9 @@
 import { SitemapAndIndexStream } from './sitemap-index-stream.js';
 import { SitemapStream } from './sitemap-stream.js';
-import { lineSeparatedURLsToSitemapOptions } from './utils.js';
+import {
+  lineSeparatedURLsToSitemapOptions,
+  pipeSitemapToFile,
+} from './utils.js';
 import { DEFAULT_SITEMAP_ITEM_LIMIT } from './constants.js';
 import { createGzip } from 'node:zlib';
 import {
@@ -10,7 +13,7 @@ import {
   WriteStream,
 } from 'node:fs';
 import { normalize, resolve } from 'node:path';
-import { Readable, pipeline as pipelineCallback } from 'node:stream';
+import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import type { SitemapItemLoose, Logger } from './types.js';
 import { URL } from 'node:url';
@@ -150,14 +153,11 @@ export const simpleSitemapAndIndex = async ({
       }
 
       const writeStream: WriteStream = createWriteStream(writePath); // write it to sitemap-NUMBER.xml
-      // pipeline() destroys every stream when one fails, so a gzip failure
-      // also fails writeStream, which SitemapAndIndexStream watches and
-      // reports. The callback has nothing left to do.
-      if (gzip) {
-        pipelineCallback(sitemapStream, createGzip(), writeStream, () => {});
-      } else {
-        pipelineCallback(sitemapStream, writeStream, () => {});
-      }
+      // SitemapAndIndexStream watches writeStream; destroying it again here
+      // reports any failure that comes after it stopped watching.
+      pipeSitemapToFile(sitemapStream, writeStream, gzip, (err) =>
+        sitemapAndIndexStream.destroy(err)
+      );
 
       return [sitemapUrl, sitemapStream, writeStream];
     },

@@ -6,7 +6,7 @@ import {
   readFileSync,
   existsSync,
 } from 'node:fs';
-import { Readable, pipeline } from 'node:stream';
+import { Readable } from 'node:stream';
 import { resolve, dirname } from 'node:path';
 import { URL } from 'node:url';
 import { createGzip, type Gzip } from 'node:zlib';
@@ -18,7 +18,10 @@ import {
   ObjectStreamToJSON,
   XMLToSitemapItemStream,
 } from './lib/sitemap-parser.js';
-import { lineSeparatedURLsToSitemapOptions } from './lib/utils.js';
+import {
+  lineSeparatedURLsToSitemapOptions,
+  pipeSitemapToFile,
+} from './lib/utils.js';
 import { SitemapStream } from './lib/sitemap-stream.js';
 import { SitemapAndIndexStream } from './lib/sitemap-index-stream.js';
 import { ErrorLevel } from './lib/types.js';
@@ -166,13 +169,9 @@ Use XMLLib to validate your sitemap (requires xmllib)
       const path = `./sitemap-${i}.xml`;
 
       const ws: WriteStream = createWriteStream(path);
-      // pipeline() destroys every stream when one fails, so a gzip failure
-      // also fails ws, which SitemapAndIndexStream watches and reports.
-      if (argv.gzip) {
-        pipeline(sm, createGzip(), ws, () => {});
-      } else {
-        pipeline(sm, ws, () => {});
-      }
+      // SitemapAndIndexStream watches ws; destroying it again here reports
+      // any failure that comes after it stopped watching.
+      pipeSitemapToFile(sm, ws, Boolean(argv.gzip), (err) => sms.destroy(err));
       return [new URL(path, baseURL).toString(), sm, ws];
     },
   });

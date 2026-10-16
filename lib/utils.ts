@@ -3,8 +3,9 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-import { statSync } from 'node:fs';
+import { statSync, type WriteStream } from 'node:fs';
 import {
+  pipeline,
   Readable,
   Transform,
   PassThrough,
@@ -12,6 +13,7 @@ import {
   type TransformOptions,
 } from 'node:stream';
 import { createInterface, Interface } from 'node:readline';
+import { createGzip } from 'node:zlib';
 import { URL } from 'node:url';
 import type {
   SitemapItem,
@@ -383,4 +385,30 @@ export function normalizeURL(
   }
 
   return smi;
+}
+
+/**
+ * Connects a sitemap to the stream that writes its file, through gzip when
+ * `gzip` is true. Uses `pipeline()`, which destroys every stream when one
+ * fails, so a gzip failure also fails `writeStream`, which
+ * `SitemapAndIndexStream` watches.
+ *
+ * @param onError - Called with the error if the pipeline fails.
+ */
+export function pipeSitemapToFile(
+  sitemap: Readable,
+  writeStream: WriteStream,
+  gzip: boolean,
+  onError: (err: Error) => void
+): void {
+  const done = (err: Error | null): void => {
+    if (err) {
+      onError(err);
+    }
+  };
+  if (gzip) {
+    pipeline(sitemap, createGzip(), writeStream, done);
+  } else {
+    pipeline(sitemap, writeStream, done);
+  }
 }
