@@ -261,11 +261,15 @@ export class EmptyStream extends Error {
   }
 }
 
+/**
+ * @deprecated No longer thrown: since 10.0.0, `SitemapStream` emits an empty
+ * `<urlset>` when it ends without items. Kept so existing imports still resolve.
+ */
 export class EmptySitemap extends Error {
   constructor() {
     super('You ended the stream without writing anything.');
     this.name = 'EmptySitemap';
-    Error.captureStackTrace(this, EmptyStream);
+    Error.captureStackTrace(this, EmptySitemap);
   }
 }
 
