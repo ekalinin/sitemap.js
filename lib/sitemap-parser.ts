@@ -799,14 +799,15 @@ export class XMLToSitemapItemStream extends Transform {
   Read xml and resolve with the configuration that would produce it or reject with
   an error
   ```
-  const { createReadStream } = require('fs')
-  const { parseSitemap, createSitemap } = require('sitemap')
-  parseSitemap(createReadStream('./example.xml')).then(
-    // produces the same xml
-    // you can, of course, more practically modify it or store it
-    (xmlConfig) => console.log(createSitemap(xmlConfig).toString()),
-    (err) => console.log(err)
-  )
+  import { createReadStream } from 'fs'
+  import { Readable } from 'stream'
+  import { parseSitemap, SitemapStream, streamToPromise } from 'sitemap'
+  const items = await parseSitemap(createReadStream('./example.xml'))
+  // produces the same xml
+  // you can, of course, more practically modify it or store it
+  const sms = new SitemapStream()
+  Readable.from(items).pipe(sms)
+  console.log((await streamToPromise(sms)).toString())
   ```
   @param {Readable} xml what to parse
   @return {Promise<SitemapItem[]>} resolves with list of sitemap items that can be fed into a SitemapStream. Rejects with an Error object.

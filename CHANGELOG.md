@@ -77,11 +77,27 @@
   command on Windows and made validation report `XMLLintUnavailable` there even
   when xmllint was installed. A missing binary is now detected via `ENOENT` from
   the spawn itself, which is correct on every platform.
+- The published tarball now contains only `dist/` and `schema/` (via a `files`
+  allowlist), so maintainer files such as `CLAUDE.md` no longer ship to
+  consumers (#480).
 - The CLI locates `package.json` by walking up from its own directory instead of
   a hardcoded relative depth, so `--version` no longer breaks when the build
   output layout changes.
 
-## 9.0.1 — Security Patch
+### Documentation
+
+- `api.md` now documents `XMLToSitemapIndexStream` and `parseSitemapIndex`, and
+  the 50,000-entry and error-array caps the parsers enforce.
+- `api.md` no longer claims `simpleSitemapAndIndex` accepts an absolute
+  `destinationDir`; absolute paths have been rejected since 9.0.1 (#478).
+- JSDoc examples for `parseSitemap` and `parseSitemapIndex` use `import` and
+  current APIs instead of `require()` and the removed `createSitemap`.
+
+## 9.0.1 - 2026-02-27 — Security Patch
+
+**Behavior change:** `simpleSitemapAndIndex` now throws `InvalidPathError` when
+`destinationDir` is an absolute path (BB-04). Pass a path relative to the
+working directory, or use `SitemapAndIndexStream` directly.
 
 - **BB-01**: Fix XML injection via unescaped `xslUrl` in stylesheet processing instruction — special characters (`&`, `"`, `<`, `>`) in the XSL URL are now escaped before being interpolated into the `<?xml-stylesheet?>` processing instruction
 - **BB-02**: Enforce 50,000 URL hard limit in `XMLToSitemapItemStream` — the parser now stops emitting items and emits an error when the limit is exceeded, rather than merely logging a warning

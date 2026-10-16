@@ -193,14 +193,15 @@ export class XMLToSitemapIndexStream extends Transform {
   Read xml and resolve with the configuration that would produce it or reject with
   an error
   ```
-  const { createReadStream } = require('fs')
-  const { parseSitemapIndex, createSitemap } = require('sitemap')
-  parseSitemapIndex(createReadStream('./example-index.xml')).then(
-    // produces the same xml
-    // you can, of course, more practically modify it or store it
-    (xmlConfig) => console.log(createSitemap(xmlConfig).toString()),
-    (err) => console.log(err)
-  )
+  import { createReadStream } from 'fs'
+  import { Readable } from 'stream'
+  import { parseSitemapIndex, SitemapIndexStream, streamToPromise } from 'sitemap'
+  const items = await parseSitemapIndex(createReadStream('./example-index.xml'))
+  // produces the same xml
+  // you can, of course, more practically modify it or store it
+  const smis = new SitemapIndexStream()
+  Readable.from(items).pipe(smis)
+  console.log((await streamToPromise(smis)).toString())
   ```
   @param {Readable} xml what to parse
   @param {number} maxEntries Maximum number of sitemap entries to parse (default: 50,000 per sitemaps.org spec).
