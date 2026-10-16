@@ -29,6 +29,13 @@ type Logger = (
 export interface XMLToSitemapIndexItemStreamOptions extends TransformOptions {
   level?: ErrorLevel;
   logger?: Logger | false;
+  /**
+   * Maximum number of `<sitemap>` entries to emit. Entries past the cap are
+   * dropped and reported as an error, so untrusted input can't grow memory
+   * without bound.
+   * @default 50000 (LIMITS.MAX_SITEMAP_ITEM_LIMIT, per sitemaps.org)
+   */
+  maxEntries?: number;
 }
 const defaultLogger: Logger = (level, ...message) => console[level](...message);
 const defaultStreamOpts: XMLToSitemapIndexItemStreamOptions = {
@@ -43,14 +50,24 @@ export class XMLToSitemapIndexStream extends Transform {
   level: ErrorLevel;
   logger: Logger;
   error: Error | null;
-  /** Number of `<sitemap>` entries seen, including any past the cap */
+  /** Number of `<sitemap>` entries seen, including any past `maxEntries` */
   entryCount: number;
   saxStream: SAXStream;
+  private maxEntries: number;
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
     super(opts);
     this.error = null;
     this.entryCount = 0;
+    this.maxEntries = opts.maxEntries ?? LIMITS.MAX_SITEMAP_ITEM_LIMIT;
+    if (
+      !(this.maxEntries === Infinity || Number.isInteger(this.maxEntries)) ||
+      this.maxEntries < 1
+    ) {
+      throw new Error(
+        `maxEntries must be a positive integer, got ${this.maxEntries}`
+      );
+    }
     this.saxStream = sax.createStream(true, {
       xmlns: true,
 
@@ -142,10 +159,10 @@ export class XMLToSitemapIndexStream extends Transform {
       switch (tag) {
         case IndexTagNames.sitemap:
           this.entryCount++;
-          if (this.entryCount > LIMITS.MAX_SITEMAP_ITEM_LIMIT) {
+          if (this.entryCount > this.maxEntries) {
             // Report once rather than for every dropped entry
-            if (this.entryCount === LIMITS.MAX_SITEMAP_ITEM_LIMIT + 1) {
-              const msg = `Sitemap index exceeds maximum of ${LIMITS.MAX_SITEMAP_ITEM_LIMIT} entries`;
+            if (this.entryCount === this.maxEntries + 1) {
+              const msg = `Sitemap index exceeds maximum of ${this.maxEntries} entries`;
               this.logger('error', msg);
               this.err(msg);
             }
@@ -216,7 +233,10 @@ export async function parseSitemapIndex(
   return new Promise((resolve, reject): void => {
     let settled = false;
 
-    const parser = new XMLToSitemapIndexStream();
+    // The spec caps an index at 50,000 entries, so a larger maxEntries has no
+    // effect. The stream drops entries past this cap instead of pushing them.
+    const cap = Math.min(maxEntries, LIMITS.MAX_SITEMAP_ITEM_LIMIT);
+    const parser = new XMLToSitemapIndexStream({ maxEntries: cap });
 
     // Handle source stream errors (prevents unhandled error events on xml)
     xml.on('error', (error: Error): void => {
@@ -236,13 +256,12 @@ export async function parseSitemapIndex(
       xml.destroy();
     };
 
-    // The stream drops entries past the spec limit instead of pushing them,
-    // so the 'data' count below never sees them. Watch the parser's own
-    // entry count, which its closetag handler (registered first) has already
-    // updated, to stop as soon as the limit is crossed.
+    // Dropped entries never reach 'data', so watch the parser's own entry
+    // count, which its closetag handler (registered first) has already
+    // updated, to stop as soon as the cap is crossed.
     parser.saxStream.on('closetag', (): void => {
-      if (!settled && parser.entryCount > LIMITS.MAX_SITEMAP_ITEM_LIMIT) {
-        rejectOverLimit(Math.min(maxEntries, LIMITS.MAX_SITEMAP_ITEM_LIMIT));
+      if (!settled && parser.entryCount > cap) {
+        rejectOverLimit(cap);
       }
     });
 
@@ -250,11 +269,6 @@ export async function parseSitemapIndex(
       .pipe(parser)
       .on('data', (smi: IndexItem) => {
         if (settled) return;
-        // Security: Prevent memory exhaustion by limiting number of entries
-        if (urls.length >= maxEntries) {
-          rejectOverLimit(maxEntries);
-          return;
-        }
         urls.push(smi);
       })
       .on('end', (): void => {
