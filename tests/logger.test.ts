@@ -1,6 +1,8 @@
 import { describe, it, mock, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync } from 'node:fs';
 import {
+  simpleSitemapAndIndex,
   SitemapStream,
   SitemapIndexStream,
   streamToPromise,
@@ -119,11 +121,76 @@ describe('logger option', () => {
   });
 });
 
+describe('logger option, more paths', () => {
+  it('simpleSitemapAndIndex forwards logger to the sitemap and index streams', async () => {
+    const dir = mkdtempSync('logger-test-');
+    const logger = mock.fn();
+    try {
+      await simpleSitemapAndIndex({
+        hostname: 'https://example.com',
+        destinationDir: dir,
+        sourceData: [invalidItem],
+        gzip: false,
+        logger,
+      });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+    assert.ok(
+      logger.mock.calls.some((c) => c.arguments[1] === 'ChangeFreqInvalidError')
+    );
+  });
+
+  it('SitemapStream routes invalid video attributes through the logger', async () => {
+    const logger = mock.fn();
+    const sms = new SitemapStream({ logger });
+    sms.write({
+      url: 'https://example.com/',
+      video: [
+        {
+          title: 't',
+          description: 'd',
+          thumbnail_loc: 'https://example.com/t.jpg',
+          content_loc: 'https://example.com/v.mp4',
+          restriction: 'us',
+          'restriction:relationship': 'allow',
+        },
+      ],
+    } as unknown as SitemapItemLoose);
+    sms.end();
+    await streamToPromise(sms);
+    assert.ok(logger.mock.callCount() >= 1);
+  });
+
+  it('THROW still throws for invalid news attributes with a non-throwing errorHandler', () => {
+    const errorHandler = mock.fn();
+    const sms = new SitemapStream({ level: ErrorLevel.THROW, errorHandler });
+    assert.throws(
+      () =>
+        sms._transform(
+          {
+            url: 'https://example.com/',
+            news: {
+              publication: { name: 'Example', language: 'en' },
+              publication_date: '2024-01-01',
+              title: 'Title',
+              genres: 'NotAGenre',
+            },
+          },
+          'utf8',
+          () => undefined
+        ),
+      /not a valid value for attr/
+    );
+  });
+});
+
 describe('SitemapStream xmlns property', () => {
   it('exposes the namespace options as xmlns, matching the option name', () => {
     const xmlns = { news: false, xhtml: true, image: false, video: false };
     const sms = new SitemapStream({ xmlns });
     assert.deepStrictEqual(sms.xmlns, xmlns);
-    assert.ok(!('xmlNS' in sms));
+    // deprecated alias still works
+    assert.strictEqual(sms.xmlNS, sms.xmlns);
   });
 });

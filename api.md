@@ -46,7 +46,7 @@ readable.pipe(sms).pipe(process.stdout)
 
 ### Logging
 
-Every stream (`SitemapStream`, `SitemapIndexStream`, `SitemapAndIndexStream`, `XMLToSitemapItemStream` and `XMLToSitemapIndexStream`) and `simpleSitemapAndIndex` accept a `logger` option of type `Logger`. The library sends every warning it would otherwise print to that function instead of the console. The function receives a level (`'warn'`, `'error'`, `'info'` or `'log'`) followed by the message parts. Pass `logger: false`, or set `level: ErrorLevel.SILENT`, to log nothing.
+Every stream (`SitemapStream`, `SitemapIndexStream`, `SitemapAndIndexStream`, `XMLToSitemapItemStream` and `XMLToSitemapIndexStream`) and `simpleSitemapAndIndex` accept a `logger` option of type `Logger`. The library sends the warnings it would otherwise print to that function instead of the console. `simpleSitemapAndIndex` passes it to the streams it creates; with `SitemapAndIndexStream` the option covers the index only, so pass `logger` to each `SitemapStream` you create in `getSitemapStream`. An explicit `errorHandler` on `SitemapStream` replaces the logger for validation warnings, and `validateSMIOptions()` called directly warns through the console unless given a handler. The function receives a level (`'warn'`, `'error'`, `'info'` or `'log'`) followed by the message parts. Pass `logger: false`, or set `level: ErrorLevel.SILENT`, to log nothing.
 
 ## XMLToSitemapItemStream
 

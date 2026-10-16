@@ -45,8 +45,10 @@ import type {
   NewsItem,
   VideoItem,
   ErrorHandler,
+  Logger,
 } from './types.js';
 import { LIMITS } from './constants.js';
+import { defaultLogger } from './utils.js';
 import { isAbsolute } from 'node:path';
 
 /**
@@ -467,21 +469,32 @@ function validate(
     // @ts-ignore
     const val = subject[key];
     if (validators[key] && !validators[key].test(val)) {
-      errorHandler(new InvalidAttrValue(key, val, validators[key]), level);
+      const error = new InvalidAttrValue(key, val, validators[key]);
+      if (level === ErrorLevel.THROW) {
+        throw error;
+      }
+      errorHandler(error, level);
     }
   });
 }
 
 /**
- * Internal helper to handle errors based on error level
+ * An ErrorHandler for validateSMIOptions that throws at ErrorLevel.THROW and
+ * sends warnings to the given logger at ErrorLevel.WARN
  */
-function handleError(error: Error, level: ErrorLevel): void {
-  if (level === ErrorLevel.THROW) {
-    throw error;
-  } else if (level === ErrorLevel.WARN) {
-    console.warn(error.name, error.message);
-  }
+export function loggingErrorHandler(logger: Logger): ErrorHandler {
+  return (error, level) => {
+    if (level === ErrorLevel.THROW) {
+      throw error;
+    } else if (level === ErrorLevel.WARN) {
+      logger('warn', error.name, error.message);
+    }
+  };
 }
+
+// Default for direct validateSMIOptions() calls: warn through the console
+const handleError: ErrorHandler = (error, level) =>
+  loggingErrorHandler(defaultLogger)(error, level);
 
 /**
  * Verifies all data passed in will comply with sitemap spec.

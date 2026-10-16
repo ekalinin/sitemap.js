@@ -22,13 +22,12 @@ import type {
   CharDataBuffer,
   CharDataHandlers,
   Logger,
-  ErrorHandler,
 } from './types.js';
 import { EnumYesNo, ErrorLevel } from './types.js';
 import { LIMITS } from './constants.js';
 
 // Re-export validateSMIOptions from validation.ts for backward compatibility
-export { validateSMIOptions } from './validation.js';
+export { validateSMIOptions, loggingErrorHandler } from './validation.js';
 
 /**
  * Per ADR 0001, CDATA sections are ordinary character data: wire both the SAX
@@ -103,20 +102,6 @@ export function resolveLogger(
     return noopLogger;
   }
   return logger ?? defaultLogger;
-}
-
-/**
- * An ErrorHandler for validateSMIOptions that throws at ErrorLevel.THROW and
- * sends warnings to the given logger at ErrorLevel.WARN
- */
-export function loggingErrorHandler(logger: Logger): ErrorHandler {
-  return (error, level) => {
-    if (level === ErrorLevel.THROW) {
-      throw error;
-    } else if (level === ErrorLevel.WARN) {
-      logger('warn', error.name, error.message);
-    }
-  };
 }
 
 /**
@@ -275,10 +260,11 @@ export function normalizeURL(
 
   if (img) {
     // prepend hostname to all image urls
-    smi.img = (Array.isArray(img) ? img : [img]).map((el): Img =>
-      typeof el === 'string'
-        ? { url: new URL(el, hostname).toString() }
-        : { ...el, url: new URL(el.url, hostname).toString() }
+    smi.img = (Array.isArray(img) ? img : [img]).map(
+      (el): Img =>
+        typeof el === 'string'
+          ? { url: new URL(el, hostname).toString() }
+          : { ...el, url: new URL(el.url, hostname).toString() }
     );
   }
 

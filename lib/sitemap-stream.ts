@@ -196,6 +196,17 @@ export class SitemapStream extends Transform {
   xslUrl?: string;
   errorHandler: ErrorHandler;
   logger: Logger;
+  /**
+   * @deprecated Use `xmlns`
+   */
+  get xmlNS(): NSArgs {
+    return this.xmlns;
+  }
+
+  set xmlNS(value: NSArgs) {
+    this.xmlns = value;
+  }
+
   private smiStream: SitemapItemStream;
   lastmodDateOnly: boolean;
   constructor(opts = defaultStreamOpts) {
