@@ -3,7 +3,13 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-import { statSync } from 'node:fs';
+import {
+  createWriteStream,
+  existsSync,
+  statSync,
+  type WriteStream,
+} from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import {
   pipeline,
   Readable,
@@ -24,11 +30,11 @@ import type {
   VideoItem,
   CharDataBuffer,
   CharDataHandlers,
-  ErrorHandler,
-  Logger,
+  SitemapFileOptions,
 } from './types.js';
-import { EnumYesNo, ErrorLevel } from './types.js';
+import { EnumYesNo } from './types.js';
 import { LIMITS } from './constants.js';
+import { validateURL } from './validation.js';
 
 /**
  * Per ADR 0001, CDATA sections are ordinary character data: wire both the SAX
@@ -81,42 +87,6 @@ export function createCharDataBuffer({
       openTags.pop();
     },
   };
-}
-
-/**
- * The logger streams use when none is given: forwards to the console
- */
-export const defaultLogger: Logger = (level, ...message) =>
-  console[level](...message);
-
-const noopLogger: Logger = () => undefined;
-
-/**
- * An ErrorHandler for validateSMIOptions that throws at ErrorLevel.THROW and
- * sends warnings to the given logger at ErrorLevel.WARN
- */
-export function loggingErrorHandler(logger: Logger): ErrorHandler {
-  return (error, level) => {
-    if (level === ErrorLevel.THROW) {
-      throw error;
-    } else if (level === ErrorLevel.WARN) {
-      logger('warn', error.name, error.message);
-    }
-  };
-}
-
-/**
- * Pick the logger a stream should use: a no-op when the level is SILENT or the
- * caller passed `false`, otherwise the caller's logger or the console.
- */
-export function resolveLogger(
-  level: ErrorLevel,
-  logger: Logger | false | undefined
-): Logger {
-  if (level === ErrorLevel.SILENT || logger === false) {
-    return noopLogger;
-  }
-  return logger ?? defaultLogger;
 }
 
 /**
@@ -410,4 +380,54 @@ export function pipeSitemapToFile(
       onError(err);
     }
   });
+}
+
+/**
+ * Walks up from `fromDir` to the filesystem root and returns the first path
+ * where `relativePath` exists, or undefined if there is none.
+ *
+ * Used to find files that ship with the package (`package.json`, the schema)
+ * from a module's own directory, whatever the build's output layout.
+ */
+export function findUp(
+  relativePath: string,
+  fromDir: string
+): string | undefined {
+  let dir = fromDir;
+  for (;;) {
+    const candidate = resolve(dir, relativePath);
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) {
+      return undefined;
+    }
+    dir = parent;
+  }
+}
+
+/**
+ * Opens sitemap number `index` as a file, for a `SitemapAndIndexStream`
+ * `getSitemapStream` callback: names it `sitemap-N.xml` (`.xml.gz` when
+ * gzipped), builds its URL, checks the URL before creating the file so a URL
+ * the index would reject leaves no empty file behind, and pipes `sitemap` into
+ * it.
+ *
+ * @returns the `[url, sitemap, writeStream]` tuple `getSitemapStream` returns
+ */
+export function openSitemapFile<S extends Readable>(
+  index: number,
+  sitemap: S,
+  { destinationDir, gzip, toURL, urlParamName, onError }: SitemapFileOptions
+): [string, S, WriteStream] {
+  const fileName = `sitemap-${index}.xml${gzip ? '.gz' : ''}`;
+  const url = toURL(fileName);
+  validateURL(url, urlParamName);
+
+  const writeStream = createWriteStream(resolve(destinationDir, fileName));
+  // SitemapAndIndexStream watches writeStream; onError reports any failure
+  // that comes after it stopped watching.
+  pipeSitemapToFile(sitemap, writeStream, gzip, onError);
+  return [url, sitemap, writeStream];
 }

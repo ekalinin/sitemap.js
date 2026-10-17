@@ -47,7 +47,7 @@ import type {
   ErrorHandler,
 } from './types.js';
 import { LIMITS } from './constants.js';
-import { defaultLogger, loggingErrorHandler } from './utils.js';
+import { defaultLogger, loggingErrorHandler } from './logger.js';
 import { isAbsolute } from 'node:path';
 
 /**

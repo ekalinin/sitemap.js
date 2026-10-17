@@ -432,6 +432,7 @@ export interface StringObj {
 /**
  * Receives the joined character data for an element, or a message when the
  * element's character data was dropped for exceeding the buffer cap.
+ * Internal: index.ts does not re-export it.
  */
 export interface CharDataHandlers {
   onText: (tag: string, text: string) => void;
@@ -441,6 +442,7 @@ export interface CharDataHandlers {
 /**
  * Buffers a SAX parser's character data (text and CDATA) per element and
  * hands it to CharDataHandlers at each tag boundary.
+ * Internal: index.ts does not re-export it.
  */
 export interface CharDataBuffer {
   openTag: (name: string) => void;
@@ -483,4 +485,27 @@ export interface SaxParserStreamConfig {
   isKnownTag: (name: string) => boolean;
   /** Error text for the first entry past the entry cap */
   overflowMessage: (maxEntries: number) => string;
+}
+
+/**
+ * Options for `openSitemapFile`, which writes one sitemap of a
+ * `SitemapAndIndexStream` to `sitemap-N.xml` (or `sitemap-N.xml.gz`).
+ * Internal: shared by `simpleSitemapAndIndex` and the CLI; index.ts does not
+ * re-export it.
+ */
+export interface SitemapFileOptions {
+  /** Directory the sitemap file is written to */
+  destinationDir: string;
+  /** Gzip the file and name it `.xml.gz` */
+  gzip: boolean;
+  /** Builds the sitemap's public URL from its file name, such as `sitemap-0.xml.gz` */
+  toURL: (fileName: string) => string;
+  /** Names where the URL came from in a validation error */
+  urlParamName: string;
+  /**
+   * Called with any error from the sitemap-to-file pipeline. Usually destroys
+   * the `SitemapAndIndexStream`, which also covers failures after it has
+   * stopped watching this file.
+   */
+  onError: (err: Error) => void;
 }

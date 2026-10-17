@@ -1,11 +1,10 @@
-import { existsSync } from 'node:fs';
 import { Readable } from 'node:stream';
-import { dirname, resolve as resolvePath } from 'node:path';
 import { execFile } from 'node:child_process';
 import { XMLLintUnavailable } from './errors.js';
+import { findUp } from './utils.js';
 
 /**
- * Finds the `schema` directory that ships with this package.
+ * Finds `schema/all.xsd`, which ships with this package.
  *
  * Walks up from this module's own directory rather than `process.cwd()`, so
  * the lookup works however the code is run: from source (`lib/xmllint.ts`),
@@ -13,26 +12,17 @@ import { XMLLintUnavailable } from './errors.js';
  * (`node_modules/sitemap/dist/lib/xmllint.js`), whatever the caller's working
  * directory is. `cli.ts` finds `package.json` the same way.
  *
- * @throws {Error} if the schema directory is not found
- * @returns {string} the path to the schema directory
+ * @throws {Error} if the schema is not found
+ * @returns {string} the path to `all.xsd`
  */
-function findSchemaDir(): string {
-  const searched: string[] = [];
-  let dir = import.meta.dirname;
-  for (;;) {
-    const candidate = resolvePath(dir, 'schema');
-    searched.push(candidate);
-    if (existsSync(resolvePath(candidate, 'all.xsd'))) {
-      return candidate;
-    }
-    const parent = dirname(dir);
-    if (parent === dir) {
-      throw new Error(
-        `Schema directory not found. Searched paths: ${searched.join(', ')}`
-      );
-    }
-    dir = parent;
+function findSchema(): string {
+  const schema = findUp('schema/all.xsd', import.meta.dirname);
+  if (!schema) {
+    throw new Error(
+      `Schema not found: no schema/all.xsd in ${import.meta.dirname} or any parent directory`
+    );
   }
+  return schema;
 }
 
 /**
@@ -43,7 +33,9 @@ function findSchemaDir(): string {
  * as file path arguments to xmllint.
  *
  * @param xml what you want validated (string or Readable stream)
- * @return {Promise<void>} resolves on valid rejects [error stderr]
+ * @return {Promise<void>} resolves on valid. Rejects with [error, stderr] when
+ * the xml is invalid, or with [error] alone when validation could not run
+ * (xmllint missing or not executable, or the schema not found).
  */
 export function xmlLint(xml: string | Readable): Promise<void> {
   return new Promise((resolve, reject): void => {
@@ -51,7 +43,7 @@ export function xmlLint(xml: string | Readable): Promise<void> {
     // [error] shape callers expect) instead of throwing synchronously
     let schema: string;
     try {
-      schema = resolvePath(findSchemaDir(), 'all.xsd');
+      schema = findSchema();
     } catch (err) {
       reject([err]);
       return;
@@ -78,8 +70,14 @@ export function xmlLint(xml: string | Readable): Promise<void> {
         xml.destroy();
       }
       if (error) {
-        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        const { code, syscall } = error as NodeJS.ErrnoException;
+        if (code === 'ENOENT') {
           reject([new XMLLintUnavailable()]);
+        } else if (syscall?.startsWith('spawn')) {
+          // xmllint could not be started at all (such as EACCES), so there
+          // is no validation output: reject without stderr, like a missing
+          // schema, so callers don't report the file as invalid
+          reject([error]);
         } else {
           reject([error, stderr]);
         }

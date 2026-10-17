@@ -85,6 +85,14 @@ base class, so they report errors and cap entries the same way.
   generic `No sitemap stream available` error. Code that listened for `error`
   and kept writing now gets write-after-destroy errors instead.
 
+#### `sitemap --index --gzip` names sitemaps `sitemap-N.xml.gz`
+
+- With `--gzip`, `sitemap --index` now writes each sitemap to `sitemap-N.xml.gz`
+  and lists that URL in the index, as `simpleSitemapAndIndex` already did. It
+  used to write gzipped data to `sitemap-N.xml` and index it under that name,
+  so crawlers fetched gzip bytes from a `.xml` URL. Update scripts that upload
+  or serve `sitemap-*.xml` after a gzipped run.
+
 ### Changed
 
 - The CLI parses arguments with Node's built-in `util.parseArgs` instead of
@@ -178,8 +186,23 @@ base class, so they report errors and cap entries the same way.
 - `sitemap --index` prints a stream error and exits with code 1 instead of
   crashing with an unhandled `error` event.
 - `sitemap --validate` exits with code 1 when the sitemap is invalid and 2 when
-  validation cannot run (xmllint missing or schema not found). It used to exit
-  0 in every case, so scripts and CI could not detect a failed validation.
+  validation cannot run (xmllint missing or not executable, or schema not
+  found). It used to exit 0 in every case, so scripts and CI could not detect a
+  failed validation. An xmllint that fails to start for a reason other than
+  `ENOENT`, such as `EACCES`, now rejects `xmlLint()` with `[error]` alone
+  instead of `[error, '']`, so it is no longer reported as an invalid sitemap.
+- `sitemap --prepend` writes every entry of the prepended sitemap, then the new
+  URLs. Both sources were piped into one stream, so whichever ended first
+  ended the sitemap: a large prepended file was cut off after its first entries
+  and failed with a write-after-end error.
+  A prepended file with more than 50,000 URLs, the most a sitemap may hold,
+  now fails with exit code 1 instead of being silently truncated.
+- `sitemap --parse`, `--prepend` and the default mode print a stream error,
+  such as a parse error or a missing input file, and exit with code 1 instead
+  of crashing with an unhandled `error` event. In those modes a reader that
+  closes stdout early, such as `| head`, is not treated as an error. In
+  `--index` mode it still is (exit code 1), because the sitemap files written
+  so far are left incomplete.
 - `xmlLint()` and `sitemap --validate` find the bundled `schema/` directory
   when the package is installed as a dependency. The lookup searched relative
   to `process.cwd()`, so outside this repository it threw a synchronous
@@ -211,6 +234,12 @@ base class, so they report errors and cap entries the same way.
 - The CLI locates `package.json` by walking up from its own directory instead of
   a hardcoded relative depth, so `--version` no longer breaks when the build
   output layout changes.
+- `sitemap --index` reports an invalid `--limit` with the same message as
+  `simpleSitemapAndIndex`'s `InvalidLimitError`, prefixed with `--limit:`, and
+  accepts only decimal digits: forms such as `1e3`, `0x10` or ` 250 ` are
+  rejected rather than converted.
+- `InvalidLimitError` says the limit must be an integer between 1 and 50000,
+  rather than a number, since fractional limits are rejected too.
 
 ### Documentation
 

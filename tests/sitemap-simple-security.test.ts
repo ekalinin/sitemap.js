@@ -205,7 +205,7 @@ describe('simpleSitemapAndIndex - Security Tests', () => {
           sourceData: ['https://1.example.com/a'],
           limit: -1,
         }),
-        { message: /must be a number between 1 and 50000/ }
+        { message: /must be an integer between 1 and 50000/ }
       );
     });
 
@@ -217,7 +217,7 @@ describe('simpleSitemapAndIndex - Security Tests', () => {
           sourceData: ['https://1.example.com/a'],
           limit: 0,
         }),
-        { message: /must be a number between 1 and 50000/ }
+        { message: /must be an integer between 1 and 50000/ }
       );
     });
 
@@ -229,7 +229,7 @@ describe('simpleSitemapAndIndex - Security Tests', () => {
           sourceData: ['https://1.example.com/a'],
           limit: 50001,
         }),
-        { message: /must be a number between 1 and 50000/ }
+        { message: /must be an integer between 1 and 50000/ }
       );
     });
 
@@ -241,7 +241,7 @@ describe('simpleSitemapAndIndex - Security Tests', () => {
           sourceData: ['https://1.example.com/a'],
           limit: 1.5,
         }),
-        { message: /must be a number between 1 and 50000/ }
+        { message: /must be an integer between 1 and 50000/ }
       );
     });
 
@@ -253,7 +253,7 @@ describe('simpleSitemapAndIndex - Security Tests', () => {
           sourceData: ['https://1.example.com/a'],
           limit: NaN,
         }),
-        { message: /must be a number between 1 and 50000/ }
+        { message: /must be an integer between 1 and 50000/ }
       );
     });
 
@@ -265,7 +265,7 @@ describe('simpleSitemapAndIndex - Security Tests', () => {
           sourceData: ['https://1.example.com/a'],
           limit: Infinity,
         }),
-        { message: /must be a number between 1 and 50000/ }
+        { message: /must be an integer between 1 and 50000/ }
       );
     });
 

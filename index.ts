@@ -20,7 +20,30 @@ export {
   type SitemapStreamOptions,
 } from './lib/sitemap-stream.js';
 export * from './lib/errors.js';
-export * from './lib/types.js';
+// Listed explicitly rather than `export *`, so types.ts can hold internal types
+// (such as SitemapFileOptions) without making them public API. IndexTagNames
+// and the parser options are exported with their modules below.
+export {
+  EnumChangefreq,
+  EnumYesNo,
+  EnumAllowDeny,
+  ErrorLevel,
+  TagNames,
+  type NewsItem,
+  type Img,
+  type PriceType,
+  type Resolution,
+  type VideoItem,
+  type VideoItemLoose,
+  type LinkItem,
+  type IndexItem,
+  type SitemapItem,
+  type SitemapItemLoose,
+  type ErrorHandler,
+  type Logger,
+  type StringObj,
+  type SaxParserStreamOptions,
+} from './lib/types.js';
 export {
   lineSeparatedURLsToSitemapOptions,
   mergeStreams,
