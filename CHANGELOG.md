@@ -149,6 +149,13 @@ base class, so they report errors and cap entries the same way.
 
 ### Fixed
 
+- The CLI's `--index --gzip` names each gzipped sitemap `sitemap-N.xml.gz` and
+  lists that URL in the index, as `simpleSitemapAndIndex` does. It used to write
+  gzipped content to `sitemap-N.xml`.
+- `isValidYesNo` accepts only a whole `yes`, `Yes`, `YES`, `no`, `No` or `NO`.
+  Its unanchored alternation used to accept any value that started with `YES`,
+  contained `NO` or `yes`, or ended in `no`, such as `NOPE` or `maybe-yes`, so
+  the parsers and `validateSMIOptions` let those values through.
 - `SitemapAndIndexStream` errors with `ERR_STREAM_PREMATURE_CLOSE` instead of
   hanging when a sitemap's write stream is destroyed before it finishes, at any
   point in the sitemap. A `SitemapAndIndexStream` destroyed during rotation no

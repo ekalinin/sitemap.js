@@ -95,7 +95,7 @@ export function isValidChangeFreq(freq: string): freq is EnumChangefreq {
  * Type guard to check if a string is a valid yes/no value
  */
 export function isValidYesNo(yn: string): yn is EnumYesNo {
-  return /^YES|NO|[Yy]es|[Nn]o$/.test(yn);
+  return /^(?:YES|NO|[Yy]es|[Nn]o)$/.test(yn);
 }
 
 /**
