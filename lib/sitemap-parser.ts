@@ -128,6 +128,8 @@ export class XMLToSitemapItemStream extends SaxParserStream<SitemapItem> {
           'warn',
           'xhtml:link missing required rel or href attribute'
         );
+        // Without a target there is no link to keep
+        this.dontpushCurrentLink = true;
         return;
       }
 
@@ -141,6 +143,8 @@ export class XMLToSitemapItemStream extends SaxParserStream<SitemapItem> {
         this.dontpushCurrentLink = true;
         this.currentItem.ampLink = href;
       } else {
+        // An unsupported rel leaves currentLink empty, so don't push it
+        this.dontpushCurrentLink = true;
         this.logger('log', 'unhandled attr for xhtml:link', tag.attributes);
         this.err(
           `unhandled attr for xhtml:link ${JSON.stringify(tag.attributes)}`

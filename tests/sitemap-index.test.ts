@@ -528,6 +528,34 @@ describe('sitemapAndIndex', () => {
   });
 
   describe('sitemap rotation', () => {
+    it('errors instead of throwing when a write within the current sitemap throws', async () => {
+      const sms = new SitemapAndIndexStream({
+        limit: 10,
+        getSitemapStream: (i: number): [string, SitemapStream, WriteStream] => {
+          const sm = new SitemapStream();
+          // Throws on the second item only, so the throw comes from the
+          // path that writes to an already-open sitemap, not from rotation
+          let writes = 0;
+          const write = sm.write.bind(sm);
+          sm.write = ((...args: Parameters<typeof write>): boolean => {
+            if (++writes === 2) {
+              throw new Error('write failed');
+            }
+            return write(...args);
+          }) as typeof sm.write;
+          const ws = createWriteStream(devNull);
+          sm.pipe(ws);
+          return [`https://example.com/sitemap-${i}.xml`, sm, ws];
+        },
+      });
+      sms.resume();
+      sms.write('https://1.example.com/a');
+      sms.write('https://1.example.com/b');
+      sms.end();
+
+      await assert.rejects(finished(sms), /write failed/);
+    });
+
     it('errors instead of rejecting unhandled when the next sitemap write throws', async () => {
       const sms = new SitemapAndIndexStream({
         limit: 1,

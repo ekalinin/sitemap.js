@@ -71,6 +71,22 @@ describe('cli', () => {
     );
   });
 
+  for (const limit of ['0', '50001']) {
+    it(`exits with code 2 on an out-of-range --limit of ${limit}`, async () => {
+      await assert.rejects(
+        exec(
+          `node ./dist/cli.js --index --limit=${limit} --index-base-url https://example.com/`,
+          { encoding: 'utf8' }
+        ),
+        (err: { code: number; stderr: string }) => {
+          assert.strictEqual(err.code, 2);
+          assert.ok(err.stderr.includes('between 1 and 50000'));
+          return true;
+        }
+      );
+    });
+  }
+
   it(
     'exits with code 1 without creating a sitemap file when --index-base-url is not http(s)',
     { skip: isWindows },

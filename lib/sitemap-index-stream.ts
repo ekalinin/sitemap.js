@@ -399,7 +399,17 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     item: SitemapItemLoose,
     callback: TransformCallback
   ): void {
-    if (!sitemap.write(item)) {
+    // SitemapStream validates and normalizes inside write(), so a bad item
+    // (such as a relative URL with no hostname) can throw synchronously.
+    // Report it as a stream error instead of letting it escape the caller.
+    let writable: boolean;
+    try {
+      writable = sitemap.write(item);
+    } catch (err) {
+      callback(err as Error);
+      return;
+    }
+    if (!writable) {
       sitemap.once('drain', callback);
     } else {
       process.nextTick(callback);

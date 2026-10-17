@@ -94,8 +94,11 @@ export class XMLToSitemapIndexStream extends SaxParserStream<IndexItem> {
 
   protected onCloseTag(tag: string): void {
     if (tag === IndexTagNames.sitemap) {
-      // Only emit items with valid URLs (non-empty after validation)
-      this.emitEntry(this.currentItem.url ? this.currentItem : null);
+      // Only emit items with valid URLs (non-empty after validation). Invalid
+      // ones were already reported and don't count toward maxEntries.
+      if (this.currentItem.url) {
+        this.emitEntry(this.currentItem);
+      }
       this.currentItem = tagTemplate();
     }
   }

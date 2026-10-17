@@ -32,7 +32,7 @@ export abstract class SaxParserStream<T> extends Transform {
   errors: Error[];
   /** Total number of errors seen, including those beyond the stored cap. */
   errorCount: number;
-  /** Number of entries seen, including any past `maxEntries` */
+  /** Number of entries emitted or dropped past `maxEntries` */
   entryCount: number;
   saxStream: SAXStream;
   private maxEntries: number;
@@ -110,11 +110,8 @@ export abstract class SaxParserStream<T> extends Transform {
   /** Called for every closing tag, after its character data is handled */
   protected abstract onCloseTag(tag: string): void;
 
-  /**
-   * Count a finished entry and push it, unless it is null or past the entry
-   * cap. Pass null for an entry that should count but not be emitted.
-   */
-  protected emitEntry(item: T | null): void {
+  /** Count a finished entry and push it, unless it is past the entry cap */
+  protected emitEntry(item: T): void {
     this.entryCount++;
     if (this.entryCount > this.maxEntries) {
       // Report once rather than for every dropped entry
@@ -127,7 +124,7 @@ export abstract class SaxParserStream<T> extends Transform {
           this.logger('error', msg);
         }
       }
-    } else if (item) {
+    } else {
       this.push(item);
     }
   }
