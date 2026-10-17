@@ -46,6 +46,20 @@ describe('simpleSitemapAndIndex', () => {
     assert.ok(!existsSync(resolve(targetFolder, './sitemap-2.xml')));
   });
 
+  it('rejects without creating a sitemap file when the sitemap URL is invalid', async () => {
+    await assert.rejects(
+      simpleSitemapAndIndex({
+        hostname: 'https://example.com/',
+        sourceData: ['https://example.com/a'],
+        destinationDir: targetFolder,
+        publicBasePath: '/' + 'a'.repeat(2100) + '/',
+        gzip: false,
+      }),
+      /sitemap URL/
+    );
+    assert.ok(!existsSync(resolve(targetFolder, './sitemap-0.xml')));
+  });
+
   it('writes both a sitemap and index', async () => {
     const baseURL = 'https://example.com/sub/';
 

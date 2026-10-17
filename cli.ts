@@ -25,6 +25,7 @@ import {
 import { SitemapStream } from './lib/sitemap-stream.js';
 import { SitemapAndIndexStream } from './lib/sitemap-index-stream.js';
 import { ErrorLevel } from './lib/types.js';
+import { validateURL } from './lib/validation.js';
 
 /**
  * Locate the package manifest by walking up from this module's directory.
@@ -167,13 +168,21 @@ Use XMLLib to validate your sitemap (requires xmllib)
     getSitemapStream: (i: number): [string, SitemapStream, WriteStream] => {
       const sm = new SitemapStream();
       const path = `./sitemap-${i}.xml`;
+      const url = new URL(path, baseURL).toString();
+      // Check the URL before creating the file, so a URL the index would
+      // reject does not leave an empty sitemap file behind.
+      validateURL(url, '--index-base-url');
 
       const ws: WriteStream = createWriteStream(path);
       // SitemapAndIndexStream watches ws; destroying it again here reports
       // any failure that comes after it stopped watching.
       pipeSitemapToFile(sm, ws, Boolean(argv.gzip), (err) => sms.destroy(err));
-      return [new URL(path, baseURL).toString(), sm, ws];
+      return [url, sm, ws];
     },
+  });
+  sms.on('error', (err) => {
+    console.error(err.message);
+    process.exitCode = 1;
   });
   let oStream: SitemapAndIndexStream | Gzip =
     lineSeparatedURLsToSitemapOptions(pickStreamOrArg()).pipe(sms);

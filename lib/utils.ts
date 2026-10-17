@@ -3,7 +3,7 @@
  * Copyright(c) 2011 Eugene Kalinin
  * MIT Licensed
  */
-import { statSync, type WriteStream } from 'node:fs';
+import { statSync } from 'node:fs';
 import {
   pipeline,
   Readable,
@@ -11,6 +11,7 @@ import {
   PassThrough,
   type ReadableOptions,
   type TransformOptions,
+  type Writable,
 } from 'node:stream';
 import { createInterface, Interface } from 'node:readline';
 import { createGzip } from 'node:zlib';
@@ -397,18 +398,16 @@ export function normalizeURL(
  */
 export function pipeSitemapToFile(
   sitemap: Readable,
-  writeStream: WriteStream,
+  writeStream: Writable,
   gzip: boolean,
   onError: (err: Error) => void
 ): void {
-  const done = (err: Error | null): void => {
+  const streams = gzip
+    ? [sitemap, createGzip(), writeStream]
+    : [sitemap, writeStream];
+  pipeline(streams, (err) => {
     if (err) {
       onError(err);
     }
-  };
-  if (gzip) {
-    pipeline(sitemap, createGzip(), writeStream, done);
-  } else {
-    pipeline(sitemap, writeStream, done);
-  }
+  });
 }

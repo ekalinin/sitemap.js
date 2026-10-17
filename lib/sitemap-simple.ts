@@ -152,6 +152,10 @@ export const simpleSitemapAndIndex = async ({
         );
       }
 
+      // Check the URL before creating the file, so a URL the index would
+      // reject does not leave an empty sitemap file behind.
+      validateURL(sitemapUrl, 'sitemap URL');
+
       const writeStream: WriteStream = createWriteStream(writePath); // write it to sitemap-NUMBER.xml
       // SitemapAndIndexStream watches writeStream; destroying it again here
       // reports any failure that comes after it stopped watching.

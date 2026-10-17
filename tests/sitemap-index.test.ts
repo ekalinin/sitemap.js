@@ -99,6 +99,16 @@ describe('sitemapIndex', () => {
       await assert.rejects(streamToPromise(smis), /Invalid lastmod date/);
     });
 
+    it('should not output a partial sitemap element for an invalid lastmod in THROW mode', async () => {
+      const smis = new SitemapIndexStream({ level: ErrorLevel.THROW });
+      const chunks: string[] = [];
+      smis.on('data', (chunk) => chunks.push(chunk.toString()));
+      smis.write({ url: 'https://test.com/s1.xml', lastmod: 'invalid-date' });
+      smis.end();
+      await assert.rejects(finished(smis), /Invalid lastmod date/);
+      assert.doesNotMatch(chunks.join(''), /<sitemap>|<loc>/);
+    });
+
     it('should skip invalid lastmod date in WARN mode and continue', async (t) => {
       const warnMock = t.mock.method(console, 'warn');
       const smis = new SitemapIndexStream({ level: ErrorLevel.WARN });
@@ -518,6 +528,29 @@ describe('sitemapAndIndex', () => {
   });
 
   describe('sitemap rotation', () => {
+    it('errors instead of rejecting unhandled when the next sitemap write throws', async () => {
+      const sms = new SitemapAndIndexStream({
+        limit: 1,
+        getSitemapStream: (i: number): [string, SitemapStream, WriteStream] => {
+          const sm = new SitemapStream();
+          if (i === 1) {
+            sm.write = (): boolean => {
+              throw new Error('write failed');
+            };
+          }
+          const ws = createWriteStream(devNull);
+          sm.pipe(ws);
+          return [`https://example.com/sitemap-${i}.xml`, sm, ws];
+        },
+      });
+      sms.resume();
+      sms.write('https://1.example.com/a');
+      sms.write('https://2.example.com/a');
+      sms.end();
+
+      await assert.rejects(finished(sms), /write failed/);
+    });
+
     // A target that goes away without finishing or erroring, like a socket
     // closed by the other end.
     function targetDestroyedOnFirstWrite(): WriteStream {

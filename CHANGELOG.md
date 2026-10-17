@@ -140,6 +140,16 @@
 - `simpleSitemapAndIndex` and the CLI connect each sitemap to its gzip and file
   streams with `pipeline()`, so a gzip failure fails the sitemap instead of
   leaving the write stream open.
+- `SitemapAndIndexStream` fails with the error, instead of leaving an unhandled
+  promise rejection, when writing the first item of a sitemap after rotation
+  throws.
+- At `ErrorLevel.THROW`, `SitemapIndexStream` no longer outputs a partial
+  `<sitemap><loc>` element before it fails on an invalid `lastmod`.
+- `simpleSitemapAndIndex` and the CLI validate each sitemap URL before they
+  create its file, so a URL the index rejects no longer leaves an empty
+  sitemap file behind. They now fail on such a URL at every error level.
+- `sitemap --index` prints a stream error and exits with code 1 instead of
+  crashing with an unhandled `error` event.
 - `sitemap --validate` exits with code 1 when the sitemap is invalid and 2 when
   validation cannot run (xmllint missing or schema not found). It used to exit
   0 in every case, so scripts and CI could not detect a failed validation.
