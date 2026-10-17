@@ -5,8 +5,15 @@ import {
   streamToPromise,
   DEFAULT_SITEMAP_ITEM_LIMIT,
 } from '../dist/index.js';
-import { existsSync, createReadStream, mkdtempSync, rmSync } from 'node:fs';
+import {
+  existsSync,
+  createReadStream,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+} from 'node:fs';
 import { resolve } from 'node:path';
+import { Readable } from 'node:stream';
 import { createGunzip } from 'node:zlib';
 
 describe('simpleSitemapAndIndex', () => {
@@ -37,6 +44,20 @@ describe('simpleSitemapAndIndex', () => {
 
     assert.ok(existsSync(resolve(targetFolder, './sitemap-1.xml')));
     assert.ok(!existsSync(resolve(targetFolder, './sitemap-2.xml')));
+  });
+
+  it('rejects without creating a sitemap file when the sitemap URL is invalid', async () => {
+    await assert.rejects(
+      simpleSitemapAndIndex({
+        hostname: 'https://example.com/',
+        sourceData: ['https://example.com/a'],
+        destinationDir: targetFolder,
+        publicBasePath: '/' + 'a'.repeat(2100) + '/',
+        gzip: false,
+      }),
+      /sitemap URL/
+    );
+    assert.ok(!existsSync(resolve(targetFolder, './sitemap-0.xml')));
   });
 
   it('writes both a sitemap and index', async () => {
@@ -225,6 +246,33 @@ describe('simpleSitemapAndIndex', () => {
     );
     assert.ok(xml.toString().includes('1.example.com'));
   });
+
+  for (const gzip of [true, false]) {
+    it(
+      `rejects when a sitemap file cannot be written (gzip: ${gzip})`,
+      { timeout: 2000 },
+      async () => {
+        // A directory where the first sitemap file should go makes its
+        // write stream fail.
+        mkdirSync(resolve(targetFolder, `sitemap-0.xml${gzip ? '.gz' : ''}`));
+
+        // Never end the source, so the error can only arrive while the
+        // sitemap is still open; if it is not reported then, this times out.
+        const sourceData = new Readable({ objectMode: true, read() {} });
+        sourceData.push('https://example.com/a');
+
+        await assert.rejects(
+          simpleSitemapAndIndex({
+            hostname: 'https://example.com/',
+            sourceData,
+            destinationDir: targetFolder,
+            gzip,
+          }),
+          /EISDIR/
+        );
+      }
+    );
+  }
 
   it('throws on bad data', async () => {
     const baseURL = 'http://example.com';

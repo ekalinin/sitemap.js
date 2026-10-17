@@ -1,6 +1,9 @@
 import { SitemapAndIndexStream } from './sitemap-index-stream.js';
 import { SitemapStream } from './sitemap-stream.js';
-import { lineSeparatedURLsToSitemapOptions } from './utils.js';
+import {
+  lineSeparatedURLsToSitemapOptions,
+  pipeSitemapToFile,
+} from './utils.js';
 import { DEFAULT_SITEMAP_ITEM_LIMIT } from './constants.js';
 import { createGzip } from 'node:zlib';
 import {
@@ -149,14 +152,16 @@ export const simpleSitemapAndIndex = async ({
         );
       }
 
-      let writeStream: WriteStream;
-      if (gzip) {
-        writeStream = sitemapStream
-          .pipe(createGzip()) // compress the output of the sitemap
-          .pipe(createWriteStream(writePath)); // write it to sitemap-NUMBER.xml
-      } else {
-        writeStream = sitemapStream.pipe(createWriteStream(writePath)); // write it to sitemap-NUMBER.xml
-      }
+      // Check the URL before creating the file, so a URL the index would
+      // reject does not leave an empty sitemap file behind.
+      validateURL(sitemapUrl, 'sitemap URL');
+
+      const writeStream: WriteStream = createWriteStream(writePath); // write it to sitemap-NUMBER.xml
+      // SitemapAndIndexStream watches writeStream; destroying it again here
+      // reports any failure that comes after it stopped watching.
+      pipeSitemapToFile(sitemapStream, writeStream, gzip, (err) =>
+        sitemapAndIndexStream.destroy(err)
+      );
 
       return [sitemapUrl, sitemapStream, writeStream];
     },

@@ -76,6 +76,15 @@ base class, so they report errors and cap entries the same way.
   logged as one message, the same text recorded in `errors`. The recorded
   lastmod error now reads `Invalid lastmod date format in sitemap index: …`.
 
+#### `SitemapAndIndexStream` destroys itself on error
+
+- When a sitemap stream errors, or `getSitemapStream` throws or returns an
+  invalid tuple, `SitemapAndIndexStream` now destroys itself and emits the
+  error once. It used to emit the error without stopping, so the same failure
+  could be emitted twice, and a `getSitemapStream` failure was followed by a
+  generic `No sitemap stream available` error. Code that listened for `error`
+  and kept writing now gets write-after-destroy errors instead.
+
 ### Changed
 
 - The CLI parses arguments with Node's built-in `util.parseArgs` instead of
@@ -140,6 +149,34 @@ base class, so they report errors and cap entries the same way.
 
 ### Fixed
 
+- `SitemapAndIndexStream` errors with `ERR_STREAM_PREMATURE_CLOSE` instead of
+  hanging when a sitemap's write stream is destroyed before it finishes, at any
+  point in the sitemap. A `SitemapAndIndexStream` destroyed during rotation no
+  longer opens another sitemap file once the current one has finished.
+- `SitemapAndIndexStream` destroys itself with the error when a sitemap's write
+  stream fails while the sitemap is still open, such as `EACCES` or `EISDIR`
+  when opening the file. It used to crash the process with an unhandled
+  `error` event. `simpleSitemapAndIndex` now rejects in that case.
+- Destroying a `SitemapAndIndexStream` also destroys the open sitemap and its
+  write stream, so the file descriptor is released.
+- `SitemapAndIndexStream` destroys the streams `getSitemapStream` returned when
+  it rejects the tuple, instead of leaving their file open.
+- At `ErrorLevel.THROW`, `SitemapAndIndexStream` fails when the index rejects a
+  sitemap's index item, such as a non-http(s) URL. It used to drop the error,
+  writing the sitemap file without listing it in the index.
+- `simpleSitemapAndIndex` and the CLI connect each sitemap to its gzip and file
+  streams with `pipeline()`, so a gzip failure fails the sitemap instead of
+  leaving the write stream open.
+- `SitemapAndIndexStream` fails with the error, instead of leaving an unhandled
+  promise rejection, when writing the first item of a sitemap after rotation
+  throws.
+- At `ErrorLevel.THROW`, `SitemapIndexStream` no longer outputs a partial
+  `<sitemap><loc>` element before it fails on an invalid `lastmod`.
+- `simpleSitemapAndIndex` and the CLI validate each sitemap URL before they
+  create its file, so a URL the index rejects no longer leaves an empty
+  sitemap file behind. They now fail on such a URL at every error level.
+- `sitemap --index` prints a stream error and exits with code 1 instead of
+  crashing with an unhandled `error` event.
 - `sitemap --validate` exits with code 1 when the sitemap is invalid and 2 when
   validation cannot run (xmllint missing or schema not found). It used to exit
   0 in every case, so scripts and CI could not detect a failed validation.

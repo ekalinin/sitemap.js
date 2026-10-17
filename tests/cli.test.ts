@@ -70,6 +70,36 @@ describe('cli', () => {
     );
   });
 
+  it(
+    'exits with code 1 without creating a sitemap file when --index-base-url is not http(s)',
+    { skip: isWindows },
+    async () => {
+      const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'sitemap-cli-'));
+      const cli = path.resolve('./dist/cli.js');
+      try {
+        await assert.rejects(
+          exec(
+            `echo "https://example.com/a" | node ${cli} --index --index-base-url ftp://example.com/`,
+            { encoding: 'utf8', cwd }
+          ),
+          (err: { code: number; stderr: string }) => {
+            assert.strictEqual(err.code, 1);
+            assert.ok(err.stderr.includes('--index-base-url'));
+            assert.ok(!err.stderr.includes('Unhandled'));
+            return true;
+          }
+        );
+
+        assert.strictEqual(
+          fs.existsSync(path.join(cwd, 'sitemap-0.xml')),
+          false
+        );
+      } finally {
+        fs.rmSync(cwd, { recursive: true, force: true });
+      }
+    }
+  );
+
   it('accepts line separated urls', async () => {
     const { stdout } = await exec(
       'node ./dist/cli.js < ./tests/mocks/cli-urls.txt',
