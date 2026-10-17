@@ -59,7 +59,11 @@ export const LIMITS = {
   MAX_VIDEOS_PER_URL: 100,
   MAX_LINKS_PER_URL: 100,
 
-  // Total entries in a sitemap
+  /**
+   * Total entries in a sitemap.
+   * @deprecated Unused; the parsers cap entries at MAX_SITEMAP_ITEM_LIMIT
+   * (same value), overridable with their `maxEntries` option.
+   */
   MAX_URL_ENTRIES: 50000,
 
   // Date validation - ISO 8601 / W3C format

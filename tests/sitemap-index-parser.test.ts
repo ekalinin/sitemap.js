@@ -322,6 +322,32 @@ describe('XMLToSitemapIndexStream entry cap', () => {
   });
 });
 
+describe('XMLToSitemapIndexStream errors', () => {
+  it('collects every error, keeping at most MAX_PARSER_ERRORS', async () => {
+    const bad = LIMITS.MAX_PARSER_ERRORS + 5;
+    const entries = Array.from(
+      { length: bad },
+      (_, i) => `<sitemap><loc>ftp://e.com/${i}.xml</loc></sitemap>`
+    ).join('');
+    const { items, parser } = await parseIndexChunks([
+      `${indexOpen}${entries}${indexClose}`,
+    ]);
+    assert.deepStrictEqual(items, []);
+    assert.strictEqual(parser.errorCount, bad);
+    assert.strictEqual(parser.errors.length, LIMITS.MAX_PARSER_ERRORS);
+    assert.match(parser.errors[1].message, /Invalid URL in sitemap index/);
+    assert.strictEqual(parser.error, parser.errors[0]);
+  });
+
+  it('does not let error be overwritten', () => {
+    const parser = new XMLToSitemapIndexStream({ logger: false });
+    assert.throws(() => {
+      (parser as unknown as { error: Error }).error = new Error('x');
+    }, TypeError);
+    assert.strictEqual(parser.error, null);
+  });
+});
+
 describe('ObjectStreamToJSON', () => {
   it('turns a stream of sitemapItems to string', async () => {
     let sitemap = '';

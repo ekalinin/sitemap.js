@@ -3,7 +3,11 @@ import assert from 'node:assert/strict';
 import { Readable, Writable } from 'node:stream';
 import { promisify } from 'node:util';
 import { pipeline as pipe } from 'node:stream';
-import { XMLToSitemapItemStream } from '../dist/lib/sitemap-parser.js';
+import {
+  XMLToSitemapItemStream,
+  parseSitemap,
+} from '../dist/lib/sitemap-parser.js';
+import { ErrorLevel } from '../dist/lib/types.js';
 import type { SitemapItem } from '../dist/lib/types.js';
 import { LIMITS } from '../dist/lib/constants.js';
 
@@ -619,7 +623,7 @@ describe('sitemap-parser security tests', () => {
             (c.arguments[1] as string).includes('exceeds maximum of 50000 URLs')
           )
         );
-        assert.ok(sitemap.length <= LIMITS.MAX_URL_ENTRIES);
+        assert.ok(sitemap.length <= LIMITS.MAX_SITEMAP_ITEM_LIMIT);
       }
     );
   });
@@ -1315,5 +1319,147 @@ describe('sitemap-parser security tests', () => {
         )
       );
     });
+  });
+});
+
+describe('XMLToSitemapItemStream entry cap', () => {
+  const urlsetXml = (n: number): string =>
+    '<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
+    Array.from(
+      { length: n },
+      (_, i) => `<url><loc>https://e.com/${i}</loc></url>`
+    ).join('') +
+    '</urlset>';
+
+  const collect = async (stream: XMLToSitemapItemStream, xml: string) => {
+    const items: SitemapItem[] = [];
+    await pipeline(
+      Readable.from([xml]),
+      stream,
+      new Writable({
+        objectMode: true,
+        write(chunk, _enc, next) {
+          items.push(chunk);
+          next();
+        },
+      })
+    );
+    return items;
+  };
+
+  it('stops emitting past maxEntries and reports the overflow once', async () => {
+    const logger = mock.fn();
+    const stream = new XMLToSitemapItemStream({ maxEntries: 2, logger });
+    const items = await collect(stream, urlsetXml(5));
+
+    assert.strictEqual(items.length, 2);
+    assert.strictEqual(stream.entryCount, 5);
+    assert.strictEqual(stream.errorCount, 1);
+    assert.strictEqual(
+      stream.errors[0].message,
+      'Sitemap exceeds maximum of 2 URLs'
+    );
+    const capLogs = logger.mock.calls.filter((c) => c.arguments[0] === 'error');
+    assert.strictEqual(capLogs.length, 1);
+  });
+
+  it('emits maxEntriesExceeded once and skips logging when handled', async () => {
+    const logger = mock.fn();
+    const stream = new XMLToSitemapItemStream({ maxEntries: 2, logger });
+    const seen: number[] = [];
+    stream.on('maxEntriesExceeded', (cap: number) => seen.push(cap));
+    const items = await collect(stream, urlsetXml(5));
+
+    assert.strictEqual(items.length, 2);
+    assert.deepStrictEqual(seen, [2]);
+    assert.strictEqual(logger.mock.callCount(), 0);
+  });
+
+  it('rejects an invalid maxEntries', () => {
+    for (const maxEntries of [-1, 1.5, NaN]) {
+      assert.throws(
+        () => new XMLToSitemapItemStream({ maxEntries }),
+        /maxEntries must be a non-negative integer or Infinity/
+      );
+    }
+  });
+
+  it('exposes the first error as error, or null when there is none', async () => {
+    const clean = new XMLToSitemapItemStream({ logger: false });
+    await collect(clean, urlsetXml(1));
+    assert.strictEqual(clean.error, null);
+
+    const capped = new XMLToSitemapItemStream({ maxEntries: 0, logger: false });
+    await collect(capped, urlsetXml(1));
+    assert.strictEqual(
+      capped.error?.message,
+      'Sitemap exceeds maximum of 0 URLs'
+    );
+  });
+
+  it('fails the stream in THROW mode once the cap is crossed', async () => {
+    const stream = new XMLToSitemapItemStream({
+      maxEntries: 1,
+      level: ErrorLevel.THROW,
+      logger: false,
+    });
+    await assert.rejects(
+      collect(stream, urlsetXml(2)),
+      /Sitemap exceeds maximum of 1 URLs/
+    );
+  });
+
+  it('parseSitemap stops reading the source at the cap', async () => {
+    const max = LIMITS.MAX_SITEMAP_ITEM_LIMIT;
+    let pulled = 0;
+    const entry = (i: number): string =>
+      `<url><loc>https://e.com/${i}</loc></url>`;
+    function* chunks(): Generator<string> {
+      yield '<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+      // Far more entries than the cap, in chunks of 1,000
+      for (let c = 0; c < max / 1000 + 50; c++) {
+        pulled++;
+        let s = '';
+        for (let i = 0; i < 1000; i++) s += entry(c * 1000 + i);
+        yield s;
+      }
+      yield '</urlset>';
+    }
+    const errorSpy = mock.method(console, 'error', () => {});
+    try {
+      const items = await parseSitemap(Readable.from(chunks()));
+      assert.strictEqual(items.length, max);
+      assert.ok(pulled < max / 1000 + 50, `pulled ${pulled} chunks`);
+    } finally {
+      errorSpy.mock.restore();
+    }
+  });
+
+  it('parseSitemap rejects when the source stream fails', async () => {
+    const xml = new Readable({ read(): void {} });
+    const parsed = parseSitemap(xml);
+    xml.destroy(new Error('disk on fire'));
+    await assert.rejects(parsed, /disk on fire/);
+  });
+
+  it('parseSitemap rejects truncated XML', async () => {
+    const xml =
+      '<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
+      '<url><loc>https://e.com/1</loc></url><url><loc>https://e.com/2</loc>';
+    await assert.rejects(parseSitemap(Readable.from([xml])), /Unclosed/);
+  });
+
+  it('does not report a truncated tail past the cap as an error', async () => {
+    const stream = new XMLToSitemapItemStream({ maxEntries: 1, logger: false });
+    const truncated = urlsetXml(3).replace('</urlset>', '<url><loc>');
+    const items = await collect(stream, truncated);
+    assert.strictEqual(items.length, 1);
+  });
+
+  it('keeps urlCount as an alias for entryCount', async () => {
+    const stream = new XMLToSitemapItemStream({ maxEntries: 1, logger: false });
+    await collect(stream, urlsetXml(3));
+    assert.strictEqual(stream.urlCount, 3);
+    assert.strictEqual(stream.entryCount, 3);
   });
 });

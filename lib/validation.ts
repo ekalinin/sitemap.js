@@ -357,6 +357,15 @@ export function validateLimit(limit: number): void {
 }
 
 /**
+ * Whether `n` is a valid parser entry cap: a non-negative integer, or
+ * `Infinity` for no cap. Unlike validateLimit, 0 and values above the
+ * sitemaps.org limit are allowed.
+ */
+export function isValidMaxEntries(n: number): boolean {
+  return n === Infinity || (Number.isInteger(n) && n >= 0);
+}
+
+/**
  * Validates that an XSL URL is safe and well-formed
  *
  * Security: This function validates XSL stylesheet URLs to prevent

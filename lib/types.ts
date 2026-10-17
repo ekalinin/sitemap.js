@@ -1,4 +1,5 @@
 import { URL } from 'node:url';
+import type { TransformOptions } from 'node:stream';
 /**
  * How frequently the page is likely to change. This value provides general
  * information to search engines and may not correlate exactly to how often they crawl the page. Please note that the
@@ -445,4 +446,41 @@ export interface CharDataBuffer {
   openTag: (name: string) => void;
   append: (text: string) => void;
   closeTag: () => void;
+}
+
+/**
+ * Options shared by the XML parser streams (`XMLToSitemapItemStream` and
+ * `XMLToSitemapIndexStream`).
+ */
+export interface SaxParserStreamOptions extends TransformOptions {
+  level?: ErrorLevel;
+  logger?: Logger | false;
+  /**
+   * Maximum number of entries (`<url>` or `<sitemap>` elements) to emit.
+   * Entries past the cap are dropped and reported once as an error, so
+   * untrusted input can't grow memory without bound. A non-negative integer,
+   * or `Infinity` for no cap.
+   * @default 50000 (per sitemaps.org)
+   */
+  maxEntries?: number;
+}
+
+/** Options for `XMLToSitemapItemStream` */
+// Kept as a named interface for backward compatibility and declaration merging
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface XMLToSitemapItemStreamOptions extends SaxParserStreamOptions {}
+
+/** Options for `XMLToSitemapIndexStream` */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface XMLToSitemapIndexItemStreamOptions extends SaxParserStreamOptions {}
+
+/**
+ * What a parser subclass tells the shared `SaxParserStream` base. Internal:
+ * index.ts does not re-export it.
+ */
+export interface SaxParserStreamConfig {
+  /** Whether a tag belongs to the parsed format; others are reported */
+  isKnownTag: (name: string) => boolean;
+  /** Error text for the first entry past the entry cap */
+  overflowMessage: (maxEntries: number) => string;
 }
