@@ -167,7 +167,7 @@ Use XMLLib to validate your sitemap (requires xmllib)
     limit,
     getSitemapStream: (i: number): [string, SitemapStream, WriteStream] => {
       const sm = new SitemapStream();
-      const path = `./sitemap-${i}.xml`;
+      const path = `./sitemap-${i}.xml${argv.gzip ? '.gz' : ''}`;
       const url = new URL(path, baseURL).toString();
       // Check the URL before creating the file, so a URL the index would
       // reject does not leave an empty sitemap file behind.

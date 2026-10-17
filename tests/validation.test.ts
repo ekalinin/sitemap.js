@@ -6,6 +6,7 @@ import {
   isValidVideoRating,
   isValidVideoViewCount,
   isValidISODate,
+  isValidYesNo,
 } from '../dist/lib/validation.js';
 
 // Bounds come from the sitemaps.org protocol (priority) and Google's video
@@ -32,6 +33,13 @@ describe('value guards', () => {
       assert.equal(isValidVideoRating(ok), true, `${ok}`);
     for (const bad of [-0.1, 5.1, ...nonFinite])
       assert.equal(isValidVideoRating(bad), false, `${bad}`);
+  });
+
+  it('isValidYesNo accepts only a whole yes or no', () => {
+    for (const ok of ['yes', 'Yes', 'YES', 'no', 'No', 'NO'])
+      assert.equal(isValidYesNo(ok), true, ok);
+    for (const bad of ['NOPE', 'maybe-yes', 'yesno', 'YESterday', 'piano', ''])
+      assert.equal(isValidYesNo(bad), false, bad);
   });
 
   it('isValidVideoViewCount accepts finite non-negative counts', () => {

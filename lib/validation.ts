@@ -26,6 +26,7 @@ import {
   InvalidVideoTagCount,
   InvalidVideoCategory,
   InvalidVideoFamilyFriendly,
+  InvalidVideoYesNo,
   InvalidVideoRestriction,
   InvalidVideoRestrictionRelationship,
   InvalidVideoPriceType,
@@ -95,7 +96,7 @@ export function isValidChangeFreq(freq: string): freq is EnumChangefreq {
  * Type guard to check if a string is a valid yes/no value
  */
 export function isValidYesNo(yn: string): yn is EnumYesNo {
-  return /^YES|NO|[Yy]es|[Nn]o$/.test(yn);
+  return /^(?:YES|NO|[Yy]es|[Nn]o)$/.test(yn);
 }
 
 /**
@@ -599,6 +600,17 @@ export function validateSMIOptions(
           new InvalidVideoFamilyFriendly(url, vid.family_friendly),
           level
         );
+      }
+
+      for (const field of [
+        'requires_subscription',
+        'live',
+        'player_loc:allow_embed',
+      ] as const) {
+        const value = vid[field];
+        if (value !== undefined && !isValidYesNo(value)) {
+          errorHandler(new InvalidVideoYesNo(url, field, value), level);
+        }
       }
 
       if (vid.restriction) {

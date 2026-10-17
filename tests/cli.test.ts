@@ -4,6 +4,7 @@ import util from 'node:util';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import zlib from 'node:zlib';
 import { exec as execCb } from 'node:child_process';
 import pkg from '../package.json' with { type: 'json' };
 import normalizedSample from './mocks/sampleconfig.normalized.json' with { type: 'json' };
@@ -162,6 +163,41 @@ describe('cli', () => {
       fs.unlinkSync(path.resolve('./sitemap-1.xml'));
       fs.unlinkSync(path.resolve('./sitemap-2.xml'));
       fs.unlinkSync(path.resolve('./sitemap-3.xml'));
+    }
+  );
+
+  it(
+    'names gzipped index sitemaps .xml.gz and lists them in the index',
+    { timeout: 30000, skip: isWindows },
+    async () => {
+      const cli = path.resolve('./dist/cli.js');
+      const list = path.resolve('./tests/mocks/short-list.txt');
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sitemap-cli-gz-'));
+      try {
+        const { stdout } = await exec(
+          `cat ${list} | node ${cli} --index --gzip --limit 250 --index-base-url https://example.com/path/`,
+          { cwd: dir, encoding: 'buffer' }
+        );
+        const index = zlib.gunzipSync(stdout).toString('utf8');
+        for (let i = 0; i < 4; i++) {
+          assert.ok(
+            index.includes(`https://example.com/path/sitemap-${i}.xml.gz`),
+            `expected the index to list sitemap-${i}.xml.gz`
+          );
+          const file = path.join(dir, `sitemap-${i}.xml.gz`);
+          assert.ok(fs.existsSync(file), `expected sitemap-${i}.xml.gz`);
+          assert.ok(
+            zlib
+              .gunzipSync(fs.readFileSync(file))
+              .toString()
+              .includes('<urlset'),
+            `expected sitemap-${i}.xml.gz to hold a gzipped urlset`
+          );
+          assert.ok(!fs.existsSync(path.join(dir, `sitemap-${i}.xml`)));
+        }
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
     }
   );
 
