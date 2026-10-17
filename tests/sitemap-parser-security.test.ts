@@ -923,6 +923,101 @@ describe('sitemap-parser security tests', () => {
       );
     });
 
+    it('reports yes/no fields it rejects instead of dropping them silently', async () => {
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>http://example.com</loc>
+    <video:video>
+      <video:thumbnail_loc>http://example.com/thumb.jpg</video:thumbnail_loc>
+      <video:title>Test</video:title>
+      <video:description>Test</video:description>
+      <video:player_loc allow_embed="maybe">http://example.com/player</video:player_loc>
+      <video:requires_subscription>NOPE</video:requires_subscription>
+      <video:family_friendly>maybe-yes</video:family_friendly>
+      <video:live>yesno</video:live>
+    </video:video>
+  </url>
+</urlset>`;
+
+      const logger = mock.fn();
+      const sitemap: SitemapItem[] = [];
+      const stream = new XMLToSitemapItemStream({ logger });
+      await pipeline(
+        Readable.from([xml]),
+        stream,
+        new Writable({
+          objectMode: true,
+          write(chunk, a, cb): void {
+            sitemap.push(chunk);
+            cb();
+          },
+        })
+      );
+
+      const video = sitemap[0].video[0];
+      for (const field of [
+        'allow_embed',
+        'requires_subscription',
+        'family_friendly',
+        'live',
+      ]) {
+        assert.ok(
+          logger.mock.calls.some(
+            (c: { arguments: unknown[] }) =>
+              c.arguments[0] === 'warn' &&
+              (c.arguments[1] as string).includes(field) &&
+              (c.arguments[1] as string).includes('yes or no')
+          ),
+          `expected a warning for ${field}`
+        );
+
+        assert.ok(
+          stream.errors.some((e) => e.message.includes(field)),
+          `expected a parse error for ${field}`
+        );
+      }
+      assert.strictEqual(video['player_loc:allow_embed'], undefined);
+      assert.strictEqual(video.requires_subscription, undefined);
+      assert.strictEqual(video.family_friendly, undefined);
+      assert.strictEqual(video.live, undefined);
+    });
+
+    it('trims whitespace around the allow_embed attribute', async () => {
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>http://example.com</loc>
+    <video:video>
+      <video:thumbnail_loc>http://example.com/thumb.jpg</video:thumbnail_loc>
+      <video:title>Test</video:title>
+      <video:description>Test</video:description>
+      <video:player_loc allow_embed=" yes ">http://example.com/player</video:player_loc>
+    </video:video>
+  </url>
+</urlset>`;
+
+      const logger = mock.fn();
+      const sitemap: SitemapItem[] = [];
+      const stream = new XMLToSitemapItemStream({ logger });
+      await pipeline(
+        Readable.from([xml]),
+        stream,
+        new Writable({
+          objectMode: true,
+          write(chunk, a, cb): void {
+            sitemap.push(chunk);
+            cb();
+          },
+        })
+      );
+
+      assert.strictEqual(sitemap[0].video[0]['player_loc:allow_embed'], 'yes');
+      assert.deepStrictEqual(stream.errors, []);
+    });
+
     it('should handle links without required attributes gracefully', async () => {
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">

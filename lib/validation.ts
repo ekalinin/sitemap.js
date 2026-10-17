@@ -26,6 +26,7 @@ import {
   InvalidVideoTagCount,
   InvalidVideoCategory,
   InvalidVideoFamilyFriendly,
+  InvalidVideoYesNo,
   InvalidVideoRestriction,
   InvalidVideoRestrictionRelationship,
   InvalidVideoPriceType,
@@ -599,6 +600,17 @@ export function validateSMIOptions(
           new InvalidVideoFamilyFriendly(url, vid.family_friendly),
           level
         );
+      }
+
+      for (const field of [
+        'requires_subscription',
+        'live',
+        'player_loc:allow_embed',
+      ] as const) {
+        const value = vid[field];
+        if (value !== undefined && !isValidYesNo(value)) {
+          errorHandler(new InvalidVideoYesNo(url, field, value), level);
+        }
       }
 
       if (vid.restriction) {

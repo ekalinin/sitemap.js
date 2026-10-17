@@ -7,6 +7,7 @@ import {
 } from 'node:stream';
 import { TagNames } from './types.js';
 import type {
+  EnumYesNo,
   SitemapItem,
   VideoItem,
   Img,
@@ -224,7 +225,7 @@ export class XMLToSitemapItemStream extends SaxParserStream<SitemapItem> {
         this.currentVideo.content_loc = text;
         break;
       case TagNames['video:requires_subscription']:
-        if (isValidYesNo(text)) {
+        if (this.isYesNo('requires_subscription', text)) {
           this.currentVideo.requires_subscription = text;
         }
         break;
@@ -261,7 +262,7 @@ export class XMLToSitemapItemStream extends SaxParserStream<SitemapItem> {
         this.currentVideo.uploader = text;
         break;
       case TagNames['video:family_friendly']:
-        if (isValidYesNo(text)) {
+        if (this.isYesNo('family_friendly', text)) {
           this.currentVideo.family_friendly = text;
         }
         break;
@@ -298,7 +299,7 @@ export class XMLToSitemapItemStream extends SaxParserStream<SitemapItem> {
         this.currentVideo.category = text;
         break;
       case TagNames['video:live']:
-        if (isValidYesNo(text)) {
+        if (this.isYesNo('live', text)) {
           this.currentVideo.live = text;
         }
         break;
@@ -479,6 +480,18 @@ export class XMLToSitemapItemStream extends SaxParserStream<SitemapItem> {
     }
   }
 
+  /** Check a yes/no value, reporting it if it is invalid */
+  private isYesNo(field: string, value: string): value is EnumYesNo {
+    if (isValidYesNo(value)) {
+      return true;
+    }
+    this.report(
+      'warn',
+      `Invalid video ${field} "${value}" - expected yes or no`
+    );
+    return false;
+  }
+
   protected onAttribute(currentTag: string, attr: QualifiedAttribute): void {
     switch (currentTag) {
       case TagNames['urlset']:
@@ -508,8 +521,11 @@ export class XMLToSitemapItemStream extends SaxParserStream<SitemapItem> {
       case TagNames['video:player_loc']:
         if (attr.name === 'autoplay') {
           this.currentVideo['player_loc:autoplay'] = attr.value;
-        } else if (attr.name === 'allow_embed' && isValidYesNo(attr.value)) {
-          this.currentVideo['player_loc:allow_embed'] = attr.value;
+        } else if (attr.name === 'allow_embed') {
+          const allowEmbed = attr.value.trim();
+          if (this.isYesNo('allow_embed', allowEmbed)) {
+            this.currentVideo['player_loc:allow_embed'] = allowEmbed;
+          }
         } else {
           this.logger('log', 'unhandled attr for video:player_loc', attr.name);
 
