@@ -307,6 +307,21 @@ describe('XMLToSitemapIndexStream entry cap', () => {
     );
   });
 
+  it('does not count entries with invalid URLs toward maxEntries', async () => {
+    const items = await parseSitemapIndex(
+      Readable.from([
+        `${indexOpen}<sitemap><loc>javascript:alert(1)</loc></sitemap>` +
+          `<sitemap><loc>https://e.com/0.xml</loc></sitemap>` +
+          `<sitemap><loc>https://e.com/1.xml</loc></sitemap>${indexClose}`,
+      ]),
+      2
+    );
+    assert.deepStrictEqual(
+      items.map((i) => i.url),
+      ['https://e.com/0.xml', 'https://e.com/1.xml']
+    );
+  });
+
   it('reports the spec limit once, not per dropped entry', async () => {
     const logger = mock.fn();
     const chunks = overCap();

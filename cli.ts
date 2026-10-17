@@ -26,6 +26,7 @@ import { SitemapStream } from './lib/sitemap-stream.js';
 import { SitemapAndIndexStream } from './lib/sitemap-index-stream.js';
 import { ErrorLevel } from './lib/types.js';
 import { validateURL } from './lib/validation.js';
+import { LIMITS } from './lib/constants.js';
 
 /**
  * Locate the package manifest by walking up from this module's directory.
@@ -153,8 +154,17 @@ Use XMLLib to validate your sitemap (requires xmllib)
     });
 } else if (argv.index) {
   const limit = argv.limit === undefined ? undefined : Number(argv.limit);
-  if (limit !== undefined && !Number.isInteger(limit)) {
-    console.error(`--limit must be an integer, got "${argv.limit}"`);
+  if (
+    limit !== undefined &&
+    !(
+      Number.isInteger(limit) &&
+      limit >= LIMITS.MIN_SITEMAP_ITEM_LIMIT &&
+      limit <= LIMITS.MAX_SITEMAP_ITEM_LIMIT
+    )
+  ) {
+    console.error(
+      `--limit must be an integer between ${LIMITS.MIN_SITEMAP_ITEM_LIMIT} and ${LIMITS.MAX_SITEMAP_ITEM_LIMIT}, got "${argv.limit}"`
+    );
     process.exit(2);
   }
   const baseURL = argv['index-base-url'];

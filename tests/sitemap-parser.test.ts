@@ -561,3 +561,26 @@ describe('XMLToSitemapItemStream filtering', () => {
     });
   });
 });
+
+describe('XMLToSitemapItemStream xhtml:link', () => {
+  const urlset =
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">';
+
+  for (const [name, link] of [
+    [
+      'an unsupported rel',
+      '<xhtml:link rel="canonical" href="https://a.com/x"/>',
+    ],
+    ['a missing href', '<xhtml:link rel="alternate" hreflang="de"/>'],
+  ]) {
+    it(`does not push an empty link for ${name}`, async () => {
+      const items = await parseSitemap(
+        Readable.from([
+          `${urlset}<url><loc>https://a.com/</loc>${link}</url></urlset>`,
+        ])
+      );
+      assert.strictEqual(items.length, 1);
+      assert.deepStrictEqual(items[0].links, []);
+    });
+  }
+});
