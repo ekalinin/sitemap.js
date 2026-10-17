@@ -12,7 +12,7 @@ import {
   ErrorLevel,
   IndexTagNames,
 } from './types.js';
-import { resolveLogger } from './utils.js';
+import { resolveLogger } from './logger.js';
 import { SitemapStream, stylesheetInclude } from './sitemap-stream.js';
 import { element, otag, ctag } from './sitemap-xml.js';
 import { LIMITS, DEFAULT_SITEMAP_ITEM_LIMIT } from './constants.js';

@@ -1,17 +1,9 @@
 import { SitemapAndIndexStream } from './sitemap-index-stream.js';
 import { SitemapStream } from './sitemap-stream.js';
-import {
-  lineSeparatedURLsToSitemapOptions,
-  pipeSitemapToFile,
-} from './utils.js';
+import { lineSeparatedURLsToSitemapOptions, openSitemapFile } from './utils.js';
 import { DEFAULT_SITEMAP_ITEM_LIMIT } from './constants.js';
 import { createGzip } from 'node:zlib';
-import {
-  createWriteStream,
-  createReadStream,
-  promises,
-  WriteStream,
-} from 'node:fs';
+import { createWriteStream, createReadStream, promises } from 'node:fs';
 import { normalize, resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
@@ -24,6 +16,7 @@ import {
   validatePublicBasePath,
   validateXSLUrl,
 } from './validation.js';
+
 /**
  * Options for the simpleSitemapAndIndex function
  */
@@ -127,44 +120,26 @@ export const simpleSitemapAndIndex = async ({
   const sitemapAndIndexStream = new SitemapAndIndexStream({
     limit,
     logger,
-    getSitemapStream: (i) => {
-      const sitemapStream = new SitemapStream({
-        hostname,
-        xslUrl,
-        logger,
-      });
-      const path = `./sitemap-${i}.xml`;
-      const writePath = resolve(destinationDir, path + (gzip ? '.gz' : ''));
-
-      // Construct public path for the sitemap index
-      const publicPath = normalize(normalizedPublicBasePath + path);
-
-      // Construct the URL with proper error handling
-      let sitemapUrl: string;
-      try {
-        sitemapUrl = new URL(
-          `${publicPath}${gzip ? '.gz' : ''}`,
-          sitemapHostname
-        ).toString();
-      } catch (err) {
-        throw new Error(
-          `Failed to construct sitemap URL for index ${i}: ${err instanceof Error ? err.message : String(err)}`
-        );
-      }
-
-      // Check the URL before creating the file, so a URL the index would
-      // reject does not leave an empty sitemap file behind.
-      validateURL(sitemapUrl, 'sitemap URL');
-
-      const writeStream: WriteStream = createWriteStream(writePath); // write it to sitemap-NUMBER.xml
-      // SitemapAndIndexStream watches writeStream; destroying it again here
-      // reports any failure that comes after it stopped watching.
-      pipeSitemapToFile(sitemapStream, writeStream, gzip, (err) =>
-        sitemapAndIndexStream.destroy(err)
-      );
-
-      return [sitemapUrl, sitemapStream, writeStream];
-    },
+    getSitemapStream: (i) =>
+      openSitemapFile(i, new SitemapStream({ hostname, xslUrl, logger }), {
+        destinationDir,
+        gzip,
+        toURL: (fileName) => {
+          // Construct public path for the sitemap index
+          const publicPath = normalize(
+            `${normalizedPublicBasePath}./${fileName}`
+          );
+          try {
+            return new URL(publicPath, sitemapHostname).toString();
+          } catch (err) {
+            throw new Error(
+              `Failed to construct sitemap URL for index ${i}: ${err instanceof Error ? err.message : String(err)}`
+            );
+          }
+        },
+        urlParamName: 'sitemap URL',
+        onError: (err) => sitemapAndIndexStream.destroy(err),
+      }),
   });
   // Handle different sourceData types with proper error handling
   let src: Readable;

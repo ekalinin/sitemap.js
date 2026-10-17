@@ -319,7 +319,7 @@ export class InvalidURLError extends InvalidHostnameError {
 export class InvalidLimitError extends Error {
   constructor(limit: any) {
     super(
-      `Invalid limit "${limit}": must be a number between 1 and 50000 (per sitemaps.org spec)`
+      `Invalid limit "${limit}": must be an integer between 1 and 50000 (per sitemaps.org spec)`
     );
     this.name = 'InvalidLimitError';
     Error.captureStackTrace(this, InvalidLimitError);

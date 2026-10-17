@@ -1,32 +1,25 @@
 #!/usr/bin/env node
-import {
-  createReadStream,
-  createWriteStream,
-  WriteStream,
-  readFileSync,
-  existsSync,
-} from 'node:fs';
-import { Readable } from 'node:stream';
-import { resolve, dirname } from 'node:path';
+import { createReadStream, readFileSync } from 'node:fs';
+import { Readable, pipeline, type Writable } from 'node:stream';
 import { URL } from 'node:url';
-import { createGzip, type Gzip } from 'node:zlib';
+import { createGzip } from 'node:zlib';
 import { parseArgs } from 'node:util';
 
 import { xmlLint } from './lib/xmllint.js';
-import { XMLLintUnavailable } from './lib/errors.js';
+import { InvalidLimitError, XMLLintUnavailable } from './lib/errors.js';
 import {
   ObjectStreamToJSON,
   XMLToSitemapItemStream,
 } from './lib/sitemap-parser.js';
 import {
+  findUp,
   lineSeparatedURLsToSitemapOptions,
-  pipeSitemapToFile,
+  openSitemapFile,
 } from './lib/utils.js';
 import { SitemapStream } from './lib/sitemap-stream.js';
 import { SitemapAndIndexStream } from './lib/sitemap-index-stream.js';
 import { ErrorLevel } from './lib/types.js';
-import { validateURL } from './lib/validation.js';
-import { LIMITS } from './lib/constants.js';
+import { validateLimit } from './lib/validation.js';
 
 /**
  * Locate the package manifest by walking up from this module's directory.
@@ -37,18 +30,11 @@ import { LIMITS } from './lib/constants.js';
  * layout this file is running from, source or built.
  */
 const findPackageJson = (): string => {
-  let dir = import.meta.dirname;
-  for (;;) {
-    const candidate = resolve(dir, 'package.json');
-    if (existsSync(candidate)) {
-      return candidate;
-    }
-    const parent = dirname(dir);
-    if (parent === dir) {
-      throw new Error('Could not locate package.json');
-    }
-    dir = parent;
+  const packageJson = findUp('package.json', import.meta.dirname);
+  if (!packageJson) {
+    throw new Error('Could not locate package.json');
   }
+  return packageJson;
 };
 
 const packageJson = JSON.parse(readFileSync(findPackageJson(), 'utf8'));
@@ -86,6 +72,42 @@ const pickStreamOrArg = (): Readable => {
   }
 };
 
+/**
+ * Pipe `streams` together and write the result to stdout. On failure, print
+ * the error message (not an unhandled-error stack trace) and exit with 1.
+ *
+ * With `quietEPIPE`, a reader that closes stdout early (such as `| head`) is
+ * not a failure. Leave it off when the pipeline writes files as it goes, since
+ * stopping early leaves them incomplete.
+ */
+function pipeToStdout(
+  streams: [Readable, ...Writable[]],
+  { quietEPIPE }: { quietEPIPE: boolean }
+): void {
+  pipeline([...streams, process.stdout], (err) => {
+    if (
+      !err ||
+      (quietEPIPE && (err as NodeJS.ErrnoException).code === 'EPIPE')
+    ) {
+      return;
+    }
+    console.error(err.message);
+    process.exitCode = 1;
+  });
+}
+
+/**
+ * Yield every item of each source in turn, so later sources start only after
+ * earlier ones have ended
+ */
+async function* concatSources(
+  ...sources: (() => Readable)[]
+): AsyncGenerator<unknown> {
+  for (const source of sources) {
+    yield* source();
+  }
+}
+
 function getStream(): Readable {
   if (positionals.length) {
     return createReadStream(positionals[0]);
@@ -110,7 +132,8 @@ Options:
   --limit=45000          Set a custom limit to the items per sitemap
   --parse                Parse fed xml and spit out config
   --prepend=sitemap.xml  Prepend the streamed in sitemap configs to sitemap.xml
-  --gzip                 Compress output
+  --gzip                 Compress output. With --index, also gzips each sitemap
+                         and names it sitemap-N.xml.gz
   --single-line-json     When used with parse, it spits out each entry as json rather than the whole json.
 
 # examples
@@ -128,13 +151,15 @@ Use XMLLib to validate your sitemap (requires xmllib)
   npx sitemap --validate sitemap.xml
 `);
 } else if (argv.parse) {
-  let oStream: ObjectStreamToJSON | Gzip = getStream()
-    .pipe(new XMLToSitemapItemStream({ level: ErrorLevel.THROW }))
-    .pipe(new ObjectStreamToJSON({ lineSeparated: !argv['single-line-json'] }));
+  const streams: [Readable, ...Writable[]] = [
+    getStream(),
+    new XMLToSitemapItemStream({ level: ErrorLevel.THROW }),
+    new ObjectStreamToJSON({ lineSeparated: !argv['single-line-json'] }),
+  ];
   if (argv.gzip) {
-    oStream = oStream.pipe(createGzip());
+    streams.push(createGzip());
   }
-  oStream.pipe(process.stdout);
+  pipeToStdout(streams, { quietEPIPE: true });
 } else if (argv.validate) {
   xmlLint(getStream())
     .then((): void => console.log('valid'))
@@ -153,18 +178,21 @@ Use XMLLib to validate your sitemap (requires xmllib)
       }
     });
 } else if (argv.index) {
-  const limit = argv.limit === undefined ? undefined : Number(argv.limit);
-  if (
-    limit !== undefined &&
-    !(
-      Number.isInteger(limit) &&
-      limit >= LIMITS.MIN_SITEMAP_ITEM_LIMIT &&
-      limit <= LIMITS.MAX_SITEMAP_ITEM_LIMIT
-    )
-  ) {
-    console.error(
-      `--limit must be an integer between ${LIMITS.MIN_SITEMAP_ITEM_LIMIT} and ${LIMITS.MAX_SITEMAP_ITEM_LIMIT}, got "${argv.limit}"`
-    );
+  // Decimal digits only: Number() alone would also accept forms such as
+  // "1e3", "0x10" or " 250 ". Anything else becomes NaN, which fails below.
+  const limit =
+    argv.limit === undefined
+      ? undefined
+      : /^\d+$/.test(argv.limit)
+        ? Number(argv.limit)
+        : NaN;
+  try {
+    if (limit !== undefined) {
+      validateLimit(limit);
+    }
+  } catch {
+    // Report the value as typed, rather than the NaN it parsed to
+    console.error(`--limit: ${new InvalidLimitError(argv.limit).message}`);
     process.exit(2);
   }
   const baseURL = argv['index-base-url'];
@@ -175,43 +203,58 @@ Use XMLLib to validate your sitemap (requires xmllib)
   }
   const sms = new SitemapAndIndexStream({
     limit,
-    getSitemapStream: (i: number): [string, SitemapStream, WriteStream] => {
-      const sm = new SitemapStream();
-      const path = `./sitemap-${i}.xml${argv.gzip ? '.gz' : ''}`;
-      const url = new URL(path, baseURL).toString();
-      // Check the URL before creating the file, so a URL the index would
-      // reject does not leave an empty sitemap file behind.
-      validateURL(url, '--index-base-url');
-
-      const ws: WriteStream = createWriteStream(path);
-      // SitemapAndIndexStream watches ws; destroying it again here reports
-      // any failure that comes after it stopped watching.
-      pipeSitemapToFile(sm, ws, Boolean(argv.gzip), (err) => sms.destroy(err));
-      return [url, sm, ws];
-    },
+    getSitemapStream: (i) =>
+      // Gzipped files are named .xml.gz, as simpleSitemapAndIndex names them
+      openSitemapFile(i, new SitemapStream(), {
+        destinationDir: '.',
+        gzip: Boolean(argv.gzip),
+        toURL: (fileName) => new URL(fileName, baseURL).toString(),
+        urlParamName: '--index-base-url',
+        onError: (err) => sms.destroy(err),
+      }),
   });
-  sms.on('error', (err) => {
-    console.error(err.message);
-    process.exitCode = 1;
-  });
-  let oStream: SitemapAndIndexStream | Gzip =
-    lineSeparatedURLsToSitemapOptions(pickStreamOrArg()).pipe(sms);
+  const streams: [Readable, ...Writable[]] = [
+    lineSeparatedURLsToSitemapOptions(pickStreamOrArg()),
+    sms,
+  ];
   if (argv.gzip) {
-    oStream = oStream.pipe(createGzip());
+    streams.push(createGzip());
   }
-  oStream.pipe(process.stdout);
+  // sitemap files are written as the index streams out, so a reader that
+  // stops early leaves them incomplete: report it
+  pipeToStdout(streams, { quietEPIPE: false });
 } else {
-  const sms = new SitemapStream();
-
-  if (argv.prepend) {
-    createReadStream(argv.prepend).pipe(new XMLToSitemapItemStream()).pipe(sms);
+  const sources: (() => Readable)[] = [];
+  const prepend = argv.prepend;
+  if (prepend) {
+    // Read the existing sitemap to the end before the new URLs, so its
+    // entries come first and one source ending can't end the sitemap early
+    sources.push(() => {
+      const parser = new XMLToSitemapItemStream();
+      // Past the cap the parser drops entries and only logs it, which would
+      // write a truncated sitemap and exit 0. Fail instead: the output can't
+      // hold more than a sitemap may.
+      parser.once('maxEntriesExceeded', (max: number) => {
+        parser.destroy(
+          new Error(
+            `--prepend file ${prepend} has more than ${max} URLs, the most a sitemap may hold`
+          )
+        );
+      });
+      // pipeline() destroys both streams if either fails, and fails the
+      // parser with the error, which concatSources then rethrows. The
+      // callback has nothing to add.
+      return pipeline(createReadStream(prepend), parser, () => {});
+    });
   }
-  const oStream: SitemapStream =
-    lineSeparatedURLsToSitemapOptions(pickStreamOrArg()).pipe(sms);
+  sources.push(() => lineSeparatedURLsToSitemapOptions(pickStreamOrArg()));
 
+  const streams: [Readable, ...Writable[]] = [
+    Readable.from(concatSources(...sources)),
+    new SitemapStream(),
+  ];
   if (argv.gzip) {
-    oStream.pipe(createGzip()).pipe(process.stdout);
-  } else {
-    oStream.pipe(process.stdout);
+    streams.push(createGzip());
   }
+  pipeToStdout(streams, { quietEPIPE: true });
 }

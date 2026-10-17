@@ -14,6 +14,7 @@ sitemap.js is a TypeScript library and CLI tool for generating sitemap XML files
 - **New constant or limit?** → Add to [lib/constants.ts](lib/constants.ts) (import from here everywhere)
 - **New validation function or type guard?** → Add to [lib/validation.ts](lib/validation.ts)
 - **New utility function?** → Add to [lib/utils.ts](lib/utils.ts)
+- **New logging helper?** → Add to [lib/logger.ts](lib/logger.ts), not utils.ts: `validation.ts` uses these helpers, and `utils.ts` imports `validation.ts`, so keeping them in utils.ts would create an import cycle
 - **New error class?** → Add to [lib/errors.ts](lib/errors.ts)
 - **New public API?** → Export from [index.ts](index.ts)
 
@@ -23,7 +24,7 @@ sitemap.js is a TypeScript library and CLI tool for generating sitemap XML files
 2. **DON'T define types in implementation files** - Put them in [lib/types.ts](lib/types.ts)
 3. **DON'T scatter validation logic** - Keep it all in [lib/validation.ts](lib/validation.ts)
 4. **DON'T break backward compatibility** - Use re-exports if moving code between files
-5. **DO update [index.ts](index.ts)** if adding new public API functions
+5. **DO update [index.ts](index.ts)** if adding new public API functions or types. It lists the public types from `lib/types.ts` by name, so a new type stays internal until you add it there
 
 To add a new field to sitemap items, see the `add-sitemap-field` skill.
 

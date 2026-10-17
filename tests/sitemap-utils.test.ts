@@ -12,7 +12,11 @@ import {
   lineSeparatedURLsToSitemapOptions,
   normalizeURL,
   mergeStreams,
+  findUp,
 } from '../dist/lib/utils.js';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { validateSMIOptions } from '../dist/lib/validation.js';
 import MemoryStream from 'memorystream';
 import { promisify } from 'node:util';
@@ -1255,6 +1259,35 @@ describe('utils', () => {
       assert.ok(str.includes('c'));
       assert.ok(str.includes('d'));
       assert.ok(!str.includes('e'));
+    });
+  });
+
+  describe('findUp', () => {
+    it('finds the nearest match in a parent directory', () => {
+      const root = mkdtempSync(join(tmpdir(), 'sitemap-findup-'));
+      try {
+        const deep = join(root, 'a', 'b');
+        mkdirSync(join(root, 'a', 'schema'), { recursive: true });
+        mkdirSync(join(root, 'schema'));
+        mkdirSync(deep, { recursive: true });
+        writeFileSync(join(root, 'a', 'schema', 'all.xsd'), '');
+        writeFileSync(join(root, 'schema', 'all.xsd'), '');
+        assert.strictEqual(
+          findUp('schema/all.xsd', deep),
+          join(root, 'a', 'schema', 'all.xsd')
+        );
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    });
+
+    it('returns undefined when nothing matches up to the root', () => {
+      const root = mkdtempSync(join(tmpdir(), 'sitemap-findup-'));
+      try {
+        assert.strictEqual(findUp('no-such-file-7c1f2e.json', root), undefined);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
     });
   });
 });

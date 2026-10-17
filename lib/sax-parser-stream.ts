@@ -9,7 +9,8 @@ import {
 } from './types.js';
 import { isValidMaxEntries } from './validation.js';
 import { LIMITS } from './constants.js';
-import { createCharDataBuffer, resolveLogger } from './utils.js';
+import { createCharDataBuffer } from './utils.js';
+import { resolveLogger } from './logger.js';
 
 /**
  * Shared plumbing for the XML parser streams: sax setup, character-data
