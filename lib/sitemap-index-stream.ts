@@ -4,6 +4,7 @@ import {
   type TransformOptions,
   type TransformCallback,
 } from 'node:stream';
+import { finished } from 'node:stream/promises';
 import {
   type IndexItem,
   type SitemapItemLoose,
@@ -162,33 +163,33 @@ export class SitemapIndexStream extends Transform {
         return;
       }
 
-      this.push(otag(IndexTagNames.sitemap));
-      if (typeof item === 'string') {
-        this.push(element(IndexTagNames.loc, item));
-      } else {
-        this.push(element(IndexTagNames.loc, item.url));
-        if (item.lastmod) {
-          try {
-            const lastmod: string = new Date(item.lastmod).toISOString();
-            this.push(
-              element(
-                IndexTagNames.lastmod,
-                this.lastmodDateOnly ? lastmod.slice(0, 10) : lastmod
-              )
-            );
-          } catch {
-            const error = new Error(
-              `Invalid lastmod date in sitemap index: ${item.lastmod}`
-            );
-            if (this.level === ErrorLevel.THROW) {
-              callback(error);
-              return;
-            } else {
-              this.warn(error.message);
-            }
-            // The logger is a no-op at SILENT; continue without lastmod
+      // Check lastmod before pushing anything, so a rejected item leaves no
+      // partial <sitemap> element in the output.
+      let lastmod: string | undefined;
+      if (typeof item !== 'string' && item.lastmod) {
+        try {
+          lastmod = new Date(item.lastmod).toISOString();
+          if (this.lastmodDateOnly) {
+            lastmod = lastmod.slice(0, 10);
           }
+        } catch {
+          const error = new Error(
+            `Invalid lastmod date in sitemap index: ${item.lastmod}`
+          );
+          if (this.level === ErrorLevel.THROW) {
+            callback(error);
+            return;
+          } else {
+            this.warn(error.message);
+          }
+          // The logger is a no-op at SILENT; continue without lastmod
         }
+      }
+
+      this.push(otag(IndexTagNames.sitemap));
+      this.push(element(IndexTagNames.loc, url));
+      if (lastmod) {
+        this.push(element(IndexTagNames.lastmod, lastmod));
       }
       this.push(ctag(IndexTagNames.sitemap));
       callback();
@@ -220,6 +221,15 @@ export class SitemapIndexStream extends Transform {
  *          - [1]: SitemapStream instance for writing sitemap items
  *          - [2]: WriteStream where the sitemap will be piped (the stream will be
  *                 awaited for 'finish' before creating the next sitemap)
+ *
+ * If other streams sit between the sitemap and the WriteStream, such as
+ * `createGzip()`, connect them with `pipeline()` from `node:stream` rather than
+ * `pipe()`, so a failure in any of them also fails the WriteStream.
+ *
+ * The index item is checked only after this callback returns. If it is
+ * rejected, the returned streams are destroyed, but a file the callback has
+ * already created stays on disk, so validate the URL (for example with
+ * `validateURL`) before opening the file.
  *
  * @example
  * ```typescript
@@ -289,15 +299,17 @@ export interface SitemapAndIndexStreamOptions extends SitemapIndexStreamOptions 
 export class SitemapAndIndexStream extends SitemapIndexStream {
   private itemsWritten: number;
   private getSitemapStream: getSitemapStreamFunc;
-  private currentSitemap?: SitemapStream;
   private limit: number;
-  private currentSitemapPipeline?: WriteStream;
   /**
-   * Flag to prevent race conditions when creating new sitemap files.
-   * Set to true while waiting for the current sitemap to finish and
-   * a new one to be created.
+   * The open sitemap, its pipe target, if any, and a promise that settles
+   * once both have finished. The promise rejects if either errors or is
+   * destroyed first.
    */
-  private isCreatingSitemap: boolean;
+  private current?: {
+    sitemap: SitemapStream;
+    target?: WriteStream;
+    finished: Promise<void>;
+  };
 
   /**
    * `SitemapAndIndexStream` is a Transform stream that takes in sitemap items,
@@ -319,7 +331,6 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     this.itemsWritten = 0;
     this.getSitemapStream = opts.getSitemapStream;
     this.limit = opts.limit ?? DEFAULT_SITEMAP_ITEM_LIMIT;
-    this.isCreatingSitemap = false;
 
     // Validate limit is within acceptable range per sitemaps.org spec
     // See: https://www.sitemaps.org/protocol.html#index
@@ -338,76 +349,58 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     encoding: string,
     callback: TransformCallback
   ): void {
-    if (this.itemsWritten % this.limit === 0) {
-      // Prevent race condition if multiple items arrive during sitemap creation
-      if (this.isCreatingSitemap) {
-        // Wait and retry on next tick
-        process.nextTick(() => this._transform(item, encoding, callback));
-        return;
-      }
-
-      if (this.currentSitemap) {
-        this.isCreatingSitemap = true;
-        const currentSitemap = this.currentSitemap;
-        const currentPipeline = this.currentSitemapPipeline;
-
-        // Set up promises with proper cleanup to prevent memory leaks
-        const onFinish = new Promise<void>((resolve, reject) => {
-          const finishHandler = () => {
-            currentSitemap.off('error', errorHandler);
-            resolve();
-          };
-          const errorHandler = (err: Error) => {
-            currentSitemap.off('finish', finishHandler);
-            reject(err);
-          };
-          currentSitemap.on('finish', finishHandler);
-          currentSitemap.on('error', errorHandler);
-          currentSitemap.end();
-        });
-
-        const onPipelineFinish = currentPipeline
-          ? new Promise<void>((resolve, reject) => {
-              const finishHandler = () => {
-                currentPipeline.off('error', errorHandler);
-                resolve();
-              };
-              const errorHandler = (err: Error) => {
-                currentPipeline.off('finish', finishHandler);
-                reject(err);
-              };
-              currentPipeline.on('finish', finishHandler);
-              currentPipeline.on('error', errorHandler);
-            })
-          : Promise.resolve();
-
-        Promise.all([onFinish, onPipelineFinish])
-          .then(() => {
-            this.isCreatingSitemap = false;
-            this.createSitemap(encoding);
-            this.writeItem(item, callback);
-          })
-          .catch((err) => {
-            this.isCreatingSitemap = false;
-            callback(err);
-          });
-        return;
-      } else {
-        this.createSitemap(encoding);
-      }
-    }
-
-    this.writeItem(item, callback);
-  }
-
-  private writeItem(item: SitemapItemLoose, callback: TransformCallback): void {
-    if (!this.currentSitemap) {
-      callback(new Error('No sitemap stream available'));
+    if (this.current && this.itemsWritten % this.limit !== 0) {
+      this.writeItem(this.current.sitemap, item, callback);
       return;
     }
 
-    if (!this.currentSitemap.write(item)) {
-      this.currentSitemap.once('drain', callback);
+    const startNextSitemap = (): void => {
+      // The stream may have been destroyed while the last sitemap closed.
+      if (this.destroyed) {
+        return;
+      }
+      // Catch here rather than relying on the caller: after rotation this
+      // runs inside a promise callback, where a throw would become an
+      // unhandled rejection.
+      try {
+        this.writeItem(this.createSitemap(encoding), item, callback);
+      } catch (err) {
+        callback(err as Error);
+      }
+    };
+
+    if (!this.current) {
+      startNextSitemap();
+      return;
+    }
+    // Transform delivers items one at a time, so no other item can
+    // arrive until this rotation calls back.
+    this.closeCurrentSitemap().then(startNextSitemap, callback);
+  }
+
+  /**
+   * Ends the current sitemap and waits until it and its pipe target, if any,
+   * have finished, so each sitemap file is fully written before the next one
+   * starts. Rejects if either stream errors or is destroyed before finishing.
+   */
+  private async closeCurrentSitemap(): Promise<void> {
+    const current = this.current;
+    if (!current) {
+      return;
+    }
+    // The pipe target gets its end() call from the sitemap stream ending.
+    current.sitemap.end();
+    await current.finished;
+    this.current = undefined;
+  }
+
+  private writeItem(
+    sitemap: SitemapStream,
+    item: SitemapItemLoose,
+    callback: TransformCallback
+  ): void {
+    if (!sitemap.write(item)) {
+      sitemap.once('drain', callback);
     } else {
       process.nextTick(callback);
     }
@@ -417,139 +410,127 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
   }
 
   /**
+   * Destroys the open sitemap and its target, if any, so a stopped stream
+   * does not leave a file descriptor open.
+   */
+  _destroy(err: Error | null, cb: (error?: Error | null) => void): void {
+    this.current?.sitemap.destroy();
+    this.current?.target?.destroy();
+    super._destroy(err, cb);
+  }
+
+  /**
    * Called when the stream is finished.
-   * If there is a current sitemap, we wait for it to finish before calling the callback.
-   * Includes proper event listener cleanup to prevent memory leaks.
+   * Closes the last sitemap before writing the end of the sitemap index.
    *
    * @param cb - The callback to invoke when flushing is complete
    */
   _flush(cb: TransformCallback): void {
-    const currentSitemap = this.currentSitemap;
-    const currentPipeline = this.currentSitemapPipeline;
-
-    const onFinish = new Promise<void>((resolve, reject) => {
-      if (currentSitemap) {
-        const finishHandler = () => {
-          currentSitemap.off('error', errorHandler);
-          resolve();
-        };
-        const errorHandler = (err: Error) => {
-          currentSitemap.off('finish', finishHandler);
-          reject(err);
-        };
-        currentSitemap.on('finish', finishHandler);
-        currentSitemap.on('error', errorHandler);
-        currentSitemap.end();
-      } else {
-        resolve();
-      }
-    });
-
-    const onPipelineFinish = new Promise<void>((resolve, reject) => {
-      if (currentPipeline) {
-        const finishHandler = () => {
-          currentPipeline.off('error', errorHandler);
-          resolve();
-        };
-        const errorHandler = (err: Error) => {
-          currentPipeline.off('finish', finishHandler);
-          reject(err);
-        };
-        currentPipeline.on('finish', finishHandler);
-        currentPipeline.on('error', errorHandler);
-        // The pipeline (pipe target) will get its end() call
-        // from the sitemap stream ending.
-      } else {
-        resolve();
-      }
-    });
-
-    Promise.all([onFinish, onPipelineFinish])
+    this.closeCurrentSitemap()
       .then(() => {
         super._flush(cb);
       })
-      .catch((err) => {
-        cb(err);
-      });
+      .catch(cb);
   }
 
-  private createSitemap(encoding: string): void {
+  /**
+   * Asks `getSitemapStream` for the next sitemap, adds it to the index and
+   * makes it current. Throws if the callback throws or returns an invalid
+   * tuple, or if the index rejects the sitemap's index item, after destroying
+   * any streams the callback returned.
+   */
+  private createSitemap(encoding: string): SitemapStream {
     const sitemapIndex = this.itemsWritten / this.limit;
     let result: ReturnType<getSitemapStreamFunc>;
 
     try {
       result = this.getSitemapStream(sitemapIndex);
     } catch (err) {
-      this.emit(
-        'error',
-        new Error(
-          `getSitemapStream callback threw an error for index ${sitemapIndex}: ${err instanceof Error ? err.message : String(err)}`
-        )
+      throw new Error(
+        `getSitemapStream callback threw an error for index ${sitemapIndex}: ${err instanceof Error ? err.message : String(err)}`
       );
-      return;
     }
 
     // Validate the return value
     if (!Array.isArray(result) || result.length !== 3) {
-      this.emit(
-        'error',
-        new Error(
-          `getSitemapStream must return a 3-element array [IndexItem | string, SitemapStream, WriteStream], got: ${typeof result}`
-        )
+      throw new Error(
+        `getSitemapStream must return a 3-element array [IndexItem | string, SitemapStream, WriteStream], got: ${typeof result}`
       );
-      return;
     }
 
-    const [idxItem, currentSitemap, currentSitemapPipeline] = result;
+    const [idxItem, sitemap, target] = result;
+    try {
+      this.addToIndex(idxItem, sitemap, target, encoding);
+    } catch (err) {
+      // The callback has already opened these streams, so a rejected tuple
+      // must not leave them, or the file they write to, open.
+      for (const stream of [sitemap, target]) {
+        if (typeof stream?.destroy === 'function') {
+          stream.destroy();
+        }
+      }
+      throw err;
+    }
 
-    // Validate each element
+    // Stays attached after rotation too, so an error a retired sitemap emits
+    // later is reported rather than crashing the process as unhandled.
+    sitemap.on('error', (err) => this.destroy(err));
+
+    // Watch both streams from the start, not only while closing, so a target
+    // that fails or goes away mid-sitemap stops this stream instead of
+    // leaving a write waiting for 'drain' or crashing on an unhandled error.
+    const opts = { readable: false, cleanup: true };
+    const finishedBoth = Promise.all([
+      finished(sitemap, opts),
+      target && finished(target, opts),
+    ]).then(() => undefined);
+    finishedBoth.catch((err: Error) => this.destroy(err));
+    this.current = { sitemap, target, finished: finishedBoth };
+
+    return sitemap;
+  }
+
+  /**
+   * Validates the rest of the tuple `getSitemapStream` returned and adds the
+   * index item to the index. Throws if any element is invalid, or if the
+   * index rejects the index item.
+   */
+  private addToIndex(
+    idxItem: IndexItem | string,
+    sitemap: SitemapStream,
+    target: WriteStream | undefined,
+    encoding: string
+  ): void {
     if (
       !idxItem ||
       (typeof idxItem !== 'string' && typeof idxItem !== 'object')
     ) {
-      this.emit(
-        'error',
-        new Error(
-          'getSitemapStream must return an IndexItem or string as the first element'
-        )
+      throw new Error(
+        'getSitemapStream must return an IndexItem or string as the first element'
       );
-      return;
     }
 
-    if (!currentSitemap || typeof currentSitemap.write !== 'function') {
-      this.emit(
-        'error',
-        new Error(
-          'getSitemapStream must return a SitemapStream as the second element'
-        )
+    if (!sitemap || typeof sitemap.write !== 'function') {
+      throw new Error(
+        'getSitemapStream must return a SitemapStream as the second element'
       );
-      return;
     }
 
-    if (
-      currentSitemapPipeline &&
-      typeof currentSitemapPipeline.write !== 'function'
-    ) {
-      this.emit(
-        'error',
-        new Error(
-          'getSitemapStream must return a WriteStream or undefined as the third element'
-        )
+    if (target && typeof target.write !== 'function') {
+      throw new Error(
+        'getSitemapStream must return a WriteStream or undefined as the third element'
       );
-      return;
     }
 
-    // Propagate errors from the sitemap stream
-    currentSitemap.on('error', (err) => this.emit('error', err));
-
-    this.currentSitemap = currentSitemap;
-    this.currentSitemapPipeline = currentSitemapPipeline;
-
-    super._transform(idxItem, encoding, () => {
-      // We are not too concerned about waiting for the index item to be written
-      // as we'll wait for the file to finish at the end, and index file write
-      // volume tends to be small in comparison to sitemap writes.
-      // noop
+    // SitemapIndexStream._transform calls back synchronously, and at
+    // ErrorLevel.THROW it calls back with an error for an invalid index item,
+    // which fails this sitemap too.
+    let indexItemError: Error | null | undefined;
+    super._transform(idxItem, encoding, (err) => {
+      indexItemError = err;
     });
+    if (indexItemError) {
+      throw indexItemError;
+    }
   }
 }
