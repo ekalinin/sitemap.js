@@ -694,6 +694,40 @@ describe('utils', () => {
       );
     });
 
+    for (const field of [
+      'requires_subscription',
+      'live',
+      'player_loc:allow_embed',
+    ] as const) {
+      it(`throws if it gets an invalid value for ${field}`, () => {
+        assert.throws(
+          function () {
+            validateSMIOptions(
+              {
+                ...itemTemplate,
+                url: 'https://example.com/video',
+                video: [
+                  {
+                    title: 'Video',
+                    description: 'Lorem ipsum',
+                    player_loc: 'https://example.com/player',
+                    thumbnail_loc: 'https://example.com/thumb.jpg',
+                    [field]: 'maybe-yes',
+                    tag: [],
+                  },
+                ],
+              },
+              ErrorLevel.THROW
+            );
+          },
+          (err: Error) =>
+            err.name === 'InvalidVideoYesNo' &&
+            err.message.includes(field) &&
+            err.message.includes('"maybe-yes"')
+        );
+      });
+    }
+
     it('throws if it gets a category that is too long', () => {
       assert.throws(
         function () {

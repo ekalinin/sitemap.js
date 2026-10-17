@@ -202,6 +202,14 @@ export class InvalidVideoFamilyFriendly extends Error {
   }
 }
 
+export class InvalidVideoYesNo extends Error {
+  constructor(url: string, field: string, value: string) {
+    super(`${url}: video ${field} must be yes or no, was passed "${value}"`);
+    this.name = 'InvalidVideoYesNo';
+    Error.captureStackTrace(this, InvalidVideoYesNo);
+  }
+}
+
 export class InvalidVideoRestriction extends Error {
   constructor(url: string, code: string) {
     super(
