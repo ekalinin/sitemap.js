@@ -93,6 +93,44 @@ base class, so they report errors and cap entries the same way.
   so crawlers fetched gzip bytes from a `.xml` URL. Update scripts that upload
   or serve `sitemap-*.xml` after a gzipped run.
 
+#### `SitemapStream` reports item errors as stream errors
+
+- `SitemapStream` and `SitemapItemStream` now report a failure on an item
+  through the stream: `write()` no longer throws, and the stream emits
+  `error` and is destroyed. This covers an invalid item at
+  `ErrorLevel.THROW`, an item `normalizeURL` rejects (such as an invalid
+  `lastmod`), and an item that can't be serialized (such as a non-string
+  video attribute at `ErrorLevel.SILENT`). Before, the error was thrown out
+  of `write()`, so a piped source crashed the process with an uncaught
+  exception. Code that wrapped `write()` in `try`/`catch` must listen for
+  `error` instead, or use `pipeline()`.
+- `SitemapStream` checks `xmlns.custom` in its constructor, so an invalid
+  custom namespace now throws from `new SitemapStream()` instead of from the
+  first `write()`.
+- `SitemapStream` serializes each item itself instead of piping it through an
+  internal `SitemapItemStream`, so it now outputs one chunk per item. The XML
+  is unchanged.
+
+#### Stricter `priority` and alternate-link validation
+
+- A `priority` of `NaN` is now reported as a `PriorityInvalidError`: it
+  throws at `ErrorLevel.THROW` and warns at `WARN`. It used to skip
+  validation and write `<priority>NaN</priority>` at every level.
+- An alternate link with no `lang` or `hreflang` is now reported as the new
+  `InvalidLinkHreflang` error at `WARN` and `THROW`, and dropped from the
+  output at `WARN` and `SILENT`. `SitemapItemStream`, which doesn't
+  validate, drops it too, with no warning. Every level used to fail with a
+  `TypeError` from the XML writer. Writing the link without `hreflang` would
+  produce the `androidLink` markup, which parses back as `androidLink`.
+
+#### Error classes are exported by name; `UndefinedTargetFolder` removed
+
+- `index.ts` lists the error classes explicitly instead of
+  `export * from './lib/errors.js'`, like the public types, so a new error
+  class is public only once it is added there.
+- `UndefinedTargetFolder` is removed. Nothing has thrown it since 7.0.0,
+  which removed `createSitemapsAndIndex`, its only user.
+
 ### Changed
 
 - The CLI parses arguments with Node's built-in `util.parseArgs` instead of
@@ -157,6 +195,15 @@ base class, so they report errors and cap entries the same way.
 
 ### Fixed
 
+- A string `priority` no longer crashes `SitemapStream` with
+  `item.priority.toFixed is not a function` (#393). A plain decimal string
+  such as `'0.5'` or `'.5'` is converted to a number (hex, binary and
+  exponent forms such as `'0x1'` or `'1e-1'` are not), and
+  `SitemapItemLoose.priority` now accepts `number | string`. Any other value,
+  including an empty string, is reported as a `PriorityInvalidError` at
+  `WARN` and `THROW`, and written as given at `WARN` and `SILENT`, like other
+  invalid values. `isValidPriority` rejects non-numbers instead of coercing
+  them.
 - `isValidYesNo` accepts only a whole `yes`, `Yes`, `YES`, `no`, `No` or `NO`.
   Its unanchored alternation used to accept any value that started with `YES`,
   contained `NO` or `yes`, or ended in `no`, such as `NOPE` or `maybe-yes`, so

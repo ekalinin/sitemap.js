@@ -172,33 +172,11 @@ export function lineSeparatedURLsToSitemapOptions(
 }
 
 /**
- * Based on lodash's implementation of chunk.
- *
- * Copyright JS Foundation and other contributors <https://js.foundation/>
- *
- * Based on Underscore.js, copyright Jeremy Ashkenas,
- * DocumentCloud and Investigative Reporters & Editors <http://underscorejs.org/>
- *
- * This software consists of voluntary contributions made by many
- * individuals. For exact contribution history, see the revision history
- * available at https://github.com/lodash/lodash
+ * Returns `err` if it is an Error, or wraps it in one, for passing a caught
+ * value to a stream callback
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export function chunk(array: any[], size = 1): any[] {
-  size = Math.max(Math.trunc(size), 0);
-
-  const length = array ? array.length : 0;
-  if (!length || size < 1) {
-    return [];
-  }
-  const result = Array(Math.ceil(length / size));
-  let index = 0,
-    resIndex = 0;
-
-  while (index < length) {
-    result[resIndex++] = array.slice(index, (index += size));
-  }
-  return result;
+export function toError(err: unknown): Error {
+  return err instanceof Error ? err : new Error(String(err));
 }
 
 function boolToYESNO(bool?: boolean | EnumYesNo): EnumYesNo | undefined {
@@ -209,6 +187,21 @@ function boolToYESNO(bool?: boolean | EnumYesNo): EnumYesNo | undefined {
     return bool ? EnumYesNo.yes : EnumYesNo.no;
   }
   return bool;
+}
+
+/**
+ * Converts a numeric string priority, such as `'0.5'`, to a number. Returns
+ * any other value unchanged, for validateSMIOptions to report.
+ */
+function toPriority(priority: number | string): number {
+  if (
+    typeof priority === 'string' &&
+    LIMITS.PRIORITY_STRING_REGEX.test(priority)
+  ) {
+    return Number(priority);
+  }
+  // Not a number: passed through so validation reports it at WARN and THROW
+  return priority as number;
 }
 
 /**
@@ -236,10 +229,23 @@ export function normalizeURL(
     return smi;
   }
 
-  const { url, img, links, video, lastmodfile, lastmodISO, lastmod, ...other } =
-    elem;
+  const {
+    url,
+    img,
+    links,
+    video,
+    lastmodfile,
+    lastmodISO,
+    lastmod,
+    priority,
+    ...other
+  } = elem;
 
   Object.assign(smi, other);
+
+  if (priority !== undefined) {
+    smi.priority = toPriority(priority);
+  }
 
   smi.url = new URL(url, hostname).toString();
 

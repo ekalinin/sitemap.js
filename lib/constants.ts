@@ -32,6 +32,9 @@ export const LIMITS = {
   // Priority bounds per sitemaps.org spec
   MIN_PRIORITY: 0,
   MAX_PRIORITY: 1,
+  // A priority string normalizeURL converts to a number: plain decimal only,
+  // so hex, binary and exponent forms that Number() accepts stay invalid
+  PRIORITY_STRING_REGEX: /^\s*(?:\d+\.?\d*|\.\d+)\s*$/,
 
   // Video value bounds per Google spec
   MIN_VIDEO_DURATION: 0,

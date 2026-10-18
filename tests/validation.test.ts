@@ -1,6 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  getLinkHreflang,
+  validateSMIOptions,
   isValidPriority,
   isValidVideoDuration,
   isValidVideoRating,
@@ -8,12 +10,13 @@ import {
   isValidISODate,
   isValidYesNo,
 } from '../dist/lib/validation.js';
+import { ErrorLevel, type LinkItem, type SitemapItem } from '../dist/index.js';
 
 // Bounds come from the sitemaps.org protocol (priority) and Google's video
 // sitemap spec (duration 0–28800 s, rating 0–5).
-describe('value guards', () => {
-  const nonFinite = [NaN, Infinity, -Infinity];
+const nonFinite = [NaN, Infinity, -Infinity];
 
+describe('value guards', () => {
   it('isValidPriority accepts 0 through 1 inclusive', () => {
     for (const ok of [0, 0.5, 1])
       assert.equal(isValidPriority(ok), true, `${ok}`);
@@ -21,6 +24,74 @@ describe('value guards', () => {
       assert.equal(isValidPriority(bad), false, `${bad}`);
   });
 
+  it('isValidPriority rejects non-numbers instead of coercing them', () => {
+    for (const bad of ['0.5', '', null, undefined, true])
+      assert.equal(isValidPriority(bad), false, String(bad));
+  });
+});
+
+describe('getLinkHreflang', () => {
+  it('returns lang, else hreflang, when it is a non-empty string', () => {
+    assert.equal(getLinkHreflang({ url: 'u', lang: 'en' }), 'en');
+    assert.equal(
+      getLinkHreflang({ url: 'u', lang: '', hreflang: 'en-us' }),
+      'en-us'
+    );
+  });
+
+  it('returns undefined for a missing, empty or non-string value', () => {
+    for (const lang of [undefined, '', 5, false, null])
+      assert.equal(
+        getLinkHreflang({ url: 'u', lang } as unknown as LinkItem),
+        undefined,
+        String(lang)
+      );
+  });
+});
+
+describe('validateSMIOptions', () => {
+  const item = (extra: Partial<SitemapItem>): SitemapItem => ({
+    url: 'https://example.com/',
+    img: [],
+    video: [],
+    links: [],
+    ...extra,
+  });
+  const reported = (conf: SitemapItem): string[] => {
+    const names: string[] = [];
+    validateSMIOptions(conf, ErrorLevel.WARN, (err) => names.push(err.name));
+    return names;
+  };
+
+  it('reports a NaN or non-numeric priority, and accepts 0', () => {
+    for (const priority of [NaN, 'high', ''])
+      assert.deepEqual(
+        reported(item({ priority: priority as number })),
+        ['PriorityInvalidError'],
+        String(priority)
+      );
+    assert.deepEqual(reported(item({ priority: 0 })), []);
+  });
+
+  it('reports an alternate link with no lang or hreflang', () => {
+    assert.deepEqual(
+      reported(item({ links: [{ url: 'u' } as unknown as LinkItem] })),
+      ['InvalidLinkHreflang']
+    );
+    assert.deepEqual(reported(item({ links: [{ url: 'u', lang: 'en' }] })), []);
+  });
+
+  it('ignores links that are not an array', () => {
+    assert.deepEqual(
+      reported(
+        item({ links: { url: 'u', lang: 'en' } as unknown as LinkItem[] })
+      ),
+      []
+    );
+  });
+});
+
+describe('remaining value guards', () => {
   it('isValidVideoDuration accepts 0 through 28800 seconds', () => {
     for (const ok of [0, 600, 28800])
       assert.equal(isValidVideoDuration(ok), true, `${ok}`);

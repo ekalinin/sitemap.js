@@ -10,7 +10,6 @@ import {
   NoConfigError,
   ChangeFreqInvalidError,
   PriorityInvalidError,
-  UndefinedTargetFolder,
   InvalidVideoFormat,
   InvalidVideoDuration,
   InvalidVideoDescription,
@@ -30,7 +29,6 @@ describe('sitemap shape', () => {
     assert.notStrictEqual(NoConfigError, undefined);
     assert.notStrictEqual(ChangeFreqInvalidError, undefined);
     assert.notStrictEqual(PriorityInvalidError, undefined);
-    assert.notStrictEqual(UndefinedTargetFolder, undefined);
     assert.notStrictEqual(InvalidVideoFormat, undefined);
     assert.notStrictEqual(InvalidVideoDuration, undefined);
     assert.notStrictEqual(InvalidVideoDescription, undefined);

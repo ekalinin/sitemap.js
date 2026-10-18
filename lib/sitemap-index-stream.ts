@@ -17,6 +17,7 @@ import { SitemapStream, stylesheetInclude } from './sitemap-stream.js';
 import { element, otag, ctag } from './sitemap-xml.js';
 import { LIMITS, DEFAULT_SITEMAP_ITEM_LIMIT } from './constants.js';
 import { validateURL, validateXSLUrl } from './validation.js';
+import { toError } from './utils.js';
 
 // Re-export IndexTagNames for backward compatibility
 export { IndexTagNames };
@@ -194,7 +195,7 @@ export class SitemapIndexStream extends Transform {
       this.push(ctag(IndexTagNames.sitemap));
       callback();
     } catch (error) {
-      callback(error instanceof Error ? error : new Error(String(error)));
+      callback(toError(error));
     }
   }
 
@@ -399,9 +400,11 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
     item: SitemapItemLoose,
     callback: TransformCallback
   ): void {
-    // SitemapStream validates and normalizes inside write(), so a bad item
-    // (such as a relative URL with no hostname) can throw synchronously.
-    // Report it as a stream error instead of letting it escape the caller.
+    // SitemapStream reports a bad item (such as a relative URL with no
+    // hostname) through its 'error' event, which createSitemap's listener
+    // turns into this stream's error. The sitemap comes from
+    // getSitemapStream, though, so a caller's subclass or wrapper may still
+    // throw from write(); report that as a stream error too.
     let writable: boolean;
     try {
       writable = sitemap.write(item);

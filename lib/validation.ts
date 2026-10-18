@@ -27,6 +27,7 @@ import {
   InvalidVideoCategory,
   InvalidVideoFamilyFriendly,
   InvalidVideoYesNo,
+  InvalidLinkHreflang,
   InvalidVideoRestriction,
   InvalidVideoRestrictionRelationship,
   InvalidVideoPriceType,
@@ -46,6 +47,7 @@ import type {
   NewsItem,
   VideoItem,
   ErrorHandler,
+  LinkItem,
 } from './types.js';
 import { LIMITS } from './constants.js';
 import { defaultLogger, loggingErrorHandler } from './logger.js';
@@ -102,9 +104,10 @@ export function isValidYesNo(yn: string): yn is EnumYesNo {
 /**
  * Checks that a priority is a finite number within sitemaps.org bounds (0–1)
  */
-export function isValidPriority(priority: number): boolean {
+export function isValidPriority(priority: unknown): boolean {
   return (
-    isFinite(priority) &&
+    typeof priority === 'number' &&
+    Number.isFinite(priority) &&
     priority >= LIMITS.MIN_PRIORITY &&
     priority <= LIMITS.MAX_PRIORITY
   );
@@ -146,6 +149,16 @@ export function isValidVideoViewCount(count: number): boolean {
  */
 export function isValidISODate(date: string): boolean {
   return LIMITS.ISO_DATE_REGEX.test(date);
+}
+
+/**
+ * Returns an alternate link's language (`lang`, else `hreflang`), or
+ * `undefined` when neither is a non-empty string. Validation reports such a
+ * link, and the writer drops it.
+ */
+export function getLinkHreflang(link: LinkItem): string | undefined {
+  const hreflang: unknown = link.lang || link.hreflang;
+  return typeof hreflang === 'string' && hreflang !== '' ? hreflang : undefined;
 }
 
 /**
@@ -516,10 +529,21 @@ export function validateSMIOptions(
     }
   }
 
-  if (priority) {
+  if (priority !== undefined && priority !== null) {
     if (!isValidPriority(priority)) {
       errorHandler(new PriorityInvalidError(url, priority), level);
     }
+  }
+
+  if (Array.isArray(conf.links)) {
+    conf.links.forEach((link): void => {
+      if (getLinkHreflang(link) === undefined) {
+        errorHandler(
+          new InvalidLinkHreflang(url, link.url, link.lang || link.hreflang),
+          level
+        );
+      }
+    });
   }
 
   if (news) {

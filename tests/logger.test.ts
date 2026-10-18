@@ -84,13 +84,14 @@ describe('logger option', () => {
     assert.strictEqual(consoleWarn.mock.callCount(), 0);
   });
 
-  it('SitemapStream still throws at ErrorLevel.THROW with a logger', async () => {
+  it('SitemapStream still fails at ErrorLevel.THROW with a logger', async () => {
     const logger = mock.fn();
     const sms = new SitemapStream({ logger, level: ErrorLevel.THROW });
-    assert.throws(
-      () => sms._transform(invalidItem, 'utf8', () => undefined),
-      /changefreq/
-    );
+    let error: Error | null | undefined;
+    sms._transform(invalidItem, 'utf8', (err) => {
+      error = err;
+    });
+    assert.match(String(error?.message), /changefreq/);
     assert.strictEqual(logger.mock.callCount(), 0);
   });
 
@@ -237,25 +238,25 @@ describe('logger option, more paths', () => {
     assert.strictEqual(call.arguments[1], ErrorLevel.THROW);
   });
 
-  it('THROW still throws for invalid news attributes with the default errorHandler', () => {
+  it('THROW still fails for invalid news attributes with the default errorHandler', () => {
     const sms = new SitemapStream({ level: ErrorLevel.THROW });
-    assert.throws(
-      () =>
-        sms._transform(
-          {
-            url: 'https://example.com/',
-            news: {
-              publication: { name: 'Example', language: 'en' },
-              publication_date: '2024-01-01',
-              title: 'Title',
-              genres: 'NotAGenre',
-            },
-          },
-          'utf8',
-          () => undefined
-        ),
-      /not a valid value for attr/
+    let error: Error | null | undefined;
+    sms._transform(
+      {
+        url: 'https://example.com/',
+        news: {
+          publication: { name: 'Example', language: 'en' },
+          publication_date: '2024-01-01',
+          title: 'Title',
+          genres: 'NotAGenre',
+        },
+      },
+      'utf8',
+      (err) => {
+        error = err;
+      }
     );
+    assert.match(String(error?.message), /not a valid value for attr/);
   });
 });
 

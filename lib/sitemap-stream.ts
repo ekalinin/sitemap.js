@@ -11,14 +11,14 @@ import {
   type ErrorHandler,
   type Logger,
 } from './types.js';
-import { normalizeURL } from './utils.js';
+import { normalizeURL, toError } from './utils.js';
 import { resolveLogger, loggingErrorHandler } from './logger.js';
 import {
   validateSMIOptions,
   validateURL,
   validateXSLUrl,
 } from './validation.js';
-import { SitemapItemStream } from './sitemap-item-stream.js';
+import { sitemapItemToXML } from './sitemap-item-stream.js';
 import { EmptyStream } from './errors.js';
 import { LIMITS } from './constants.js';
 
@@ -208,7 +208,6 @@ export class SitemapStream extends Transform {
     this.xmlns = value;
   }
 
-  private smiStream: SitemapItemStream;
   lastmodDateOnly: boolean;
   constructor(opts = defaultStreamOpts) {
     opts.objectMode = true;
@@ -237,10 +236,13 @@ export class SitemapStream extends Transform {
       loggingErrorHandler((level, ...message) =>
         this.logger(level, ...message)
       );
-    this.smiStream = new SitemapItemStream({ level: opts.level });
-    this.smiStream.on('data', (data) => this.push(data));
     this.lastmodDateOnly = opts.lastmodDateOnly || false;
     this.xmlns = opts.xmlns || defaultXMLNS;
+    // Fail at construction, like an invalid hostname, rather than on the
+    // first write
+    if (this.xmlns.custom) {
+      validateCustomNamespaces(this.xmlns.custom);
+    }
     this.xslUrl = opts.xslUrl;
   }
 
@@ -249,23 +251,28 @@ export class SitemapStream extends Transform {
     encoding: string,
     callback: TransformCallback
   ): void {
-    if (!this.hasHeadOutput) {
-      this.hasHeadOutput = true;
-      this.push(getURLSetNs(this.xmlns, this.xslUrl));
-    }
-    if (
-      !this.smiStream.write(
+    // Report every failure (an invalid item at ErrorLevel.THROW, an item
+    // normalizeURL rejects, one that can't be serialized) as a stream error.
+    // Thrown here, it would escape write(), and crash the process when the
+    // stream is piped.
+    let xml: string;
+    try {
+      xml = sitemapItemToXML(
         validateSMIOptions(
           normalizeURL(item, this.hostname, this.lastmodDateOnly),
           this.level,
           this.errorHandler
         )
-      )
-    ) {
-      this.smiStream.once('drain', callback);
-    } else {
-      process.nextTick(callback);
+      );
+      if (!this.hasHeadOutput) {
+        this.hasHeadOutput = true;
+        xml = getURLSetNs(this.xmlns, this.xslUrl) + xml;
+      }
+    } catch (err) {
+      callback(toError(err));
+      return;
     }
+    callback(null, xml);
   }
 
   _flush(cb: TransformCallback): void {

@@ -304,7 +304,6 @@ interface SitemapItemBase {
   lastmod?: string;
   changefreq?: EnumChangefreq;
   fullPrecisionPriority?: boolean;
-  priority?: number;
   news?: NewsItem;
   expires?: string;
   androidLink?: string;
@@ -316,6 +315,7 @@ interface SitemapItemBase {
  * Strict options for individual sitemap entries
  */
 export interface SitemapItem extends SitemapItemBase {
+  priority?: number;
   img: Img[];
   video: VideoItem[];
   links: LinkItem[];
@@ -325,6 +325,11 @@ export interface SitemapItem extends SitemapItemBase {
  * Options for individual sitemap entries prior to normalization
  */
 export interface SitemapItemLoose extends SitemapItemBase {
+  /**
+   * A number between 0 and 1. A numeric string such as `'0.5'` is converted
+   * to a number.
+   */
+  priority?: number | string;
   video?: VideoItemLoose | VideoItemLoose[];
   img?: string | Img | (string | Img)[];
   links?: LinkItem[];
