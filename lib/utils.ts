@@ -431,3 +431,11 @@ export function openSitemapFile<S extends Readable>(
   pipeSitemapToFile(sitemap, writeStream, gzip, onError);
   return [url, sitemap, writeStream];
 }
+
+/**
+ * Message text of a caught value, for embedding in a wrapping error's message.
+ * @param err - anything caught by a `catch` clause
+ */
+export function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}

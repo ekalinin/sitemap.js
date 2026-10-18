@@ -420,6 +420,7 @@ describe('sitemapAndIndex', () => {
         )
       );
       assert.ok((error as Error).message.includes('callback error'));
+      assert.ok((error as Error).cause instanceof Error);
     });
   });
 

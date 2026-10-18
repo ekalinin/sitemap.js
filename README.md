@@ -21,10 +21,10 @@ makes creating [sitemap XML](http://www.sitemaps.org/) files easy. [What is a si
 npm install --save sitemap
 ```
 
-Requires Node.js >= 22.12. This package is **ESM-only** — it no longer ships a
+Requires Node.js >= 22.22.1. This package is **ESM-only** — it no longer ships a
 CommonJS build. Load it with `import`; `require('sitemap')` works only on Node
-versions with built-in `require(esm)` support, which is why the minimum is
-22.12 rather than 22.0.
+versions with built-in `require(esm)` support, which needs 22.12 or later;
+the minimum is 22.22.1 to match the toolchain used to develop it.
 
 ## Generate a one time sitemap from a list of urls
 

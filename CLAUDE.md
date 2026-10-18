@@ -65,12 +65,13 @@ Control validation strictness with `ErrorLevel`:
 
 The package is ESM-only, with `"type": "module"` in package.json. There is no
 CommonJS build: `require('sitemap')` works only on Node versions with built-in
-`require(esm)` support, which is why the engines floor is 22.12.
+`require(esm)` support, which needs 22.12. The floor is 22.22.1 because the dev toolchain
+(`lint-staged` 17) requires it.
 
 - **ESM**: `dist/index.js` (ES modules)
 - **Types**: `dist/index.d.ts` (TypeScript definitions)
 - **Binary**: `dist/cli.js` (ESM-only CLI, executable via `npx sitemap`)
-- **Engines**: Node.js >=22.12, npm >=10.8.2
+- **Engines**: Node.js >=22.22.1, npm >=10.8.2
 
 ## Architecture Decisions
 

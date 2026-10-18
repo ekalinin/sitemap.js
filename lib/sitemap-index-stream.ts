@@ -13,6 +13,7 @@ import {
   IndexTagNames,
 } from './types.js';
 import { resolveLogger } from './logger.js';
+import { errorMessage } from './utils.js';
 import { SitemapStream, stylesheetInclude } from './sitemap-stream.js';
 import { element, otag, ctag } from './sitemap-xml.js';
 import { LIMITS, DEFAULT_SITEMAP_ITEM_LIMIT } from './constants.js';
@@ -457,7 +458,8 @@ export class SitemapAndIndexStream extends SitemapIndexStream {
       result = this.getSitemapStream(sitemapIndex);
     } catch (err) {
       throw new Error(
-        `getSitemapStream callback threw an error for index ${sitemapIndex}: ${err instanceof Error ? err.message : String(err)}`
+        `getSitemapStream callback threw an error for index ${sitemapIndex}: ${errorMessage(err)}`,
+        { cause: err }
       );
     }
 
