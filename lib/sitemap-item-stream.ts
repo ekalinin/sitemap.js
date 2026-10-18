@@ -11,6 +11,8 @@ import {
   type StringObj,
 } from './types.js';
 import { element, otag, ctag } from './sitemap-xml.js';
+import { toError } from './utils.js';
+import { getLinkHreflang } from './validation.js';
 
 /**
  * Builds an attributes object for XML elements from configuration object
@@ -44,6 +46,279 @@ function attrBuilder(conf: StringObj, keys: string | string[]): StringObj {
   }, iv);
 }
 
+/**
+ * Serializes one normalized sitemap item to its `<url>` element. Throws if
+ * the item can't be written, such as a video attribute that isn't a string.
+ * Drops an alternate link with no `lang` or `hreflang`.
+ *
+ * @param item - A normalized item, as `normalizeURL` returns
+ * @returns The `<url>…</url>` XML for the item
+ */
+export function sitemapItemToXML(item: SitemapItem): string {
+  const parts: string[] = [];
+  parts.push(otag(TagNames.url));
+  parts.push(element(TagNames.loc, item.url));
+
+  if (item.lastmod) {
+    parts.push(element(TagNames.lastmod, item.lastmod));
+  }
+
+  if (item.changefreq) {
+    parts.push(element(TagNames.changefreq, item.changefreq));
+  }
+
+  if (item.priority !== undefined && item.priority !== null) {
+    // A non-number reaches here only when validation let it through (WARN
+    // or SILENT), so write it as given, like any other invalid value.
+    if (typeof item.priority !== 'number' || item.fullPrecisionPriority) {
+      parts.push(element(TagNames.priority, String(item.priority)));
+    } else {
+      parts.push(element(TagNames.priority, item.priority.toFixed(1)));
+    }
+  }
+
+  item.video.forEach((video) => {
+    parts.push(otag(TagNames['video:video']));
+
+    parts.push(element(TagNames['video:thumbnail_loc'], video.thumbnail_loc));
+    parts.push(element(TagNames['video:title'], video.title));
+    parts.push(element(TagNames['video:description'], video.description));
+
+    if (video.content_loc) {
+      parts.push(element(TagNames['video:content_loc'], video.content_loc));
+    }
+
+    if (video.player_loc) {
+      parts.push(
+        element(
+          TagNames['video:player_loc'],
+          attrBuilder(video, ['player_loc:autoplay', 'player_loc:allow_embed']),
+          video.player_loc
+        )
+      );
+    }
+
+    if (video.duration) {
+      parts.push(
+        element(TagNames['video:duration'], video.duration.toString())
+      );
+    }
+
+    if (video.expiration_date) {
+      parts.push(
+        element(TagNames['video:expiration_date'], video.expiration_date)
+      );
+    }
+
+    if (video.rating !== undefined) {
+      parts.push(element(TagNames['video:rating'], video.rating.toString()));
+    }
+
+    if (video.view_count !== undefined) {
+      parts.push(
+        element(TagNames['video:view_count'], String(video.view_count))
+      );
+    }
+
+    if (video.publication_date) {
+      parts.push(
+        element(TagNames['video:publication_date'], video.publication_date)
+      );
+    }
+
+    if (video.tag && video.tag.length > 0) {
+      for (const tag of video.tag) {
+        parts.push(element(TagNames['video:tag'], tag));
+      }
+    }
+
+    if (video.category) {
+      parts.push(element(TagNames['video:category'], video.category));
+    }
+
+    if (video.family_friendly) {
+      parts.push(
+        element(TagNames['video:family_friendly'], video.family_friendly)
+      );
+    }
+
+    if (video.restriction) {
+      parts.push(
+        element(
+          TagNames['video:restriction'],
+          attrBuilder(video, 'restriction:relationship'),
+          video.restriction
+        )
+      );
+    }
+
+    if (video.gallery_loc) {
+      parts.push(
+        element(
+          TagNames['video:gallery_loc'],
+          attrBuilder(video, 'gallery_loc:title'),
+          video.gallery_loc
+        )
+      );
+    }
+
+    if (video.price) {
+      parts.push(
+        element(
+          TagNames['video:price'],
+          attrBuilder(video, [
+            'price:resolution',
+            'price:currency',
+            'price:type',
+          ]),
+          video.price
+        )
+      );
+    }
+
+    if (video.requires_subscription) {
+      parts.push(
+        element(
+          TagNames['video:requires_subscription'],
+          video.requires_subscription
+        )
+      );
+    }
+
+    if (video.uploader) {
+      parts.push(
+        element(
+          TagNames['video:uploader'],
+          attrBuilder(video, 'uploader:info'),
+          video.uploader
+        )
+      );
+    }
+
+    if (video.platform) {
+      parts.push(
+        element(
+          TagNames['video:platform'],
+          attrBuilder(video, 'platform:relationship'),
+          video.platform
+        )
+      );
+    }
+
+    if (video.live) {
+      parts.push(element(TagNames['video:live'], video.live));
+    }
+
+    if (video.id) {
+      parts.push(element(TagNames['video:id'], { type: 'url' }, video.id));
+    }
+
+    parts.push(ctag(TagNames['video:video']));
+  });
+
+  item.links.forEach((link) => {
+    const hreflang = getLinkHreflang(link);
+    // A link with no language reaches here only when validation let it
+    // through (WARN or SILENT). Drop it: written without hreflang, it would
+    // be the androidLink markup and parse back as one.
+    if (hreflang === undefined) {
+      return;
+    }
+    parts.push(
+      element(TagNames['xhtml:link'], {
+        rel: 'alternate',
+        hreflang,
+        href: link.url,
+      })
+    );
+  });
+
+  if (item.expires) {
+    parts.push(element(TagNames.expires, new Date(item.expires).toISOString()));
+  }
+
+  if (item.androidLink) {
+    parts.push(
+      element(TagNames['xhtml:link'], {
+        rel: 'alternate',
+        href: item.androidLink,
+      })
+    );
+  }
+
+  if (item.ampLink) {
+    parts.push(
+      element(TagNames['xhtml:link'], {
+        rel: 'amphtml',
+        href: item.ampLink,
+      })
+    );
+  }
+
+  if (item.news) {
+    parts.push(otag(TagNames['news:news']));
+    parts.push(otag(TagNames['news:publication']));
+    parts.push(element(TagNames['news:name'], item.news.publication.name));
+
+    parts.push(
+      element(TagNames['news:language'], item.news.publication.language)
+    );
+    parts.push(ctag(TagNames['news:publication']));
+
+    if (item.news.access) {
+      parts.push(element(TagNames['news:access'], item.news.access));
+    }
+
+    if (item.news.genres) {
+      parts.push(element(TagNames['news:genres'], item.news.genres));
+    }
+
+    parts.push(
+      element(TagNames['news:publication_date'], item.news.publication_date)
+    );
+    parts.push(element(TagNames['news:title'], item.news.title));
+
+    if (item.news.keywords) {
+      parts.push(element(TagNames['news:keywords'], item.news.keywords));
+    }
+
+    if (item.news.stock_tickers) {
+      parts.push(
+        element(TagNames['news:stock_tickers'], item.news.stock_tickers)
+      );
+    }
+    parts.push(ctag(TagNames['news:news']));
+  }
+
+  // Image handling
+  item.img.forEach((image): void => {
+    parts.push(otag(TagNames['image:image']));
+    parts.push(element(TagNames['image:loc'], image.url));
+
+    if (image.caption) {
+      parts.push(element(TagNames['image:caption'], image.caption));
+    }
+
+    if (image.geoLocation) {
+      parts.push(element(TagNames['image:geo_location'], image.geoLocation));
+    }
+
+    if (image.title) {
+      parts.push(element(TagNames['image:title'], image.title));
+    }
+
+    if (image.license) {
+      parts.push(element(TagNames['image:license'], image.license));
+    }
+
+    parts.push(ctag(TagNames['image:image']));
+  });
+
+  parts.push(ctag(TagNames.url));
+
+  return parts.join('');
+}
+
 export interface SitemapItemStreamOptions extends TransformOptions {
   level?: ErrorLevel;
 }
@@ -72,261 +347,15 @@ export class SitemapItemStream extends Transform {
     encoding: string,
     callback: TransformCallback
   ): void {
-    this.push(otag(TagNames.url));
-    this.push(element(TagNames.loc, item.url));
-
-    if (item.lastmod) {
-      this.push(element(TagNames.lastmod, item.lastmod));
+    // Report a serialization failure as a stream error. Thrown here, it
+    // would escape write(), and crash the process when the stream is piped.
+    let xml: string;
+    try {
+      xml = sitemapItemToXML(item);
+    } catch (err) {
+      callback(toError(err));
+      return;
     }
-
-    if (item.changefreq) {
-      this.push(element(TagNames.changefreq, item.changefreq));
-    }
-
-    if (item.priority !== undefined && item.priority !== null) {
-      if (item.fullPrecisionPriority) {
-        this.push(element(TagNames.priority, item.priority.toString()));
-      } else {
-        this.push(element(TagNames.priority, item.priority.toFixed(1)));
-      }
-    }
-
-    item.video.forEach((video) => {
-      this.push(otag(TagNames['video:video']));
-
-      this.push(element(TagNames['video:thumbnail_loc'], video.thumbnail_loc));
-      this.push(element(TagNames['video:title'], video.title));
-      this.push(element(TagNames['video:description'], video.description));
-
-      if (video.content_loc) {
-        this.push(element(TagNames['video:content_loc'], video.content_loc));
-      }
-
-      if (video.player_loc) {
-        this.push(
-          element(
-            TagNames['video:player_loc'],
-            attrBuilder(video, [
-              'player_loc:autoplay',
-              'player_loc:allow_embed',
-            ]),
-            video.player_loc
-          )
-        );
-      }
-
-      if (video.duration) {
-        this.push(
-          element(TagNames['video:duration'], video.duration.toString())
-        );
-      }
-
-      if (video.expiration_date) {
-        this.push(
-          element(TagNames['video:expiration_date'], video.expiration_date)
-        );
-      }
-
-      if (video.rating !== undefined) {
-        this.push(element(TagNames['video:rating'], video.rating.toString()));
-      }
-
-      if (video.view_count !== undefined) {
-        this.push(
-          element(TagNames['video:view_count'], String(video.view_count))
-        );
-      }
-
-      if (video.publication_date) {
-        this.push(
-          element(TagNames['video:publication_date'], video.publication_date)
-        );
-      }
-
-      if (video.tag && video.tag.length > 0) {
-        for (const tag of video.tag) {
-          this.push(element(TagNames['video:tag'], tag));
-        }
-      }
-
-      if (video.category) {
-        this.push(element(TagNames['video:category'], video.category));
-      }
-
-      if (video.family_friendly) {
-        this.push(
-          element(TagNames['video:family_friendly'], video.family_friendly)
-        );
-      }
-
-      if (video.restriction) {
-        this.push(
-          element(
-            TagNames['video:restriction'],
-            attrBuilder(video, 'restriction:relationship'),
-            video.restriction
-          )
-        );
-      }
-
-      if (video.gallery_loc) {
-        this.push(
-          element(
-            TagNames['video:gallery_loc'],
-            attrBuilder(video, 'gallery_loc:title'),
-            video.gallery_loc
-          )
-        );
-      }
-
-      if (video.price) {
-        this.push(
-          element(
-            TagNames['video:price'],
-            attrBuilder(video, [
-              'price:resolution',
-              'price:currency',
-              'price:type',
-            ]),
-            video.price
-          )
-        );
-      }
-
-      if (video.requires_subscription) {
-        this.push(
-          element(
-            TagNames['video:requires_subscription'],
-            video.requires_subscription
-          )
-        );
-      }
-
-      if (video.uploader) {
-        this.push(
-          element(
-            TagNames['video:uploader'],
-            attrBuilder(video, 'uploader:info'),
-            video.uploader
-          )
-        );
-      }
-
-      if (video.platform) {
-        this.push(
-          element(
-            TagNames['video:platform'],
-            attrBuilder(video, 'platform:relationship'),
-            video.platform
-          )
-        );
-      }
-
-      if (video.live) {
-        this.push(element(TagNames['video:live'], video.live));
-      }
-
-      if (video.id) {
-        this.push(element(TagNames['video:id'], { type: 'url' }, video.id));
-      }
-
-      this.push(ctag(TagNames['video:video']));
-    });
-
-    item.links.forEach((link) => {
-      this.push(
-        element(TagNames['xhtml:link'], {
-          rel: 'alternate',
-          hreflang: link.lang || link.hreflang,
-          href: link.url,
-        })
-      );
-    });
-
-    if (item.expires) {
-      this.push(
-        element(TagNames.expires, new Date(item.expires).toISOString())
-      );
-    }
-
-    if (item.androidLink) {
-      this.push(
-        element(TagNames['xhtml:link'], {
-          rel: 'alternate',
-          href: item.androidLink,
-        })
-      );
-    }
-
-    if (item.ampLink) {
-      this.push(
-        element(TagNames['xhtml:link'], {
-          rel: 'amphtml',
-          href: item.ampLink,
-        })
-      );
-    }
-
-    if (item.news) {
-      this.push(otag(TagNames['news:news']));
-      this.push(otag(TagNames['news:publication']));
-      this.push(element(TagNames['news:name'], item.news.publication.name));
-
-      this.push(
-        element(TagNames['news:language'], item.news.publication.language)
-      );
-      this.push(ctag(TagNames['news:publication']));
-
-      if (item.news.access) {
-        this.push(element(TagNames['news:access'], item.news.access));
-      }
-
-      if (item.news.genres) {
-        this.push(element(TagNames['news:genres'], item.news.genres));
-      }
-
-      this.push(
-        element(TagNames['news:publication_date'], item.news.publication_date)
-      );
-      this.push(element(TagNames['news:title'], item.news.title));
-
-      if (item.news.keywords) {
-        this.push(element(TagNames['news:keywords'], item.news.keywords));
-      }
-
-      if (item.news.stock_tickers) {
-        this.push(
-          element(TagNames['news:stock_tickers'], item.news.stock_tickers)
-        );
-      }
-      this.push(ctag(TagNames['news:news']));
-    }
-
-    // Image handling
-    item.img.forEach((image): void => {
-      this.push(otag(TagNames['image:image']));
-      this.push(element(TagNames['image:loc'], image.url));
-
-      if (image.caption) {
-        this.push(element(TagNames['image:caption'], image.caption));
-      }
-
-      if (image.geoLocation) {
-        this.push(element(TagNames['image:geo_location'], image.geoLocation));
-      }
-
-      if (image.title) {
-        this.push(element(TagNames['image:title'], image.title));
-      }
-
-      if (image.license) {
-        this.push(element(TagNames['image:license'], image.license));
-      }
-
-      this.push(ctag(TagNames['image:image']));
-    });
-
-    this.push(ctag(TagNames.url));
-    callback();
+    callback(null, xml);
   }
 }

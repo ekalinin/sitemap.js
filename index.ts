@@ -19,7 +19,44 @@ export {
   SitemapStream,
   type SitemapStreamOptions,
 } from './lib/sitemap-stream.js';
-export * from './lib/errors.js';
+// Listed explicitly, like the types below, so a new error class is public
+// only once it is added here
+export {
+  NoURLError,
+  NoConfigError,
+  ChangeFreqInvalidError,
+  PriorityInvalidError,
+  InvalidVideoFormat,
+  InvalidVideoDuration,
+  InvalidVideoDescription,
+  InvalidVideoRating,
+  InvalidAttrValue,
+  InvalidAttr,
+  InvalidNewsFormat,
+  InvalidNewsAccessValue,
+  XMLLintUnavailable,
+  InvalidVideoTitle,
+  InvalidVideoViewCount,
+  InvalidVideoTagCount,
+  InvalidVideoCategory,
+  InvalidVideoFamilyFriendly,
+  InvalidVideoYesNo,
+  InvalidLinkHreflang,
+  InvalidVideoRestriction,
+  InvalidVideoRestrictionRelationship,
+  InvalidVideoPriceType,
+  InvalidVideoResolution,
+  InvalidVideoPriceCurrency,
+  EmptyStream,
+  EmptySitemap,
+  InvalidPathError,
+  InvalidHostnameError,
+  InvalidURLError,
+  InvalidLimitError,
+  InvalidPublicBasePathError,
+  InvalidXSLUrlError,
+  InvalidXMLAttributeNameError,
+} from './lib/errors.js';
 // Listed explicitly rather than `export *`, so types.ts can hold internal types
 // (such as SitemapFileOptions) without making them public API. IndexTagNames
 // and the parser options are exported with their modules below.

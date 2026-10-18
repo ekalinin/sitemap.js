@@ -579,6 +579,36 @@ describe('sitemapAndIndex', () => {
       await assert.rejects(finished(sms), /write failed/);
     });
 
+    // SitemapStream reports a bad item through its 'error' event, not by
+    // throwing from write(), so this covers the asynchronous path.
+    for (const position of ['first', 'second']) {
+      it(`fails once on a bad ${position} item without hanging`, async () => {
+        const sms = new SitemapAndIndexStream({
+          limit: 10,
+          getSitemapStream: (
+            i: number
+          ): [string, SitemapStream, WriteStream] => {
+            const sm = new SitemapStream();
+            const ws = createWriteStream(devNull);
+            sm.pipe(ws);
+            return [`https://example.com/sitemap-${i}.xml`, sm, ws];
+          },
+        });
+        const errors: Error[] = [];
+        sms.on('error', (err) => errors.push(err));
+        sms.resume();
+        if (position === 'second') {
+          sms.write('https://1.example.com/a');
+        }
+        // Relative, and the sitemap has no hostname to resolve it against
+        sms.write('/relative');
+        sms.end();
+
+        await assert.rejects(finished(sms), /Invalid URL/);
+        assert.strictEqual(errors.length, 1);
+      });
+    }
+
     // A target that goes away without finishing or erroring, like a socket
     // closed by the other end.
     function targetDestroyedOnFirstWrite(): WriteStream {

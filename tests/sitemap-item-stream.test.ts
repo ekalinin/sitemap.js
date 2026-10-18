@@ -1,6 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { SitemapItemStream, streamToPromise } from '../dist/index.js';
+import {
+  SitemapItemStream,
+  streamToPromise,
+  type LinkItem,
+} from '../dist/index.js';
 import {
   simpleText,
   simpleURL,
@@ -301,6 +305,58 @@ describe('sitemapItem-stream', () => {
               el('image:license', simpleURLEscaped)
           )
       )
+    );
+  });
+
+  it('emits an item that cannot be serialized as a stream error', async () => {
+    const smis = new SitemapItemStream();
+    // write() must not throw; the error arrives through the stream
+    smis.write({
+      url: 'https://example.com/a',
+      img: [],
+      video: [
+        {
+          thumbnail_loc: 'https://example.com/t.jpg',
+          title: 'Title',
+          description: 'Description',
+          player_loc: 'https://example.com/player',
+          'player_loc:autoplay': 5 as unknown as string,
+          tag: [],
+        },
+      ],
+      links: [],
+    });
+    smis.end();
+    await assert.rejects(streamToPromise(smis), {
+      message: /attribute "autoplay" value must be a string/,
+    });
+  });
+
+  it('drops a link with no lang or hreflang', async () => {
+    const smis = new SitemapItemStream();
+    smis.write({
+      url: 'https://example.com/a',
+      img: [],
+      video: [],
+      links: [{ url: 'https://example.com/b' } as unknown as LinkItem],
+    });
+    smis.end();
+    assert.ok(!(await streamToPromise(smis)).toString().includes('xhtml:link'));
+  });
+
+  it('writes a numeric priority to one decimal place', async () => {
+    const smis = new SitemapItemStream();
+    smis.write({
+      url: 'https://example.com/a',
+      priority: 0.55,
+      img: [],
+      video: [],
+      links: [],
+    });
+    smis.end();
+    assert.match(
+      (await streamToPromise(smis)).toString(),
+      /<priority>0\.6<\/priority>/
     );
   });
 });

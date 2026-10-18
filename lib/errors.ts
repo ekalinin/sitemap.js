@@ -51,17 +51,6 @@ export class PriorityInvalidError extends Error {
   }
 }
 
-/**
- * SitemapIndex target Folder does not exists
- */
-export class UndefinedTargetFolder extends Error {
-  constructor(message?: string) {
-    super(message || 'Target folder must exist');
-    this.name = 'UndefinedTargetFolder';
-    Error.captureStackTrace(this, UndefinedTargetFolder);
-  }
-}
-
 export class InvalidVideoFormat extends Error {
   constructor(url: string) {
     super(
@@ -207,6 +196,19 @@ export class InvalidVideoYesNo extends Error {
     super(`${url}: video ${field} must be yes or no, was passed "${value}"`);
     this.name = 'InvalidVideoYesNo';
     Error.captureStackTrace(this, InvalidVideoYesNo);
+  }
+}
+
+/**
+ * An alternate link has no `lang` or `hreflang`
+ */
+export class InvalidLinkHreflang extends Error {
+  constructor(url: string, href: string, value: unknown) {
+    super(
+      `${url}: alternate link to "${href}" needs a lang or hreflang string, was passed "${String(value)}"`
+    );
+    this.name = 'InvalidLinkHreflang';
+    Error.captureStackTrace(this, InvalidLinkHreflang);
   }
 }
 
