@@ -55,7 +55,11 @@ describe('simpleSitemapAndIndex', () => {
         publicBasePath: '/' + 'a'.repeat(2100) + '/',
         gzip: false,
       }),
-      /sitemap URL/
+      (err: Error) => {
+        assert.match(err.message, /sitemap URL/);
+        assert.ok(err.cause instanceof Error);
+        return true;
+      }
     );
     assert.ok(!existsSync(resolve(targetFolder, './sitemap-0.xml')));
   });
@@ -268,7 +272,11 @@ describe('simpleSitemapAndIndex', () => {
             destinationDir: targetFolder,
             gzip,
           }),
-          /EISDIR/
+          (err: Error) => {
+            assert.match(err.message, /EISDIR/);
+            assert.ok(err.cause instanceof Error);
+            return true;
+          }
         );
       }
     );

@@ -1,6 +1,10 @@
 import { SitemapAndIndexStream } from './sitemap-index-stream.js';
 import { SitemapStream } from './sitemap-stream.js';
-import { lineSeparatedURLsToSitemapOptions, openSitemapFile } from './utils.js';
+import {
+  errorMessage,
+  lineSeparatedURLsToSitemapOptions,
+  openSitemapFile,
+} from './utils.js';
 import { DEFAULT_SITEMAP_ITEM_LIMIT } from './constants.js';
 import { createGzip } from 'node:zlib';
 import { createWriteStream, createReadStream, promises } from 'node:fs';
@@ -108,7 +112,8 @@ export const simpleSitemapAndIndex = async ({
     await promises.mkdir(destinationDir, { recursive: true });
   } catch (err) {
     throw new Error(
-      `Failed to create destination directory "${destinationDir}": ${err instanceof Error ? err.message : String(err)}`
+      `Failed to create destination directory "${destinationDir}": ${errorMessage(err)}`,
+      { cause: err }
     );
   }
 
@@ -133,7 +138,8 @@ export const simpleSitemapAndIndex = async ({
             return new URL(publicPath, sitemapHostname).toString();
           } catch (err) {
             throw new Error(
-              `Failed to construct sitemap URL for index ${i}: ${err instanceof Error ? err.message : String(err)}`
+              `Failed to construct sitemap URL for index ${i}: ${errorMessage(err)}`,
+              { cause: err }
             );
           }
         },
@@ -148,7 +154,8 @@ export const simpleSitemapAndIndex = async ({
       src = lineSeparatedURLsToSitemapOptions(createReadStream(sourceData));
     } catch (err) {
       throw new Error(
-        `Failed to read sourceData file "${sourceData}": ${err instanceof Error ? err.message : String(err)}`
+        `Failed to read sourceData file "${sourceData}": ${errorMessage(err)}`,
+        { cause: err }
       );
     }
   } else if (sourceData instanceof Readable) {
@@ -182,9 +189,9 @@ export const simpleSitemapAndIndex = async ({
       );
     }
   } catch (err) {
-    throw new Error(
-      `Failed to write sitemap files: ${err instanceof Error ? err.message : String(err)}`
-    );
+    throw new Error(`Failed to write sitemap files: ${errorMessage(err)}`, {
+      cause: err,
+    });
   }
 };
 
