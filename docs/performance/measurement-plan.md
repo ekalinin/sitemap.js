@@ -31,7 +31,7 @@ required; 4–6 are diagnostic and help explain a change in the first three.
 | # | Metric | Unit | Why it matters |
 |---|---|---|---|
 | 1 | Throughput | items/s, and output MB/s | What users experience when generating or parsing large sitemaps. |
-| 2 | Memory growth with input size | MB of peak RSS per additional 100k items | Diagnostic: shows whether memory grows with input. Should be close to zero. The heap- and RSS-capped run in [Memory](#memory) is the pass/fail check. |
+| 2 | Memory growth with input size | MB of peak RSS per additional 100k items | Diagnostic: shows whether memory grows with input. Should be close to zero. The heap- and `Buffer`-capped run in [Memory](#memory) is the pass/fail check. |
 | 3 | Peak memory | MB of peak RSS above the post-import baseline | Sizing for memory-constrained environments such as serverless functions. |
 | 4 | CPU time per item | µs/item, user + system | Less sensitive to scheduling noise than wall-clock time, so useful on shared CI runners. |
 | 5 | Validation overhead | ratio of `WARN` to `SILENT` throughput | Shows the cost of [`lib/validation.ts`](../../lib/validation.ts), which the default error level runs. |
@@ -105,7 +105,10 @@ corpus, because real-world text (long descriptions, entities, CDATA) exercises
 code paths synthetic data misses.
 
 Generate fixtures in a separate process, never in the measured process, and
-time only the library's work. Write inputs under about 100 MB to a cache
+time only the library's work. The exception is bare URLs: generate those in
+the measured process from a counter (`https://example.com/${i}`) through a
+`Readable`. That allocates almost nothing, and it keeps line parsing out of
+scenarios whose entry point isn't `lineSeparatedURLsToSitemapOptions`. Write inputs under about 100 MB to a cache
 directory before the run. Pipe larger inputs from a generator process into
 the measured process's stdin, so they never touch disk.
 
@@ -138,7 +141,7 @@ A dedicated macro-benchmark runner fits this workload better than a
 microbenchmark library: each run lasts hundreds of milliseconds to seconds, so
 per-call overhead doesn't matter, and process isolation does. Write a small
 runner in `bench/` rather than adopting `tinybench` or `mitata`, whose
-in-process designs don't cover steps 3 or the memory method that follows.
+in-process designs don't cover step 3 or the memory method that follows.
 
 ### Memory
 
@@ -160,7 +163,8 @@ catches broken backpressure, where serialized output piles up in a stream's
 internal buffer.
 
 At 1M items this check takes too long for `npm test`, which the pre-commit
-hook and every CI matrix leg run: a 1M-entry `parse-xml` input is about 1 GB.
+hook and every CI matrix leg run: the `parse-xml` case parses about 1 GB of
+XML.
 Run it from its own script and its own CI job instead.
 
 ### Statistics and reporting
@@ -254,23 +258,23 @@ Create a `bench/` directory with the runner, scenarios, and fixture generator.
 - Add an `npm run bench` script that builds first, then runs the runner.
 
 Done when: `npm run bench` produces a JSON results file for the generation
-and parsing scenarios, and an A/A run on a maintainer's machine shows a noise
-floor under 5%.
+and parsing scenarios.
 
 ### Phase 3: Add memory measurement and the bounded-memory test
 
 - Add the child-process memory method to the runner.
 - Add `bench/memory-bound.mjs`, exposed as `npm run test:memory`, which runs
-  `generate-urls` and `parse-xml` at 1M items under a capped heap and asserts
-  that both complete and that peak `Buffer` memory stays under budget. Pipe
-  both inputs from a generator process, as described in [Fixtures](#fixtures),
-  so the check writes no 1 GB fixture and generator allocations don't count
-  against the budget.
+  `generate-urls`, `split-and-index`, and `parse-xml` at 1M items under a
+  capped heap and asserts that each completes and that peak `Buffer` memory
+  stays under budget. Pipe the `parse-xml` input from a generator process, as
+  described in [Fixtures](#fixtures), so the check writes no 1 GB fixture and
+  generator allocations don't count against the budget.
 - Add a CI job that runs `npm run test:memory` on one runner, separate from
   the test matrix.
 
 Done when: `npm run test:memory` fails if someone introduces buffering in
-`SitemapStream` or `XMLToSitemapItemStream`. Verify twice: once by
+`SitemapStream`, `SitemapAndIndexStream`, or `XMLToSitemapItemStream`.
+Verify twice: once by
 temporarily collecting items into an array inside the stream, and once by
 temporarily ignoring the destination's backpressure so output chunks pile up.
 
@@ -283,7 +287,8 @@ temporarily ignoring the destination's backpressure so output chunks pile up.
 - Document the workflow in `README.md` or a contributing guide.
 
 Done when: a contributor can paste the comparison table into a pull request
-description, and the Performance note in `CLAUDE.md` points to
+description, an A/A run on a maintainer's machine shows a noise floor under
+5%, and the Performance note in `CLAUDE.md` points to
 `npm run bench:compare` for before-and-after comparisons.
 
 ### Phase 5: Run benchmarks in CI
@@ -296,7 +301,9 @@ description, and the Performance note in `CLAUDE.md` points to
   document.
 
 Done when: nightly results accumulate as artifacts, and the labeled pull
-request job posts a comparison against `master`.
+request job writes a comparison against `master` to its job summary. The job
+keeps the repository's read-only `GITHUB_TOKEN`, which can't comment on pull
+requests from forks, so it doesn't post a comment.
 
 ### Phase 6: Retire the old harness
 
@@ -308,7 +315,8 @@ on it.
 
 Done when: one performance tool remains, this document no longer refers to
 `tests/perf.mjs` except for history, and the Performance note in `CLAUDE.md`
-points to `npm run bench` instead of `npm run test:perf`.
+no longer mentions `npm run test:perf` and still points to
+`npm run bench:compare` for before-and-after comparisons.
 
 ## Open questions
 
@@ -316,6 +324,6 @@ points to `npm run bench` instead of `npm run test:perf`.
   what most users run, but the oldest supported line catches regressions in
   the floor.
 - Should the bounded-memory test run on every platform in the CI matrix, or
-  only on Linux? RSS accounting differs between operating systems, so a
-  Linux-only test with a tighter budget may be more useful than a loose
-  cross-platform one.
+  only on Linux? The heap cap and `Buffer` accounting behave the same on
+  every platform, so the question is cost: parsing about 1 GB of XML on all 9
+  matrix legs adds runner time for little extra coverage.
