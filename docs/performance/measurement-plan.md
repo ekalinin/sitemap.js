@@ -108,9 +108,11 @@ Generate fixtures in a separate process, never in the measured process, and
 time only the library's work. The exception is bare URLs: generate those in
 the measured process from a counter (`https://example.com/${i}`) through a
 `Readable`. That allocates almost nothing, and it keeps line parsing out of
-scenarios whose entry point isn't `lineSeparatedURLsToSitemapOptions`. Write inputs under about 100 MB to a cache
-directory before the run. Pipe larger inputs from a generator process into
-the measured process's stdin, so they never touch disk.
+scenarios whose entry point isn't `lineSeparatedURLsToSitemapOptions`.
+
+Write other inputs under about 100 MB to a cache directory before the run.
+Pipe larger inputs from a generator process into the measured process's
+stdin, so they never touch disk.
 
 ### Correctness guard
 
