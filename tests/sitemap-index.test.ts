@@ -17,7 +17,7 @@ import { streamToPromise } from '../dist/lib/sitemap-stream.js';
 import { finished as finishedCallback, Writable } from 'node:stream';
 import { readFileSync, WriteStream } from 'node:fs';
 import { promisify } from 'node:util';
-import { ErrorLevel } from '../dist/lib/types.js';
+import { ErrorLevel, type IndexItem } from '../dist/lib/types.js';
 
 const finished = promisify(finishedCallback);
 
@@ -755,30 +755,90 @@ describe('sitemapAndIndex', () => {
       }
     );
 
-    it(
-      'fails at ErrorLevel.THROW when the index rejects a sitemap URL',
-      { timeout: 2000 },
-      async () => {
-        let sm: SitemapStream | undefined;
-        let ws: WriteStream | undefined;
-        const sms = new SitemapAndIndexStream({
-          level: ErrorLevel.THROW,
-          getSitemapStream: (): [string, SitemapStream, WriteStream] => {
-            sm = new SitemapStream();
-            ws = createWriteStream(devNull);
-            sm.pipe(ws);
-            return ['ftp://example.com/sitemap-0.xml', sm, ws];
-          },
-        });
-        sms.on('error', () => undefined);
-        sms.resume();
-        sms.write('https://1.example.com/a');
+    const rejectedIndexItems: [string, IndexItem | string, RegExp][] = [
+      [
+        'URL',
+        'ftp://example.com/sitemap-0.xml',
+        /Invalid URL in sitemap index/,
+      ],
+      [
+        'lastmod',
+        { url: 'https://example.com/sitemap-0.xml', lastmod: 'not a date' },
+        /Invalid lastmod date in sitemap index/,
+      ],
+    ];
+    for (const [field, indexItem, expectedError] of rejectedIndexItems) {
+      it(
+        `fails at ErrorLevel.THROW when the index rejects a sitemap ${field}`,
+        { timeout: 2000 },
+        async () => {
+          let sm: SitemapStream | undefined;
+          let ws: WriteStream | undefined;
+          const sms = new SitemapAndIndexStream({
+            level: ErrorLevel.THROW,
+            getSitemapStream: (): [
+              IndexItem | string,
+              SitemapStream,
+              WriteStream,
+            ] => {
+              sm = new SitemapStream();
+              ws = createWriteStream(devNull);
+              sm.pipe(ws);
+              return [indexItem, sm, ws];
+            },
+          });
+          const output: string[] = [];
+          sms.on('data', (chunk: string) => output.push(chunk));
+          sms.on('error', () => undefined);
+          sms.write('https://1.example.com/a');
 
-        await assert.rejects(finished(sms), /Invalid URL in sitemap index/);
-        assert.equal(sm?.destroyed, true);
-        assert.equal(ws?.destroyed, true);
-      }
-    );
+          await assert.rejects(finished(sms), expectedError);
+          assert.equal(sm?.destroyed, true);
+          assert.equal(ws?.destroyed, true);
+          assert.doesNotMatch(output.join(''), /<sitemap>/);
+        }
+      );
+    }
+
+    for (const level of [ErrorLevel.WARN, ErrorLevel.SILENT]) {
+      it(
+        `lists the sitemap without its invalid lastmod at ErrorLevel.${level}`,
+        { timeout: 2000 },
+        async () => {
+          const warnings: unknown[][] = [];
+          const sms = new SitemapAndIndexStream({
+            level,
+            logger: (_level, ...message) => warnings.push(message),
+            getSitemapStream: (): [IndexItem, SitemapStream, WriteStream] => {
+              const sm = new SitemapStream();
+              const ws = createWriteStream(devNull);
+              sm.pipe(ws);
+              return [
+                {
+                  url: 'https://example.com/sitemap-0.xml',
+                  lastmod: 'not a date',
+                },
+                sm,
+                ws,
+              ];
+            },
+          });
+          const output: string[] = [];
+          sms.on('data', (chunk: string) => output.push(chunk));
+          sms.write('https://1.example.com/a');
+          sms.end();
+
+          await finished(sms);
+          const index = output.join('');
+          assert.match(
+            index,
+            /<sitemap><loc>https:\/\/example\.com\/sitemap-0\.xml<\/loc><\/sitemap>/
+          );
+          assert.doesNotMatch(index, /<lastmod>/);
+          assert.equal(warnings.length, level === ErrorLevel.WARN ? 1 : 0);
+        }
+      );
+    }
 
     it(
       'leaves the closed sitemap alone when the next getSitemapStream fails',
