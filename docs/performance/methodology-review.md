@@ -1,6 +1,7 @@
 # Review of the performance measurement methodology
 
-Reviewed: 2026-10-19, against release 10.0.0.
+Reviewed: 2026-10-19, against release 10.0.0 (commit `eaa8f14`). Line links
+point to that commit.
 
 This document reviews how the project measures performance with
 [`tests/perf.mjs`](../../tests/perf.mjs), the only performance harness in the
@@ -49,15 +50,15 @@ from reading the code.
 
 1. **Passing `false` enables memory mode.** Arguments arrive as strings, and
    the string `"false"` is truthy, so `measureMemory` is on
-   ([`perf.mjs:38-40`](../../tests/perf.mjs)). Running
+   ([`perf.mjs:38-40`](https://github.com/ekalinin/sitemap.js/blob/eaa8f14/tests/perf.mjs#L38-L40)). Running
    `node tests/perf.mjs 1 3 stream false` reports results in `mb`.
 2. **An unknown test name runs the `stream` scenario without a warning.** The
    `default:` branch catches every unrecognized name
-   ([`perf.mjs:289-290`](../../tests/perf.mjs)). The usage text also lists a
+   ([`perf.mjs:289-290`](https://github.com/ekalinin/sitemap.js/blob/eaa8f14/tests/perf.mjs#L289-L290)). The usage text also lists a
    `combined` scenario that doesn't exist.
 3. **Memory mode reports a lifetime peak, not per-run usage.** `maxRSS` is the
    process's high-water mark and never decreases
-   ([`perf.mjs:95`](../../tests/perf.mjs)). A three-iteration run produced
+   ([`perf.mjs:95`](https://github.com/ekalinin/sitemap.js/blob/eaa8f14/tests/perf.mjs#L95)). A three-iteration run produced
    87, 104, and 107 MB. After the first few iterations, every sample repeats
    the same peak, so the median and standard deviation carry no information.
    The value also includes the Node.js baseline, the harness, and, in the
@@ -65,14 +66,14 @@ from reading the code.
    how the scenario is written, not how the library behaves.
 4. **Failed iterations still count as samples.** Each iteration catches and
    logs errors, then records a duration anyway
-   ([`perf.mjs:88-92`](../../tests/perf.mjs)). An iteration that throws early
+   ([`perf.mjs:88-92`](https://github.com/ekalinin/sitemap.js/blob/eaa8f14/tests/perf.mjs#L88-L92)). An iteration that throws early
    looks fast and pulls the median down. Output goes to `/dev/null` with no
    item or byte count, so a pipeline that emits nothing also passes.
 
 ### What gets measured
 
 5. **The metric is user-mode CPU time only.** It ignores `systemCPUTime` and
-   wall-clock time ([`perf.mjs:87,97`](../../tests/perf.mjs)). File reads,
+   wall-clock time ([`perf.mjs:87,97`](https://github.com/ekalinin/sitemap.js/blob/eaa8f14/tests/perf.mjs#L87)). File reads,
    decompression, and writes are largely system time, and time spent waiting
    on backpressure isn't CPU time at all. A change that adds stream stalls or
    extra event-loop turns can look neutral or faster.
@@ -80,7 +81,7 @@ from reading the code.
    includes garbage collector threads and the libuv thread pool, so collector
    work left over from one iteration lands in the next.
 7. **Samples are truncated to whole units.** The `| 0` drops the fractional
-   part ([`perf.mjs:95,97`](../../tests/perf.mjs)). That's coarse for
+   part ([`perf.mjs:95,97`](https://github.com/ekalinin/sitemap.js/blob/eaa8f14/tests/perf.mjs#L95)). That's coarse for
    iterations of about 100 ms and biases every sample downward.
 8. **Validation is never measured.** Every scenario sets
    `ErrorLevel.SILENT`, but the default is `ErrorLevel.WARN`. The harness
@@ -114,7 +115,7 @@ from reading the code.
     harness, it saves no results, and it can't compare two commits. Output is
     console text mixed with spinner frames.
 15. **The harness measures whatever is in `dist/`.** It doesn't build first
-    ([`perf.mjs:26`](../../tests/perf.mjs)), so a stale build gives stale
+    ([`perf.mjs:26`](https://github.com/ekalinin/sitemap.js/blob/eaa8f14/tests/perf.mjs#L26)), so a stale build gives stale
     numbers.
 16. **No environment metadata.** The output omits the Node.js version, CPU
     model, operating system, commit, and fixture, so results from different
@@ -128,6 +129,7 @@ from reading the code.
 ## Recommendation
 
 Fix issues 1–4 first. They're small changes, and they stop the harness from
-producing wrong numbers. Then replace the harness as described in
+producing wrong numbers. Issues 5 and 7 are one-line changes in the same
+code, so fix them at the same time. Then replace the harness as described in
 [Performance measurement plan](measurement-plan.md), which addresses the
 remaining issues.

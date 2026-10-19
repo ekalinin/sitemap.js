@@ -52,9 +52,11 @@ a few megabytes per 100k items; anything approaching the size of the data
 means something is buffering.
 
 **Peak memory.** In a fresh child process, record `maxRSS` after imports and
-fixture setup (the baseline), run the scenario once, then record `maxRSS`
-again. Report the difference. Because `maxRSS` never decreases, each process
-yields exactly one sample. For finer detail when investigating, also sample
+before any fixture setup (the baseline), run the scenario once, then record
+`maxRSS` again. Report the difference. Because `maxRSS` never decreases, any
+setup that runs in the child must stay below the scenario's peak, or it masks
+the scenario; generate fixtures in a separate process first, and have the
+child stream them from disk. Each process yields exactly one sample. For finer detail when investigating, also sample
 `process.memoryUsage().heapUsed` every 50 ms and report its maximum.
 
 **CPU time per item.** The sum of `userCPUTime` and `systemCPUTime` from
@@ -81,11 +83,12 @@ names are stable identifiers; results are keyed by them.
 | `split-and-index` | `SitemapAndIndexStream` | 1M bare URLs, default 50,000 limit | Files in a temp directory |
 | `simple-gzip` | `simpleSitemapAndIndex` | 1M bare URLs, gzip on | Files in a temp directory |
 | `parse-xml` | `XMLToSitemapItemStream` | `perf-data.xml` (21,753 `<url>` entries) | Object sink that counts items |
-| `parse-index` | `XMLToSitemapIndexStream` | Generated index with 1,000 entries | Object sink that counts items |
+| `parse-index` | `XMLToSitemapIndexStream` | Generated index with 50,000 entries (the protocol maximum) | Object sink that counts items |
 | `round-trip` | `XMLToSitemapItemStream` → `SitemapStream` | `perf-data.xml` | `/dev/null` |
 | `cli` | `sitemap` binary | 1M bare URLs on stdin | `/dev/null` |
 
-Run each generation scenario at both error levels to produce metric 5. Run
+Run each generation scenario except `cli`, which has no option to set the
+error level, at both error levels to produce metric 5. Run
 `generate-urls`, `split-and-index`, and `parse-xml` at 100k and 1M items to
 produce metric 2; for `parse-xml`, generate the larger input by repeating the
 corpus with unique URLs.
@@ -99,8 +102,8 @@ item count. Keep `perf-data.xml` and `perf-data.json.txt` as the realistic
 corpus, because real-world text (long descriptions, entities, CDATA) exercises
 code paths synthetic data misses.
 
-Write generated fixtures to a cache directory outside the timed region, and
-time only the library's work.
+Generate fixtures in a separate process before any timed or memory run, write
+them to a cache directory, and time only the library's work.
 
 ### Correctness guard
 
@@ -136,14 +139,19 @@ in-process designs don't cover steps 3 or the memory method that follows.
 ### Memory
 
 Run each memory sample in its own child process, because `maxRSS` only grows.
-Spawn the child with `--expose-gc`, let it record the post-import baseline,
-run the scenario once, and print a JSON line with both readings. Take 5
+Spawn the child with `--expose-gc`, let it record the baseline after imports
+and before reading any fixture, run the scenario once, and print a JSON line with both readings. Take 5
 samples per scenario and size, and report the median.
 
-The memory growth check (metric 2) is stable enough to run as an ordinary test
-in `npm test`. Assert that growth from 100k to 1M items stays under a fixed
-budget. Set the budget at roughly three times the value you observe locally,
-to leave room for platform differences.
+RSS growth (metric 2) also moves with lazy V8 heap growth and allocator
+behavior, so treat it as a diagnostic, not a pass/fail check. To test bounded
+memory directly, run the 1M-item scenario with a capped heap, such as
+`--max-old-space-size=64`, and assert that it completes. A pipeline that
+buffers runs out of heap; one that streams doesn't, on any platform.
+
+At 1M items this check takes too long for `npm test`, which the pre-commit
+hook and every CI matrix leg run: a 1M-entry `parse-xml` input is about 1 GB.
+Run it from its own script and its own CI job instead.
 
 ### Statistics and reporting
 
@@ -151,7 +159,10 @@ For every metric, report the median, the IQR, the minimum, and the sample
 count. Don't report p99; with 50 samples it's the maximum.
 
 To compare two commits, report the relative difference in medians and a 95%
-confidence interval for that difference, computed by bootstrap resampling.
+confidence interval for that difference, computed by bootstrap resampling at
+the process level: resample whole processes, then samples within them. Samples
+from one process share its JIT and memory-layout effects, so resampling
+individual samples as if independent makes the interval too narrow.
 Call a result a regression only when the whole interval sits above the noise
 threshold.
 
@@ -204,7 +215,8 @@ Each phase is independently useful and can land as its own pull request.
 
 ### Phase 1: Fix the existing harness
 
-Fix the four bugs that produce wrong numbers, so `npm run test:perf` is
+Fix the bugs that produce wrong numbers, plus the CPU-metric issues in the
+same code, so `npm run test:perf` is
 trustworthy until it's replaced.
 
 - Parse `measureMemory` as a boolean, and reject unknown scenario names.
@@ -213,7 +225,8 @@ trustworthy until it's replaced.
 - Print a warning that memory mode reports a lifetime peak, or remove the
   mode.
 
-Done when: the review's issues 1, 2, 4, 5, and 7 are fixed.
+Done when: the review's issues 1–5 and 7 are fixed, and the Performance note
+in `CLAUDE.md` no longer says the harness's numbers are untrustworthy.
 
 ### Phase 2: Build the benchmark runner
 
@@ -234,10 +247,14 @@ floor under 5%.
 ### Phase 3: Add memory measurement and the bounded-memory test
 
 - Add the child-process memory method to the runner.
-- Add `tests/memory-bound.test.ts`, which runs `generate-urls` and
-  `parse-xml` at 100k and 1M items and asserts the growth budget.
+- Add `bench/memory-bound.mjs`, exposed as `npm run test:memory`, which runs
+  `generate-urls` and `parse-xml` at 1M items under a capped heap and asserts
+  that both complete. Generate both inputs on the fly as streams, so the check
+  writes no 1 GB fixture.
+- Add a CI job that runs `npm run test:memory` on one runner, separate from
+  the test matrix.
 
-Done when: `npm test` fails if someone introduces buffering in
+Done when: `npm run test:memory` fails if someone introduces buffering in
 `SitemapStream` or `XMLToSitemapItemStream`. Verify by temporarily collecting
 items into an array inside the stream.
 
@@ -266,13 +283,14 @@ request job posts a comparison against `master`.
 
 ### Phase 6: Retire the old harness
 
-Remove `tests/perf.mjs`, the `test:perf` script, the `stats-lite` and
-`memorystream` dev dependencies if nothing else uses them, and any fixture
-files the new scenarios don't use. Keep `test:perf` as an alias for
+Remove `tests/perf.mjs`, the `test:perf` script, the `stats-lite` dev
+dependency, and any fixture files the new scenarios don't use. Keep
+`memorystream`, which `tests/sitemap-utils.test.ts` also uses. Keep `test:perf` as an alias for
 `npm run bench` for one release if anyone depends on it.
 
-Done when: one performance tool remains, and this document no longer refers
-to `tests/perf.mjs` except for history.
+Done when: one performance tool remains, this document no longer refers to
+`tests/perf.mjs` except for history, and the Performance note in `CLAUDE.md`
+points to `npm run bench` instead of `npm run test:perf`.
 
 ## Open questions
 
