@@ -61,6 +61,9 @@ Control validation strictness with `ErrorLevel`:
 - `WARN`: Log warnings (default, good for development)
 - `THROW`: Throw on invalid data (strict mode, good for testing)
 
+### Performance
+`npm run test:perf` (`tests/perf.mjs`) has known methodology bugs; don't trust its numbers for before/after comparisons. See [docs/performance/methodology-review.md](docs/performance/methodology-review.md) for the issues and [docs/performance/measurement-plan.md](docs/performance/measurement-plan.md) for the metrics and the replacement harness.
+
 ## Package Distribution
 
 The package is ESM-only, with `"type": "module"` in package.json. There is no
