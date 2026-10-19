@@ -83,7 +83,7 @@
     "stats-lite": "^2.2.0",
     "stream-json": "^3.7.0",
     "through2-map": "^4.0.0",
-    "typescript": "^5.4.5"
+    "typescript": "^7.0.2"
   },
   "packageManager": "npm@11.17.0",
   "engines": {
