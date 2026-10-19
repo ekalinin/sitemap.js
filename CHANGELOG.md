@@ -10,9 +10,9 @@
   built-in `require(esm)`. The `dist/cjs` build, the `require` export condition,
   and `tsconfig.cjs.json` are all gone; `exports` now resolves to `dist/index.js`
   for every consumer. Migrate to `import { SitemapStream } from 'sitemap'`.
-- **Node.js >=22.12 now required** (previously >=20.19.5). The floor is 22.12
-  rather than 22.0 because that is where `require(esm)` landed unflagged, which
-  is what lets CommonJS consumers keep loading this package at all.
+- **Node.js >=22.22.1 now required** (previously >=20.19.5). CommonJS
+  consumers can still load this package through `require(esm)`, which landed
+  unflagged in 22.12; the floor is 22.22.1 to match the development toolchain.
 - Build output flattened from `dist/esm/*` and `dist/cjs/*` to `dist/*`. The
   `bin` entry is now `dist/cli.js`.
 
@@ -192,6 +192,18 @@ base class, so they report errors and cap entries the same way.
   `parseSitemapIndex` rejects on the first entry); a negative, fractional or
   `NaN` value is rejected, and `parseSitemapIndex` destroys the source stream
   before rejecting.
+- Errors that `simpleSitemapAndIndex` and `SitemapAndIndexStream` wrap, such
+  as `Failed to write sitemap files: …` or a `getSitemapStream` failure, now
+  carry the original error as `cause`.
+- `SaxParserStreamOptions`, the shared base of `XMLToSitemapItemStreamOptions`
+  and `XMLToSitemapIndexItemStreamOptions`, is exported.
+- `LIMITS` gains the bounds the validators use: `MIN_PRIORITY`,
+  `MAX_PRIORITY`, `PRIORITY_STRING_REGEX`, `MIN_VIDEO_DURATION`,
+  `MAX_VIDEO_DURATION`, `MIN_VIDEO_RATING`, `MAX_VIDEO_RATING` and
+  `MIN_VIDEO_VIEW_COUNT`.
+- `LIMITS.MAX_URL_ENTRIES` is deprecated. Nothing reads it; the parsers cap
+  entries at `LIMITS.MAX_SITEMAP_ITEM_LIMIT` (the same value), which their
+  `maxEntries` option overrides.
 
 ### Fixed
 
@@ -298,6 +310,11 @@ base class, so they report errors and cap entries the same way.
   rejected rather than converted.
 - `InvalidLimitError` says the limit must be an integer between 1 and 50000,
   rather than a number, since fractional limits are rejected too.
+- `XMLToSitemapItemStream` no longer adds an empty `{ url: '', lang: '' }`
+  entry to `links` for an `xhtml:link` that lacks `rel` or `href` or has an
+  unsupported `rel`. It still warns and records a parse error.
+- `XMLToSitemapItemStream` and `XMLToSitemapIndexStream` copy their options
+  instead of setting `objectMode` on the object the caller passed in.
 
 ### Documentation
 
