@@ -12,6 +12,24 @@ import { LIMITS } from './constants.js';
 import { createCharDataBuffer } from './utils.js';
 import { resolveLogger } from './logger.js';
 
+const NAMESPACE_PREFIXES: Record<string, string> = {
+  'http://www.sitemaps.org/schemas/sitemap/0.9': '',
+  'http://www.google.com/schemas/sitemap-image/1.1': 'image:',
+  'http://www.google.com/schemas/sitemap-video/1.1': 'video:',
+  'http://www.google.com/schemas/sitemap-news/0.9': 'news:',
+  'http://www.w3.org/1999/xhtml': 'xhtml:',
+  'http://www.google.com/schemas/sitemap-mobile/1.0': 'mobile:',
+};
+
+const XMLNS_URI = 'http://www.w3.org/2000/xmlns/';
+
+function resolveCanonicalTagName(tag: QualifiedTag): string {
+  if (tag.uri && Object.hasOwn(NAMESPACE_PREFIXES, tag.uri)) {
+    return `${NAMESPACE_PREFIXES[tag.uri]}${tag.local}`;
+  }
+  return tag.name;
+}
+
 /**
  * Shared plumbing for the XML parser streams: sax setup, character-data
  * buffering, error collection, backpressure, and the entry cap. Subclasses
@@ -71,29 +89,40 @@ export abstract class SaxParserStream<T> extends Transform {
         this.report('warn', msg);
       },
     });
-    let currentTag = '';
+    const tagStack: string[] = [];
+    let pendingAttrs: QualifiedAttribute[] = [];
 
-    this.saxStream.on('opentagstart', (tag): void => {
-      charData.openTag(tag.name);
-      currentTag = tag.name;
+    this.saxStream.on('opentagstart', (): void => {
+      pendingAttrs = [];
     });
 
     this.saxStream.on('opentag', (tag): void => {
-      if (!config.isKnownTag(tag.name)) {
-        this.logger('warn', 'unhandled tag', tag.name);
-        this.err(`unhandled tag: ${tag.name}`);
+      const qualifiedTag = tag as QualifiedTag;
+      const canonicalTag = resolveCanonicalTagName(qualifiedTag);
+      tagStack.push(canonicalTag);
+      charData.openTag(canonicalTag);
+
+      if (!config.isKnownTag(canonicalTag)) {
+        this.logger('warn', 'unhandled tag', canonicalTag);
+        this.err(`unhandled tag: ${canonicalTag}`);
       }
-      this.onOpenTag(tag as QualifiedTag);
+      for (const attr of pendingAttrs) {
+        if (attr.uri !== XMLNS_URI) {
+          this.onAttribute(canonicalTag, attr);
+        }
+      }
+      this.onOpenTag({ ...qualifiedTag, name: canonicalTag });
     });
     this.saxStream.on('text', charData.append);
     this.saxStream.on('cdata', charData.append);
     this.saxStream.on('attribute', (attr): void => {
-      this.onAttribute(currentTag, attr as QualifiedAttribute);
+      pendingAttrs.push(attr as QualifiedAttribute);
     });
 
     this.saxStream.on('closetag', (tag): void => {
+      const canonicalTag = tagStack.pop() ?? tag;
       charData.closeTag();
-      this.onCloseTag(tag);
+      this.onCloseTag(canonicalTag);
     });
   }
 

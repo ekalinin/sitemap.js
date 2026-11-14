@@ -9,6 +9,7 @@ import {
   XMLToSitemapItemStream,
   ObjectStreamToJSON,
 } from '../dist/lib/sitemap-parser.js';
+import { parseSitemapIndex } from '../dist/lib/sitemap-index-parser.js';
 import type { SitemapStreamOptions } from '../dist/lib/sitemap-stream.js';
 import { ErrorLevel } from '../dist/lib/types.js';
 import type { SitemapItem } from '../dist/lib/types.js';
@@ -306,6 +307,40 @@ describe('XMLToSitemapItemStream', () => {
       results[0].video[0].thumbnail_loc,
       'https://example.com/t.jpg'
     );
+  });
+
+  it('matches tags by XML namespace URI rather than prefix', async () => {
+    const customPrefixXml = `<ns0:urlset xmlns:ns0="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:ns1="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xh="http://www.w3.org/1999/xhtml"><ns0:url><ns0:loc>https://example.com/a</ns0:loc><ns1:image><ns1:loc>https://example.com/i.png</ns1:loc></ns1:image><xh:link rel="alternate" hreflang="en" href="https://example.com/en" /></ns0:url></ns0:urlset>`;
+    const customPrefixResults = await parseSitemap(
+      Readable.from([customPrefixXml])
+    );
+    assert.deepStrictEqual(customPrefixResults, [
+      {
+        img: [{ url: 'https://example.com/i.png' }],
+        video: [],
+        links: [{ lang: 'en', url: 'https://example.com/en' }],
+        url: 'https://example.com/a',
+      },
+    ]);
+
+    const defaultNsChildXml = `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.com/a</loc><image xmlns="http://www.google.com/schemas/sitemap-image/1.1"><loc>https://example.com/i.png</loc></image></url></urlset>`;
+    const defaultNsResults = await parseSitemap(
+      Readable.from([defaultNsChildXml])
+    );
+    assert.deepStrictEqual(defaultNsResults, [
+      {
+        img: [{ url: 'https://example.com/i.png' }],
+        video: [],
+        links: [],
+        url: 'https://example.com/a',
+      },
+    ]);
+
+    const indexXml = `<si:sitemapindex xmlns:si="http://www.sitemaps.org/schemas/sitemap/0.9"><si:sitemap><si:loc>https://example.com/sub.xml</si:loc></si:sitemap></si:sitemapindex>`;
+    const indexResults = await parseSitemapIndex(Readable.from([indexXml]));
+    assert.deepStrictEqual(indexResults, [
+      { url: 'https://example.com/sub.xml' },
+    ]);
   });
 
   it('rejects loc values that fail URL parsing', async () => {
